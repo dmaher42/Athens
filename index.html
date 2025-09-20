@@ -347,6 +347,31 @@
         .map-icon-democracy { background-color: #4dabf7; }
         .map-icon-cultural { background-color: #FFD700; }
         .map-icon-natural { background-color: #28a745; }
+        #landmarks-controls {
+            position: fixed;
+            right: 24px;
+            top: calc(16px + 420px + 12px);
+            z-index: 151;
+            padding: 8px 12px;
+            border: 1px solid #FFD700;
+            border-radius: 8px;
+            background: rgba(18, 24, 36, 0.75);
+            color: #fdf6df;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #landmarks-controls label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        #landmarks-controls input[type="checkbox"] {
+            accent-color: #FFD700;
+        }
     </style>
 </head>
 <body>
@@ -404,6 +429,13 @@
         style="position:fixed; right:16px; top:16px; width:420px; height:420px; z-index:150;
                border:1px solid #FFD700; border-radius:10px; background:rgba(0,0,0,.18);">
 </canvas>
+
+    <div id="landmarks-controls">
+        <label>
+            <input type="checkbox" id="show-agora-layer">
+            Agora plan overlay
+        </label>
+    </div>
 
 
     <script>
@@ -2617,13 +2649,29 @@ async function loadAthensGeo() {
             setRotation: (degrees) => projector.setRotation(degrees)
         };
         const lmCanvas = document.getElementById('landmarks-canvas');
-createLandmarkOverlay(lmCanvas, {
-  // if your file lives at data/athens_places.geojson in the repo, this keeps it safe on GitHub Pages:
-  geoJsonUrl: './data/athens_places.geojson',
-  markerFill: '#FFD700',
-  markerStroke: '#704c00',
-  fitPadding: 48
-}).catch(err => console.error('Landmark overlay failed to initialize:', err));
+        const agoraToggle = document.getElementById('show-agora-layer');
+        const initialAgoraState = agoraToggle ? Boolean(agoraToggle.checked) : false;
+
+        createLandmarkOverlay(lmCanvas, {
+            // if your file lives at data/athens_places.geojson in the repo, this keeps it safe on GitHub Pages:
+            geoJsonUrl: './data/athens_places.geojson',
+            markerFill: '#FFD700',
+            markerStroke: '#704c00',
+            fitPadding: 48,
+            showAgoraLayer: initialAgoraState
+        })
+            .then((overlay) => {
+                if (agoraToggle && typeof overlay?.setShowAgoraLayer === 'function') {
+                    const currentState = typeof overlay.getShowAgoraLayer === 'function'
+                        ? overlay.getShowAgoraLayer()
+                        : Boolean(overlay.showAgoraLayer);
+                    agoraToggle.checked = currentState;
+                    agoraToggle.addEventListener('change', () => {
+                        overlay.setShowAgoraLayer(agoraToggle.checked);
+                    });
+                }
+            })
+            .catch((err) => console.error('Landmark overlay failed to initialize:', err));
 
     </script>
 </body>
