@@ -799,15 +799,186 @@
                 parthenon.add(createEnhancedColumn(-15, -5.5 + i * 3.5, 12));
                 parthenon.add(createEnhancedColumn(15, -5.5 + i * 3.5, 12));
             }
-            const roofGeometry = new THREE.ConeGeometry(20, 6, 4);
-            roofGeometry.rotateY(Math.PI/4);
-            const roof = new THREE.Mesh(roofGeometry, redTileMaterial);
-            if(roof.material.map) {
-                roof.material.map.repeat.set(8, 8);
-            }
-            roof.position.set(0, 16, 0);
-            roof.castShadow = true;
-            parthenon.add(roof);
+            const roofGroup = new THREE.Group();
+            const roofLength = 32;
+            const roofDepth = 18;
+            const roofHeight = 4.5;
+            const halfLength = roofLength / 2;
+            const halfDepth = roofDepth / 2;
+            const pedimentDepth = 0.8;
+            const slopeRun = Math.sqrt(halfDepth * halfDepth + roofHeight * roofHeight);
+
+            const roofTileTexture = redTileMaterial.map.clone();
+            roofTileTexture.wrapS = roofTileTexture.wrapT = THREE.RepeatWrapping;
+            roofTileTexture.repeat.set(roofLength / 4, slopeRun / 2);
+            roofTileTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            roofTileTexture.needsUpdate = true;
+
+            const roofTileMaterial = redTileMaterial.clone();
+            roofTileMaterial.map = roofTileTexture;
+            roofTileMaterial.roughness = Math.max(0.45, roofTileMaterial.roughness - 0.15);
+            roofTileMaterial.metalness = 0.05;
+
+            const createSlopeGeometry = (sign = 1) => {
+                const geometry = new THREE.BufferGeometry();
+                const positions = sign > 0
+                    ? new Float32Array([
+                        -halfLength, 0, halfDepth,
+                         halfLength, 0, halfDepth,
+                         halfLength, roofHeight, 0,
+                         halfLength, roofHeight, 0,
+                        -halfLength, roofHeight, 0,
+                        -halfLength, 0, halfDepth
+                    ])
+                    : new Float32Array([
+                        -halfLength, 0, -halfDepth,
+                        -halfLength, roofHeight, 0,
+                         halfLength, roofHeight, 0,
+                         halfLength, roofHeight, 0,
+                         halfLength, 0, -halfDepth,
+                        -halfLength, 0, -halfDepth
+                    ]);
+                const uvs = sign > 0
+                    ? new Float32Array([
+                        0, 0,
+                        1, 0,
+                        1, 1,
+                        1, 1,
+                        0, 1,
+                        0, 0
+                    ])
+                    : new Float32Array([
+                        0, 0,
+                        0, 1,
+                        1, 1,
+                        1, 1,
+                        1, 0,
+                        0, 0
+                    ]);
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+                geometry.computeVertexNormals();
+                return geometry;
+            };
+
+            const southSlope = new THREE.Mesh(createSlopeGeometry(1), roofTileMaterial);
+            southSlope.castShadow = true;
+            southSlope.receiveShadow = true;
+            roofGroup.add(southSlope);
+
+            const northSlopeMaterial = roofTileMaterial.clone();
+            northSlopeMaterial.map = roofTileTexture.clone();
+            northSlopeMaterial.map.wrapS = northSlopeMaterial.map.wrapT = THREE.RepeatWrapping;
+            northSlopeMaterial.map.repeat.copy(roofTileTexture.repeat);
+            northSlopeMaterial.map.anisotropy = roofTileTexture.anisotropy;
+            northSlopeMaterial.map.needsUpdate = true;
+            const northSlope = new THREE.Mesh(createSlopeGeometry(-1), northSlopeMaterial);
+            northSlope.castShadow = true;
+            northSlope.receiveShadow = true;
+            roofGroup.add(northSlope);
+
+            const roofDeckTexture = marbleMaterial.map.clone();
+            roofDeckTexture.wrapS = roofDeckTexture.wrapT = THREE.RepeatWrapping;
+            roofDeckTexture.repeat.set(roofLength / 6, roofDepth / 4);
+            roofDeckTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            roofDeckTexture.needsUpdate = true;
+            const roofDeckMaterial = marbleMaterial.clone();
+            roofDeckMaterial.map = roofDeckTexture;
+            const roofDeck = new THREE.Mesh(new THREE.BoxGeometry(roofLength, 0.5, roofDepth), roofDeckMaterial);
+            roofDeck.position.y = -0.25;
+            roofDeck.castShadow = true;
+            roofDeck.receiveShadow = true;
+            roofGroup.add(roofDeck);
+
+            const pedimentTexture = marbleMaterial.map.clone();
+            pedimentTexture.wrapS = pedimentTexture.wrapT = THREE.RepeatWrapping;
+            pedimentTexture.repeat.set(roofLength / 6, roofHeight / 2);
+            pedimentTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            pedimentTexture.needsUpdate = true;
+            const pedimentMaterial = marbleMaterial.clone();
+            pedimentMaterial.map = pedimentTexture;
+            pedimentMaterial.roughness = Math.max(0.35, pedimentMaterial.roughness - 0.05);
+
+            const buildPedimentGeometry = () => {
+                const geometry = new THREE.BufferGeometry();
+                const positions = [];
+                const uvs = [];
+                const addTriangle = (a, b, c, uva, uvb, uvc) => {
+                    positions.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+                    uvs.push(uva[0], uva[1], uvb[0], uvb[1], uvc[0], uvc[1]);
+                };
+
+                const f0 = [-halfLength, 0, pedimentDepth / 2];
+                const f1 = [halfLength, 0, pedimentDepth / 2];
+                const f2 = [0, roofHeight, pedimentDepth / 2];
+                const b0 = [-halfLength, 0, -pedimentDepth / 2];
+                const b1 = [halfLength, 0, -pedimentDepth / 2];
+                const b2 = [0, roofHeight, -pedimentDepth / 2];
+
+                addTriangle(f0, f1, f2, [0, 0], [1, 0], [0.5, 1]);
+                addTriangle(b0, b2, b1, [0, 0], [0.5, 1], [1, 0]);
+                addTriangle(f0, f1, b1, [0, 0], [1, 0], [1, 1]);
+                addTriangle(f0, b1, b0, [0, 0], [1, 1], [0, 1]);
+                addTriangle(f0, b2, b0, [0, 0], [1, 1], [1, 0]);
+                addTriangle(f0, f2, b2, [0, 0], [1, 0], [1, 1]);
+                addTriangle(f1, b1, b2, [0, 0], [0, 1], [1, 1]);
+                addTriangle(f1, b2, f2, [0, 0], [1, 1], [1, 0]);
+
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(positions), 3));
+                geometry.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(uvs), 2));
+                geometry.computeVertexNormals();
+                return geometry;
+            };
+
+            const pedimentGeometry = buildPedimentGeometry();
+            const reliefMaterial = createEnhancedMaterial(0xD5C7A8, 0.6, 0.1);
+            reliefMaterial.side = THREE.FrontSide;
+
+            const createPediment = (isFront = true) => {
+                const group = new THREE.Group();
+                const pedimentMesh = new THREE.Mesh(pedimentGeometry, pedimentMaterial);
+                pedimentMesh.castShadow = true;
+                pedimentMesh.receiveShadow = true;
+                group.add(pedimentMesh);
+
+                const reliefInset = 2.5;
+                const reliefShape = new THREE.Shape();
+                reliefShape.moveTo(-halfLength + reliefInset, 0.6);
+                reliefShape.lineTo(halfLength - reliefInset, 0.6);
+                reliefShape.lineTo(0, roofHeight - 0.8);
+                reliefShape.closePath();
+                const reliefGeometry = new THREE.ShapeGeometry(reliefShape);
+                const relief = new THREE.Mesh(reliefGeometry, reliefMaterial);
+                relief.position.z = pedimentDepth / 2 + 0.02;
+                relief.castShadow = true;
+                group.add(relief);
+
+                if (!isFront) {
+                    group.rotation.y = Math.PI;
+                }
+                group.position.z = isFront ? halfDepth - pedimentDepth / 2 : -halfDepth + pedimentDepth / 2;
+                return group;
+            };
+
+            const frontPediment = createPediment(true);
+            const backPediment = createPediment(false);
+            roofGroup.add(frontPediment);
+            roofGroup.add(backPediment);
+
+            const ridgeMaterial = pedimentMaterial.clone();
+            ridgeMaterial.map = pedimentTexture.clone();
+            ridgeMaterial.map.wrapS = ridgeMaterial.map.wrapT = THREE.RepeatWrapping;
+            ridgeMaterial.map.repeat.set(roofLength / 6, 1);
+            ridgeMaterial.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            ridgeMaterial.map.needsUpdate = true;
+            const ridge = new THREE.Mesh(new THREE.BoxGeometry(roofLength + 0.2, 0.3, 0.6), ridgeMaterial);
+            ridge.position.y = roofHeight - 0.1;
+            ridge.castShadow = true;
+            ridge.receiveShadow = true;
+            roofGroup.add(ridge);
+
+            roofGroup.position.y = 12.55;
+            parthenon.add(roofGroup);
             const athenaGeometry = new THREE.CylinderGeometry(0.5, 0.8, 8);
             const athena = new THREE.Mesh(athenaGeometry, goldMaterial);
             athena.position.set(0, 10, 0);
