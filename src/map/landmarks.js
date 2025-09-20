@@ -1,5 +1,6 @@
 import { loadGeoJson } from '../geo/geoLoader.js';
 import { LocalEquirectangularProjection } from '../geo/projection.js';
+import { AgoraLayer } from './agoraLayer.js';
 
 const LANDMARK_LABELS = {
     'Acropolis of Athens': 'Acropolis',
@@ -148,6 +149,13 @@ export class LandmarkOverlay {
         this.cityWallStyle = { ...CITY_WALL_STYLE, ...options.cityWallStyle };
         this.longWallStyle = { ...LONG_WALL_STYLE, ...options.longWallStyle };
 
+        this.agoraLayer = new AgoraLayer({
+            dataUrl: options.agoraDataUrl,
+            fetchImpl: options.fetchImpl
+        });
+        this.showAgoraLayer = Boolean(options.showAgoraLayer);
+        this.agoraLayer.setVisible(this.showAgoraLayer);
+
         this.camera = {
             center: { x: 0, y: 0 },
             zoom: 1
@@ -156,6 +164,7 @@ export class LandmarkOverlay {
         this.landmarks = [];
         this.longWalls = [];
         this.cityWallPath = null;
+        this.agoraAnchorWorld = null;
         this.projection = null;
         this.isDragging = false;
         this.lastPointerPosition = { x: 0, y: 0 };
@@ -192,6 +201,13 @@ export class LandmarkOverlay {
         }
         const geoJson = await loadGeoJson(this.options.geoJsonUrl, this.options.fetchImpl);
         this._prepareData(geoJson);
+        if (this.agoraLayer) {
+            try {
+                await this.agoraLayer.load();
+            } catch (error) {
+                console.warn('Failed to load Agora plan overlay data:', error);
+            }
+        }
         this._fitView(this.options.fitPadding ?? CITY_PADDING_PX);
         this._initialized = true;
         this.requestRender();
@@ -220,6 +236,22 @@ export class LandmarkOverlay {
             this._renderScheduled = false;
             this._render();
         });
+    }
+
+    setShowAgoraLayer(show) {
+        const visible = Boolean(show);
+        if (visible === this.showAgoraLayer) {
+            return;
+        }
+        this.showAgoraLayer = visible;
+        if (this.agoraLayer) {
+            this.agoraLayer.setVisible(visible);
+        }
+        this.requestRender();
+    }
+
+    getShowAgoraLayer() {
+        return this.showAgoraLayer;
     }
 
     _handleResize() {
@@ -335,6 +367,10 @@ export class LandmarkOverlay {
         this.longWalls = [];
         this.cityWallPath = null;
         this.bounds = null;
+        this.agoraAnchorWorld = null;
+        if (this.agoraLayer) {
+            this.agoraLayer.setAnchorWorld(null);
+        }
 
         const cityPoints = [];
 
@@ -353,6 +389,12 @@ export class LandmarkOverlay {
                     const landmark = { name: properties.name, label, world };
                     this.landmarks.push(landmark);
                     cityPoints.push({ x: world.x, y: world.y });
+                }
+                if (properties.name === 'Agora of Athens (Ancient Agora)') {
+                    this.agoraAnchorWorld = { x: world.x, y: world.y };
+                    if (this.agoraLayer) {
+                        this.agoraLayer.setAnchorWorld(this.agoraAnchorWorld);
+                    }
                 }
             } else if (geometry.type === 'LineString') {
                 const points = geometry.coordinates.map((coordinate) => this.projection.projectGeoJsonPosition(coordinate));
@@ -430,6 +472,18 @@ export class LandmarkOverlay {
                 this._drawPolyline(wall.points, { closed: false, stroke: this.longWallStyle.stroke, width: this.longWallStyle.width });
                 this._drawPathLabel(wall.points, wall.label);
             }
+        }
+
+        if (this.showAgoraLayer && this.agoraLayer) {
+            this.agoraLayer.render({
+                context: ctx,
+                worldToScreen: (point) => this._worldToScreen(point),
+                labelStyle: {
+                    font: this.labelFont,
+                    textColor: this.labelTextColor,
+                    background: this.labelBackground
+                }
+            });
         }
 
         for (const landmark of this.landmarks) {
