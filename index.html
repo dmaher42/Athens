@@ -413,25 +413,32 @@
         const flightVerticalSpeed = 8.0;
         const CITY_SCALE = 2;
         const scaleValue = (value) => value * CITY_SCALE;
+        const scaleLocation = ({ x, y = 0, z }) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
         const scaleXZ = (x, z) => ({ x: scaleValue(x), z: scaleValue(z) });
-        const scaledVector3 = (x, y, z) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
+        const scaledVector3 = (x, y, z) => scaleLocation({ x, y, z });
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+        const scaleBounds = ({ xMin, xMax, zMin, zMax }) => ({
+            xMin: scaleValue(xMin),
+            xMax: scaleValue(xMax),
+            zMin: scaleValue(zMin),
+            zMax: scaleValue(zMax)
+        });
         let isFlying = false;
         let clock = new THREE.Clock();
         let mixer; // Animation Mixer
-        
+
         let cameraOffset = new THREE.Vector3(0, 3, 7);
 
         let audioStarted = false;
         const chickens = [];
         const citizens = [];
         const citizenZones = [
-            { name: 'agora', center: scaledVector3(0, 0, 4), radius: scaleValue(12), count: 6 },
-            { name: 'pnyx', center: scaledVector3(-28, 0, 14), radius: scaleValue(8), count: 3 },
-            { name: 'stoa', center: scaledVector3(40, 0, -18), radius: scaleValue(10), count: 4 },
-            { name: 'residential', center: scaledVector3(-40, 0, 8), radius: scaleValue(9), count: 4 }
+            { name: 'agora', center: scaleLocation({ x: 0, z: 4 }), radius: scaleValue(12), count: 6 },
+            { name: 'pnyx', center: scaleLocation({ x: -28, z: 14 }), radius: scaleValue(8), count: 3 },
+            { name: 'stoa', center: scaleLocation({ x: 40, z: -18 }), radius: scaleValue(10), count: 4 },
+            { name: 'residential', center: scaleLocation({ x: -40, z: 8 }), radius: scaleValue(9), count: 4 }
         ];
         const interactables = [];
         const updatableObjects = [];
@@ -450,7 +457,7 @@
         
         let ambientSound, soundEnabled = true;
         let blacksmithSound, crowdChatter;
-        const blacksmithPosition = scaledVector3(-12, 1, 10);
+        const blacksmithPosition = scaleLocation({ x: -12, y: 1, z: 10 });
         
         let currentTimeOfDay = 0;
         let enhancedLighting = true;
@@ -460,7 +467,18 @@
         let stoneTexture, marbleTexture, redTileTexture, groundTexture, pavedRoadTexture;
         let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial;
         
-        const mapBounds = { xMin: scaleValue(-80), xMax: scaleValue(80), zMin: scaleValue(-80), zMax: scaleValue(80) };
+        const baseMapBounds = { xMin: -80, xMax: 80, zMin: -80, zMax: 80 };
+        const mapBounds = scaleBounds(baseMapBounds);
+        const getRandomWorldXZ = (padding = 0) => ({
+            x: THREE.MathUtils.randFloat(mapBounds.xMin + padding, mapBounds.xMax - padding),
+            z: THREE.MathUtils.randFloat(mapBounds.zMin + padding, mapBounds.zMax - padding)
+        });
+        const getRandomWorldVector3 = (y = 0, padding = 0) => {
+            const { x, z } = getRandomWorldXZ(padding);
+            return new THREE.Vector3(x, y, z);
+        };
+        const CHICKEN_WORLD_PADDING = scaleValue(10);
+        const BARREL_WORLD_PADDING = scaleValue(20);
         
         const infoData = {
             pnyx: {
@@ -1756,19 +1774,19 @@
 
             // Scribes
             const scribeModel1 = createCitizenModel(0x654321, 'scribe');
-            const pnyxScribe = { model: scribeModel1, promptElement: document.getElementById('pnyx-scribe-prompt'), name: "Pnyx Scribe", position: scaledVector3(-30, 0, 10), isPlayerNear: false, radius: scaleValue(5) };
+            const pnyxScribe = { model: scribeModel1, promptElement: document.getElementById('pnyx-scribe-prompt'), name: "Pnyx Scribe", position: scaleLocation({ x: -30, z: 10 }), isPlayerNear: false, radius: scaleValue(5) };
             pnyxScribe.model.position.copy(pnyxScribe.position);
             interactables.push(pnyxScribe);
             scene.add(pnyxScribe.model);
 
             const scribeModel2 = createCitizenModel(0x654321, 'scribe');
-            const bouleuterionScribe = { model: scribeModel2, promptElement: document.getElementById('bouleuterion-scribe-prompt'), name: "Bouleuterion Scribe", position: scaledVector3(30, 0, 10), isPlayerNear: false, radius: scaleValue(5) };
+            const bouleuterionScribe = { model: scribeModel2, promptElement: document.getElementById('bouleuterion-scribe-prompt'), name: "Bouleuterion Scribe", position: scaleLocation({ x: 30, z: 10 }), isPlayerNear: false, radius: scaleValue(5) };
             bouleuterionScribe.model.position.copy(bouleuterionScribe.position);
             interactables.push(bouleuterionScribe);
             scene.add(bouleuterionScribe.model);
             
             const scribeModel3 = createCitizenModel(0x654321, 'scribe');
-            const dikasteriaScribe = { model: scribeModel3, promptElement: document.getElementById('dikasteria-scribe-prompt'), name: "Dikasteria Scribe", position: scaledVector3(0, 0, -20), isPlayerNear: false, radius: scaleValue(5) };
+            const dikasteriaScribe = { model: scribeModel3, promptElement: document.getElementById('dikasteria-scribe-prompt'), name: "Dikasteria Scribe", position: scaleLocation({ x: 0, z: -20 }), isPlayerNear: false, radius: scaleValue(5) };
             dikasteriaScribe.model.position.copy(dikasteriaScribe.position);
             interactables.push(dikasteriaScribe);
             scene.add(dikasteriaScribe.model);
@@ -1779,10 +1797,11 @@
             // Chickens
             for(let i=0; i<10; i++) {
                 const model = createChickenModel();
+                const spawnPosition = getRandomWorldVector3(0, CHICKEN_WORLD_PADDING);
                 const chicken = {
                     model: model,
                     speed: Math.random() * 0.8 + 0.2,
-                    destination: new THREE.Vector3((Math.random() - 0.5) * 140 * CITY_SCALE, 0, (Math.random() - 0.5) * 140 * CITY_SCALE),
+                    destination: getRandomWorldVector3(0, CHICKEN_WORLD_PADDING),
                     state: 'pecking',
                     timer: Math.random() * 5,
                     sound: new Tone.MembraneSynth({
@@ -1793,7 +1812,7 @@
                     panner: new Tone.Panner3D().toDestination()
                 };
                 chicken.sound.connect(chicken.panner);
-                chicken.model.position.set((Math.random() - 0.5) * 70 * CITY_SCALE, 0, (Math.random() - 0.5) * 70 * CITY_SCALE);
+                chicken.model.position.copy(spawnPosition);
                 chickens.push(chicken);
                 scene.add(chicken.model);
             }
@@ -1810,13 +1829,15 @@
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
                 
+                const { x: barrelX, z: barrelZ } = getRandomWorldXZ(BARREL_WORLD_PADDING);
                 const body = new CANNON.Body({
                     mass: 2,
                     shape: new CANNON.Cylinder(radius, radius, height, 8),
-                    position: new CANNON.Vec3((Math.random() - 0.5) * 40 * CITY_SCALE, 5, (Math.random() - 0.5) * 40 * CITY_SCALE)
+                    position: new CANNON.Vec3(barrelX, 5, barrelZ)
                 });
-                
+
                 world.addBody(body);
+                mesh.position.set(barrelX, 5, barrelZ);
                 scene.add(mesh);
                 physicsObjects.push({ mesh, body });
             }
@@ -1825,10 +1846,10 @@
         // --- GAME LOGIC & ANIMATION ---
         
         const locations = [
-            { name: "The Parthenon", position: scaledVector3(0, 10, -50), radius: scaleValue(30), title: "🏛️ The Parthenon" },
-            { name: "Stoa of Attalos", position: scaledVector3(40, 4, -20), radius: scaleValue(35), title: "🏛️ Stoa of Attalos" },
-            { name: "Residential Quarter", position: scaledVector3(-50, 3, 5), radius: scaleValue(20), title: "🏡 Residential Quarter" },
-            { name: "Olive Grove", position: scaledVector3(35, 2, 25), radius: scaleValue(25), title: "🌳 Sacred Olive Grove" }
+            { name: "The Parthenon", position: scaleLocation({ x: 0, y: 10, z: -50 }), radius: scaleValue(30), title: "🏛️ The Parthenon" },
+            { name: "Stoa of Attalos", position: scaleLocation({ x: 40, y: 4, z: -20 }), radius: scaleValue(35), title: "🏛️ Stoa of Attalos" },
+            { name: "Residential Quarter", position: scaleLocation({ x: -50, y: 3, z: 5 }), radius: scaleValue(20), title: "🏡 Residential Quarter" },
+            { name: "Olive Grove", position: scaleLocation({ x: 35, y: 2, z: 25 }), radius: scaleValue(25), title: "🌳 Sacred Olive Grove" }
         ];
 
         function updateProximityInteractions() {
@@ -1994,7 +2015,7 @@
                 if (chicken.timer <= 0) {
                     if (chicken.state === 'pecking') {
                         chicken.state = 'walking';
-                        chicken.destination.set((Math.random() - 0.5) * 140 * CITY_SCALE, 0, (Math.random() - 0.5) * 140 * CITY_SCALE);
+                        chicken.destination.copy(getRandomWorldVector3(0, CHICKEN_WORLD_PADDING));
                         chicken.timer = Math.random() * 8 + 4; // walk for 4-12 seconds
                     } else {
                         chicken.state = 'pecking';
@@ -2365,9 +2386,9 @@
             const mapContainer = document.getElementById('mini-map-container');
             const allLocations = [
                 ...locations.map(l => ({...l, type: 'cultural'})),
-                { name: 'Pnyx', position: scaledVector3(-30, 0, 15), type: 'democracy' },
-                { name: 'Dikasteria', position: scaledVector3(0, 0, -15), type: 'democracy' },
-                { name: 'Bouleuterion', position: scaledVector3(30, 0, 15), type: 'democracy' }
+                { name: 'Pnyx', position: scaleLocation({ x: -30, z: 15 }), type: 'democracy' },
+                { name: 'Dikasteria', position: scaleLocation({ x: 0, z: -15 }), type: 'democracy' },
+                { name: 'Bouleuterion', position: scaleLocation({ x: 30, z: 15 }), type: 'democracy' }
             ];
 
             allLocations.forEach(loc => {
@@ -2381,6 +2402,8 @@
 
                 let percentX = (loc.position.x - mapBounds.xMin) / worldWidth;
                 let percentZ = (loc.position.z - mapBounds.zMin) / worldDepth;
+                percentX = THREE.MathUtils.clamp(percentX, 0, 1);
+                percentZ = THREE.MathUtils.clamp(percentZ, 0, 1);
 
                 icon.style.left = `${percentX * mapWidth}px`;
                 icon.style.top = `${percentZ * mapHeight}px`;
@@ -2400,6 +2423,8 @@
 
             let percentX = (player.body.position.x - mapBounds.xMin) / worldWidth;
             let percentZ = (player.body.position.z - mapBounds.zMin) / worldDepth;
+            percentX = THREE.MathUtils.clamp(percentX, 0, 1);
+            percentZ = THREE.MathUtils.clamp(percentZ, 0, 1);
 
             let mapX = percentX * mapWidth;
             let mapY = percentZ * mapHeight;
