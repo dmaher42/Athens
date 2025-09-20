@@ -419,6 +419,128 @@
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+
+        // --- GEOJSON LOADER & LANDMARK RENDERING ---
+// Put your file at:  ./data/athens_places.geojson  (folder "data" next to index.html)
+async function loadAthensGeo() {
+    try {
+        // Make sure the projector exists (it’s defined in your <script type="module"> below)
+        const projector = window?.AthensGeo?.projector;
+        if (!projector) {
+            console.warn("Geo projector not ready yet; delaying GeoJSON load by 1s…");
+            setTimeout(loadAthensGeo, 1000);
+            return;
+        }
+
+        // 1) Load the GeoJSON
+        const response = await fetch('./data/athens_places.geojson');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const geoJson = await response.json();
+
+        // 2) Add simple 3D pins for each Point feature
+        const pinGroup = new THREE.Group();
+        pinGroup.name = "AthensGeoPins";
+        scene.add(pinGroup);
+
+        const pinMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.2, roughness: 0.6 });
+        const labelMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+        // Helper to make a pin (a small cylinder + sphere)
+        function makePin() {
+            const g = new THREE.Group();
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * CITY_SCALE, 0.15 * CITY_SCALE, 1.2, 8), pinMaterial);
+            shaft.castShadow = true;
+            const head  = new THREE.Mesh(new THREE.SphereGeometry(0.32 * CITY_SCALE, 12, 10), pinMaterial);
+            head.position.y = 0.75;
+            head.castShadow = true;
+            g.add(shaft, head);
+            return g;
+        }
+
+        // Helper to add a floating nameplate (simple plane; optional)
+        function addNameplate(text) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '48px Cinzel, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+            const geo = new THREE.PlaneGeometry(3 * CITY_SCALE, 0.75 * CITY_SCALE);
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.y = 1.2;
+            return mesh;
+        }
+
+        // 3) Convert each Point feature’s lon/lat to local x/z and drop a pin
+        const newlyAddedLocations = []; // to show in your mini-map & on-screen location text
+        for (const f of geoJson.features || []) {
+            if (f?.geometry?.type !== 'Point') continue;
+
+            const [lon, lat] = f.geometry.coordinates;
+            const name = f.properties?.title || f.properties?.name || 'Unnamed';
+
+            // Convert lon/lat → local meters using your projector
+            const { x, y } = projector.project({ lat, lon }); // y here is “northing”; we’ll use it as z
+            const localX = x;     // meters east from origin (Parthenon)
+            const localZ = y;     // meters north from origin
+
+            // Scale down to your scene scale (your helpers use CITY_SCALE on top of these numbers)
+            // We’ll treat these as your “design units” and set position via setScaledPosition.
+            const pin = makePin();
+            setScaledPosition(pin, localX, 0, localZ);
+            pinGroup.add(pin);
+
+            // Optional floating label
+            const label = addNameplate(name);
+            pin.add(label);
+
+            // Register in your “locations” list so UI picks it up
+            newlyAddedLocations.push({
+                name,
+                position: new THREE.Vector3(scaleValue(localX), 0, scaleValue(localZ)),
+                radius: scaleValue(12),
+                title: `📍 ${name}`,
+                type: 'cultural'
+            });
+        }
+
+        // 4) Add the new points into your existing systems:
+        //    - locations[] (for on-screen “You are at …”)
+        //    - mini-map icons
+        if (Array.isArray(newlyAddedLocations) && newlyAddedLocations.length) {
+            // Add to locations array the simplest way: push them in
+            if (Array.isArray(locations)) {
+                newlyAddedLocations.forEach(loc => locations.push(loc));
+            }
+
+            // Add icons to mini-map (reusing your createMapIcons() logic: we’ll just add the DOM dots ourselves)
+            const mapContainer = document.getElementById('mini-map-container');
+            const worldWidth = mapBounds.xMax - mapBounds.xMin;
+            const worldDepth = mapBounds.zMax - mapBounds.zMin;
+
+            newlyAddedLocations.forEach(loc => {
+                const icon = document.createElement('div');
+                icon.className = 'map-icon map-icon-cultural';
+                const percentX = THREE.MathUtils.clamp((loc.position.x - mapBounds.xMin) / worldWidth, 0, 1);
+                const percentZ = THREE.MathUtils.clamp((loc.position.z - mapBounds.zMin) / worldDepth, 0, 1);
+                icon.style.left = `${percentX * 200}px`;
+                icon.style.top  = `${percentZ * 200}px`;
+                mapContainer.appendChild(icon);
+            });
+
+            console.log(`Loaded ${newlyAddedLocations.length} Athens landmarks from GeoJSON.`);
+        }
+    } catch (err) {
+        console.error('loadAthensGeo() failed:', err);
+    }
+}
+
         const scaleBounds = ({ xMin, xMax, zMin, zMax }) => ({
             xMin: scaleValue(xMin),
             xMax: scaleValue(xMax),
@@ -660,6 +782,8 @@
             createInteractables();
             createInteractiveObjects();
             createMapIcons();
+            loadAthensGeo();
+
             
             // Event Listeners
             addEventListeners();
