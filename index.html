@@ -365,9 +365,11 @@
             <div id="current-location"></div>
         </div>
         <div id="hud-center" class="elegant-text">
-            <span class="control-key">WASD</span> Move/Rotate | 
-            <span class="control-key">Arrows</span> Orbit Camera | 
+            <span class="control-key">WASD</span> Move/Rotate |
+            <span class="control-key">Arrows</span> Orbit Camera |
             <span class="control-key">E</span> Interact |
+            <span class="control-key">X</span> Toggle Flight |
+            <span class="control-key">Space</span>/<span class="control-key">Shift</span> Fly Up/Down |
             <span class="control-key">M</span> Sound |
             <span class="control-key">P</span> FPS
         </div>
@@ -404,9 +406,12 @@
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
         let world;
-        let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, Space: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
         const playerSpeed = 8.0;
         const playerRotationSpeed = 3.0;
+        const flightSpeed = 10.0;
+        const flightVerticalSpeed = 8.0;
+        let isFlying = false;
         let clock = new THREE.Clock();
         let mixer; // Animation Mixer
         
@@ -1704,7 +1709,12 @@
                 composer.setSize(window.innerWidth, window.innerHeight);
             });
 
-            document.addEventListener('keydown', (e) => controls[e.code] = true);
+            document.addEventListener('keydown', (e) => {
+                if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                    e.preventDefault();
+                }
+                controls[e.code] = true;
+            });
             document.addEventListener('keyup', (e) => {
                 controls[e.code] = false;
                 if(e.code === 'KeyE') {
@@ -1729,6 +1739,15 @@
                     } else {
                         scene.fog = new THREE.FogExp2(0x000000, 0.002); // Re-create fog
                         updateEnvironment(); // and update to match time of day
+                    }
+                }
+                if(e.code === 'KeyX') {
+                    isFlying = !isFlying;
+                    if (player && player.body) {
+                        player.body.velocity.set(0, 0, 0);
+                        if (player.body.force) {
+                            player.body.force.set(0, 0, 0);
+                        }
                     }
                 }
                 if(e.code === 'KeyL') {
@@ -1784,9 +1803,10 @@
             
             // Handle movement
             const moveDirection = new THREE.Vector3();
-            if (controls.KeyW) moveDirection.z = -1;
-            if (controls.KeyS) moveDirection.z = 1;
-            
+            if (controls.KeyW) moveDirection.z -= 1;
+            if (controls.KeyS) moveDirection.z += 1;
+
+            const hasHorizontalInput = moveDirection.lengthSq() > 0;
             const isMoving = controls.KeyW || controls.KeyS;
 
             if (player.animations) {
@@ -1817,25 +1837,49 @@
                 player.body.quaternion.z,
                 player.body.quaternion.w
             );
-            
-            moveDirection.normalize().applyQuaternion(playerQuaternion);
 
-            const currentVelocity = new CANNON.Vec3(
-                moveDirection.x * playerSpeed,
-                player.body.velocity.y, // Preserve vertical velocity
-                moveDirection.z * playerSpeed
-            );
-            
-            if (player.body.velocity) {
-                player.body.velocity.copy(currentVelocity);
+            if (hasHorizontalInput) {
+                moveDirection.normalize();
+                moveDirection.applyQuaternion(playerQuaternion);
+            } else {
+                moveDirection.set(0, 0, 0);
             }
 
+            if (isFlying) {
+                if (player.body.force) {
+                    player.body.force.y += -world.gravity.y * player.body.mass;
+                }
 
-             if (!controls.KeyW && !controls.KeyS) {
-                player.body.velocity.x = 0;
-                player.body.velocity.z = 0;
+                let verticalVelocity = 0;
+                if (controls.Space) verticalVelocity += flightVerticalSpeed;
+                if (controls.ShiftLeft) verticalVelocity -= flightVerticalSpeed;
+
+                const flightVelocity = new CANNON.Vec3(
+                    moveDirection.x * flightSpeed,
+                    verticalVelocity,
+                    moveDirection.z * flightSpeed
+                );
+
+                if (player.body.velocity) {
+                    player.body.velocity.copy(flightVelocity);
+                }
+            } else {
+                const currentVelocity = new CANNON.Vec3(
+                    moveDirection.x * playerSpeed,
+                    player.body.velocity.y, // Preserve vertical velocity
+                    moveDirection.z * playerSpeed
+                );
+
+                if (player.body.velocity) {
+                    player.body.velocity.copy(currentVelocity);
+                }
+
+                if (!controls.KeyW && !controls.KeyS) {
+                    player.body.velocity.x = 0;
+                    player.body.velocity.z = 0;
+                }
             }
-           
+
             // Camera orbit
             if (controls.ArrowUp) cameraOffset.y += 2 * delta;
             if (controls.ArrowDown) cameraOffset.y -= 2 * delta;
