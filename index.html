@@ -480,7 +480,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = 0.7; // Adjusted for less brightness
             document.body.appendChild(renderer.domElement);
@@ -1355,7 +1355,7 @@
                         pitchDecay: 0.01,
                         octaves: 6,
                         envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
-                    }).toDestination(),
+                    }),
                     panner: new Tone.Panner3D().toDestination()
                 };
                 chicken.sound.connect(chicken.panner);
