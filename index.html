@@ -411,6 +411,13 @@
         const playerRotationSpeed = 3.0;
         const flightSpeed = 10.0;
         const flightVerticalSpeed = 8.0;
+        const CITY_SCALE = 2;
+        const scaleValue = (value) => value * CITY_SCALE;
+        const scaleXZ = (x, z) => ({ x: scaleValue(x), z: scaleValue(z) });
+        const scaledVector3 = (x, y, z) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
+        const setScaledPosition = (object, x, y, z) => {
+            object.position.set(scaleValue(x), y, scaleValue(z));
+        };
         let isFlying = false;
         let clock = new THREE.Clock();
         let mixer; // Animation Mixer
@@ -421,10 +428,10 @@
         const chickens = [];
         const citizens = [];
         const citizenZones = [
-            { name: 'agora', center: new THREE.Vector3(0, 0, 4), radius: 12, count: 6 },
-            { name: 'pnyx', center: new THREE.Vector3(-28, 0, 14), radius: 8, count: 3 },
-            { name: 'stoa', center: new THREE.Vector3(40, 0, -18), radius: 10, count: 4 },
-            { name: 'residential', center: new THREE.Vector3(-40, 0, 8), radius: 9, count: 4 }
+            { name: 'agora', center: scaledVector3(0, 0, 4), radius: scaleValue(12), count: 6 },
+            { name: 'pnyx', center: scaledVector3(-28, 0, 14), radius: scaleValue(8), count: 3 },
+            { name: 'stoa', center: scaledVector3(40, 0, -18), radius: scaleValue(10), count: 4 },
+            { name: 'residential', center: scaledVector3(-40, 0, 8), radius: scaleValue(9), count: 4 }
         ];
         const interactables = [];
         const updatableObjects = [];
@@ -443,7 +450,7 @@
         
         let ambientSound, soundEnabled = true;
         let blacksmithSound, crowdChatter;
-        const blacksmithPosition = new THREE.Vector3(-12, 1, 10);
+        const blacksmithPosition = scaledVector3(-12, 1, 10);
         
         let currentTimeOfDay = 0;
         let enhancedLighting = true;
@@ -453,7 +460,7 @@
         let stoneTexture, marbleTexture, redTileTexture, groundTexture, pavedRoadTexture;
         let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial;
         
-        const mapBounds = { xMin: -80, xMax: 80, zMin: -80, zMax: 80 };
+        const mapBounds = { xMin: scaleValue(-80), xMax: scaleValue(80), zMin: scaleValue(-80), zMax: scaleValue(80) };
         
         const infoData = {
             pnyx: {
@@ -502,7 +509,7 @@
             scene.add(ambientLight);
             
             directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Reduced intensity
-            directionalLight.position.set(50, 80, 50);
+            directionalLight.position.set(scaleValue(50), 80, scaleValue(50));
             directionalLight.castShadow = true;
             directionalLight.shadow.mapSize.width = 4096;
             directionalLight.shadow.mapSize.height = 4096;
@@ -679,10 +686,10 @@
         // --- WORLD BUILDING ---
         function buildWorld() {
             // Ground
-            const groundGeometry = new THREE.PlaneGeometry(400, 400);
+            const groundGeometry = new THREE.PlaneGeometry(scaleValue(400), scaleValue(400));
             const ground = new THREE.Mesh(groundGeometry, groundMaterial);
             if (ground.material.map) {
-                ground.material.map.repeat.set(16, 16);
+                ground.material.map.repeat.set(16 * CITY_SCALE, 16 * CITY_SCALE);
             }
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
@@ -724,22 +731,22 @@
             const baseHeight = 0.5;
             const capitalHeight = 0.5;
 
-            const columnGeometry = new THREE.CylinderGeometry(0.8, 1, height, 16);
+            const columnGeometry = new THREE.CylinderGeometry(0.8 * CITY_SCALE, 1 * CITY_SCALE, height, 16);
             const column = new THREE.Mesh(columnGeometry, material);
             column.castShadow = true;
             if (column.material.map) {
-                column.material.map.repeat.set(1, 2);
+                column.material.map.repeat.set(CITY_SCALE, 2);
             }
             column.position.y = baseHeight + height / 2;
             group.add(column);
 
-            const capitalGeometry = new THREE.CylinderGeometry(1.2, 0.9, capitalHeight, 16);
+            const capitalGeometry = new THREE.CylinderGeometry(1.2 * CITY_SCALE, 0.9 * CITY_SCALE, capitalHeight, 16);
             const capital = new THREE.Mesh(capitalGeometry, goldMaterial);
             capital.position.y = baseHeight + height + capitalHeight / 2;
             capital.castShadow = true;
             group.add(capital);
 
-            const baseGeometry = new THREE.CylinderGeometry(1.1, 1.3, baseHeight, 16);
+            const baseGeometry = new THREE.CylinderGeometry(1.1 * CITY_SCALE, 1.3 * CITY_SCALE, baseHeight, 16);
             const base = new THREE.Mesh(baseGeometry, material);
             base.position.y = baseHeight / 2;
             base.castShadow = true;
@@ -751,12 +758,16 @@
         function createEnhancedBuilding(x, z, width, depth, height, material = stoneMaterial, options = {}) {
             const { includeDetails = true } = options;
             const group = new THREE.Group();
-            const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+            const scaledWidth = scaleValue(width);
+            const scaledDepth = scaleValue(depth);
+            const scaledX = scaleValue(x);
+            const scaledZ = scaleValue(z);
+            const buildingGeometry = new THREE.BoxGeometry(scaledWidth, height, scaledDepth);
             const building = new THREE.Mesh(buildingGeometry, material);
             building.castShadow = true;
             building.receiveShadow = true;
             if (building.material.map) {
-                building.material.map.repeat.set(width / 4, height / 4);
+                building.material.map.repeat.set(scaledWidth / 4, height / 4);
             }
             group.add(building);
 
@@ -765,24 +776,24 @@
                 const detailMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
                 if (width > depth) { // Horizontal building
                     const door = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.5), detailMaterial);
-                    door.position.set(0, -height/2 + 1.25, depth/2 + 0.01);
+                    door.position.set(0, -height/2 + 1.25, scaledDepth/2 + 0.01);
                     group.add(door);
                 } else { // Vertical building
                     const door = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.5), detailMaterial);
-                    door.position.set(width/2 + 0.01, -height/2 + 1.25, 0);
+                    door.position.set(scaledWidth/2 + 0.01, -height/2 + 1.25, 0);
                     door.rotation.y = Math.PI / 2;
                     group.add(door);
                 }
 
                 if (Math.random() > 0.5) {
-                    const decorGeometry = new THREE.BoxGeometry(width * 1.1, 0.5, depth * 1.1);
+                    const decorGeometry = new THREE.BoxGeometry(scaledWidth * 1.1, 0.5, scaledDepth * 1.1);
                     const decoration = new THREE.Mesh(decorGeometry, goldMaterial);
                     decoration.position.y = height / 2 + 0.25;
                     decoration.castShadow = true;
                     group.add(decoration);
                 }
             }
-            group.position.set(x, height/2, z);
+            group.position.set(scaledX, height/2, scaledZ);
             return group;
         }
         
@@ -794,7 +805,7 @@
             if (groundMaterial.map) {
                 hillTexture = groundMaterial.map.clone();
                 hillTexture.wrapS = hillTexture.wrapT = THREE.RepeatWrapping;
-                hillTexture.repeat.set(6, 3);
+                hillTexture.repeat.set(6 * CITY_SCALE, 3 * CITY_SCALE);
                 hillTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
                 hillTexture.needsUpdate = true;
                 hillMaterialBase.map = hillTexture;
@@ -803,10 +814,10 @@
             hillMaterialBase.roughness = Math.min(0.98, hillMaterialBase.roughness + 0.03);
 
             const hillLayers = [
-                { top: 70, bottom: 85, height: 3 },
-                { top: 55, bottom: 70, height: 3 },
-                { top: 42, bottom: 55, height: 2.5 },
-                { top: 34, bottom: 42, height: 2 }
+                { top: scaleValue(70), bottom: scaleValue(85), height: 3 },
+                { top: scaleValue(55), bottom: scaleValue(70), height: 3 },
+                { top: scaleValue(42), bottom: scaleValue(55), height: 2.5 },
+                { top: scaleValue(34), bottom: scaleValue(42), height: 2 }
             ];
 
             let plateauHeight = 0;
@@ -814,7 +825,7 @@
                 const layerMaterial = hillMaterialBase.clone();
                 if (hillTexture) {
                     layerMaterial.map = hillTexture.clone();
-                    layerMaterial.map.repeat.set(6 + index, 3 + index * 0.5);
+                    layerMaterial.map.repeat.set((6 + index) * CITY_SCALE, 3 + index * 0.5);
                     layerMaterial.map.needsUpdate = true;
                 }
                 const terrace = new THREE.Mesh(
@@ -831,12 +842,12 @@
             const rockMaterial = stoneMaterial.clone();
             rockMaterial.color = new THREE.Color(0x9f8f78);
             [
-                { position: new THREE.Vector3(-26, 1.8, 28), scale: 1.3 },
-                { position: new THREE.Vector3(22, 2.6, 24), scale: 1.1 },
-                { position: new THREE.Vector3(-18, 4.2, -8), scale: 1.0 },
-                { position: new THREE.Vector3(16, 3.6, -14), scale: 1.2 }
+                { position: scaledVector3(-26, 1.8, 28), scale: 1.3 },
+                { position: scaledVector3(22, 2.6, 24), scale: 1.1 },
+                { position: scaledVector3(-18, 4.2, -8), scale: 1.0 },
+                { position: scaledVector3(16, 3.6, -14), scale: 1.2 }
             ].forEach(detail => {
-                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3 * detail.scale, 0), rockMaterial);
+                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3 * detail.scale * CITY_SCALE, 0), rockMaterial);
                 rock.position.copy(detail.position);
                 rock.scale.setScalar(detail.scale);
                 rock.castShadow = true;
@@ -848,19 +859,21 @@
             if (pathMaterial.map) {
                 pathMaterial.map = pathMaterial.map.clone();
                 pathMaterial.map.wrapS = pathMaterial.map.wrapT = THREE.RepeatWrapping;
-                pathMaterial.map.repeat.set(2, 12);
+                pathMaterial.map.repeat.set(2 * CITY_SCALE, 12 * CITY_SCALE);
                 pathMaterial.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
                 pathMaterial.map.needsUpdate = true;
             }
             pathMaterial.color = new THREE.Color(0xD2C3A4);
 
-            const rampDepth = 60;
+            const rampDepthBase = 60;
+            const rampDepth = scaleValue(rampDepthBase);
             const rampAngle = Math.asin(Math.min(1, plateauHeight / rampDepth));
-            const rampCenterZ = -7.5 + rampDepth / 2;
+            const rampCenterZBase = -7.5 + rampDepthBase / 2;
+            const rampCenterZ = scaleValue(rampCenterZBase);
             const rampHeight = plateauHeight / 2;
 
-            const ramp = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, rampDepth), pathMaterial);
-            ramp.position.set(0, rampHeight, rampCenterZ);
+            const ramp = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(8), 0.4, rampDepth), pathMaterial);
+            ramp.position.set(scaleValue(0), rampHeight, rampCenterZ);
             ramp.rotation.x = -rampAngle;
             ramp.castShadow = true;
             ramp.receiveShadow = true;
@@ -868,24 +881,24 @@
 
             const rampWallsMaterial = stoneMaterial.clone();
             rampWallsMaterial.color = new THREE.Color(0xE0D0B8);
-            const rampWallGeometry = new THREE.BoxGeometry(0.6, 1.2, rampDepth);
+            const rampWallGeometry = new THREE.BoxGeometry(scaleValue(0.6), 1.2, rampDepth);
             [-1, 1].forEach(side => {
                 const wall = new THREE.Mesh(rampWallGeometry, rampWallsMaterial);
-                wall.position.set(side * 4.4, rampHeight + 0.6, rampCenterZ);
+                wall.position.set(scaleValue(side * 4.4), rampHeight + 0.6, rampCenterZ);
                 wall.rotation.x = -rampAngle;
                 wall.castShadow = true;
                 wall.receiveShadow = true;
                 acropolis.add(wall);
             });
 
-            const lowerPlaza = new THREE.Mesh(new THREE.CylinderGeometry(15, 19, 0.5, 48), pathMaterial);
-            lowerPlaza.position.set(0, 0.25, rampCenterZ + rampDepth / 2 + 4);
+            const lowerPlaza = new THREE.Mesh(new THREE.CylinderGeometry(scaleValue(15), scaleValue(19), 0.5, 48), pathMaterial);
+            lowerPlaza.position.set(scaleValue(0), 0.25, scaleValue(rampCenterZBase + rampDepthBase / 2 + 4));
             lowerPlaza.castShadow = true;
             lowerPlaza.receiveShadow = true;
             acropolis.add(lowerPlaza);
 
-            const upperLanding = new THREE.Mesh(new THREE.BoxGeometry(16, 0.4, 10), pathMaterial);
-            upperLanding.position.set(0, plateauHeight - 0.2, -12);
+            const upperLanding = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(16), 0.4, scaleValue(10)), pathMaterial);
+            upperLanding.position.set(scaleValue(0), plateauHeight - 0.2, scaleValue(-12));
             upperLanding.castShadow = true;
             upperLanding.receiveShadow = true;
             acropolis.add(upperLanding);
@@ -893,10 +906,10 @@
             const parthenon = new THREE.Group();
             const steps = new THREE.Group();
             for (let i = 0; i < 3; i++) {
-                const stepGeometry = new THREE.BoxGeometry(35 - i, 0.5, 18 - i);
+                const stepGeometry = new THREE.BoxGeometry(scaleValue(35 - i), 0.5, scaleValue(18 - i));
                 const step = new THREE.Mesh(stepGeometry, marbleMaterial);
                 if(step.material.map) {
-                    step.material.map.repeat.set(8,1);
+                    step.material.map.repeat.set(8 * CITY_SCALE, 1 * CITY_SCALE);
                 }
                 step.position.y = i * 0.5;
                 step.castShadow = true;
@@ -906,35 +919,35 @@
             parthenon.add(steps);
             const parthenonBase = createEnhancedBuilding(0, 0, 30, 15, 4, marbleMaterial);
             if(parthenonBase.children[0].material.map) {
-                parthenonBase.children[0].material.map.repeat.set(8,2);
+                parthenonBase.children[0].material.map.repeat.set(8 * CITY_SCALE, 2 * CITY_SCALE);
             }
             parthenonBase.position.y = 3.5;
             parthenon.add(parthenonBase);
             for (let i = 0; i < 8; i++) {
                 const frontColumn = createEnhancedColumn(12);
-                frontColumn.position.set(-13 + i * 4, -0.5, -7.5);
+                setScaledPosition(frontColumn, -13 + i * 4, -0.5, -7.5);
                 parthenon.add(frontColumn);
 
                 const backColumn = createEnhancedColumn(12);
-                backColumn.position.set(-13 + i * 4, -0.5, 7.5);
+                setScaledPosition(backColumn, -13 + i * 4, -0.5, 7.5);
                 parthenon.add(backColumn);
             }
             for (let i = 0; i < 4; i++) {
                 const leftColumn = createEnhancedColumn(12);
-                leftColumn.position.set(-15, -0.5, -5.5 + i * 3.5);
+                setScaledPosition(leftColumn, -15, -0.5, -5.5 + i * 3.5);
                 parthenon.add(leftColumn);
 
                 const rightColumn = createEnhancedColumn(12);
-                rightColumn.position.set(15, -0.5, -5.5 + i * 3.5);
+                setScaledPosition(rightColumn, 15, -0.5, -5.5 + i * 3.5);
                 parthenon.add(rightColumn);
             }
             const roofGroup = new THREE.Group();
-            const roofLength = 32;
-            const roofDepth = 18;
+            const roofLength = scaleValue(32);
+            const roofDepth = scaleValue(18);
             const roofHeight = 4.5;
             const halfLength = roofLength / 2;
             const halfDepth = roofDepth / 2;
-            const pedimentDepth = 0.8;
+            const pedimentDepth = scaleValue(0.8);
             const slopeRun = Math.sqrt(halfDepth * halfDepth + roofHeight * roofHeight);
 
             const roofTileTexture = redTileMaterial.map.clone();
@@ -1070,7 +1083,7 @@
                 pedimentMesh.receiveShadow = true;
                 group.add(pedimentMesh);
 
-                const reliefInset = 2.5;
+                const reliefInset = scaleValue(2.5);
                 const reliefShape = new THREE.Shape();
                 reliefShape.moveTo(-halfLength + reliefInset, 0.6);
                 reliefShape.lineTo(halfLength - reliefInset, 0.6);
@@ -1100,7 +1113,7 @@
             ridgeMaterial.map.repeat.set(roofLength / 6, 1);
             ridgeMaterial.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
             ridgeMaterial.map.needsUpdate = true;
-            const ridge = new THREE.Mesh(new THREE.BoxGeometry(roofLength + 0.2, 0.3, 0.6), ridgeMaterial);
+            const ridge = new THREE.Mesh(new THREE.BoxGeometry(roofLength + scaleValue(0.2), 0.3, scaleValue(0.6)), ridgeMaterial);
             ridge.position.y = roofHeight - 0.1;
             ridge.castShadow = true;
             ridge.receiveShadow = true;
@@ -1108,7 +1121,7 @@
 
             roofGroup.position.y = 12.55;
             parthenon.add(roofGroup);
-            const athenaGeometry = new THREE.CylinderGeometry(0.5, 0.8, 8);
+            const athenaGeometry = new THREE.CylinderGeometry(0.5 * CITY_SCALE, 0.8 * CITY_SCALE, 8);
             const athena = new THREE.Mesh(athenaGeometry, goldMaterial);
             athena.position.set(0, 10, 0);
             athena.castShadow = true;
@@ -1117,7 +1130,7 @@
             parthenon.position.y = plateauHeight;
             acropolis.add(parthenon);
 
-            acropolis.position.set(0, 0, -50);
+            setScaledPosition(acropolis, 0, 0, -50);
             scene.add(acropolis);
         }
         
@@ -1125,16 +1138,16 @@
             const stoa = new THREE.Group();
             for (let i = 0; i < 12; i++) {
                 const column = createEnhancedColumn(8);
-                column.position.set(-30 + i * 5, -0.5, 0);
+                setScaledPosition(column, -30 + i * 5, -0.5, 0);
                 stoa.add(column);
             }
             const stoaRoof = createEnhancedBuilding(0, 0, 60, 8, 1.5, redTileMaterial, { includeDetails: false });
             if(stoaRoof.children[0].material.map) {
-                stoaRoof.children[0].material.map.repeat.set(16,4);
+                stoaRoof.children[0].material.map.repeat.set(16 * CITY_SCALE, 4 * CITY_SCALE);
             }
             stoaRoof.position.y = 9;
             stoa.add(stoaRoof);
-            stoa.position.set(40, 0, -20);
+            setScaledPosition(stoa, 40, 0, -20);
             scene.add(stoa);
         }
 
@@ -1146,7 +1159,7 @@
                 const roofMaterial = config.style === 'wealthy' ? goldMaterial : redTileMaterial;
                 const houseRoof = createEnhancedBuilding(config.x, config.z, config.w + 1, config.d + 1, 1, roofMaterial, { includeDetails: false });
                 if(houseRoof.children[0].material.map) {
-                    houseRoof.children[0].material.map.repeat.set(config.w/2, config.d/2);
+                    houseRoof.children[0].material.map.repeat.set((config.w/2) * CITY_SCALE, (config.d/2) * CITY_SCALE);
                 }
                 houseRoof.position.y = 7.5;
                 scene.add(house);
@@ -1156,21 +1169,21 @@
         
         function createEnhancedTree(x, z, scale = 1) {
             const tree = new THREE.Group();
-            const trunkGeometry = new THREE.CylinderGeometry(0.3 * scale, 0.5 * scale, 5 * scale, 8);
+            const trunkGeometry = new THREE.CylinderGeometry(0.3 * scale * CITY_SCALE, 0.5 * scale * CITY_SCALE, 5 * scale, 8);
             const trunkMaterial = createEnhancedMaterial(0x8B4513, 1.0, 0.0);
             const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
             trunk.position.y = 2.5 * scale;
             trunk.castShadow = true;
             tree.add(trunk);
             for (let i = 0; i < 3; i++) {
-                const leavesGeometry = new THREE.SphereGeometry((2.5 - i * 0.3) * scale, 8, 6);
+                const leavesGeometry = new THREE.SphereGeometry((2.5 - i * 0.3) * scale * CITY_SCALE, 8, 6);
                 const leavesMaterial = createEnhancedMaterial(0x228B22, 0.8, 0.0);
                 const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
                 leaves.position.y = (5 + i * 0.5) * scale;
                 leaves.castShadow = true;
                 tree.add(leaves);
             }
-            tree.position.set(x, 0, z);
+            setScaledPosition(tree, x, 0, z);
             return tree;
         }
 
@@ -1198,33 +1211,33 @@
             const fountainGroup = new THREE.Group();
 
             // Base
-            const baseGeo = new THREE.CylinderGeometry(4, 4, 0.5, 32);
+            const baseGeo = new THREE.CylinderGeometry(4 * CITY_SCALE, 4 * CITY_SCALE, 0.5, 32);
             const base = new THREE.Mesh(baseGeo, stoneMaterial);
             base.receiveShadow = true;
             fountainGroup.add(base);
 
             // Water in base
-            const waterBaseGeo = new THREE.CylinderGeometry(3.8, 3.8, 0.4, 32);
+            const waterBaseGeo = new THREE.CylinderGeometry(3.8 * CITY_SCALE, 3.8 * CITY_SCALE, 0.4, 32);
             const waterBase = new THREE.Mesh(waterBaseGeo, waterMaterial);
             waterBase.position.y = 0.2;
             fountainGroup.add(waterBase);
 
             // Pillar
-            const pillarGeo = new THREE.CylinderGeometry(0.5, 0.5, 3, 16);
+            const pillarGeo = new THREE.CylinderGeometry(0.5 * CITY_SCALE, 0.5 * CITY_SCALE, 3, 16);
             const pillar = new THREE.Mesh(pillarGeo, marbleMaterial);
             pillar.position.y = 1.75;
             pillar.castShadow = true;
             fountainGroup.add(pillar);
 
             // Top Basin
-            const topBasinGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.3, 24);
+            const topBasinGeo = new THREE.CylinderGeometry(1.5 * CITY_SCALE, 1.5 * CITY_SCALE, 0.3, 24);
             const topBasin = new THREE.Mesh(topBasinGeo, stoneMaterial);
             topBasin.position.y = 3.25;
             topBasin.castShadow = true;
             fountainGroup.add(topBasin);
 
             // Water in top basin
-            const waterTopGeo = new THREE.CylinderGeometry(1.4, 1.4, 0.2, 24);
+            const waterTopGeo = new THREE.CylinderGeometry(1.4 * CITY_SCALE, 1.4 * CITY_SCALE, 0.2, 24);
             const waterTop = new THREE.Mesh(waterTopGeo, waterMaterial);
             waterTop.position.y = 3.2;
             fountainGroup.add(waterTop);
@@ -1296,11 +1309,15 @@
         }
         
         function createCityWall(x, z, width, height, depth, rotationY) {
+            const scaledWidth = scaleValue(width);
+            const scaledDepth = scaleValue(depth);
+            const scaledX = scaleValue(x);
+            const scaledZ = scaleValue(z);
             const wall = new THREE.Mesh(
-                new THREE.BoxGeometry(width, height, depth),
+                new THREE.BoxGeometry(scaledWidth, height, scaledDepth),
                 stoneMaterial
             );
-            wall.position.set(x, height / 2, z);
+            wall.position.set(scaledX, height / 2, scaledZ);
             wall.rotation.y = rotationY;
             wall.castShadow = true;
             wall.receiveShadow = true;
@@ -1308,8 +1325,8 @@
 
             const wallBody = new CANNON.Body({
                 mass: 0,
-                shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
-                position: new CANNON.Vec3(x, height / 2, z)
+                shape: new CANNON.Box(new CANNON.Vec3(scaledWidth / 2, height / 2, scaledDepth / 2)),
+                position: new CANNON.Vec3(scaledX, height / 2, scaledZ)
             });
             wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), rotationY);
             world.addBody(wallBody);
@@ -1334,20 +1351,20 @@
 
             const tower1 = createEnhancedBuilding(-gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
             scene.add(tower1);
-             const tower1Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(towerWidth/2, towerHeight/2, towerWidth/2)) });
+            const tower1Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight/2, scaleValue(towerWidth) / 2)) });
             tower1Body.position.copy(tower1.position);
             world.addBody(tower1Body);
 
             const tower2 = createEnhancedBuilding(gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
             scene.add(tower2);
-            const tower2Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(towerWidth/2, towerHeight/2, towerWidth/2)) });
+            const tower2Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight/2, scaleValue(towerWidth) / 2)) });
             tower2Body.position.copy(tower2.position);
             world.addBody(tower2Body);
 
-            const arch = new THREE.Mesh(new THREE.BoxGeometry(gateGap * 2, 4, towerWidth), stoneMaterial);
-            arch.position.set(0, towerHeight - 2, -wallSize);
+            const arch = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(gateGap * 2), 4, scaleValue(towerWidth)), stoneMaterial);
+            setScaledPosition(arch, 0, towerHeight - 2, -wallSize);
             scene.add(arch);
-            const archBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(gateGap, 2, towerWidth/2)) });
+            const archBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(gateGap), 2, scaleValue(towerWidth) / 2)) });
             archBody.position.copy(arch.position);
             world.addBody(archBody);
 
@@ -1360,20 +1377,21 @@
                 const stallGroup = new THREE.Group();
 
                 // Posts
-                const postGeo = new THREE.CylinderGeometry(0.1, 0.1, 2, 8);
+                const postGeo = new THREE.CylinderGeometry(0.1 * CITY_SCALE, 0.1 * CITY_SCALE, 2, 8);
                 const postPositions = [
                     {x: -1.4, z: -0.9}, {x: 1.4, z: -0.9},
                     {x: -1.4, z: 0.9}, {x: 1.4, z: 0.9}
                 ];
                 postPositions.forEach(pos => {
                     const post = new THREE.Mesh(postGeo, woodMaterial);
-                    post.position.set(pos.x, 1, pos.z);
+                    const { x: postX, z: postZ } = scaleXZ(pos.x, pos.z);
+                    post.position.set(postX, 1, postZ);
                     post.castShadow = true;
                     stallGroup.add(post);
                 });
 
                 // Tabletop
-                const tableGeo = new THREE.BoxGeometry(3, 0.2, 2);
+                const tableGeo = new THREE.BoxGeometry(scaleValue(3), 0.2, scaleValue(2));
                 const table = new THREE.Mesh(tableGeo, woodMaterial);
                 table.position.y = 1;
                 table.castShadow = true;
@@ -1382,7 +1400,7 @@
 
                 // Canopy
                 const canopyMat = createEnhancedMaterial(color, 0.8, 0.1);
-                const canopyGeo = new THREE.PlaneGeometry(3.2, 2.2);
+                const canopyGeo = new THREE.PlaneGeometry(scaleValue(3.2), scaleValue(2.2));
                 const canopy = new THREE.Mesh(canopyGeo, canopyMat);
                 canopy.position.y = 2.1;
                 canopy.rotation.x = -Math.PI / 12;
@@ -1391,14 +1409,15 @@
 
                 // Goods
                 for (let i = 0; i < 5; i++) {
-                    const potGeo = new THREE.CylinderGeometry(Math.random() * 0.2 + 0.1, Math.random() * 0.2 + 0.1, Math.random() * 0.4 + 0.2, 8);
+                    const potGeo = new THREE.CylinderGeometry((Math.random() * 0.2 + 0.1) * CITY_SCALE, (Math.random() * 0.2 + 0.1) * CITY_SCALE, Math.random() * 0.4 + 0.2, 8);
                     const pot = new THREE.Mesh(potGeo, createEnhancedMaterial(0xCD853F, 0.8, 0.2));
-                    pot.position.set(Math.random() * 2 - 1, 1.2 + pot.geometry.parameters.height / 2, Math.random() * 1.5 - 0.75);
+                    const randomXZ = scaleXZ(Math.random() * 2 - 1, Math.random() * 1.5 - 0.75);
+                    pot.position.set(randomXZ.x, 1.2 + pot.geometry.parameters.height / 2, randomXZ.z);
                     pot.castShadow = true;
                     stallGroup.add(pot);
                 }
-                
-                stallGroup.position.set(x, 0, z);
+
+                setScaledPosition(stallGroup, x, 0, z);
                 scene.add(stallGroup);
             }
 
@@ -1411,17 +1430,17 @@
              const pnyx = new THREE.Group();
              for(let i=0; i<3; i++){
                 const step = new THREE.Mesh(
-                    new THREE.CylinderGeometry(15 - i*2, 15 - i*2, 0.5, 64, 1, false, 0, Math.PI),
+                    new THREE.CylinderGeometry(scaleValue(15 - i*2), scaleValue(15 - i*2), 0.5, 64, 1, false, 0, Math.PI),
                     stoneMaterial
                 );
                 step.position.y = (i * 0.5) + 0.25;
                 pnyx.add(step);
              }
-             const bema = new THREE.Mesh(new THREE.BoxGeometry(2,0.5,2), marbleMaterial);
+             const bema = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(2),0.5,scaleValue(2)), marbleMaterial);
              bema.position.y = 1.75;
-             bema.position.z = -12;
+             bema.position.z = scaleValue(-12);
              pnyx.add(bema);
-             pnyx.position.set(-30, 0, 15);
+             setScaledPosition(pnyx, -30, 0, 15);
              pnyx.rotation.y = -Math.PI / 2;
              scene.add(pnyx);
 
@@ -1429,10 +1448,10 @@
              const portico = new THREE.Group();
              for(let i=0; i<4; i++){
                  const column = createEnhancedColumn(6);
-                 column.position.set(i * 2.5, 0, 0);
+                 setScaledPosition(column, i * 2.5, 0, 0);
                  portico.add(column);
              }
-             portico.position.set(-3.75, -3.5, 5);
+             portico.position.set(scaleValue(-3.75), -3.5, scaleValue(5));
              bouleuterion.add(portico);
              scene.add(bouleuterion);
 
@@ -1440,10 +1459,10 @@
              const colonnade = new THREE.Group();
              for(let i=0; i<5; i++){
                  const column = createEnhancedColumn(6);
-                 column.position.set(0, 0, i * 2.5);
+                 setScaledPosition(column, 0, 0, i * 2.5);
                  colonnade.add(column);
              }
-             colonnade.position.set(4.5, -3, -5);
+             colonnade.position.set(scaleValue(4.5), -3, scaleValue(-5));
              dikasteria.add(colonnade);
              scene.add(dikasteria);
         }
@@ -1454,13 +1473,13 @@
                 panathenaicWayMaterial.map = pavedRoadMaterial.map.clone();
             }
             const panathenaicWay = new THREE.Mesh(
-                new THREE.PlaneGeometry(8, 120),
+                new THREE.PlaneGeometry(scaleValue(8), scaleValue(120)),
                 panathenaicWayMaterial
             );
             panathenaicWay.rotation.x = -Math.PI / 2;
-            panathenaicWay.position.set(0, 0.01, -20);
+            panathenaicWay.position.set(scaleValue(0), 0.01, scaleValue(-20));
             if (panathenaicWayMaterial.map) {
-                panathenaicWayMaterial.map.repeat.set(2, 30);
+                panathenaicWayMaterial.map.repeat.set(2 * CITY_SCALE, 30 * CITY_SCALE);
                 panathenaicWayMaterial.map.needsUpdate = true;
             }
             panathenaicWay.receiveShadow = true;
@@ -1471,13 +1490,13 @@
                 stoaWayMaterial.map = pavedRoadMaterial.map.clone();
             }
             const stoaWay = new THREE.Mesh(
-                new THREE.PlaneGeometry(60, 6),
+                new THREE.PlaneGeometry(scaleValue(60), scaleValue(6)),
                 stoaWayMaterial
             );
             stoaWay.rotation.x = -Math.PI / 2;
-            stoaWay.position.set(40, 0.01, 8);
+            stoaWay.position.set(scaleValue(40), 0.01, scaleValue(8));
             if (stoaWayMaterial.map) {
-                stoaWayMaterial.map.repeat.set(15, 2);
+                stoaWayMaterial.map.repeat.set(15 * CITY_SCALE, 2 * CITY_SCALE);
                 stoaWayMaterial.map.needsUpdate = true;
             }
             stoaWay.receiveShadow = true;
@@ -1601,7 +1620,7 @@
             do {
                 target = getRandomPointInZone(npc.zone);
                 attempts++;
-            } while (target.distanceToSquared(npc.model.position) < 4 && attempts < 6);
+            } while (target.distanceToSquared(npc.model.position) < 4 * CITY_SCALE * CITY_SCALE && attempts < 6);
             target.y = npc.baseY;
             npc.destination = target;
         }
@@ -1693,7 +1712,7 @@
             // Player Physics Body
             const playerShape = new CANNON.Cylinder(0.5, 0.5, 1.8, 8);
             player.body = new CANNON.Body({ mass: 70, shape: playerShape, fixedRotation: true });
-            player.body.position.set(0, 0.9, 30);
+            player.body.position.set(scaleValue(0), 0.9, scaleValue(30));
             player.body.angularDamping = 0.9;
             world.addBody(player.body);
             
@@ -1737,19 +1756,19 @@
 
             // Scribes
             const scribeModel1 = createCitizenModel(0x654321, 'scribe');
-            const pnyxScribe = { model: scribeModel1, promptElement: document.getElementById('pnyx-scribe-prompt'), name: "Pnyx Scribe", position: new THREE.Vector3(-30, 0, 10), isPlayerNear: false, radius: 5 };
+            const pnyxScribe = { model: scribeModel1, promptElement: document.getElementById('pnyx-scribe-prompt'), name: "Pnyx Scribe", position: scaledVector3(-30, 0, 10), isPlayerNear: false, radius: scaleValue(5) };
             pnyxScribe.model.position.copy(pnyxScribe.position);
             interactables.push(pnyxScribe);
             scene.add(pnyxScribe.model);
 
             const scribeModel2 = createCitizenModel(0x654321, 'scribe');
-            const bouleuterionScribe = { model: scribeModel2, promptElement: document.getElementById('bouleuterion-scribe-prompt'), name: "Bouleuterion Scribe", position: new THREE.Vector3(30, 0, 10), isPlayerNear: false, radius: 5 };
+            const bouleuterionScribe = { model: scribeModel2, promptElement: document.getElementById('bouleuterion-scribe-prompt'), name: "Bouleuterion Scribe", position: scaledVector3(30, 0, 10), isPlayerNear: false, radius: scaleValue(5) };
             bouleuterionScribe.model.position.copy(bouleuterionScribe.position);
             interactables.push(bouleuterionScribe);
             scene.add(bouleuterionScribe.model);
             
             const scribeModel3 = createCitizenModel(0x654321, 'scribe');
-            const dikasteriaScribe = { model: scribeModel3, promptElement: document.getElementById('dikasteria-scribe-prompt'), name: "Dikasteria Scribe", position: new THREE.Vector3(0, 0, -20), isPlayerNear: false, radius: 5 };
+            const dikasteriaScribe = { model: scribeModel3, promptElement: document.getElementById('dikasteria-scribe-prompt'), name: "Dikasteria Scribe", position: scaledVector3(0, 0, -20), isPlayerNear: false, radius: scaleValue(5) };
             dikasteriaScribe.model.position.copy(dikasteriaScribe.position);
             interactables.push(dikasteriaScribe);
             scene.add(dikasteriaScribe.model);
@@ -1763,7 +1782,7 @@
                 const chicken = {
                     model: model,
                     speed: Math.random() * 0.8 + 0.2,
-                    destination: new THREE.Vector3((Math.random() - 0.5) * 140, 0, (Math.random() - 0.5) * 140),
+                    destination: new THREE.Vector3((Math.random() - 0.5) * 140 * CITY_SCALE, 0, (Math.random() - 0.5) * 140 * CITY_SCALE),
                     state: 'pecking',
                     timer: Math.random() * 5,
                     sound: new Tone.MembraneSynth({
@@ -1774,7 +1793,7 @@
                     panner: new Tone.Panner3D().toDestination()
                 };
                 chicken.sound.connect(chicken.panner);
-                chicken.model.position.set((Math.random() - 0.5) * 70, 0, (Math.random() - 0.5) * 70);
+                chicken.model.position.set((Math.random() - 0.5) * 70 * CITY_SCALE, 0, (Math.random() - 0.5) * 70 * CITY_SCALE);
                 chickens.push(chicken);
                 scene.add(chicken.model);
             }
@@ -1794,7 +1813,7 @@
                 const body = new CANNON.Body({
                     mass: 2,
                     shape: new CANNON.Cylinder(radius, radius, height, 8),
-                    position: new CANNON.Vec3((Math.random() - 0.5) * 40, 5, (Math.random() - 0.5) * 40)
+                    position: new CANNON.Vec3((Math.random() - 0.5) * 40 * CITY_SCALE, 5, (Math.random() - 0.5) * 40 * CITY_SCALE)
                 });
                 
                 world.addBody(body);
@@ -1806,10 +1825,10 @@
         // --- GAME LOGIC & ANIMATION ---
         
         const locations = [
-            { name: "The Parthenon", position: new THREE.Vector3(0, 10, -50), radius: 30, title: "🏛️ The Parthenon" },
-            { name: "Stoa of Attalos", position: new THREE.Vector3(40, 4, -20), radius: 35, title: "🏛️ Stoa of Attalos" },
-            { name: "Residential Quarter", position: new THREE.Vector3(-50, 3, 5), radius: 20, title: "🏡 Residential Quarter" },
-            { name: "Olive Grove", position: new THREE.Vector3(35, 2, 25), radius: 25, title: "🌳 Sacred Olive Grove" }
+            { name: "The Parthenon", position: scaledVector3(0, 10, -50), radius: scaleValue(30), title: "🏛️ The Parthenon" },
+            { name: "Stoa of Attalos", position: scaledVector3(40, 4, -20), radius: scaleValue(35), title: "🏛️ Stoa of Attalos" },
+            { name: "Residential Quarter", position: scaledVector3(-50, 3, 5), radius: scaleValue(20), title: "🏡 Residential Quarter" },
+            { name: "Olive Grove", position: scaledVector3(35, 2, 25), radius: scaleValue(25), title: "🌳 Sacred Olive Grove" }
         ];
 
         function updateProximityInteractions() {
@@ -1866,35 +1885,35 @@
                     directionalColor = 0xffd8b1; directionalIntensity = 0.7; ambientIntensity = 0.2;
                     hemiColorTop = 0xffa500; hemiColorBottom = 0x8B4513;
                     fogColor = 0x877d8f; fogDensity = 0.003;
-                    sunPos.set(100, 20, 50);
+                    sunPos.set(scaleValue(100), 20, scaleValue(50));
                     skyboxMat = skyboxMaterials.sunset;
                     break;
                 case 1: // Noon
                     directionalColor = 0xffffff; directionalIntensity = 1.0; ambientIntensity = 0.4;
                     hemiColorTop = 0x87CEEB; hemiColorBottom = 0xC2B280;
                     fogColor = 0xc2d1e5; fogDensity = 0.001;
-                    sunPos.set(0, 100, 0);
+                    sunPos.set(scaleValue(0), 100, scaleValue(0));
                     skyboxMat = skyboxMaterials.day;
                     break;
                 case 2: // Sunset
                     directionalColor = 0xff4500; directionalIntensity = 0.8; ambientIntensity = 0.3;
                     hemiColorTop = 0xff8c00; hemiColorBottom = 0x5a3930;
                     fogColor = 0x5e3c35; fogDensity = 0.004;
-                    sunPos.set(-100, 20, -50);
+                    sunPos.set(scaleValue(-100), 20, scaleValue(-50));
                     skyboxMat = skyboxMaterials.sunset;
                     break;
                 case 3: // Night
                     directionalColor = 0x142850; directionalIntensity = 0.3; ambientIntensity = 0.05;
                     hemiColorTop = 0x000033; hemiColorBottom = 0x000000;
                     fogColor = 0x0a0a1a; fogDensity = 0.006;
-                    sunPos.set(0, 100, 100); // Moon
+                    sunPos.set(scaleValue(0), 100, scaleValue(100)); // Moon
                     skyboxMat = skyboxMaterials.night;
                     break;
                 case 4: // Blue Hour
                     directionalColor = 0x6e7c8f; directionalIntensity = 0.5; ambientIntensity = 0.1;
                     hemiColorTop = 0x4a5a70; hemiColorBottom = 0x2e3540;
                     fogColor = 0x3a404d; fogDensity = 0.005;
-                    sunPos.set(-100, 10, 50);
+                    sunPos.set(scaleValue(-100), 10, scaleValue(50));
                     skyboxMat = skyboxMaterials.night;
                     break;
             }
@@ -1975,7 +1994,7 @@
                 if (chicken.timer <= 0) {
                     if (chicken.state === 'pecking') {
                         chicken.state = 'walking';
-                        chicken.destination.set((Math.random() - 0.5) * 140, 0, (Math.random() - 0.5) * 140);
+                        chicken.destination.set((Math.random() - 0.5) * 140 * CITY_SCALE, 0, (Math.random() - 0.5) * 140 * CITY_SCALE);
                         chicken.timer = Math.random() * 8 + 4; // walk for 4-12 seconds
                     } else {
                         chicken.state = 'pecking';
@@ -2346,9 +2365,9 @@
             const mapContainer = document.getElementById('mini-map-container');
             const allLocations = [
                 ...locations.map(l => ({...l, type: 'cultural'})),
-                { name: 'Pnyx', position: new THREE.Vector3(-30, 0, 15), type: 'democracy' },
-                { name: 'Dikasteria', position: new THREE.Vector3(0, 0, -15), type: 'democracy' },
-                { name: 'Bouleuterion', position: new THREE.Vector3(30, 0, 15), type: 'democracy' }
+                { name: 'Pnyx', position: scaledVector3(-30, 0, 15), type: 'democracy' },
+                { name: 'Dikasteria', position: scaledVector3(0, 0, -15), type: 'democracy' },
+                { name: 'Bouleuterion', position: scaledVector3(30, 0, 15), type: 'democracy' }
             ];
 
             allLocations.forEach(loc => {
