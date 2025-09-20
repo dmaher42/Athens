@@ -1718,6 +1718,7 @@
             });
 
             document.addEventListener('keydown', (e) => {
+                if (e.repeat) return;
                 if(e.code === 'KeyT') {
                     currentTimeOfDay = (currentTimeOfDay + 1) % timeNames.length;
                     updateEnvironment();
