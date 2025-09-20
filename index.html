@@ -1355,7 +1355,7 @@
                         pitchDecay: 0.01,
                         octaves: 6,
                         envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
-                    }).toDestination(),
+                    }),
                     panner: new Tone.Panner3D().toDestination()
                 };
                 chicken.sound.connect(chicken.panner);
