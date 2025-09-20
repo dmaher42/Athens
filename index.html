@@ -419,6 +419,13 @@
 
         let audioStarted = false;
         const chickens = [];
+        const citizens = [];
+        const citizenZones = [
+            { name: 'agora', center: new THREE.Vector3(0, 0, 4), radius: 12, count: 6 },
+            { name: 'pnyx', center: new THREE.Vector3(-28, 0, 14), radius: 8, count: 3 },
+            { name: 'stoa', center: new THREE.Vector3(40, 0, -18), radius: 10, count: 4 },
+            { name: 'residential', center: new THREE.Vector3(-40, 0, 8), radius: 9, count: 4 }
+        ];
         const interactables = [];
         const updatableObjects = [];
         const pointLights = [];
@@ -1278,6 +1285,78 @@
             return citizenGroup;
         }
 
+        function getRandomPointInZone(zone) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.random() * zone.radius;
+            return new THREE.Vector3(
+                zone.center.x + Math.cos(angle) * radius,
+                zone.center.y,
+                zone.center.z + Math.sin(angle) * radius
+            );
+        }
+
+        function chooseNewCitizenDestination(npc) {
+            let target;
+            let attempts = 0;
+            do {
+                target = getRandomPointInZone(npc.zone);
+                attempts++;
+            } while (target.distanceToSquared(npc.model.position) < 4 && attempts < 6);
+            target.y = npc.baseY;
+            npc.destination = target;
+        }
+
+        function createCitizenNPCs() {
+            const tunicPalette = [
+                0x8b5a2b,
+                0x6f4d3a,
+                0x3f6b4c,
+                0x7f8fa6,
+                0x9c755f,
+                0x4d5c8b
+            ];
+
+            citizenZones.forEach(zone => {
+                for (let i = 0; i < zone.count; i++) {
+                    const color = tunicPalette[Math.floor(Math.random() * tunicPalette.length)];
+                    const model = createCitizenModel(color);
+                    const spawnPosition = getRandomPointInZone(zone);
+
+                    model.position.copy(spawnPosition);
+                    model.rotation.y = Math.random() * Math.PI * 2;
+
+                    const npc = {
+                        model,
+                        zone,
+                        baseY: spawnPosition.y,
+                        speed: Math.random() * 0.6 + 0.8,
+                        state: Math.random() < 0.6 ? 'walking' : 'idle',
+                        walkTimer: 0,
+                        idleTimer: 0,
+                        walkCycle: Math.random() * Math.PI * 2,
+                        animationOffset: Math.random() * Math.PI * 2,
+                        destination: null,
+                        limbs: {
+                            armL: model.getObjectByName('armL'),
+                            armR: model.getObjectByName('armR'),
+                            legL: model.getObjectByName('legL'),
+                            legR: model.getObjectByName('legR')
+                        }
+                    };
+
+                    chooseNewCitizenDestination(npc);
+                    if (npc.state === 'walking') {
+                        npc.walkTimer = Math.random() * 5 + 3;
+                    } else {
+                        npc.idleTimer = Math.random() * 3 + 2;
+                    }
+
+                    citizens.push(npc);
+                    scene.add(model);
+                }
+            });
+        }
+
         function createChickenModel() {
             const chicken = new THREE.Group();
             const bodyMat = createEnhancedMaterial(0xffffff, 0.8, 0.1);
@@ -1374,6 +1453,9 @@
             dikasteriaScribe.model.position.copy(dikasteriaScribe.position);
             interactables.push(dikasteriaScribe);
             scene.add(dikasteriaScribe.model);
+
+            // Citizens
+            createCitizenNPCs();
 
             // Chickens
             for(let i=0; i<10; i++) {
@@ -1538,36 +1620,84 @@
         }
         
         function updateNPCs(delta) {
-             const time = clock.getElapsedTime();
-             
-             chickens.forEach(chicken => {
-                 chicken.timer -= delta;
-                 if(chicken.timer <= 0) {
-                     if(chicken.state === 'pecking') {
-                         chicken.state = 'walking';
-                         chicken.destination.set((Math.random() - 0.5) * 140, 0, (Math.random() - 0.5) * 140);
-                         chicken.timer = Math.random() * 8 + 4; // walk for 4-12 seconds
-                     } else {
-                         chicken.state = 'pecking';
-                         chicken.timer = Math.random() * 5 + 2; // peck for 2-7 seconds
-                     }
-                 }
+            const time = clock.getElapsedTime();
 
-                 if (chicken.state === 'walking') {
-                     const dir = chicken.destination.clone().sub(chicken.model.position).normalize();
-                     chicken.model.position.add(dir.multiplyScalar(chicken.speed * delta));
-                     chicken.model.lookAt(chicken.destination);
-                 } else { // pecking
-                     chicken.model.children[1].rotation.x = Math.sin(performance.now() * 0.01) * 0.5 + 0.5;
-                     if(canChickenCluck && Math.random() < 0.05) {
+            citizens.forEach(npc => {
+                if (!npc.destination) {
+                    chooseNewCitizenDestination(npc);
+                }
+
+                if (npc.state === 'walking') {
+                    npc.walkTimer -= delta;
+                    const toTarget = npc.destination.clone().sub(npc.model.position);
+                    const distance = toTarget.length();
+
+                    if (distance < 0.3 || npc.walkTimer <= 0) {
+                        npc.state = 'idle';
+                        npc.idleTimer = Math.random() * 3 + 2;
+                        npc.model.position.y = npc.baseY;
+                    } else {
+                        toTarget.normalize();
+                        npc.model.position.addScaledVector(toTarget, npc.speed * delta);
+                        npc.model.position.y = npc.baseY;
+
+                        const targetAngle = Math.atan2(toTarget.x, toTarget.z);
+                        npc.model.rotation.y = THREE.MathUtils.lerp(npc.model.rotation.y, targetAngle, 0.15);
+
+                        npc.walkCycle += delta * npc.speed * 4;
+                        const swing = Math.sin(npc.walkCycle);
+                        if (npc.limbs.armL) npc.limbs.armL.rotation.x = swing * 0.5;
+                        if (npc.limbs.armR) npc.limbs.armR.rotation.x = -swing * 0.5;
+                        if (npc.limbs.legL) npc.limbs.legL.rotation.x = -swing * 0.6;
+                        if (npc.limbs.legR) npc.limbs.legR.rotation.x = swing * 0.6;
+                    }
+                } else {
+                    npc.idleTimer -= delta;
+                    const relaxFactor = Math.min(1, delta * 5);
+                    if (npc.limbs.armL) npc.limbs.armL.rotation.x = THREE.MathUtils.lerp(npc.limbs.armL.rotation.x, 0, relaxFactor);
+                    if (npc.limbs.armR) npc.limbs.armR.rotation.x = THREE.MathUtils.lerp(npc.limbs.armR.rotation.x, 0, relaxFactor);
+                    if (npc.limbs.legL) npc.limbs.legL.rotation.x = THREE.MathUtils.lerp(npc.limbs.legL.rotation.x, 0, relaxFactor);
+                    if (npc.limbs.legR) npc.limbs.legR.rotation.x = THREE.MathUtils.lerp(npc.limbs.legR.rotation.x, 0, relaxFactor);
+
+                    npc.model.position.y = npc.baseY + Math.sin(time * 1.5 + npc.animationOffset) * 0.02;
+
+                    if (npc.idleTimer <= 0) {
+                        npc.state = 'walking';
+                        chooseNewCitizenDestination(npc);
+                        npc.walkTimer = Math.random() * 5 + 3;
+                        npc.model.position.y = npc.baseY;
+                    }
+                }
+            });
+
+            chickens.forEach(chicken => {
+                chicken.timer -= delta;
+                if (chicken.timer <= 0) {
+                    if (chicken.state === 'pecking') {
+                        chicken.state = 'walking';
+                        chicken.destination.set((Math.random() - 0.5) * 140, 0, (Math.random() - 0.5) * 140);
+                        chicken.timer = Math.random() * 8 + 4; // walk for 4-12 seconds
+                    } else {
+                        chicken.state = 'pecking';
+                        chicken.timer = Math.random() * 5 + 2; // peck for 2-7 seconds
+                    }
+                }
+
+                if (chicken.state === 'walking') {
+                    const dir = chicken.destination.clone().sub(chicken.model.position).normalize();
+                    chicken.model.position.add(dir.multiplyScalar(chicken.speed * delta));
+                    chicken.model.lookAt(chicken.destination);
+                } else { // pecking
+                    chicken.model.children[1].rotation.x = Math.sin(performance.now() * 0.01) * 0.5 + 0.5;
+                    if (canChickenCluck && Math.random() < 0.05) {
                         const now = Tone.now();
                         if (now > lastCluckTime) {
-                           chicken.sound.triggerAttackRelease("C5", "8n", now);
-                           lastCluckTime = now + 0.1;
+                            chicken.sound.triggerAttackRelease("C5", "8n", now);
+                            lastCluckTime = now + 0.1;
                         }
-                     }
-                 }
-             });
+                    }
+                }
+            });
         }
         
         function updateLabels() {
