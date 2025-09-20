@@ -1134,23 +1134,37 @@
         }
         
         function createPavedRoads() {
+            const panathenaicWayMaterial = pavedRoadMaterial.clone();
+            if (pavedRoadMaterial.map) {
+                panathenaicWayMaterial.map = pavedRoadMaterial.map.clone();
+            }
             const panathenaicWay = new THREE.Mesh(
                 new THREE.PlaneGeometry(8, 120),
-                pavedRoadMaterial
+                panathenaicWayMaterial
             );
             panathenaicWay.rotation.x = -Math.PI / 2;
             panathenaicWay.position.set(0, 0.01, -20);
-            pavedRoadMaterial.map.repeat.set(2, 30);
+            if (panathenaicWayMaterial.map) {
+                panathenaicWayMaterial.map.repeat.set(2, 30);
+                panathenaicWayMaterial.map.needsUpdate = true;
+            }
             panathenaicWay.receiveShadow = true;
             scene.add(panathenaicWay);
 
+            const stoaWayMaterial = pavedRoadMaterial.clone();
+            if (pavedRoadMaterial.map) {
+                stoaWayMaterial.map = pavedRoadMaterial.map.clone();
+            }
             const stoaWay = new THREE.Mesh(
                 new THREE.PlaneGeometry(60, 6),
-                pavedRoadMaterial
+                stoaWayMaterial
             );
             stoaWay.rotation.x = -Math.PI / 2;
             stoaWay.position.set(40, 0.01, 8);
-            pavedRoadMaterial.map.repeat.set(15, 2);
+            if (stoaWayMaterial.map) {
+                stoaWayMaterial.map.repeat.set(15, 2);
+                stoaWayMaterial.map.needsUpdate = true;
+            }
             stoaWay.receiveShadow = true;
             scene.add(stoaWay);
         }
