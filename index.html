@@ -1317,9 +1317,25 @@
                 player.model.scale.set(1.0, 1.0, 1.0);
                 scene.add(player.model);
                 player.model.traverse(function (object) {
-                    if (object.isMesh) object.castShadow = true;
+                    if (object.isMesh) {
+                        object.castShadow = true;
+                        if (object.geometry && !object.geometry.boundingBox) {
+                            object.geometry.computeBoundingBox();
+                        }
+                    }
                 });
-                
+
+                player.model.updateMatrixWorld(true);
+                const boundingBox = new THREE.Box3().setFromObject(player.model);
+                const minY = boundingBox.min.y;
+                const bodyShape = (player.body && player.body.shapes && player.body.shapes.length) ? player.body.shapes[0] : null;
+                const halfHeight = (bodyShape && bodyShape.height) ? bodyShape.height / 2 : 0.9;
+                player.model.userData = player.model.userData || {};
+                player.model.userData.minY = minY;
+                player.model.userData.groundOffset = halfHeight + minY;
+                player.model.position.copy(player.body.position);
+                player.model.position.y -= player.model.userData.groundOffset;
+
                 mixer = new THREE.AnimationMixer(player.model);
                 player.animations = {};
                 gltf.animations.forEach((clip) => {
@@ -1630,8 +1646,18 @@
             });
             
             if (player && player.body && player.model) {
+                const bodyShape = (player.body.shapes && player.body.shapes.length) ? player.body.shapes[0] : null;
+                const halfHeight = (bodyShape && bodyShape.height) ? bodyShape.height / 2 : 0.9;
+                let groundOffset = halfHeight;
+                if (player.model.userData) {
+                    if (typeof player.model.userData.groundOffset === 'number') {
+                        groundOffset = player.model.userData.groundOffset;
+                    } else if (typeof player.model.userData.minY === 'number') {
+                        groundOffset = halfHeight + player.model.userData.minY;
+                    }
+                }
                 player.model.position.copy(player.body.position);
-                player.model.position.y -= 0.85;
+                player.model.position.y -= groundOffset;
                 player.model.quaternion.copy(player.body.quaternion);
             }
             
