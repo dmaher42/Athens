@@ -398,7 +398,13 @@
             <h4 id="info-title" class="golden-text" style="text-align: center; margin-bottom: 20px;"></h4>
             <p id="info-text"></p>
         </div>
+        
     </div>
+    <canvas id="landmarks-canvas"
+        style="position:fixed; right:16px; top:16px; width:420px; height:420px; z-index:150;
+               border:1px solid #FFD700; border-radius:10px; background:rgba(0,0,0,.18);">
+</canvas>
+
 
     <script>
         console.log("🏛️ Initializing Enhanced Ancient Athens Experience...");
@@ -2610,6 +2616,15 @@ async function loadAthensGeo() {
             projector,
             setRotation: (degrees) => projector.setRotation(degrees)
         };
+        const lmCanvas = document.getElementById('landmarks-canvas');
+createLandmarkOverlay(lmCanvas, {
+  // if your file lives at data/athens_places.geojson in the repo, this keeps it safe on GitHub Pages:
+  geoJsonUrl: './data/athens_places.geojson',
+  markerFill: '#FFD700',
+  markerStroke: '#704c00',
+  fitPadding: 48
+}).catch(err => console.error('Landmark overlay failed to initialize:', err));
+
     </script>
 </body>
 </html>
