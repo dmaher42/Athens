@@ -787,6 +787,109 @@
         }
         
         function createParthenon() {
+            const acropolis = new THREE.Group();
+
+            const hillMaterialBase = groundMaterial.clone();
+            let hillTexture = null;
+            if (groundMaterial.map) {
+                hillTexture = groundMaterial.map.clone();
+                hillTexture.wrapS = hillTexture.wrapT = THREE.RepeatWrapping;
+                hillTexture.repeat.set(6, 3);
+                hillTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                hillTexture.needsUpdate = true;
+                hillMaterialBase.map = hillTexture;
+            }
+            hillMaterialBase.color = new THREE.Color(0xBCA67C);
+            hillMaterialBase.roughness = Math.min(0.98, hillMaterialBase.roughness + 0.03);
+
+            const hillLayers = [
+                { top: 70, bottom: 85, height: 3 },
+                { top: 55, bottom: 70, height: 3 },
+                { top: 42, bottom: 55, height: 2.5 },
+                { top: 34, bottom: 42, height: 2 }
+            ];
+
+            let plateauHeight = 0;
+            hillLayers.forEach((layer, index) => {
+                const layerMaterial = hillMaterialBase.clone();
+                if (hillTexture) {
+                    layerMaterial.map = hillTexture.clone();
+                    layerMaterial.map.repeat.set(6 + index, 3 + index * 0.5);
+                    layerMaterial.map.needsUpdate = true;
+                }
+                const terrace = new THREE.Mesh(
+                    new THREE.CylinderGeometry(layer.top, layer.bottom, layer.height, 64, 1, false),
+                    layerMaterial
+                );
+                terrace.position.y = plateauHeight + layer.height / 2;
+                terrace.castShadow = true;
+                terrace.receiveShadow = true;
+                acropolis.add(terrace);
+                plateauHeight += layer.height;
+            });
+
+            const rockMaterial = stoneMaterial.clone();
+            rockMaterial.color = new THREE.Color(0x9f8f78);
+            [
+                { position: new THREE.Vector3(-26, 1.8, 28), scale: 1.3 },
+                { position: new THREE.Vector3(22, 2.6, 24), scale: 1.1 },
+                { position: new THREE.Vector3(-18, 4.2, -8), scale: 1.0 },
+                { position: new THREE.Vector3(16, 3.6, -14), scale: 1.2 }
+            ].forEach(detail => {
+                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3 * detail.scale, 0), rockMaterial);
+                rock.position.copy(detail.position);
+                rock.scale.setScalar(detail.scale);
+                rock.castShadow = true;
+                rock.receiveShadow = true;
+                acropolis.add(rock);
+            });
+
+            const pathMaterial = pavedRoadMaterial.clone();
+            if (pathMaterial.map) {
+                pathMaterial.map = pathMaterial.map.clone();
+                pathMaterial.map.wrapS = pathMaterial.map.wrapT = THREE.RepeatWrapping;
+                pathMaterial.map.repeat.set(2, 12);
+                pathMaterial.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                pathMaterial.map.needsUpdate = true;
+            }
+            pathMaterial.color = new THREE.Color(0xD2C3A4);
+
+            const rampDepth = 60;
+            const rampAngle = Math.asin(Math.min(1, plateauHeight / rampDepth));
+            const rampCenterZ = -7.5 + rampDepth / 2;
+            const rampHeight = plateauHeight / 2;
+
+            const ramp = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, rampDepth), pathMaterial);
+            ramp.position.set(0, rampHeight, rampCenterZ);
+            ramp.rotation.x = -rampAngle;
+            ramp.castShadow = true;
+            ramp.receiveShadow = true;
+            acropolis.add(ramp);
+
+            const rampWallsMaterial = stoneMaterial.clone();
+            rampWallsMaterial.color = new THREE.Color(0xE0D0B8);
+            const rampWallGeometry = new THREE.BoxGeometry(0.6, 1.2, rampDepth);
+            [-1, 1].forEach(side => {
+                const wall = new THREE.Mesh(rampWallGeometry, rampWallsMaterial);
+                wall.position.set(side * 4.4, rampHeight + 0.6, rampCenterZ);
+                wall.rotation.x = -rampAngle;
+                wall.castShadow = true;
+                wall.receiveShadow = true;
+                acropolis.add(wall);
+            });
+
+            const lowerPlaza = new THREE.Mesh(new THREE.CylinderGeometry(15, 19, 0.5, 48), pathMaterial);
+            lowerPlaza.position.set(0, 0.25, rampCenterZ + rampDepth / 2 + 4);
+            lowerPlaza.castShadow = true;
+            lowerPlaza.receiveShadow = true;
+            acropolis.add(lowerPlaza);
+
+            const upperLanding = new THREE.Mesh(new THREE.BoxGeometry(16, 0.4, 10), pathMaterial);
+            upperLanding.position.set(0, plateauHeight - 0.2, -12);
+            upperLanding.castShadow = true;
+            upperLanding.receiveShadow = true;
+            acropolis.add(upperLanding);
+
             const parthenon = new THREE.Group();
             const steps = new THREE.Group();
             for (let i = 0; i < 3; i++) {
@@ -1010,8 +1113,12 @@
             athena.position.set(0, 10, 0);
             athena.castShadow = true;
             parthenon.add(athena);
-            parthenon.position.set(0, 0, -50);
-            scene.add(parthenon);
+
+            parthenon.position.y = plateauHeight;
+            acropolis.add(parthenon);
+
+            acropolis.position.set(0, 0, -50);
+            scene.add(acropolis);
         }
         
         function createStoa() {
@@ -1699,7 +1806,7 @@
         // --- GAME LOGIC & ANIMATION ---
         
         const locations = [
-            { name: "The Parthenon", position: new THREE.Vector3(0, 5, -40), radius: 25, title: "🏛️ The Parthenon" },
+            { name: "The Parthenon", position: new THREE.Vector3(0, 10, -50), radius: 30, title: "🏛️ The Parthenon" },
             { name: "Stoa of Attalos", position: new THREE.Vector3(40, 4, -20), radius: 35, title: "🏛️ Stoa of Attalos" },
             { name: "Residential Quarter", position: new THREE.Vector3(-50, 3, 5), radius: 20, title: "🏡 Residential Quarter" },
             { name: "Olive Grove", position: new THREE.Vector3(35, 2, 25), radius: 25, title: "🌳 Sacred Olive Grove" }
