@@ -1,0 +1,9 @@
+{
+  "name": "athens",
+  "version": "1.0.0",
+  "description": "Ancient Athens web experience",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

@@ -2426,6 +2426,42 @@
         };
 
     </script>
+
+    <script type="module">
+        import { loadGeoJson } from './src/geo/geoLoader.js';
+        import { LocalEquirectangularProjection } from './src/geo/projection.js';
+
+        const origin = { lat: 37.9715379, lon: 23.7266531 }; // Parthenon
+        const rotationDegrees = 0;
+        const projector = new LocalEquirectangularProjection({ origin, rotationDegrees });
+
+        loadGeoJson()
+            .then((geoJson) => {
+                if (!geoJson || !Array.isArray(geoJson.features)) {
+                    console.warn('GeoJSON file did not contain any features to transform.');
+                    return;
+                }
+
+                console.group('Athens GeoJSON → local meters');
+                geoJson.features
+                    .filter((feature) => feature?.geometry?.type === 'Point')
+                    .forEach((feature) => {
+                        const [lon, lat] = feature.geometry.coordinates;
+                        const { x, y } = projector.project({ lat, lon });
+                        const name = feature.properties?.title || feature.properties?.name || 'Unnamed feature';
+                        console.log(name, { x, y, lat, lon });
+                    });
+                console.groupEnd();
+            })
+            .catch((error) => {
+                console.error('Failed to load Athens GeoJSON data', error);
+            });
+
+        window.AthensGeo = {
+            projector,
+            setRotation: (degrees) => projector.setRotation(degrees)
+        };
+    </script>
 </body>
 </html>
 
