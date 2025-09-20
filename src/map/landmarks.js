@@ -386,9 +386,13 @@ export class LandmarkOverlay {
                 this._extendBounds(world);
                 const label = LANDMARK_LABELS[properties.name];
                 if (label) {
-                    const landmark = { name: properties.name, label, world };
+                    const withinWallsFlag = properties.within_walls ?? properties.withinWalls;
+                    const includeInCity = withinWallsFlag !== false;
+                    const landmark = { name: properties.name, label, world, withinWalls: includeInCity };
                     this.landmarks.push(landmark);
-                    cityPoints.push({ x: world.x, y: world.y });
+                    if (includeInCity) {
+                        cityPoints.push({ x: world.x, y: world.y });
+                    }
                 }
                 if (properties.name === 'Agora of Athens (Ancient Agora)') {
                     this.agoraAnchorWorld = { x: world.x, y: world.y };

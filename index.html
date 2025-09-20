@@ -450,6 +450,7 @@
         const flightSpeed = 10.0;
         const flightVerticalSpeed = 8.0;
         const CITY_SCALE = 2;
+        const ACROPOLIS_POSITION = Object.freeze({ x: 95, z: -110 });
         const scaleValue = (value) => value * CITY_SCALE;
         const scaleLocation = ({ x, y = 0, z }) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
         const scaleXZ = (x, z) => ({ x: scaleValue(x), z: scaleValue(z) });
@@ -628,10 +629,16 @@ async function loadAthensGeo() {
         let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial;
         
         const baseMapBounds = { xMin: -80, xMax: 80, zMin: -80, zMax: 80 };
-        const mapBounds = scaleBounds(baseMapBounds);
+        const spawnBounds = scaleBounds(baseMapBounds);
+        const mapBounds = scaleBounds({
+            xMin: Math.min(baseMapBounds.xMin, ACROPOLIS_POSITION.x - 10),
+            xMax: Math.max(baseMapBounds.xMax, ACROPOLIS_POSITION.x + 10),
+            zMin: Math.min(baseMapBounds.zMin, ACROPOLIS_POSITION.z - 10),
+            zMax: Math.max(baseMapBounds.zMax, ACROPOLIS_POSITION.z + 10)
+        });
         const getRandomWorldXZ = (padding = 0) => ({
-            x: THREE.MathUtils.randFloat(mapBounds.xMin + padding, mapBounds.xMax - padding),
-            z: THREE.MathUtils.randFloat(mapBounds.zMin + padding, mapBounds.zMax - padding)
+            x: THREE.MathUtils.randFloat(spawnBounds.xMin + padding, spawnBounds.xMax - padding),
+            z: THREE.MathUtils.randFloat(spawnBounds.zMin + padding, spawnBounds.zMax - padding)
         });
         const getRandomWorldVector3 = (y = 0, padding = 0) => {
             const { x, z } = getRandomWorldXZ(padding);
@@ -1310,7 +1317,7 @@ async function loadAthensGeo() {
             parthenon.position.y = plateauHeight;
             acropolis.add(parthenon);
 
-            setScaledPosition(acropolis, 0, 0, -50);
+            setScaledPosition(acropolis, ACROPOLIS_POSITION.x, 0, ACROPOLIS_POSITION.z);
             scene.add(acropolis);
         }
         
@@ -2008,7 +2015,7 @@ async function loadAthensGeo() {
         // --- GAME LOGIC & ANIMATION ---
         
         const locations = [
-            { name: "The Parthenon", position: scaleLocation({ x: 0, y: 10, z: -50 }), radius: scaleValue(30), title: "🏛️ The Parthenon" },
+            { name: "The Parthenon", position: scaleLocation({ x: ACROPOLIS_POSITION.x, y: 10, z: ACROPOLIS_POSITION.z }), radius: scaleValue(30), title: "🏛️ The Parthenon" },
             { name: "Stoa of Attalos", position: scaleLocation({ x: 40, y: 4, z: -20 }), radius: scaleValue(35), title: "🏛️ Stoa of Attalos" },
             { name: "Residential Quarter", position: scaleLocation({ x: -50, y: 3, z: 5 }), radius: scaleValue(20), title: "🏡 Residential Quarter" },
             { name: "Olive Grove", position: scaleLocation({ x: 35, y: 2, z: 25 }), radius: scaleValue(25), title: "🌳 Sacred Olive Grove" }
