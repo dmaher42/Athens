@@ -735,7 +735,8 @@
             return group;
         }
 
-        function createEnhancedBuilding(x, z, width, depth, height, material = stoneMaterial) {
+        function createEnhancedBuilding(x, z, width, depth, height, material = stoneMaterial, options = {}) {
+            const { includeDetails = true } = options;
             const group = new THREE.Group();
             const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
             const building = new THREE.Mesh(buildingGeometry, material);
@@ -745,26 +746,28 @@
                 building.material.map.repeat.set(width / 4, height / 4);
             }
             group.add(building);
-            
-            // Add doors and windows
-            const detailMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
-            if (width > depth) { // Horizontal building
-                const door = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.5), detailMaterial);
-                door.position.set(0, -height/2 + 1.25, depth/2 + 0.01);
-                group.add(door);
-            } else { // Vertical building
-                const door = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.5), detailMaterial);
-                door.position.set(width/2 + 0.01, -height/2 + 1.25, 0);
-                door.rotation.y = Math.PI / 2;
-                group.add(door);
-            }
 
-            if (Math.random() > 0.5) {
-                const decorGeometry = new THREE.BoxGeometry(width * 1.1, 0.5, depth * 1.1);
-                const decoration = new THREE.Mesh(decorGeometry, goldMaterial);
-                decoration.position.y = height / 2 + 0.25;
-                decoration.castShadow = true;
-                group.add(decoration);
+            if (includeDetails) {
+                // Add doors and windows
+                const detailMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
+                if (width > depth) { // Horizontal building
+                    const door = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.5), detailMaterial);
+                    door.position.set(0, -height/2 + 1.25, depth/2 + 0.01);
+                    group.add(door);
+                } else { // Vertical building
+                    const door = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.5), detailMaterial);
+                    door.position.set(width/2 + 0.01, -height/2 + 1.25, 0);
+                    door.rotation.y = Math.PI / 2;
+                    group.add(door);
+                }
+
+                if (Math.random() > 0.5) {
+                    const decorGeometry = new THREE.BoxGeometry(width * 1.1, 0.5, depth * 1.1);
+                    const decoration = new THREE.Mesh(decorGeometry, goldMaterial);
+                    decoration.position.y = height / 2 + 0.25;
+                    decoration.castShadow = true;
+                    group.add(decoration);
+                }
             }
             group.position.set(x, height/2, z);
             return group;
@@ -822,7 +825,7 @@
             for (let i = 0; i < 12; i++) {
                 stoa.add(createEnhancedColumn(-30 + i * 5, 0, 8));
             }
-            const stoaRoof = createEnhancedBuilding(0, 0, 60, 8, 1.5, redTileMaterial);
+            const stoaRoof = createEnhancedBuilding(0, 0, 60, 8, 1.5, redTileMaterial, { includeDetails: false });
             if(stoaRoof.children[0].material.map) {
                 stoaRoof.children[0].material.map.repeat.set(16,4);
             }
@@ -838,7 +841,7 @@
                 const material = config.style === 'wealthy' ? marbleMaterial : stoneMaterial;
                 const house = createEnhancedBuilding(config.x, config.z, config.w, config.d, 6, material);
                 const roofMaterial = config.style === 'wealthy' ? goldMaterial : redTileMaterial;
-                const houseRoof = createEnhancedBuilding(config.x, config.z, config.w + 1, config.d + 1, 1, roofMaterial);
+                const houseRoof = createEnhancedBuilding(config.x, config.z, config.w + 1, config.d + 1, 1, roofMaterial, { includeDetails: false });
                 if(houseRoof.children[0].material.map) {
                     houseRoof.children[0].material.map.repeat.set(config.w/2, config.d/2);
                 }
@@ -1026,13 +1029,13 @@
             const towerHeight = 15;
             const gateGap = 10;
 
-            const tower1 = createEnhancedBuilding(-gateGap, -wallSize, towerWidth, towerWidth, towerHeight);
+            const tower1 = createEnhancedBuilding(-gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
             scene.add(tower1);
              const tower1Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(towerWidth/2, towerHeight/2, towerWidth/2)) });
             tower1Body.position.copy(tower1.position);
             world.addBody(tower1Body);
-            
-            const tower2 = createEnhancedBuilding(gateGap, -wallSize, towerWidth, towerWidth, towerHeight);
+
+            const tower2 = createEnhancedBuilding(gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
             scene.add(tower2);
             const tower2Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(towerWidth/2, towerHeight/2, towerWidth/2)) });
             tower2Body.position.copy(tower2.position);
