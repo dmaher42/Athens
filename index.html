@@ -1724,7 +1724,7 @@
                 }
                 if(e.code === 'KeyM') {
                     soundEnabled = !soundEnabled;
-                    Tone.Master.mute = !soundEnabled;
+                    Tone.getDestination().mute = !soundEnabled;
                 }
                 if(e.code === 'KeyP') {
                     document.getElementById('fps-counter').classList.toggle('show');
