@@ -13,8 +13,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          23.7264384999,
-          37.9716470903
+          23.7277356595,
+          37.9705497532
         ]
       },
       "properties": {
@@ -23,7 +23,8 @@
         "pleiades_uri": "https://pleiades.stoa.org/places/638356144",
         "source": "Pleiades",
         "license": "CC-BY 3.0",
-        "kind": "landmark"
+        "kind": "landmark",
+        "within_walls": false
       }
     },
     {

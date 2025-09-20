@@ -350,9 +350,13 @@ export class LandmarkOverlay {
                 this._extendBounds(world);
                 const label = LANDMARK_LABELS[properties.name];
                 if (label) {
-                    const landmark = { name: properties.name, label, world };
+                    const withinWallsFlag = properties.within_walls ?? properties.withinWalls;
+                    const includeInCity = withinWallsFlag !== false;
+                    const landmark = { name: properties.name, label, world, withinWalls: includeInCity };
                     this.landmarks.push(landmark);
-                    cityPoints.push({ x: world.x, y: world.y });
+                    if (includeInCity) {
+                        cityPoints.push({ x: world.x, y: world.y });
+                    }
                 }
             } else if (geometry.type === 'LineString') {
                 const points = geometry.coordinates.map((coordinate) => this.projection.projectGeoJsonPosition(coordinate));
