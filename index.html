@@ -406,7 +406,7 @@
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
         let world;
-        let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, Space: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, ShiftRight: false, Space: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
         const playerSpeed = 8.0;
         const playerRotationSpeed = 3.0;
         const flightSpeed = 10.0;
@@ -1852,7 +1852,7 @@
 
                 let verticalVelocity = 0;
                 if (controls.Space) verticalVelocity += flightVerticalSpeed;
-                if (controls.ShiftLeft) verticalVelocity -= flightVerticalSpeed;
+                if (controls.ShiftLeft || controls.ShiftRight) verticalVelocity -= flightVerticalSpeed;
 
                 const flightVelocity = new CANNON.Vec3(
                     moveDirection.x * flightSpeed,
