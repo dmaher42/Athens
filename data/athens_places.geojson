@@ -1,0 +1,195 @@
+{
+  "type": "FeatureCollection",
+  "name": "athens_landmarks_subset",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "EPSG:4326"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          23.7264384999,
+          37.9716470903
+        ]
+      },
+      "properties": {
+        "name": "Acropolis of Athens",
+        "pleiades_id": "638356144",
+        "pleiades_uri": "https://pleiades.stoa.org/places/638356144",
+        "source": "Pleiades",
+        "license": "CC-BY 3.0",
+        "kind": "landmark"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          23.72264864,
+          37.975504201
+        ]
+      },
+      "properties": {
+        "name": "Agora of Athens (Ancient Agora)",
+        "pleiades_id": "807514119",
+        "pleiades_uri": "https://pleiades.stoa.org/places/807514119",
+        "source": "Pleiades",
+        "license": "CC-BY 3.0",
+        "kind": "landmark"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          23.7194677194,
+          37.9714334532
+        ]
+      },
+      "properties": {
+        "name": "Pnyx",
+        "pleiades_id": "205264674",
+        "pleiades_uri": "https://pleiades.stoa.org/places/205264674",
+        "source": "Pleiades",
+        "license": "CC-BY 3.0",
+        "kind": "landmark"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          23.7233719877,
+          37.9723721051
+        ]
+      },
+      "properties": {
+        "name": "Areopagus (Areios Pagos)",
+        "pleiades_id": "969121823",
+        "pleiades_uri": "https://pleiades.stoa.org/places/969121823",
+        "source": "Pleiades",
+        "license": "CC-BY 3.0",
+        "kind": "landmark"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          23.7183009573,
+          37.978415826
+        ]
+      },
+      "properties": {
+        "name": "Kerameikos",
+        "pleiades_id": "97294452",
+        "pleiades_uri": "https://pleiades.stoa.org/places/97294452",
+        "source": "Pleiades",
+        "license": "CC-BY 3.0",
+        "kind": "landmark"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          23.644609,
+          37.937222
+        ]
+      },
+      "properties": {
+        "name": "Peiraieus / Piraeus",
+        "pleiades_id": "580062",
+        "pleiades_uri": "https://pleiades.stoa.org/places/580062",
+        "source": "Pleiades",
+        "license": "CC-BY 3.0",
+        "kind": "landmark"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          23.706248,
+          37.937309
+        ]
+      },
+      "properties": {
+        "name": "Phaleron",
+        "pleiades_id": "580072",
+        "pleiades_uri": "https://pleiades.stoa.org/places/580072",
+        "source": "Pleiades",
+        "license": "CC-BY 3.0",
+        "kind": "landmark"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            23.7183009573,
+            37.978415826
+          ],
+          [
+            23.644609,
+            37.937222
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Makra Teiche (Long Walls) to Piraeus — schematic",
+        "from": "Kerameikos (near Sacred Gate)",
+        "to": "Piraeus",
+        "pleiades_refs": [
+          "97294452",
+          "580062"
+        ],
+        "source": "Pleiades representative points; schematic line between them",
+        "license": "CC-BY 3.0",
+        "kind": "wall_corridor"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            23.7183009573,
+            37.978415826
+          ],
+          [
+            23.706248,
+            37.937309
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Phaleric Wall — schematic",
+        "from": "Kerameikos (near Sacred Gate)",
+        "to": "Phaleron",
+        "pleiades_refs": [
+          "97294452",
+          "580072"
+        ],
+        "source": "Pleiades representative points; schematic line between them",
+        "license": "CC-BY 3.0",
+        "kind": "wall_corridor"
+      }
+    }
+  ],
+  "note": "Representative points from Pleiades; linework is a schematic approximation to be refined with ASCSA plans."
+}
