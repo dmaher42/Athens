@@ -2448,6 +2448,38 @@ async function loadAthensGeo() {
                 moveDirection.set(0, 0, 0);
             }
 
+            let movementBlocked = false;
+            if (!isFlying && hasHorizontalInput && typeof window !== 'undefined') {
+                const collision = window.AthensCollision;
+                if (collision && typeof collision.isWalkable === 'function') {
+                    const stepDistance = playerSpeed * delta;
+                    if (stepDistance > 0) {
+                        const currentWorldX = player.body.position.x;
+                        const currentWorldZ = player.body.position.z;
+                        const nextWorldX = currentWorldX + moveDirection.x * stepDistance;
+                        const nextWorldZ = currentWorldZ + moveDirection.z * stepDistance;
+                        const nextLocalX = nextWorldX / CITY_SCALE;
+                        const nextLocalY = nextWorldZ / CITY_SCALE;
+                        if (!collision.isWalkable(nextLocalX, nextLocalY)) {
+                            const slideLocalX = (currentWorldX + moveDirection.x * stepDistance) / CITY_SCALE;
+                            const slideLocalY = (currentWorldZ + moveDirection.z * stepDistance) / CITY_SCALE;
+                            const stayLocalX = currentWorldX / CITY_SCALE;
+                            const stayLocalY = currentWorldZ / CITY_SCALE;
+                            const canSlideX = collision.isWalkable(slideLocalX, stayLocalY);
+                            const canSlideZ = collision.isWalkable(stayLocalX, slideLocalY);
+                            if (canSlideX && !canSlideZ) {
+                                moveDirection.z = 0;
+                            } else if (!canSlideX && canSlideZ) {
+                                moveDirection.x = 0;
+                            } else if (!canSlideX && !canSlideZ) {
+                                moveDirection.set(0, 0, 0);
+                                movementBlocked = true;
+                            }
+                        }
+                    }
+                }
+            }
+
             if (isFlying) {
                 if (player.body.force) {
                     player.body.force.y += -world.gravity.y * player.body.mass;
@@ -2478,6 +2510,10 @@ async function loadAthensGeo() {
                 }
 
                 if (!controls.KeyW && !controls.KeyS) {
+                    player.body.velocity.x = 0;
+                    player.body.velocity.z = 0;
+                }
+                if (movementBlocked && player.body.velocity) {
                     player.body.velocity.x = 0;
                     player.body.velocity.z = 0;
                 }
@@ -2649,6 +2685,27 @@ async function loadAthensGeo() {
     });
 
   window.AthensGeo = { projector, setRotation: (deg) => projector.setRotation(deg) };
+</script>
+
+<script type="module">
+  import { createCollisionGeometry } from './src/collision/geometry.js';
+  import { LocalEquirectangularProjection } from './src/geo/projection.js';
+
+  const defaultOrigin = { lat: 37.9715379, lon: 23.7266531 };
+
+  async function initCollisionGeometry() {
+    const projector = window.AthensGeo?.projector ?? new LocalEquirectangularProjection({ origin: defaultOrigin, rotationDegrees: 0 });
+    const collision = await createCollisionGeometry({
+      projector,
+      geoJsonUrl: './data/athens_places.geojson'
+    });
+    window.AthensCollision = collision;
+    return collision;
+  }
+
+  initCollisionGeometry().catch((error) => {
+    console.error('Collision geometry failed to initialize:', error);
+  });
 </script>
 
 <!-- Landmarks canvas overlay -->
