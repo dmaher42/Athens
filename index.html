@@ -614,6 +614,7 @@ async function loadAthensGeo() {
         const physicsObjects = []; 
         let skybox;
         const skyboxMaterials = {};
+        let skyAnimationTime = 0;
         let sunMoon;
         const clouds = [];
         let canChickenCluck = true;
@@ -1385,17 +1386,216 @@ async function loadAthensGeo() {
             treePositions.forEach(pos => { scene.add(createEnhancedTree(pos.x, pos.z, pos.scale)); });
         }
         
+        const skyVertexShader = `
+            varying vec3 vWorldPosition;
+            void main() {
+                vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                vWorldPosition = worldPosition.xyz;
+                gl_Position = projectionMatrix * viewMatrix * worldPosition;
+            }
+        `;
+
+        const skyFragmentShader = `
+            varying vec3 vWorldPosition;
+
+            uniform vec3 uTopColor;
+            uniform vec3 uHorizonColor;
+            uniform vec3 uBottomColor;
+            uniform vec3 uCloudColor;
+            uniform vec3 uStarColor;
+            uniform vec3 uGalaxyColor;
+            uniform float uCloudIntensity;
+            uniform float uStarIntensity;
+            uniform float uGalaxyIntensity;
+            uniform float uTime;
+            uniform float uCloudScale;
+            uniform float uCloudSharpness;
+            uniform float uHorizonHeight;
+            uniform float uHorizonSpread;
+
+            const float PI = 3.14159265359;
+
+            float hash(vec2 p) {
+                return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+            }
+
+            float noise(vec2 p) {
+                vec2 i = floor(p);
+                vec2 f = fract(p);
+                float a = hash(i);
+                float b = hash(i + vec2(1.0, 0.0));
+                float c = hash(i + vec2(0.0, 1.0));
+                float d = hash(i + vec2(1.0, 1.0));
+                vec2 u = f * f * (3.0 - 2.0 * f);
+                return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+            }
+
+            float fbm(vec2 p) {
+                float value = 0.0;
+                float amplitude = 0.5;
+                float frequency = 1.0;
+                for (int i = 0; i < 5; i++) {
+                    value += noise(p * frequency) * amplitude;
+                    frequency *= 2.0;
+                    amplitude *= 0.5;
+                }
+                return value;
+            }
+
+            float starLayer(vec2 uv, float density, float twinkleSpeed) {
+                vec2 grid = floor(uv);
+                vec2 f = fract(uv) - 0.5;
+                float n = hash(grid);
+                float star = step(1.0 - density, n);
+                vec2 offset = vec2(hash(grid + 1.3), hash(grid + 8.7)) - 0.5;
+                float dist = length(f - offset * 0.35);
+                star *= smoothstep(0.45, 0.0, dist);
+                float twinkle = 0.55 + 0.45 * sin(uTime * twinkleSpeed + n * 6.28318);
+                return star * twinkle;
+            }
+
+            void main() {
+                vec3 dir = normalize(vWorldPosition);
+                float height = clamp(dir.y * 0.5 + 0.5, 0.0, 1.0);
+
+                vec3 baseGradient = mix(uBottomColor, uTopColor, pow(height, 1.5));
+                float horizonMix = exp(-pow((height - uHorizonHeight) * uHorizonSpread, 2.0));
+                baseGradient = mix(baseGradient, uHorizonColor, clamp(horizonMix, 0.0, 1.0));
+
+                vec2 uv;
+                uv.x = atan(dir.z, dir.x) / (2.0 * PI) + 0.5;
+                uv.y = asin(clamp(dir.y, -1.0, 1.0)) / PI + 0.5;
+
+                float cloudShape = fbm(uv * uCloudScale + vec2(uTime * 0.02, uTime * 0.015));
+                cloudShape = smoothstep(uCloudSharpness, 1.0, cloudShape);
+                cloudShape *= uCloudIntensity;
+                cloudShape *= smoothstep(0.0, 0.85, 1.0 - height);
+
+                vec3 cloudTint = mix(baseGradient, uCloudColor, 0.65);
+                vec3 color = mix(baseGradient, cloudTint, clamp(cloudShape, 0.0, 1.0));
+
+                float stars = 0.0;
+                if (uStarIntensity > 0.0) {
+                    float density = clamp(uStarIntensity, 0.0, 0.6);
+                    stars += starLayer(uv * 800.0, density, 12.0);
+                    stars += starLayer(uv * 450.0 + 10.0, density * 0.7, 6.0);
+                    stars += starLayer(uv * 200.0 + 25.0, density * 0.45, 4.0);
+                }
+
+                float galaxyAxis = dir.y + dir.x * 0.35;
+                float galaxyBand = exp(-pow(galaxyAxis * 2.2, 2.0));
+                galaxyBand *= (0.6 + 0.4 * fbm(uv * 6.0 + uTime * 0.03));
+                galaxyBand *= uGalaxyIntensity;
+
+                color += uGalaxyColor * galaxyBand;
+                color += uStarColor * stars;
+
+                color = clamp(color, 0.0, 1.0);
+                gl_FragColor = vec4(color, 1.0);
+            }
+        `;
+
         function createSkybox() {
             const skyGeo = new THREE.SphereGeometry(500, 32, 32);
-            
-            const dayMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB, side: THREE.BackSide });
-            const sunsetMaterial = new THREE.MeshBasicMaterial({ color: 0xFF4500, side: THREE.BackSide });
-            const nightMaterial = new THREE.MeshBasicMaterial({ color: 0x000033, side: THREE.BackSide });
-            
-            skybox = new THREE.Mesh(skyGeo, dayMaterial);
-            skyboxMaterials.day = dayMaterial;
-            skyboxMaterials.sunset = sunsetMaterial;
-            skyboxMaterials.night = nightMaterial;
+
+            const createSkyMaterial = (config) => new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uTopColor: { value: new THREE.Color(config.topColor) },
+                    uHorizonColor: { value: new THREE.Color(config.horizonColor) },
+                    uBottomColor: { value: new THREE.Color(config.bottomColor) },
+                    uCloudColor: { value: new THREE.Color(config.cloudColor || config.topColor) },
+                    uStarColor: { value: new THREE.Color(config.starColor || 0xffffff) },
+                    uGalaxyColor: { value: new THREE.Color(config.galaxyColor || 0x8899ff) },
+                    uCloudIntensity: { value: config.cloudIntensity ?? 0.0 },
+                    uStarIntensity: { value: config.starDensity ?? 0.0 },
+                    uGalaxyIntensity: { value: config.galaxyIntensity ?? 0.0 },
+                    uCloudScale: { value: config.cloudScale ?? 2.5 },
+                    uCloudSharpness: { value: config.cloudSharpness ?? 0.5 },
+                    uHorizonHeight: { value: config.horizonHeight ?? 0.25 },
+                    uHorizonSpread: { value: config.horizonSpread ?? 6.0 }
+                },
+                vertexShader: skyVertexShader,
+                fragmentShader: skyFragmentShader,
+                side: THREE.BackSide,
+                depthWrite: false
+            });
+
+            skyboxMaterials.dawn = createSkyMaterial({
+                topColor: 0xF08D7E,
+                horizonColor: 0xFDB97B,
+                bottomColor: 0x1B2E5E,
+                cloudColor: 0xFFE3C9,
+                cloudIntensity: 0.55,
+                cloudScale: 3.0,
+                cloudSharpness: 0.45,
+                starDensity: 0.01,
+                galaxyIntensity: 0.05,
+                horizonHeight: 0.28,
+                horizonSpread: 8.0
+            });
+
+            skyboxMaterials.day = createSkyMaterial({
+                topColor: 0x7BC8FF,
+                horizonColor: 0xB7E0FF,
+                bottomColor: 0xE5F4FF,
+                cloudColor: 0xFFFFFF,
+                cloudIntensity: 0.38,
+                cloudScale: 4.0,
+                cloudSharpness: 0.55,
+                starDensity: 0.0,
+                galaxyIntensity: 0.0,
+                horizonHeight: 0.32,
+                horizonSpread: 10.0
+            });
+
+            skyboxMaterials.sunset = createSkyMaterial({
+                topColor: 0xDA4E75,
+                horizonColor: 0xFF9854,
+                bottomColor: 0x2C1A4F,
+                cloudColor: 0xFFC89A,
+                cloudIntensity: 0.6,
+                cloudScale: 2.8,
+                cloudSharpness: 0.42,
+                starDensity: 0.03,
+                galaxyIntensity: 0.12,
+                horizonHeight: 0.26,
+                horizonSpread: 7.0
+            });
+
+            skyboxMaterials.night = createSkyMaterial({
+                topColor: 0x06122A,
+                horizonColor: 0x132247,
+                bottomColor: 0x03040F,
+                cloudColor: 0x273B6D,
+                starColor: 0xC8E6FF,
+                galaxyColor: 0x7C5CFF,
+                cloudIntensity: 0.28,
+                cloudScale: 1.8,
+                cloudSharpness: 0.55,
+                starDensity: 0.08,
+                galaxyIntensity: 0.85,
+                horizonHeight: 0.22,
+                horizonSpread: 5.0
+            });
+
+            skyboxMaterials.blueHour = createSkyMaterial({
+                topColor: 0x162A4F,
+                horizonColor: 0x3F5C89,
+                bottomColor: 0x091224,
+                cloudColor: 0x4C5F8B,
+                starColor: 0xD0E3FF,
+                galaxyColor: 0x5C79FF,
+                cloudIntensity: 0.4,
+                cloudScale: 2.4,
+                cloudSharpness: 0.5,
+                starDensity: 0.045,
+                galaxyIntensity: 0.35,
+                horizonHeight: 0.24,
+                horizonSpread: 6.5
+            });
+
+            skybox = new THREE.Mesh(skyGeo, skyboxMaterials.day);
 
             scene.add(skybox);
         }
@@ -2218,7 +2418,7 @@ async function loadAthensGeo() {
                     hemiColorTop = 0xffa500; hemiColorBottom = 0x8B4513;
                     fogColor = 0x877d8f; fogDensity = 0.003;
                     sunPos.set(scaleValue(100), 20, scaleValue(50));
-                    skyboxMat = skyboxMaterials.sunset;
+                    skyboxMat = skyboxMaterials.dawn;
                     break;
                 case 1: // Noon
                     directionalColor = 0xffffff; directionalIntensity = 1.0; ambientIntensity = 0.4;
@@ -2246,11 +2446,14 @@ async function loadAthensGeo() {
                     hemiColorTop = 0x4a5a70; hemiColorBottom = 0x2e3540;
                     fogColor = 0x3a404d; fogDensity = 0.005;
                     sunPos.set(scaleValue(-100), 10, scaleValue(50));
-                    skyboxMat = skyboxMaterials.night;
+                    skyboxMat = skyboxMaterials.blueHour;
                     break;
             }
 
-            if (skybox && skyboxMat) skybox.material = skyboxMat;
+            if (skybox && skyboxMat) {
+                skybox.material = skyboxMat;
+                skybox.material.needsUpdate = true;
+            }
 
             directionalLight.color.setHex(directionalColor);
             directionalLight.intensity = directionalIntensity;
@@ -2424,6 +2627,13 @@ async function loadAthensGeo() {
             const delta = clock.getDelta();
             if (player && player.mixer) player.mixer.update(delta);
             externalAnimationMixers.forEach(m => m.update(delta));
+
+            skyAnimationTime += delta;
+            Object.values(skyboxMaterials).forEach(mat => {
+                if (mat && mat.uniforms && mat.uniforms.uTime) {
+                    mat.uniforms.uTime.value = skyAnimationTime;
+                }
+            });
 
             updateFPS();
             if (player && player.body) {
