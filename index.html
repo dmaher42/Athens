@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ancient Athens - Visual Masterpiece</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- Physics and Post-processing libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
@@ -2002,14 +2003,9 @@ async function loadAthensGeo() {
                     destination: getRandomWorldVector3(0, CHICKEN_WORLD_PADDING),
                     state: 'pecking',
                     timer: Math.random() * 5,
-                    sound: new Tone.MembraneSynth({
-                        pitchDecay: 0.01,
-                        octaves: 6,
-                        envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
-                    }),
-                    panner: new Tone.Panner3D().toDestination()
+                    sound: null,
+                    panner: null
                 };
-                chicken.sound.connect(chicken.panner);
                 chicken.model.position.copy(spawnPosition);
                 chickens.push(chicken);
                 scene.add(chicken.model);
@@ -2227,7 +2223,7 @@ async function loadAthensGeo() {
                     chicken.model.lookAt(chicken.destination);
                 } else { // pecking
                     chicken.model.children[1].rotation.x = Math.sin(performance.now() * 0.01) * 0.5 + 0.5;
-                    if (canChickenCluck && Math.random() < 0.05) {
+                    if (audioStarted && chicken.sound && canChickenCluck && Math.random() < 0.05) {
                         const now = Tone.now();
                         if (now > lastCluckTime) {
                             chicken.sound.triggerAttackRelease("C5", "8n", now);
@@ -2291,7 +2287,10 @@ async function loadAthensGeo() {
             });
 
             // Update sound source positions
-            chickens.forEach(chicken => {
+            chickens.forEach((chicken) => {
+                if (!chicken.panner) {
+                    return;
+                }
                 chicken.panner.positionX.value = chicken.model.position.x;
                 chicken.panner.positionY.value = chicken.model.position.y;
                 chicken.panner.positionZ.value = chicken.model.position.z;
@@ -2362,7 +2361,7 @@ async function loadAthensGeo() {
                 positionY: blacksmithPosition.y,
                 positionZ: blacksmithPosition.z,
             }).toDestination();
-            
+
             blacksmithSound = new Tone.MetalSynth({
                 frequency: 150,
                 envelope: { attack: 0.001, decay: 0.4, release: 0.2 },
@@ -2373,14 +2372,41 @@ async function loadAthensGeo() {
             }).connect(blacksmithPanner);
         }
 
+        function initializeChickenAudio() {
+            chickens.forEach((chicken) => {
+                if (chicken.sound) {
+                    return;
+                }
+
+                const panner = new Tone.Panner3D().toDestination();
+                const synth = new Tone.MembraneSynth({
+                    pitchDecay: 0.01,
+                    octaves: 6,
+                    envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
+                });
+
+                synth.connect(panner);
+                panner.positionX.value = chicken.model.position.x;
+                panner.positionY.value = chicken.model.position.y;
+                panner.positionZ.value = chicken.model.position.z;
+                chicken.sound = synth;
+                chicken.panner = panner;
+            });
+        }
+
         function addEventListeners() {
             document.getElementById('start-button').addEventListener('click', async () => {
                 document.getElementById('start-overlay').classList.add('fade-out');
-                 if (!audioStarted) {
-                    await Tone.start();
-                    console.log("Audio context started.");
-                    createAmbientSounds();
-                    audioStarted = true;
+                if (!audioStarted) {
+                    try {
+                        await Tone.start();
+                        console.log("Audio context started.");
+                        createAmbientSounds();
+                        initializeChickenAudio();
+                        audioStarted = true;
+                    } catch (error) {
+                        console.warn('Unable to start audio context:', error);
+                    }
                 }
             });
 
@@ -2715,8 +2741,6 @@ async function loadAthensGeo() {
   }
 </script>
     <script type="module">
-        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
         const waitForWorld = () => {
             if (window.athensWorldBuilt && window.scene && window.renderer) {
                 return Promise.resolve();
@@ -2773,7 +2797,12 @@ async function loadAthensGeo() {
             throw new Error('Scene not ready');
         }
 
-        const gltfLoader = new GLTFLoader();
+        if (typeof THREE.GLTFLoader !== 'function') {
+            console.error('THREE.GLTFLoader is not available. Ensure the loader script is loaded before this module.');
+            throw new Error('GLTFLoader unavailable');
+        }
+
+        const gltfLoader = new THREE.GLTFLoader();
 
         const loadTemple = () => {
             const templeGroup = new THREE.Group();
