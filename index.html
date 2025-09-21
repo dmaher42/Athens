@@ -390,6 +390,9 @@
      <div id="dikasteria-scribe-prompt" class="prompt">
         <button class="gemini-button" data-info="dikasteria">📜 Learn about the Dikasteria</button>
     </div>
+     <div id="lord-british-prompt" class="prompt">
+        <button class="gemini-button" data-info="lordBritish">⚔️ Speak with Lord British</button>
+    </div>
 
 
     <div id="info-scroll-overlay" class="info-scroll-overlay">
@@ -620,6 +623,10 @@ async function loadAthensGeo() {
             dikasteria: {
                 title: "⚖️ The Dikasteria",
                 text: "These were the Law Courts of Athens. Juries of 201 to 501 citizens, also chosen by lottery, would hear trials and deliver verdicts. Having large juries of ordinary people ensured that justice was in the hands of the citizens, a key part of the **Rule of Law**."
+            },
+            lordBritish: {
+                title: "🛡️ Lord British",
+                text: "Lord British, the stalwart guardian of the Agora, stands watch to ensure the safety of every citizen. He embodies the ideals of **Courage** and **Duty**, urging travelers to uphold honor while they explore the wonders of Athens."
             }
         };
 
@@ -1865,8 +1872,8 @@ async function loadAthensGeo() {
             world.addBody(player.body);
             
             // Load Animated Player Model
-            const loader = new THREE.GLTFLoader();
-            loader.load('https://models.readyplayer.me/68cb1b7024a928560bd57842.glb', (gltf) => {
+            const playerLoader = new THREE.GLTFLoader();
+            playerLoader.load('https://models.readyplayer.me/Male-17-3-1758428284774-d1ea43dc.glb', (gltf) => {
                 player.model = gltf.scene;
                 player.model.scale.set(1.0, 1.0, 1.0);
                 scene.add(player.model);
@@ -1899,6 +1906,55 @@ async function loadAthensGeo() {
                      console.warn("No animations found in the model.");
                 }
 
+            });
+
+            const lordBritishPrompt = document.getElementById('lord-british-prompt');
+            const lordBritishLoader = new THREE.GLTFLoader();
+            const lordBritishPosition = scaleLocation({ x: -8, y: 0, z: 32 });
+            const lordBritishRadius = scaleValue(6);
+            lordBritishLoader.load('https://models.readyplayer.me/Soldier-01-2-1758429653885-76805eae.glb', (gltf) => {
+                const model = gltf.scene;
+                model.scale.set(1.0, 1.0, 1.0);
+                model.traverse((object) => {
+                    if (object.isMesh) {
+                        object.castShadow = true;
+                        object.receiveShadow = true;
+                    }
+                });
+
+                model.position.copy(lordBritishPosition);
+                model.rotation.y = Math.PI;
+                model.updateMatrixWorld(true);
+                const bbox = new THREE.Box3().setFromObject(model);
+                const offsetY = -bbox.min.y;
+                model.position.y += offsetY;
+
+                scene.add(model);
+
+                const lordBritish = {
+                    model,
+                    promptElement: lordBritishPrompt,
+                    name: 'Lord British',
+                    position: model.position,
+                    isPlayerNear: false,
+                    radius: lordBritishRadius
+                };
+
+                interactables.push(lordBritish);
+
+                if (gltf.animations && gltf.animations.length) {
+                    const lordBritishMixer = new THREE.AnimationMixer(model);
+                    const idleClip = gltf.animations.find((clip) => clip.name.toLowerCase().includes('idle')) || gltf.animations[0];
+                    if (idleClip) {
+                        const action = lordBritishMixer.clipAction(idleClip);
+                        action.play();
+                    }
+                    updatableObjects.push({
+                        tick: (delta) => lordBritishMixer.update(delta)
+                    });
+                }
+            }, undefined, (error) => {
+                console.error('Failed to load Lord British model', error);
             });
 
 
@@ -2178,8 +2234,18 @@ async function loadAthensGeo() {
                 const vector = new THREE.Vector3();
                 head.getWorldPosition(vector);
                 
-                let yOffset = (npc.name === "Pnyx Scribe" || npc.name === "Bouleuterion Scribe" || npc.name === "Dikasteria Scribe") ? 2.0 : 0.5;
-                 if (npc.model.isGroup && npc.model.children[0].geometry.type === "CylinderGeometry") { // Is a scroll
+                let yOffset = 0.5;
+                if (npc.name === "Pnyx Scribe" || npc.name === "Bouleuterion Scribe" || npc.name === "Dikasteria Scribe") {
+                    yOffset = 2.0;
+                } else if (npc.name === "Lord British") {
+                    yOffset = 1.6;
+                }
+                if (
+                    npc.model.isGroup &&
+                    npc.model.children.length > 0 &&
+                    npc.model.children[0].geometry &&
+                    npc.model.children[0].geometry.type === "CylinderGeometry"
+                ) { // Is a scroll
                     yOffset = 0.8;
                 }
                 vector.y += yOffset; 
