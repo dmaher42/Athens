@@ -490,6 +490,7 @@ async function loadAthensGeo() {
 
             const [lon, lat] = f.geometry.coordinates;
             const name = f.properties?.title || f.properties?.name || 'Unnamed';
+            const properties = f.properties ? { ...f.properties } : {};
 
             // Convert lon/lat → local meters using your projector
             const { x, y } = projector.project({ lat, lon }); // y here is “northing”; we’ll use it as z
@@ -512,7 +513,9 @@ async function loadAthensGeo() {
                 position: new THREE.Vector3(scaleValue(localX), 0, scaleValue(localZ)),
                 radius: scaleValue(12),
                 title: `📍 ${name}`,
-                type: 'cultural'
+                type: 'cultural',
+                properties,
+                feature: f
             });
         }
 
@@ -541,6 +544,13 @@ async function loadAthensGeo() {
             });
 
             console.log(`Loaded ${newlyAddedLocations.length} Athens landmarks from GeoJSON.`);
+        }
+
+        try {
+            const { createLorePinsOverlay } = await import('./src/ui/lorePins.js');
+            createLorePinsOverlay(scene, camera, renderer, locations);
+        } catch (overlayError) {
+            console.error('Failed to initialize lore pins overlay:', overlayError);
         }
     } catch (err) {
         console.error('loadAthensGeo() failed:', err);
