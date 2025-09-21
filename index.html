@@ -431,6 +431,38 @@
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
 
+        // --- LOAD THE GREEK TEMPLE GLB ---
+        function loadGreekTemple() {
+          const loader = new THREE.GLTFLoader();
+          const url = './models/greek_temple.glb'; // path is relative to index.html
+          console.log('Loading GLB:', url);
+
+          loader.load(
+            url,
+            (gltf) => {
+              const model = gltf.scene || gltf.scenes?.[0];
+              if (!model) { console.warn('GLB loaded but no scene found'); return; }
+
+              // Make sure it’s visible, lit, and casts/receives shadows
+              model.traverse((obj) => {
+                if (obj.isMesh) { obj.castShadow = true; obj.receiveShadow = true; }
+              });
+
+              // Tweak these if it’s tiny/huge or off-camera
+              model.scale.set(1, 1, 1);
+              setScaledPosition(model, 5, 0, -55); // near the Acropolis you built
+              model.rotation.y = 0;
+
+              scene.add(model);
+              console.log('Temple GLB added to scene ✔️');
+            },
+            undefined,
+            (err) => {
+              console.error('❌ Failed to load GLB', err);
+            }
+          );
+        }
+
         window.athensWorldBuilt = false;
         const externalAnimationMixers = [];
         window.externalAnimationMixers = externalAnimationMixers;
@@ -797,55 +829,12 @@ async function loadAthensGeo() {
             createInteractables();
             createInteractiveObjects();
             createMapIcons();
+            // Load the temple model (GLB)
+            loadGreekTemple();
             loadAthensGeo();
-            // --- EXTERNAL TEMPLE MODEL ---
-(function addExternalTemple() {
-  const loader = new THREE.GLTFLoader();
-
-  // Path relative to index.html on GitHub Pages:
-  const TEMPLE_URL = './models/greek_temple.glb';
-
-  loader.load(
-    TEMPLE_URL,
-    (gltf) => {
-      const temple = gltf.scene;
-
-      // Make sure it renders nicely
-      temple.traverse((obj) => {
-        if (obj.isMesh) {
-          obj.castShadow = true;
-          obj.receiveShadow = true;
-          if (obj.material && obj.material.map) {
-            obj.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
-          }
-        }
-      });
-
-      // Scale & place it. Adjust as needed.
-      // Your helpers use “design meters” then multiply by CITY_SCALE under the hood.
-      // This puts the temple east/southeast of town, not on top of your hill.
-      temple.scale.set(3, 3, 3);
-
-      // Wrapper so your setScaledPosition works cleanly:
-      const templeGroup = new THREE.Group();
-      templeGroup.add(temple);
-      scene.add(templeGroup);
-
-      // Move it well outside the city walls (tweak these numbers to taste)
-      // Example: x=90, z=35 in “design units” → scaled by CITY_SCALE in your helper
-      setScaledPosition(templeGroup, 90, 0, 35);
-
-      console.log('Temple model loaded:', TEMPLE_URL);
-    },
-    undefined,
-    (err) => {
-      console.error('Temple load error:', err);
-    }
-  );
-})();
 
 
-            
+
             // Event Listeners
             addEventListeners();
             
