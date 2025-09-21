@@ -2635,6 +2635,22 @@ async function loadAthensGeo() {
     console.warn('landmarks-canvas not found; overlay disabled.');
   }
 </script>
+    <script type="module">
+  import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+
+  const loader = new GLTFLoader();
+
+  // Load Greek temple model
+  loader.load('./models/greek_temple.glb', (gltf) => {
+    const temple = gltf.scene;
+    temple.scale.set(0.5, 0.5, 0.5);   // adjust to fit your world
+    temple.position.set(40, 0, -80);   // move into city
+    scene.add(temple);
+  }, undefined, (err) => {
+    console.error('Error loading temple:', err);
+  });
+</script>
+
 
 </body>
 </html>
