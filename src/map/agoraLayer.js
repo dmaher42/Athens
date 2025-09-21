@@ -104,8 +104,19 @@ function normalizeStyle(style = {}) {
 
 export class AgoraLayer {
     constructor({ dataUrl = DEFAULT_DATA_URL, fetchImpl } = {}) {
-        this.dataUrl = dataUrl;
-        this.fetchImpl = fetchImpl ?? globalThis.fetch;
+        this.dataUrl = dataUrl ?? DEFAULT_DATA_URL;
+
+        if (fetchImpl != null && typeof fetchImpl !== 'function') {
+            throw new TypeError('AgoraLayer requires fetchImpl to be a function when provided');
+        }
+
+        const defaultFetch = typeof globalThis.fetch === 'function'
+            ? (...args) => globalThis.fetch(...args)
+            : undefined;
+
+        this.fetchImpl = fetchImpl
+            ? (...args) => fetchImpl(...args)
+            : defaultFetch;
         this.anchorWorld = null;
         this.rawData = null;
         this.features = [];

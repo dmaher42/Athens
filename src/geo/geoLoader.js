@@ -1,4 +1,4 @@
-const DEFAULT_GEOJSON_PATH = '/data/athens_places.geojson';
+const DEFAULT_GEOJSON_PATH = './data/athens_places.geojson';
 
 /**
  * Fetches a GeoJSON feature collection containing places around Athens.
