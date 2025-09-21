@@ -14,8 +14,14 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <!-- NEW: GLTF Loader for 3D models -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+            "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js"
+        }
+    }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
         
@@ -428,6 +434,10 @@
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+
+        window.athensWorldBuilt = false;
+        const externalAnimationMixers = [];
+        window.externalAnimationMixers = externalAnimationMixers;
 
         // --- GEOJSON LOADER & LANDMARK RENDERING ---
 // Put your file at:  ./data/athens_places.geojson  (folder "data" next to index.html)
@@ -869,7 +879,7 @@ async function loadAthensGeo() {
 
 
             // Structures
-            createParthenon();
+            // createParthenon();
             createStoa();
             createHouses();
             createTrees();
@@ -879,6 +889,8 @@ async function loadAthensGeo() {
             createMarketStalls();
             createDemocracyMonuments();
             createPavedRoads();
+            window.athensWorldBuilt = true;
+            window.dispatchEvent(new Event('athens-world-built'));
         }
 
         function createEnhancedColumn(height = 8, material = columnMaterial) {
@@ -2297,7 +2309,8 @@ async function loadAthensGeo() {
 
             const delta = clock.getDelta();
             if(mixer) mixer.update(delta);
-            
+            externalAnimationMixers.forEach(m => m.update(delta));
+
             updateFPS();
             if (player && player.body) {
                 updateControls(delta);
@@ -2702,20 +2715,116 @@ async function loadAthensGeo() {
   }
 </script>
     <script type="module">
-  import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-  const loader = new GLTFLoader();
+        const waitForWorld = () => {
+            if (window.athensWorldBuilt && window.scene && window.renderer) {
+                return Promise.resolve();
+            }
+            return new Promise((resolve) => {
+                const handler = () => {
+                    if (window.scene && window.renderer) {
+                        window.removeEventListener('athens-world-built', handler);
+                        resolve();
+                    }
+                };
+                window.addEventListener('athens-world-built', handler);
+            });
+        };
 
-  // Load Greek temple model
-  loader.load('./models/greek_temple.glb', (gltf) => {
-    const temple = gltf.scene;
-    temple.scale.set(0.5, 0.5, 0.5);   // adjust to fit your world
-    temple.position.set(40, 0, -80);   // move into city
-    scene.add(temple);
-  }, undefined, (err) => {
-    console.error('Error loading temple:', err);
-  });
-</script>
+        const applyMeshEnhancements = (root, renderer) => {
+            const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy
+                ? renderer.capabilities.getMaxAnisotropy()
+                : null;
+
+            root.traverse((child) => {
+                if (!child.isMesh) return;
+
+                child.castShadow = true;
+                child.receiveShadow = true;
+
+                const materials = Array.isArray(child.material) ? child.material : [child.material];
+                materials.forEach((material) => {
+                    if (!material) return;
+                    ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'].forEach((key) => {
+                        const texture = material[key];
+                        if (texture && maxAnisotropy) {
+                            texture.anisotropy = Math.max(texture.anisotropy || 0, maxAnisotropy);
+                            texture.needsUpdate = true;
+                        }
+                    });
+                });
+            });
+        };
+
+        const placeObject = (object, x, y, z) => {
+            if (typeof window.setScaledPosition === 'function') {
+                window.setScaledPosition(object, x, y, z);
+            } else {
+                object.position.set(x, y, z);
+            }
+        };
+
+        await waitForWorld();
+
+        const { THREE, scene, renderer } = window;
+        if (!THREE || !scene || !renderer) {
+            console.error('THREE.js scene was not initialized before loading models.');
+            throw new Error('Scene not ready');
+        }
+
+        const gltfLoader = new GLTFLoader();
+
+        const loadTemple = () => {
+            const templeGroup = new THREE.Group();
+            gltfLoader.load(
+                './data/models/greek_temple.glb',
+                (gltf) => {
+                    const temple = gltf.scene || new THREE.Group();
+                    temple.scale.set(3, 3, 3);
+                    templeGroup.add(temple);
+                    applyMeshEnhancements(templeGroup, renderer);
+                    placeObject(templeGroup, 90, 0, 35);
+                    scene.add(templeGroup);
+                },
+                undefined,
+                (error) => {
+                    console.error('Error loading Greek temple model:', error);
+                }
+            );
+        };
+
+        const loadNPC = () => {
+            const npcGroup = new THREE.Group();
+            gltfLoader.load(
+                './data/models/npc_athenian.glb',
+                (gltf) => {
+                    const npc = gltf.scene || new THREE.Group();
+                    npc.scale.set(1.2, 1.2, 1.2);
+                    npcGroup.add(npc);
+                    applyMeshEnhancements(npcGroup, renderer);
+                    placeObject(npcGroup, -10, 0, 5);
+                    scene.add(npcGroup);
+
+                    if (Array.isArray(gltf.animations) && gltf.animations.length) {
+                        const mixers = window.externalAnimationMixers || (window.externalAnimationMixers = []);
+                        const npcMixer = new THREE.AnimationMixer(npc);
+                        gltf.animations.forEach((clip) => {
+                            npcMixer.clipAction(clip).play();
+                        });
+                        mixers.push(npcMixer);
+                    }
+                },
+                undefined,
+                (error) => {
+                    console.warn('NPC model failed to load:', error);
+                }
+            );
+        };
+
+        loadTemple();
+        loadNPC();
+    </script>
 
 
 </body>
