@@ -1922,8 +1922,9 @@ async function loadAthensGeo() {
             world.addBody(player.body);
             
             // Load Animated Player Model
-            const loader = new THREE.GLTFLoader();
-            loader.load('https://models.readyplayer.me/68cb1b7024a928560bd57842.glb', (gltf) => {
+            const playerLoader = new THREE.GLTFLoader();
+            const READY_PLAYER_ME_URL = 'https://models.readyplayer.me/68cb1b7024a928560bd57842.glb';
+            playerLoader.load(READY_PLAYER_ME_URL, (gltf) => {
                 player.model = gltf.scene;
                 player.model.scale.set(1.0, 1.0, 1.0);
                 scene.add(player.model);
@@ -1936,7 +1937,7 @@ async function loadAthensGeo() {
                 gltf.animations.forEach((clip) => {
                     player.animations[clip.name.toLowerCase()] = mixer.clipAction(clip);
                 });
-                
+
                 let idleAnim = player.animations['idle'] || Object.values(player.animations)[0];
                 if (idleAnim) {
                     player.action = 'idle';
@@ -1945,6 +1946,8 @@ async function loadAthensGeo() {
                      console.warn("No animations found in the model.");
                 }
 
+            }, undefined, (error) => {
+                console.error('Failed to load Ready Player Me model:', error);
             });
 
             // Scribes
