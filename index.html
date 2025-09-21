@@ -397,11 +397,6 @@
      <div id="dikasteria-scribe-prompt" class="prompt">
         <button class="gemini-button" data-info="dikasteria">📜 Learn about the Dikasteria</button>
     </div>
-     <div id="lord-british-prompt" class="prompt">
-        <button class="gemini-button" data-info="lordBritish">⚔️ Speak with Lord British</button>
-    </div>
-
-
     <div id="info-scroll-overlay" class="info-scroll-overlay">
         <div class="info-content">
             <button id="close-info-scroll" class="close-info">&times;</button>
@@ -634,10 +629,6 @@ async function loadAthensGeo() {
             dikasteria: {
                 title: "⚖️ The Dikasteria",
                 text: "These were the Law Courts of Athens. Juries of 201 to 501 citizens, also chosen by lottery, would hear trials and deliver verdicts. Having large juries of ordinary people ensured that justice was in the hands of the citizens, a key part of the **Rule of Law**."
-            },
-            lordBritish: {
-                title: "🛡️ Lord British",
-                text: "Lord British, the stalwart guardian of the Agora, stands watch to ensure the safety of every citizen. He embodies the ideals of **Courage** and **Duty**, urging travelers to uphold honor while they explore the wonders of Athens."
             }
         };
 
@@ -1967,56 +1958,6 @@ async function loadAthensGeo() {
 
             });
 
-            const lordBritishPrompt = document.getElementById('lord-british-prompt');
-            const lordBritishLoader = new THREE.GLTFLoader();
-            const lordBritishPosition = scaleLocation({ x: -8, y: 0, z: 32 });
-            const lordBritishRadius = scaleValue(6);
-            lordBritishLoader.load('https://models.readyplayer.me/Soldier-01-2-1758429653885-76805eae.glb', (gltf) => {
-                const model = gltf.scene;
-                model.scale.set(1.0, 1.0, 1.0);
-                model.traverse((object) => {
-                    if (object.isMesh) {
-                        object.castShadow = true;
-                        object.receiveShadow = true;
-                    }
-                });
-
-                model.position.copy(lordBritishPosition);
-                model.rotation.y = Math.PI;
-                model.updateMatrixWorld(true);
-                const bbox = new THREE.Box3().setFromObject(model);
-                const offsetY = -bbox.min.y;
-                model.position.y += offsetY;
-
-                scene.add(model);
-
-                const lordBritish = {
-                    model,
-                    promptElement: lordBritishPrompt,
-                    name: 'Lord British',
-                    position: model.position,
-                    isPlayerNear: false,
-                    radius: lordBritishRadius
-                };
-
-                interactables.push(lordBritish);
-
-                if (gltf.animations && gltf.animations.length) {
-                    const lordBritishMixer = new THREE.AnimationMixer(model);
-                    const idleClip = gltf.animations.find((clip) => clip.name.toLowerCase().includes('idle')) || gltf.animations[0];
-                    if (idleClip) {
-                        const action = lordBritishMixer.clipAction(idleClip);
-                        action.play();
-                    }
-                    updatableObjects.push({
-                        tick: (delta) => lordBritishMixer.update(delta)
-                    });
-                }
-            }, undefined, (error) => {
-                console.error('Failed to load Lord British model', error);
-            });
-
-
             // Scribes
             const scribeModel1 = createCitizenModel(0x654321, 'scribe');
             const pnyxScribe = { model: scribeModel1, promptElement: document.getElementById('pnyx-scribe-prompt'), name: "Pnyx Scribe", position: scaleLocation({ x: -30, z: 10 }), isPlayerNear: false, radius: scaleValue(5) };
@@ -2291,8 +2232,6 @@ async function loadAthensGeo() {
                 let yOffset = 0.5;
                 if (npc.name === "Pnyx Scribe" || npc.name === "Bouleuterion Scribe" || npc.name === "Dikasteria Scribe") {
                     yOffset = 2.0;
-                } else if (npc.name === "Lord British") {
-                    yOffset = 1.6;
                 }
                 if (
                     npc.model.isGroup &&
