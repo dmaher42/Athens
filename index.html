@@ -1931,25 +1931,14 @@ async function loadAthensGeo() {
             world.addBody(player.body);
             
             // Load Animated Player Model
-            const playerLoader = new THREE.GLTFLoader();
-            playerLoader.load('https://models.readyplayer.me/Male-17-3-1758428284774-d1ea43dc.glb', (gltf) => {
+            const loader = new THREE.GLTFLoader();
+            loader.load('https://models.readyplayer.me/68cb1b7024a928560bd57842.glb', (gltf) => {
                 player.model = gltf.scene;
                 player.model.scale.set(1.0, 1.0, 1.0);
                 scene.add(player.model);
                 player.model.traverse(function (object) {
-                    if (object.isMesh) {
-                        object.castShadow = true;
-                        if (object.geometry && !object.geometry.boundingBox) {
-                            object.geometry.computeBoundingBox();
-                        }
-                    }
+                    if (object.isMesh) object.castShadow = true;
                 });
-
-                player.model.updateMatrixWorld(true);
-                const bbox = new THREE.Box3().setFromObject(gltf.scene);
-                player.modelOffsetY = -((player.body.shapes?.[0]?.height ?? 1.8) / 2) - bbox.min.y;
-                player.model.position.copy(player.body.position);
-                player.model.position.y += player.modelOffsetY ?? 0;
 
                 mixer = new THREE.AnimationMixer(player.model);
                 player.animations = {};
