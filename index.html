@@ -703,6 +703,7 @@ async function loadAthensGeo() {
         let windNoise, windPanner, windVolume;
         let seagullSynth, seagullPanner, seagullVolume, seagullLoop;
         let templeChantSynth, templeChantPanner, templeVolume, templeChantLoop;
+        let animalAmbiences = null;
         let masterBus, environmentReverb;
         const blacksmithPosition = scaleLocation({ x: -12, y: 1, z: 10 });
         const marketAmbiencePosition = scaleLocation({ x: 12, y: 1.5, z: -8 });
@@ -710,6 +711,9 @@ async function loadAthensGeo() {
         const hillsideWindPosition = scaleLocation({ x: -26, y: 8, z: -12 });
         const templeChantPosition = scaleLocation({ x: AGORA_FEATURES.templeOfHephaistos.position.x, y: 6, z: AGORA_FEATURES.templeOfHephaistos.position.z });
         const harbourBirdsPosition = scaleLocation({ x: PHALERON_POSITION.x, y: 10, z: PHALERON_POSITION.z });
+        const kennelPosition = scaleLocation({ x: AGORA_ANCHOR_SCENE.x - 24, y: 1.2, z: AGORA_ANCHOR_SCENE.z + 18 });
+        const catAlleyPosition = scaleLocation({ x: AGORA_ANCHOR_SCENE.x + 14, y: 1.2, z: AGORA_ANCHOR_SCENE.z + 6 });
+        const cowPasturePosition = scaleLocation({ x: AGORA_ANCHOR_SCENE.x - 42, y: 1.5, z: AGORA_ANCHOR_SCENE.z - 26 });
         
         let currentTimeOfDay = 0;
         let enhancedLighting = true;
@@ -3594,6 +3598,137 @@ async function loadAthensGeo() {
             }, "1m").start("+0.5m");
             blacksmithLoop.probability = 0.9;
 
+            // Animal life around the Agora without bundling binary samples
+            const createAnimalAmbience = ({ position, initialVolume, createSource, onLoop, interval, startOffset, probability }) => {
+                const { source, chain = [] } = createSource();
+                const volumeNode = new Tone.Volume(initialVolume);
+                const pannerNode = new Tone.Panner3D({
+                    positionX: position.x,
+                    positionY: position.y,
+                    positionZ: position.z,
+                });
+
+                source.chain(...chain, volumeNode, pannerNode);
+                pannerNode.connect(masterBus);
+                pannerNode.connect(environmentReverb);
+
+                const loop = new Tone.Loop((time) => onLoop(time, source), interval).start(startOffset);
+                loop.probability = probability;
+
+                return {
+                    source,
+                    volume: volumeNode,
+                    panner: pannerNode,
+                    loop,
+                };
+            };
+
+            animalAmbiences = {
+                dog: createAnimalAmbience({
+                    position: kennelPosition,
+                    initialVolume: -28,
+                    interval: "4m",
+                    startOffset: "+1.5m",
+                    probability: 0.35,
+                    createSource: () => {
+                        const synth = new Tone.MembraneSynth({
+                            pitchDecay: 0.05,
+                            octaves: 4,
+                            oscillator: { type: "square" },
+                            envelope: { attack: 0.001, decay: 0.45, sustain: 0, release: 0.3 },
+                        });
+                        const filter = new Tone.Filter({
+                            type: "bandpass",
+                            frequency: 380,
+                            Q: 1.5,
+                        });
+                        return { source: synth, chain: [filter] };
+                    },
+                    onLoop: (time, synth) => {
+                        const barkNote = Math.random() > 0.5 ? "G2" : "A2";
+                        const barkVelocity = 0.4 + Math.random() * 0.25;
+                        synth.triggerAttackRelease(barkNote, "16n", time, barkVelocity);
+                        Tone.Transport.scheduleOnce((secondBarkTime) => {
+                            synth.triggerAttackRelease(barkNote, "16n", secondBarkTime, barkVelocity * 0.8);
+                        }, time + Tone.Time("16n").toSeconds() * (0.35 + Math.random() * 0.25));
+                    },
+                }),
+                cat: createAnimalAmbience({
+                    position: catAlleyPosition,
+                    initialVolume: -30,
+                    interval: "5m",
+                    startOffset: "+2.2m",
+                    probability: 0.3,
+                    createSource: () => {
+                        const synth = new Tone.Synth({
+                            oscillator: { type: "triangle" },
+                            envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.9 },
+                        });
+                        synth.portamento = 0.15;
+                        const filter = new Tone.Filter({
+                            type: "bandpass",
+                            frequency: 900,
+                            Q: 1.2,
+                        });
+                        const vibrato = new Tone.Vibrato(5, 0.12).start();
+                        return { source: synth, chain: [filter, vibrato] };
+                    },
+                    onLoop: (time, synth) => {
+                        const startNote = ["E4", "F4", "G4"][Math.floor(Math.random() * 3)];
+                        const peakFrequency = Tone.Frequency(startNote).transpose(3).toFrequency();
+                        const releaseDelay = 1.0 + Math.random() * 0.4;
+
+                        synth.triggerAttack(startNote, time, 0.25);
+
+                        Tone.Transport.scheduleOnce((glideTime) => {
+                            synth.frequency.rampTo(peakFrequency, 0.4, glideTime);
+                        }, time + 0.25);
+
+                        Tone.Transport.scheduleOnce((releaseTime) => {
+                            synth.triggerRelease(releaseTime);
+                        }, time + releaseDelay);
+                    },
+                }),
+                cow: createAnimalAmbience({
+                    position: cowPasturePosition,
+                    initialVolume: -28,
+                    interval: "8m",
+                    startOffset: "+2.8m",
+                    probability: 0.45,
+                    createSource: () => {
+                        const synth = new Tone.AMSynth({
+                            harmonicity: 0.6,
+                            oscillator: { type: "sine" },
+                            envelope: { attack: 0.3, decay: 0.6, sustain: 0.8, release: 2.4 },
+                            modulation: { type: "triangle" },
+                            modulationEnvelope: { attack: 0.2, decay: 0.4, sustain: 0.7, release: 1.6 },
+                        });
+                        const filter = new Tone.Filter({
+                            type: "lowpass",
+                            frequency: 280,
+                            Q: 0.9,
+                        });
+                        const vibrato = new Tone.Vibrato(1.5, 0.25).start();
+                        return { source: synth, chain: [filter, vibrato] };
+                    },
+                    onLoop: (time, synth) => {
+                        const baseNote = ["C2", "D2", "A1"][Math.floor(Math.random() * 3)];
+                        const dropTarget = Tone.Frequency(baseNote).transpose(-3).toFrequency();
+                        const sustain = 1.8 + Math.random() * 0.9;
+
+                        synth.triggerAttack(baseNote, time, 0.35);
+
+                        Tone.Transport.scheduleOnce((glideTime) => {
+                            synth.frequency.rampTo(dropTarget, 0.9, glideTime);
+                        }, time + 0.5);
+
+                        Tone.Transport.scheduleOnce((releaseTime) => {
+                            synth.triggerRelease(releaseTime);
+                        }, time + sustain);
+                    },
+                }),
+            };
+
             if (Tone.Transport.state !== "started") {
                 Tone.Transport.start();
             }
@@ -3625,6 +3760,60 @@ async function loadAthensGeo() {
                 }
             };
 
+            const animalSoundSettings = {
+                0: {
+                    dog: { volume: -30, probability: 0.32 },
+                    cat: { volume: -34, probability: 0.22 },
+                    cow: { volume: -26, probability: 0.55 },
+                },
+                1: {
+                    dog: { volume: -26, probability: 0.4 },
+                    cat: { volume: -30, probability: 0.28 },
+                    cow: { volume: -22, probability: 0.65 },
+                },
+                2: {
+                    dog: { volume: -27, probability: 0.38 },
+                    cat: { volume: -26, probability: 0.4 },
+                    cow: { volume: -24, probability: 0.5 },
+                },
+                3: {
+                    dog: { volume: -24, probability: 0.5 },
+                    cat: { volume: -22, probability: 0.55 },
+                    cow: { volume: -32, probability: 0.18 },
+                },
+                4: {
+                    dog: { volume: -26, probability: 0.42 },
+                    cat: { volume: -24, probability: 0.45 },
+                    cow: { volume: -26, probability: 0.35 },
+                },
+            };
+
+            const applyAnimalSettings = (timeIndex) => {
+                if (!animalAmbiences) {
+                    return;
+                }
+
+                const settings = animalSoundSettings[timeIndex];
+                if (!settings) {
+                    return;
+                }
+
+                Object.entries(settings).forEach(([name, config]) => {
+                    const animal = animalAmbiences[name];
+                    if (!animal) {
+                        return;
+                    }
+
+                    if (typeof config.volume === 'number') {
+                        fadeVolume(animal.volume, config.volume);
+                    }
+
+                    if (typeof config.probability === 'number') {
+                        setLoopProbability(animal.loop, config.probability);
+                    }
+                });
+            };
+
             switch (currentTimeOfDay) {
                 case 0: // Golden Dawn
                     fadeVolume(marketVolume, -24);
@@ -3636,6 +3825,7 @@ async function loadAthensGeo() {
                     setLoopProbability(merchantLoop, 0.35);
                     setLoopProbability(seagullLoop, 0.45);
                     setLoopProbability(blacksmithLoop, 0.65);
+                    applyAnimalSettings(0);
                     break;
                 case 1: // Bright Noon
                     fadeVolume(marketVolume, -16);
@@ -3647,6 +3837,7 @@ async function loadAthensGeo() {
                     setLoopProbability(merchantLoop, 0.75);
                     setLoopProbability(seagullLoop, 0.55);
                     setLoopProbability(blacksmithLoop, 0.95);
+                    applyAnimalSettings(1);
                     break;
                 case 2: // Crimson Sunset
                     fadeVolume(marketVolume, -18);
@@ -3658,6 +3849,7 @@ async function loadAthensGeo() {
                     setLoopProbability(merchantLoop, 0.45);
                     setLoopProbability(seagullLoop, 0.35);
                     setLoopProbability(blacksmithLoop, 0.8);
+                    applyAnimalSettings(2);
                     break;
                 case 3: // Starlit Night
                     fadeVolume(marketVolume, -34);
@@ -3669,6 +3861,7 @@ async function loadAthensGeo() {
                     setLoopProbability(merchantLoop, 0.15);
                     setLoopProbability(seagullLoop, 0.2);
                     setLoopProbability(blacksmithLoop, 0.35);
+                    applyAnimalSettings(3);
                     break;
                 case 4: // Blue Hour
                 default:
@@ -3681,6 +3874,7 @@ async function loadAthensGeo() {
                     setLoopProbability(merchantLoop, 0.25);
                     setLoopProbability(seagullLoop, 0.3);
                     setLoopProbability(blacksmithLoop, 0.55);
+                    applyAnimalSettings(4);
                     break;
             }
         }
