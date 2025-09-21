@@ -596,7 +596,6 @@ async function loadAthensGeo() {
         });
         let isFlying = false;
         let clock = new THREE.Clock();
-        let mixer; // Animation Mixer
 
         let cameraOffset = new THREE.Vector3(0, 3, 7);
 
@@ -1912,31 +1911,74 @@ async function loadAthensGeo() {
             
             // Load Animated Player Model
             const playerLoader = new THREE.GLTFLoader();
-            const READY_PLAYER_ME_URL = 'https://models.readyplayer.me/68cb1b7024a928560bd57842.glb';
-            playerLoader.load(READY_PLAYER_ME_URL, (gltf) => {
-                player.model = gltf.scene;
-                player.model.scale.set(1.0, 1.0, 1.0);
-                scene.add(player.model);
-                player.model.traverse(function (object) {
-                    if (object.isMesh) object.castShadow = true;
+            const CHARACTER_MODEL_URL = './models/character.glb';
+            playerLoader.load(CHARACTER_MODEL_URL, (gltf) => {
+                const model = gltf.scene;
+                if (!model) {
+                    console.warn('Character model loaded without a scene.');
+                    return;
+                }
+
+                player.model = model;
+
+                model.traverse((object) => {
+                    if (object.isMesh) {
+                        object.castShadow = true;
+                        object.receiveShadow = true;
+                    }
                 });
 
-                mixer = new THREE.AnimationMixer(player.model);
-                player.animations = {};
-                gltf.animations.forEach((clip) => {
-                    player.animations[clip.name.toLowerCase()] = mixer.clipAction(clip);
-                });
+                model.scale.set(1.6, 1.6, 1.6);
 
-                let idleAnim = player.animations['idle'] || Object.values(player.animations)[0];
-                if (idleAnim) {
-                    player.action = 'idle';
-                    idleAnim.play();
+                if (typeof setScaledPosition === 'function') {
+                    setScaledPosition(model, 0, 0, -48);
+                } else if (typeof window !== 'undefined' && typeof window.setScaledPosition === 'function') {
+                    window.setScaledPosition(model, 0, 0, -48);
                 } else {
-                     console.warn("No animations found in the model.");
+                    model.position.set(0, 0, -48);
+                }
+
+                const deg = (degrees) => degrees * (Math.PI / 180);
+                // model.rotation.y = deg(180);
+
+                scene.add(model);
+
+                player.mixer = new THREE.AnimationMixer(model);
+                player.actions = {};
+                gltf.animations.forEach((clip) => {
+                    player.actions[clip.name.toLowerCase()] = player.mixer.clipAction(clip);
+                });
+
+                console.log('Character clips:', gltf.animations.map((clip) => clip.name));
+
+                player.playAction = (name) => {
+                    if (!name) return;
+                    const key = name.toLowerCase();
+                    const nextAction = player.actions[key];
+                    if (!nextAction || player.currentActionName === key || !player.mixer) return;
+
+                    if (player.currentAction) {
+                        nextAction.reset().play();
+                        player.currentAction.crossFadeTo(nextAction, 0.2, false);
+                    } else {
+                        nextAction.reset().fadeIn(0.2).play();
+                    }
+
+                    player.currentAction = nextAction;
+                    player.currentActionName = key;
+                };
+
+                const actionKeys = Object.keys(player.actions);
+                if (actionKeys.length > 0) {
+                    const startActionName = player.actions['idle'] ? 'idle' : actionKeys[0];
+                    player.defaultActionName = startActionName;
+                    player.playAction(startActionName);
+                } else {
+                    console.warn('No animations found in the character model.');
                 }
 
             }, undefined, (error) => {
-                console.error('Failed to load Ready Player Me model:', error);
+                console.error('Failed to load character model:', error);
             });
 
             // Scribes
@@ -2273,7 +2315,7 @@ async function loadAthensGeo() {
             canChickenCluck = true;
 
             const delta = clock.getDelta();
-            if(mixer) mixer.update(delta);
+            if (player && player.mixer) player.mixer.update(delta);
             externalAnimationMixers.forEach(m => m.update(delta));
 
             updateFPS();
@@ -2483,23 +2525,20 @@ async function loadAthensGeo() {
             const hasHorizontalInput = moveDirection.lengthSq() > 0;
             const isMoving = controls.KeyW || controls.KeyS;
 
-            if (player.animations) {
-                let walkAnimName = Object.keys(player.animations).find(name => name.includes('walk'));
-                let idleAnimName = Object.keys(player.animations).find(name => name.includes('idle'));
-                
-                if(!walkAnimName) walkAnimName = player.action;
-                if(!idleAnimName) idleAnimName = player.action;
+            if (player && player.actions && player.playAction) {
+                const actionKeys = Object.keys(player.actions);
+                if (actionKeys.length) {
+                    const findActionKey = (needle) => actionKeys.find(name => name === needle) || actionKeys.find(name => name.includes(needle));
+                    const walkActionName = findActionKey('walk');
+                    const runActionName = findActionKey('run');
+                    const idleActionName = findActionKey('idle');
+                    const fallbackActionName = player.defaultActionName || actionKeys[0];
+                    const targetActionName = isMoving
+                        ? (walkActionName || runActionName || fallbackActionName)
+                        : (idleActionName || walkActionName || runActionName || fallbackActionName);
 
-                const actionToPlay = isMoving ? walkAnimName : idleAnimName;
-                if(player.action !== actionToPlay) {
-                    if (player.animations[player.action]) {
-                        const currentAction = player.animations[player.action];
-                        currentAction.fadeOut(0.2);
-                    }
-                    if (player.animations[actionToPlay]) {
-                        const nextAction = player.animations[actionToPlay];
-                        nextAction.reset().fadeIn(0.2).play();
-                        player.action = actionToPlay;
+                    if (targetActionName) {
+                        player.playAction(targetActionName);
                     }
                 }
             }
