@@ -430,6 +430,78 @@
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+        const GEO_TO_SCENE_MATRIX = Object.freeze({
+            a: 0.1990872551715,
+            b: -0.05643461237683576,
+            c: -0.1365997066329714,
+            d: 0.05987080329678062,
+            tx: 94.87890378320046,
+            tz: -70.43723980152546
+        });
+
+        const PROJECTED_GEO_POINTS = Object.freeze({
+            acropolis: { x: 94.99999845675706, y: -109.99999860537888 },
+            agora: { x: -351.4113485867706, y: 441.5266076528021 },
+            pnyx: { x: -630.5530050875102, y: -11.626964591009482 },
+            areopagus: { x: -287.93397816609297, y: 92.86328694899984 },
+            kerameikos: { x: -732.9422018936776, y: 765.6472200340064 },
+            phaleron: { x: -1790.6493532318382, y: -3810.3437184144123 },
+            peiraeus: { x: -7199.779202330671, y: -3820.0285141127747 }
+        });
+
+        const applyGeoToScene = ({ x, y }) => ({
+            x: GEO_TO_SCENE_MATRIX.a * x + GEO_TO_SCENE_MATRIX.b * y + GEO_TO_SCENE_MATRIX.tx,
+            z: GEO_TO_SCENE_MATRIX.c * x + GEO_TO_SCENE_MATRIX.d * y + GEO_TO_SCENE_MATRIX.tz
+        });
+
+        const applyGeoOffsetToScene = ({ x, y }) => ({
+            x: GEO_TO_SCENE_MATRIX.a * x + GEO_TO_SCENE_MATRIX.b * y,
+            z: GEO_TO_SCENE_MATRIX.c * x + GEO_TO_SCENE_MATRIX.d * y
+        });
+
+        const AGORA_ANCHOR_SCENE = applyGeoToScene(PROJECTED_GEO_POINTS.agora);
+        const ACROPOLIS_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.acropolis);
+        const PNYX_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.pnyx);
+        const AREOPAGUS_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.areopagus);
+        const KERAMEIKOS_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.kerameikos);
+        const PHALERON_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.phaleron);
+        const PEIRAEUS_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.peiraeus);
+
+        const transformAgoraOffset = (offset) => {
+            const delta = applyGeoOffsetToScene(offset);
+            return {
+                x: AGORA_ANCHOR_SCENE.x + delta.x,
+                z: AGORA_ANCHOR_SCENE.z + delta.z
+            };
+        };
+
+        const AGORA_FEATURES = {
+            templeOfHephaistos: {
+                position: transformAgoraOffset({ x: -78, y: 72 }),
+                rotation: -17 * Math.PI / 180
+            },
+            stoaOfAttalos: {
+                position: transformAgoraOffset({ x: 64, y: 6 }),
+                rotation: 5 * Math.PI / 180
+            },
+            tholos: {
+                position: transformAgoraOffset({ x: -32, y: -38 }),
+                rotation: 0
+            },
+            bouleuterion: {
+                position: transformAgoraOffset({ x: -55, y: -24 }),
+                rotation: -12 * Math.PI / 180
+            },
+            altarOfTwelveGods: {
+                position: transformAgoraOffset({ x: 6, y: 52 }),
+                rotation: 4 * Math.PI / 180
+            }
+        };
+
+        const LONG_WALL_DIRECTION = Math.atan2(
+            PEIRAEUS_POSITION.x - KERAMEIKOS_POSITION.x,
+            PEIRAEUS_POSITION.z - KERAMEIKOS_POSITION.z
+        );
 
         // --- LOAD THE GREEK TEMPLE GLB ---
         function loadGreekTemple() {
@@ -603,9 +675,9 @@ async function loadAthensGeo() {
         const chickens = [];
         const citizens = [];
         const citizenZones = [
-            { name: 'agora', center: scaleLocation({ x: 0, z: 4 }), radius: scaleValue(12), count: 6 },
-            { name: 'pnyx', center: scaleLocation({ x: -28, z: 14 }), radius: scaleValue(8), count: 3 },
-            { name: 'stoa', center: scaleLocation({ x: 40, z: -18 }), radius: scaleValue(10), count: 4 },
+            { name: 'agora', center: scaleLocation(AGORA_ANCHOR_SCENE), radius: scaleValue(12), count: 6 },
+            { name: 'pnyx', center: scaleLocation(PNYX_POSITION), radius: scaleValue(8), count: 3 },
+            { name: 'stoa', center: scaleLocation(AGORA_FEATURES.stoaOfAttalos.position), radius: scaleValue(10), count: 4 },
             { name: 'residential', center: scaleLocation({ x: -40, z: 8 }), radius: scaleValue(9), count: 4 }
         ];
         const interactables = [];
@@ -636,8 +708,8 @@ async function loadAthensGeo() {
         const marketAmbiencePosition = scaleLocation({ x: 12, y: 1.5, z: -8 });
         const fountainPosition = scaleLocation({ x: 24, y: 1, z: 14 });
         const hillsideWindPosition = scaleLocation({ x: -26, y: 8, z: -12 });
-        const templeChantPosition = scaleLocation({ x: 90, y: 6, z: 35 });
-        const harbourBirdsPosition = scaleLocation({ x: 55, y: 10, z: 40 });
+        const templeChantPosition = scaleLocation({ x: AGORA_FEATURES.templeOfHephaistos.position.x, y: 6, z: AGORA_FEATURES.templeOfHephaistos.position.z });
+        const harbourBirdsPosition = scaleLocation({ x: PHALERON_POSITION.x, y: 10, z: PHALERON_POSITION.z });
         
         let currentTimeOfDay = 0;
         let enhancedLighting = true;
@@ -918,7 +990,11 @@ async function loadAthensGeo() {
 
             // Structures
             // createParthenon();
-            createStoa();
+            createAgoraComplex();
+            createAreopagusHill();
+            createKerameikosDistrict();
+            createLongWallsCorridors();
+            createPhaleronHarbor();
             createHouses();
             createTrees();
             createSkybox();
@@ -1339,21 +1415,551 @@ async function loadAthensGeo() {
             scene.add(acropolis);
         }
         
-        function createStoa() {
-            const stoa = new THREE.Group();
-            for (let i = 0; i < 12; i++) {
-                const column = createEnhancedColumn(8);
-                setScaledPosition(column, -30 + i * 5, -0.5, 0);
-                stoa.add(column);
+        function createPedimentMesh(width, height, depth, material) {
+            const shape = new THREE.Shape();
+            shape.moveTo(-width / 2, 0);
+            shape.lineTo(0, height);
+            shape.lineTo(width / 2, 0);
+            shape.closePath();
+            const geometry = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
+            geometry.translate(0, 0, -depth / 2);
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            return mesh;
+        }
+
+        function createTempleOfHephaistosStructure() {
+            const group = new THREE.Group();
+            const stylobateHeight = 1.2;
+            const stylobateMaterial = marbleMaterial.clone();
+            stylobateMaterial.roughness = Math.max(0.45, stylobateMaterial.roughness - 0.05);
+            const stylobate = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(28), stylobateHeight, scaleValue(13)), stylobateMaterial);
+            stylobate.position.y = stylobateHeight / 2;
+            stylobate.castShadow = true;
+            stylobate.receiveShadow = true;
+            group.add(stylobate);
+
+            const cellaHeight = 6.2;
+            const cellaMaterial = marbleMaterial.clone();
+            cellaMaterial.color = cellaMaterial.color.clone().offsetHSL(-0.02, -0.02, 0.03);
+            const cella = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(18), cellaHeight, scaleValue(7)), cellaMaterial);
+            cella.position.y = stylobateHeight + cellaHeight / 2;
+            cella.castShadow = true;
+            cella.receiveShadow = true;
+            group.add(cella);
+
+            const columnHeight = 6.5;
+            const columnsPerLongSide = 13;
+            const columnsPerShortSide = 6;
+            const halfLength = scaleValue(28) / 2;
+            const halfWidth = scaleValue(13) / 2;
+            const marginX = scaleValue(2.4);
+            const marginZ = scaleValue(1.8);
+            const spacingLong = (2 * (halfLength - marginX)) / (columnsPerLongSide - 1);
+            const spacingShort = (2 * (halfWidth - marginZ)) / (columnsPerShortSide - 1);
+
+            for (let i = 0; i < columnsPerLongSide; i++) {
+                const xPos = -halfLength + marginX + i * spacingLong;
+                const northColumn = createEnhancedColumn(columnHeight);
+                northColumn.position.set(xPos, stylobateHeight, halfWidth - marginZ);
+                group.add(northColumn);
+
+                const southColumn = createEnhancedColumn(columnHeight);
+                southColumn.position.set(xPos, stylobateHeight, -halfWidth + marginZ);
+                group.add(southColumn);
             }
-            const stoaRoof = createEnhancedBuilding(0, 0, 60, 8, 1.5, redTileMaterial, { includeDetails: false });
-            if(stoaRoof.children[0].material.map) {
-                stoaRoof.children[0].material.map.repeat.set(16 * CITY_SCALE, 4 * CITY_SCALE);
+
+            for (let i = 1; i < columnsPerShortSide - 1; i++) {
+                const zPos = -halfWidth + marginZ + i * spacingShort;
+                const westColumn = createEnhancedColumn(columnHeight);
+                westColumn.position.set(-halfLength + marginX, stylobateHeight, zPos);
+                group.add(westColumn);
+
+                const eastColumn = createEnhancedColumn(columnHeight);
+                eastColumn.position.set(halfLength - marginX, stylobateHeight, zPos);
+                group.add(eastColumn);
             }
-            stoaRoof.position.y = 9;
-            stoa.add(stoaRoof);
-            setScaledPosition(stoa, 40, 0, -20);
+
+            const roofHeight = 1.6;
+            const roofMaterial = redTileMaterial.clone();
+            if (roofMaterial.map) {
+                roofMaterial.map = roofMaterial.map.clone();
+                roofMaterial.map.repeat.set(12 * CITY_SCALE, 4 * CITY_SCALE);
+                roofMaterial.map.needsUpdate = true;
+            }
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(26), roofHeight, scaleValue(11)), roofMaterial);
+            roof.position.y = stylobateHeight + columnHeight + roofHeight / 2;
+            roof.castShadow = true;
+            roof.receiveShadow = true;
+            group.add(roof);
+
+            const pedimentMaterial = marbleMaterial.clone();
+            pedimentMaterial.roughness = Math.max(0.4, pedimentMaterial.roughness - 0.05);
+            const pedimentDepth = scaleValue(1.4);
+            const pedimentHeight = 2.4;
+            const pedimentWidth = scaleValue(11);
+
+            const frontPediment = createPedimentMesh(pedimentWidth, pedimentHeight, pedimentDepth, pedimentMaterial);
+            frontPediment.position.set(0, roof.position.y + roofHeight / 2 - 0.2, halfWidth - pedimentDepth / 2);
+            group.add(frontPediment);
+
+            const backPediment = createPedimentMesh(pedimentWidth, pedimentHeight, pedimentDepth, pedimentMaterial);
+            backPediment.position.set(0, roof.position.y + roofHeight / 2 - 0.2, -halfWidth + pedimentDepth / 2);
+            backPediment.rotation.y = Math.PI;
+            group.add(backPediment);
+
+            const statueMaterial = goldMaterial.clone();
+            statueMaterial.emissive = new THREE.Color(0x6f5b2e);
+            const statue = new THREE.Mesh(new THREE.CylinderGeometry(0.22 * CITY_SCALE, 0.3 * CITY_SCALE, 2, 12), statueMaterial);
+            statue.position.set(0, stylobateHeight + 1, halfWidth + 0.5 * CITY_SCALE);
+            statue.castShadow = true;
+            group.add(statue);
+
+            return group;
+        }
+
+        function createStoaOfAttalosStructure() {
+            const group = new THREE.Group();
+            const baseHeight = 0.8;
+            const length = 62;
+            const depth = 18;
+            const baseMaterial = stoneMaterial.clone();
+            baseMaterial.color = baseMaterial.color.clone().offsetHSL(0, -0.05, 0.05);
+            const base = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(length), baseHeight, scaleValue(depth)), baseMaterial);
+            base.position.y = baseHeight / 2;
+            base.castShadow = true;
+            base.receiveShadow = true;
+            group.add(base);
+
+            const walkwayMaterial = pavedRoadMaterial.clone();
+            const walkway = new THREE.Mesh(new THREE.PlaneGeometry(scaleValue(length * 1.05), scaleValue(depth * 0.6)), walkwayMaterial);
+            walkway.rotation.x = -Math.PI / 2;
+            walkway.position.set(0, 0.05, scaleValue(depth / 2));
+            walkway.receiveShadow = true;
+            group.add(walkway);
+
+            const columnsLower = 14;
+            const halfLength = scaleValue(length) / 2;
+            const frontOffset = scaleValue(depth / 2 - 1.8);
+            const innerOffset = scaleValue(depth / 2 - 5);
+            const margin = scaleValue(2);
+            const spacing = (2 * (halfLength - margin)) / (columnsLower - 1);
+
+            for (let i = 0; i < columnsLower; i++) {
+                const xPos = -halfLength + margin + i * spacing;
+                const frontColumn = createEnhancedColumn(7.2);
+                frontColumn.position.set(xPos, baseHeight, frontOffset);
+                group.add(frontColumn);
+
+                const innerColumn = createEnhancedColumn(6.8);
+                innerColumn.position.set(xPos, baseHeight, innerOffset);
+                group.add(innerColumn);
+            }
+
+            const upperLevelHeight = 4.2;
+            const upperOffset = scaleValue(depth / 2 - 4.2);
+            for (let i = 0; i < columnsLower; i++) {
+                const xPos = -halfLength + margin + i * spacing;
+                const upperColumn = createEnhancedColumn(upperLevelHeight);
+                upperColumn.scale.setScalar(0.7);
+                upperColumn.position.set(xPos, baseHeight + 7.4, upperOffset);
+                group.add(upperColumn);
+            }
+
+            const roofHeight = 1.4;
+            const roofMaterial = redTileMaterial.clone();
+            if (roofMaterial.map) {
+                roofMaterial.map = roofMaterial.map.clone();
+                roofMaterial.map.repeat.set(20 * CITY_SCALE, 6 * CITY_SCALE);
+                roofMaterial.map.needsUpdate = true;
+            }
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(length + 2), roofHeight, scaleValue(depth + 2)), roofMaterial);
+            roof.position.y = baseHeight + 7.2 + upperLevelHeight + roofHeight / 2 + 0.6;
+            roof.castShadow = true;
+            roof.receiveShadow = true;
+            group.add(roof);
+
+            return group;
+        }
+
+        function createTholosStructure() {
+            const group = new THREE.Group();
+            const podiumHeight = 0.6;
+            const podiumRadius = scaleValue(8);
+            const podium = new THREE.Mesh(new THREE.CylinderGeometry(podiumRadius, podiumRadius, podiumHeight, 32), marbleMaterial.clone());
+            podium.position.y = podiumHeight / 2;
+            podium.castShadow = true;
+            podium.receiveShadow = true;
+            group.add(podium);
+
+            const columnCount = 12;
+            const columnHeight = 5.2;
+            const radius = scaleValue(6.2);
+            for (let i = 0; i < columnCount; i++) {
+                const angle = (i / columnCount) * Math.PI * 2;
+                const column = createEnhancedColumn(columnHeight);
+                column.position.set(Math.cos(angle) * radius, podiumHeight, Math.sin(angle) * radius);
+                group.add(column);
+            }
+
+            const drum = new THREE.Mesh(new THREE.CylinderGeometry(scaleValue(4), scaleValue(4), 3, 24), marbleMaterial.clone());
+            drum.position.y = podiumHeight + columnHeight / 2;
+            drum.castShadow = true;
+            drum.receiveShadow = true;
+            group.add(drum);
+
+            const roofMaterial = redTileMaterial.clone();
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(scaleValue(6.5), 2.5, 24), roofMaterial);
+            roof.position.y = podiumHeight + columnHeight + 1.2;
+            roof.castShadow = true;
+            roof.receiveShadow = true;
+            group.add(roof);
+
+            return group;
+        }
+
+        function createBouleuterionStructure() {
+            const group = new THREE.Group();
+            const baseHeight = 0.6;
+            const baseMaterial = stoneMaterial.clone();
+            baseMaterial.color = baseMaterial.color.clone().offsetHSL(0.02, -0.05, -0.05);
+            const base = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(24), baseHeight, scaleValue(20)), baseMaterial);
+            base.position.y = baseHeight / 2;
+            base.castShadow = true;
+            base.receiveShadow = true;
+            group.add(base);
+
+            const hallHeight = 6.8;
+            const hallMaterial = marbleMaterial.clone();
+            hallMaterial.color = hallMaterial.color.clone().offsetHSL(-0.02, -0.05, 0.02);
+            const hall = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(18), hallHeight, scaleValue(14)), hallMaterial);
+            hall.position.y = baseHeight + hallHeight / 2;
+            hall.castShadow = true;
+            hall.receiveShadow = true;
+            group.add(hall);
+
+            const roofHeight = 1.4;
+            const roofMaterial = redTileMaterial.clone();
+            if (roofMaterial.map) {
+                roofMaterial.map = roofMaterial.map.clone();
+                roofMaterial.map.repeat.set(12 * CITY_SCALE, 6 * CITY_SCALE);
+                roofMaterial.map.needsUpdate = true;
+            }
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(20), roofHeight, scaleValue(16)), roofMaterial);
+            roof.position.y = baseHeight + hallHeight + roofHeight / 2;
+            roof.castShadow = true;
+            roof.receiveShadow = true;
+            group.add(roof);
+
+            const portico = new THREE.Group();
+            const columnCount = 4;
+            const spacing = scaleValue(12) / (columnCount - 1);
+            for (let i = 0; i < columnCount; i++) {
+                const column = createEnhancedColumn(5.8);
+                column.position.set(-scaleValue(6) + i * spacing, baseHeight, scaleValue(9));
+                portico.add(column);
+            }
+            const architrave = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(12), 0.8, scaleValue(4.5)), marbleMaterial.clone());
+            architrave.position.set(0, baseHeight + 5.8, scaleValue(9));
+            architrave.castShadow = true;
+            architrave.receiveShadow = true;
+            portico.add(architrave);
+
+            group.add(portico);
+
+            return group;
+        }
+
+        function createAltarOfTwelveGodsStructure() {
+            const group = new THREE.Group();
+            const tiers = [
+                { width: 14, depth: 8, height: 0.4 },
+                { width: 11.5, depth: 5.5, height: 0.4 },
+                { width: 8, depth: 3, height: 0.6 }
+            ];
+            let elevation = 0;
+            tiers.forEach((tier, index) => {
+                const material = marbleMaterial.clone();
+                material.roughness = Math.max(0.35, material.roughness - 0.05 * (index + 1));
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(tier.width), tier.height, scaleValue(tier.depth)), material);
+                elevation += tier.height / 2;
+                mesh.position.y = elevation;
+                elevation += tier.height / 2;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
+            });
+
+            const bowlMaterial = goldMaterial.clone();
+            const fireBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.6 * CITY_SCALE, 0.8 * CITY_SCALE, 0.7, 16), bowlMaterial);
+            fireBowl.position.y = elevation + 0.35;
+            fireBowl.castShadow = true;
+            group.add(fireBowl);
+
+            return group;
+        }
+
+        function createAgoraComplex() {
+            const plazaMaterial = groundMaterial.clone();
+            plazaMaterial.color = plazaMaterial.color.clone().offsetHSL(0.05, 0.08, 0.08);
+            plazaMaterial.roughness = Math.min(1, plazaMaterial.roughness + 0.1);
+            const plaza = new THREE.Mesh(new THREE.PlaneGeometry(scaleValue(90), scaleValue(70)), plazaMaterial);
+            plaza.rotation.x = -Math.PI / 2;
+            plaza.position.set(scaleValue(AGORA_ANCHOR_SCENE.x), 0.02, scaleValue(AGORA_ANCHOR_SCENE.z));
+            plaza.receiveShadow = true;
+            scene.add(plaza);
+
+            const processional = new THREE.Mesh(new THREE.PlaneGeometry(scaleValue(70), scaleValue(8)), pavedRoadMaterial.clone());
+            processional.rotation.x = -Math.PI / 2;
+            processional.position.set(scaleValue(AGORA_ANCHOR_SCENE.x), 0.03, scaleValue(AGORA_ANCHOR_SCENE.z));
+            processional.receiveShadow = true;
+            scene.add(processional);
+
+            const temple = createTempleOfHephaistosStructure();
+            temple.rotation.y = AGORA_FEATURES.templeOfHephaistos.rotation;
+            setScaledPosition(temple, AGORA_FEATURES.templeOfHephaistos.position.x, 0, AGORA_FEATURES.templeOfHephaistos.position.z);
+            scene.add(temple);
+
+            const stoa = createStoaOfAttalosStructure();
+            stoa.rotation.y = AGORA_FEATURES.stoaOfAttalos.rotation;
+            setScaledPosition(stoa, AGORA_FEATURES.stoaOfAttalos.position.x, 0, AGORA_FEATURES.stoaOfAttalos.position.z);
             scene.add(stoa);
+
+            const tholos = createTholosStructure();
+            setScaledPosition(tholos, AGORA_FEATURES.tholos.position.x, 0, AGORA_FEATURES.tholos.position.z);
+            scene.add(tholos);
+
+            const bouleuterion = createBouleuterionStructure();
+            bouleuterion.rotation.y = AGORA_FEATURES.bouleuterion.rotation;
+            setScaledPosition(bouleuterion, AGORA_FEATURES.bouleuterion.position.x, 0, AGORA_FEATURES.bouleuterion.position.z);
+            scene.add(bouleuterion);
+
+            const altar = createAltarOfTwelveGodsStructure();
+            altar.rotation.y = AGORA_FEATURES.altarOfTwelveGods.rotation;
+            setScaledPosition(altar, AGORA_FEATURES.altarOfTwelveGods.position.x, 0, AGORA_FEATURES.altarOfTwelveGods.position.z);
+            scene.add(altar);
+
+            const groveConfigs = [
+                { x: AGORA_FEATURES.templeOfHephaistos.position.x - 8, z: AGORA_FEATURES.templeOfHephaistos.position.z + 12, scale: 1.2 },
+                { x: AGORA_FEATURES.templeOfHephaistos.position.x - 12, z: AGORA_FEATURES.templeOfHephaistos.position.z - 8, scale: 1.0 },
+                { x: AGORA_FEATURES.stoaOfAttalos.position.x + 10, z: AGORA_FEATURES.stoaOfAttalos.position.z - 12, scale: 0.9 }
+            ];
+            groveConfigs.forEach((config) => {
+                const tree = createEnhancedTree(0, 0, config.scale);
+                tree.position.set(scaleValue(config.x), 0, scaleValue(config.z));
+                scene.add(tree);
+            });
+        }
+
+        function createAreopagusHill() {
+            const hillGroup = new THREE.Group();
+            const baseRadius = scaleValue(20);
+            const baseHeight = 3.2;
+            const baseMaterial = stoneMaterial.clone();
+            baseMaterial.color = baseMaterial.color.clone().offsetHSL(-0.05, -0.05, -0.05);
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(baseRadius * 0.9, baseRadius, baseHeight, 24), baseMaterial);
+            base.position.y = baseHeight / 2;
+            base.castShadow = true;
+            base.receiveShadow = true;
+            hillGroup.add(base);
+
+            const midLayer = new THREE.Mesh(new THREE.CylinderGeometry(baseRadius * 0.7, baseRadius * 0.9, 2.6, 20), baseMaterial);
+            midLayer.position.y = baseHeight + 1.3;
+            midLayer.castShadow = true;
+            midLayer.receiveShadow = true;
+            hillGroup.add(midLayer);
+
+            for (let i = 0; i < 6; i++) {
+                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(2.2 * CITY_SCALE + Math.random() * CITY_SCALE), baseMaterial.clone());
+                const angle = Math.random() * Math.PI * 2;
+                const radius = baseRadius * 0.6 + Math.random() * baseRadius * 0.3;
+                rock.position.set(Math.cos(angle) * radius, baseHeight + 1 + Math.random() * 2, Math.sin(angle) * radius);
+                rock.castShadow = true;
+                rock.receiveShadow = true;
+                hillGroup.add(rock);
+            }
+
+            const stairMaterial = pavedRoadMaterial.clone();
+            const stairs = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(6), 0.4, scaleValue(18)), stairMaterial);
+            stairs.position.set(0, baseHeight + 0.2, -scaleValue(7));
+            stairs.rotation.x = Math.PI / 18;
+            stairs.receiveShadow = true;
+            hillGroup.add(stairs);
+
+            const altarMaterial = marbleMaterial.clone();
+            const altar = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(5), 1, scaleValue(3)), altarMaterial);
+            altar.position.set(0, baseHeight + 3.8, scaleValue(2));
+            altar.castShadow = true;
+            altar.receiveShadow = true;
+            hillGroup.add(altar);
+
+            const olive = createEnhancedTree(0, 0, 0.9);
+            olive.position.set(scaleValue(3), baseHeight + 1, scaleValue(6));
+            hillGroup.add(olive);
+
+            hillGroup.position.set(scaleValue(AREOPAGUS_POSITION.x), 0, scaleValue(AREOPAGUS_POSITION.z));
+            scene.add(hillGroup);
+        }
+
+        function createKerameikosDistrict() {
+            const kerameikosGroup = new THREE.Group();
+            const groundMaterialVariant = groundMaterial.clone();
+            groundMaterialVariant.color = groundMaterialVariant.color.clone().offsetHSL(-0.05, 0.02, 0.04);
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(scaleValue(60), scaleValue(50)), groundMaterialVariant);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = 0.02;
+            ground.receiveShadow = true;
+            kerameikosGroup.add(ground);
+
+            const gateFloor = new THREE.Mesh(new THREE.PlaneGeometry(scaleValue(18), scaleValue(28)), pavedRoadMaterial.clone());
+            gateFloor.rotation.x = -Math.PI / 2;
+            gateFloor.position.set(0, 0.03, -scaleValue(12));
+            gateFloor.receiveShadow = true;
+            kerameikosGroup.add(gateFloor);
+
+            const towerMaterial = stoneMaterial.clone();
+            towerMaterial.color = towerMaterial.color.clone().offsetHSL(0, -0.05, -0.1);
+            const towerGeometry = new THREE.BoxGeometry(scaleValue(10), 10, scaleValue(10));
+            const westTower = new THREE.Mesh(towerGeometry, towerMaterial);
+            westTower.position.set(-scaleValue(8), 5, 0);
+            westTower.castShadow = true;
+            westTower.receiveShadow = true;
+            kerameikosGroup.add(westTower);
+
+            const eastTower = westTower.clone();
+            eastTower.position.x = scaleValue(8);
+            kerameikosGroup.add(eastTower);
+
+            const gateMaterial = marbleMaterial.clone();
+            gateMaterial.color = gateMaterial.color.clone().offsetHSL(-0.05, -0.05, 0.05);
+            const gate = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(12), 6, scaleValue(4)), gateMaterial);
+            gate.position.set(0, 3.2, 0);
+            gate.castShadow = true;
+            gate.receiveShadow = true;
+            kerameikosGroup.add(gate);
+
+            const lintel = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(12), 1.2, scaleValue(8)), gateMaterial);
+            lintel.position.set(0, 5.8, -scaleValue(2));
+            lintel.castShadow = true;
+            lintel.receiveShadow = true;
+            kerameikosGroup.add(lintel);
+
+            const steleMaterial = marbleMaterial.clone();
+            for (let i = 0; i < 7; i++) {
+                const height = 2.4 + Math.random() * 1.2;
+                const stele = new THREE.Mesh(new THREE.CylinderGeometry(0.45 * CITY_SCALE, 0.55 * CITY_SCALE, height, 8), steleMaterial);
+                const angle = (i / 7) * Math.PI + Math.PI / 4;
+                const radius = scaleValue(18 + Math.random() * 6);
+                stele.position.set(Math.cos(angle) * radius, height / 2, Math.sin(angle) * radius);
+                stele.castShadow = true;
+                stele.receiveShadow = true;
+                kerameikosGroup.add(stele);
+            }
+
+            const olive = createEnhancedTree(0, 0, 0.85);
+            olive.position.set(-scaleValue(16), 0, scaleValue(10));
+            kerameikosGroup.add(olive);
+
+            kerameikosGroup.rotation.y = LONG_WALL_DIRECTION;
+            kerameikosGroup.position.set(scaleValue(KERAMEIKOS_POSITION.x), 0, scaleValue(KERAMEIKOS_POSITION.z));
+            scene.add(kerameikosGroup);
+        }
+
+        function createLongWallsCorridors() {
+            const createCorridor = (endPosition, { width = 10, height = 4.5, thickness = 1.4, maxLength = 160 } = {}) => {
+                const start = KERAMEIKOS_POSITION;
+                const dx = endPosition.x - start.x;
+                const dz = endPosition.z - start.z;
+                const length = Math.sqrt(dx * dx + dz * dz);
+                if (length < 1e-3) {
+                    return;
+                }
+                const clampRatio = Math.min(1, maxLength / length);
+                const target = {
+                    x: start.x + dx * clampRatio,
+                    z: start.z + dz * clampRatio
+                };
+                const actualLength = length * clampRatio;
+                const angle = Math.atan2(target.x - start.x, target.z - start.z);
+                const corridorGroup = new THREE.Group();
+                const scaledLength = scaleValue(actualLength);
+
+                const walkway = new THREE.Mesh(new THREE.PlaneGeometry(scaledLength, scaleValue(width)), pavedRoadMaterial.clone());
+                walkway.rotation.x = -Math.PI / 2;
+                walkway.position.y = 0.06;
+                walkway.receiveShadow = true;
+                corridorGroup.add(walkway);
+
+                const wallMaterial = stoneMaterial.clone();
+                wallMaterial.color = wallMaterial.color.clone().offsetHSL(-0.05, -0.05, -0.05);
+                const wallGeometry = new THREE.BoxGeometry(scaleValue(thickness), height, scaledLength);
+                const wallOffset = scaleValue(width / 2 - thickness / 2);
+
+                const wallLeft = new THREE.Mesh(wallGeometry, wallMaterial);
+                wallLeft.position.set(wallOffset, height / 2, 0);
+                wallLeft.castShadow = true;
+                wallLeft.receiveShadow = true;
+                corridorGroup.add(wallLeft);
+
+                const wallRight = new THREE.Mesh(wallGeometry, wallMaterial);
+                wallRight.position.set(-wallOffset, height / 2, 0);
+                wallRight.castShadow = true;
+                wallRight.receiveShadow = true;
+                corridorGroup.add(wallRight);
+
+                const parapetMaterial = wallMaterial.clone();
+                const parapetGeometry = new THREE.BoxGeometry(scaleValue(thickness) * 0.8, 0.6, scaledLength);
+                const parapetLeft = new THREE.Mesh(parapetGeometry, parapetMaterial);
+                parapetLeft.position.set(wallOffset, height + 0.3, 0);
+                corridorGroup.add(parapetLeft);
+                const parapetRight = parapetLeft.clone();
+                parapetRight.position.x = -wallOffset;
+                corridorGroup.add(parapetRight);
+
+                corridorGroup.rotation.y = angle;
+                const midX = (start.x + target.x) / 2;
+                const midZ = (start.z + target.z) / 2;
+                corridorGroup.position.set(scaleValue(midX), 0, scaleValue(midZ));
+                scene.add(corridorGroup);
+            };
+
+            createCorridor(PEIRAEUS_POSITION, { maxLength: 170, width: 12 });
+            createCorridor(PHALERON_POSITION, { maxLength: 140, width: 10 });
+        }
+
+        function createPhaleronHarbor() {
+            const harborGroup = new THREE.Group();
+            const water = waterMaterial.clone();
+            const basin = new THREE.Mesh(new THREE.CircleGeometry(scaleValue(14), 40), water);
+            basin.rotation.x = -Math.PI / 2;
+            basin.position.y = 0.04;
+            basin.receiveShadow = true;
+            harborGroup.add(basin);
+
+            const quayMaterial = stoneMaterial.clone();
+            const quay = new THREE.Mesh(new THREE.RingGeometry(scaleValue(10), scaleValue(14), 40), quayMaterial);
+            quay.rotation.x = -Math.PI / 2;
+            quay.position.y = 0.03;
+            quay.receiveShadow = true;
+            harborGroup.add(quay);
+
+            const pierMaterial = createEnhancedMaterial(0x8b5a2b, 0.9, 0.1);
+            const pier = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(12), 0.6, scaleValue(3.5)), pierMaterial);
+            pier.position.set(0, 0.3, -scaleValue(7));
+            pier.castShadow = true;
+            pier.receiveShadow = true;
+            harborGroup.add(pier);
+
+            const boatMaterial = createEnhancedMaterial(0x4a5e7a, 0.7, 0.1);
+            const boatHull = new THREE.Mesh(new THREE.ConeGeometry(0.9 * CITY_SCALE, 2.5, 5), boatMaterial);
+            boatHull.rotation.z = Math.PI;
+            boatHull.position.set(scaleValue(4), 0.8, 0);
+            boatHull.castShadow = true;
+            harborGroup.add(boatHull);
+
+            harborGroup.position.set(scaleValue(PHALERON_POSITION.x), 0, scaleValue(PHALERON_POSITION.z));
+            scene.add(harborGroup);
         }
 
         function createHouses() {
@@ -2036,20 +2642,9 @@ async function loadAthensGeo() {
              bema.position.y = 1.75;
              bema.position.z = scaleValue(-12);
              pnyx.add(bema);
-             setScaledPosition(pnyx, -30, 0, 15);
+             setScaledPosition(pnyx, PNYX_POSITION.x, 0, PNYX_POSITION.z);
              pnyx.rotation.y = -Math.PI / 2;
              scene.add(pnyx);
-
-             const bouleuterion = createEnhancedBuilding(30, 15, 10, 8, 7, marbleMaterial);
-             const portico = new THREE.Group();
-             for(let i=0; i<4; i++){
-                 const column = createEnhancedColumn(6);
-                 setScaledPosition(column, i * 2.5, 0, 0);
-                 portico.add(column);
-             }
-             portico.position.set(scaleValue(-3.75), -3.5, scaleValue(5));
-             bouleuterion.add(portico);
-             scene.add(bouleuterion);
 
              const dikasteria = createEnhancedBuilding(0, -15, 8, 12, 6, marbleMaterial);
              const colonnade = new THREE.Group();
@@ -2386,13 +2981,13 @@ async function loadAthensGeo() {
 
             // Scribes
             const scribeModel1 = createCitizenModel(0x654321, 'scribe');
-            const pnyxScribe = { model: scribeModel1, promptElement: document.getElementById('pnyx-scribe-prompt'), name: "Pnyx Scribe", position: scaleLocation({ x: -30, z: 10 }), isPlayerNear: false, radius: scaleValue(5) };
+            const pnyxScribe = { model: scribeModel1, promptElement: document.getElementById('pnyx-scribe-prompt'), name: "Pnyx Scribe", position: scaleLocation({ x: PNYX_POSITION.x, z: PNYX_POSITION.z }), isPlayerNear: false, radius: scaleValue(5) };
             pnyxScribe.model.position.copy(pnyxScribe.position);
             interactables.push(pnyxScribe);
             scene.add(pnyxScribe.model);
 
             const scribeModel2 = createCitizenModel(0x654321, 'scribe');
-            const bouleuterionScribe = { model: scribeModel2, promptElement: document.getElementById('bouleuterion-scribe-prompt'), name: "Bouleuterion Scribe", position: scaleLocation({ x: 30, z: 10 }), isPlayerNear: false, radius: scaleValue(5) };
+            const bouleuterionScribe = { model: scribeModel2, promptElement: document.getElementById('bouleuterion-scribe-prompt'), name: "Bouleuterion Scribe", position: scaleLocation({ x: AGORA_FEATURES.bouleuterion.position.x + 4, z: AGORA_FEATURES.bouleuterion.position.z + 6 }), isPlayerNear: false, radius: scaleValue(5) };
             bouleuterionScribe.model.position.copy(bouleuterionScribe.position);
             interactables.push(bouleuterionScribe);
             scene.add(bouleuterionScribe.model);
@@ -2453,8 +3048,15 @@ async function loadAthensGeo() {
         // --- GAME LOGIC & ANIMATION ---
         
         const locations = [
-            { name: "The Parthenon", position: scaleLocation({ x: 0, y: 10, z: -50 }), radius: scaleValue(30), title: "🏛️ The Parthenon" },
-            { name: "Stoa of Attalos", position: scaleLocation({ x: 40, y: 4, z: -20 }), radius: scaleValue(35), title: "🏛️ Stoa of Attalos" },
+            { name: "The Parthenon", position: scaleLocation({ x: ACROPOLIS_POSITION.x, y: 10, z: ACROPOLIS_POSITION.z }), radius: scaleValue(30), title: "🏛️ The Parthenon" },
+            { name: "Temple of Hephaistos", position: scaleLocation({ x: AGORA_FEATURES.templeOfHephaistos.position.x, y: 4, z: AGORA_FEATURES.templeOfHephaistos.position.z }), radius: scaleValue(18), title: "🛠️ Temple of Hephaistos" },
+            { name: "Stoa of Attalos", position: scaleLocation({ x: AGORA_FEATURES.stoaOfAttalos.position.x, y: 4, z: AGORA_FEATURES.stoaOfAttalos.position.z }), radius: scaleValue(28), title: "🏛️ Stoa of Attalos" },
+            { name: "Tholos", position: scaleLocation({ x: AGORA_FEATURES.tholos.position.x, y: 3, z: AGORA_FEATURES.tholos.position.z }), radius: scaleValue(16), title: "⚖️ The Tholos" },
+            { name: "Bouleuterion", position: scaleLocation({ x: AGORA_FEATURES.bouleuterion.position.x, y: 3.5, z: AGORA_FEATURES.bouleuterion.position.z }), radius: scaleValue(18), title: "🏛️ The Bouleuterion" },
+            { name: "Altar of the Twelve Gods", position: scaleLocation({ x: AGORA_FEATURES.altarOfTwelveGods.position.x, y: 2.5, z: AGORA_FEATURES.altarOfTwelveGods.position.z }), radius: scaleValue(14), title: "🔥 Altar of the Twelve Gods" },
+            { name: "Areopagus Hill", position: scaleLocation({ x: AREOPAGUS_POSITION.x, y: 4, z: AREOPAGUS_POSITION.z }), radius: scaleValue(18), title: "🪨 Areopagus Hill" },
+            { name: "Kerameikos Gate", position: scaleLocation({ x: KERAMEIKOS_POSITION.x, y: 3, z: KERAMEIKOS_POSITION.z }), radius: scaleValue(24), title: "🚪 Kerameikos & Sacred Gate" },
+            { name: "Phaleron Harbor", position: scaleLocation({ x: PHALERON_POSITION.x, y: 2, z: PHALERON_POSITION.z }), radius: scaleValue(18), title: "⚓ Phaleron Harbor" },
             { name: "Residential Quarter", position: scaleLocation({ x: -50, y: 3, z: 5 }), radius: scaleValue(20), title: "🏡 Residential Quarter" },
             { name: "Olive Grove", position: scaleLocation({ x: 35, y: 2, z: 25 }), radius: scaleValue(25), title: "🌳 Sacred Olive Grove" }
         ];
@@ -3321,9 +3923,9 @@ async function loadAthensGeo() {
             const mapContainer = document.getElementById('mini-map-container');
             const allLocations = [
                 ...locations.map(l => ({...l, type: 'cultural'})),
-                { name: 'Pnyx', position: scaleLocation({ x: -30, z: 15 }), type: 'democracy' },
+                { name: 'Pnyx', position: scaleLocation({ x: PNYX_POSITION.x, z: PNYX_POSITION.z }), type: 'democracy' },
                 { name: 'Dikasteria', position: scaleLocation({ x: 0, z: -15 }), type: 'democracy' },
-                { name: 'Bouleuterion', position: scaleLocation({ x: 30, z: 15 }), type: 'democracy' }
+                { name: 'Bouleuterion', position: scaleLocation({ x: AGORA_FEATURES.bouleuterion.position.x, z: AGORA_FEATURES.bouleuterion.position.z }), type: 'democracy' }
             ];
 
             allLocations.forEach(loc => {
