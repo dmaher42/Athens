@@ -962,10 +962,10 @@ async function loadAthensGeo() {
             hillMaterialBase.roughness = Math.min(0.98, hillMaterialBase.roughness + 0.03);
 
             const hillLayers = [
-                { top: scaleValue(70), bottom: scaleValue(85), height: 3 },
-                { top: scaleValue(55), bottom: scaleValue(70), height: 3 },
-                { top: scaleValue(42), bottom: scaleValue(55), height: 2.5 },
-                { top: scaleValue(34), bottom: scaleValue(42), height: 2 }
+                { top: scaleValue(28), bottom: scaleValue(38), height: 3 },
+                { top: scaleValue(22), bottom: scaleValue(28), height: 2.8 },
+                { top: scaleValue(16), bottom: scaleValue(22), height: 2.4 },
+                { top: scaleValue(12), bottom: scaleValue(16), height: 2.0 }
             ];
 
             let plateauHeight = 0;
@@ -1278,7 +1278,7 @@ async function loadAthensGeo() {
             parthenon.position.y = plateauHeight;
             acropolis.add(parthenon);
 
-            setScaledPosition(acropolis, 0, 0, -50);
+            setScaledPosition(acropolis, 0, 0, 0);
             scene.add(acropolis);
         }
         
