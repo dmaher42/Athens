@@ -703,6 +703,9 @@ async function loadAthensGeo() {
         let windNoise, windPanner, windVolume;
         let seagullSynth, seagullPanner, seagullVolume, seagullLoop;
         let templeChantSynth, templeChantPanner, templeVolume, templeChantLoop;
+        let dogSynth, dogPanner, dogVolume, dogLoop;
+        let catSynth, catPanner, catVolume, catLoop;
+        let cowSynth, cowPanner, cowVolume, cowLoop;
         let masterBus, environmentReverb;
         const blacksmithPosition = scaleLocation({ x: -12, y: 1, z: 10 });
         const marketAmbiencePosition = scaleLocation({ x: 12, y: 1.5, z: -8 });
@@ -710,6 +713,9 @@ async function loadAthensGeo() {
         const hillsideWindPosition = scaleLocation({ x: -26, y: 8, z: -12 });
         const templeChantPosition = scaleLocation({ x: AGORA_FEATURES.templeOfHephaistos.position.x, y: 6, z: AGORA_FEATURES.templeOfHephaistos.position.z });
         const harbourBirdsPosition = scaleLocation({ x: PHALERON_POSITION.x, y: 10, z: PHALERON_POSITION.z });
+        const kennelPosition = scaleLocation({ x: AGORA_ANCHOR_SCENE.x - 24, y: 1.2, z: AGORA_ANCHOR_SCENE.z + 18 });
+        const catAlleyPosition = scaleLocation({ x: AGORA_ANCHOR_SCENE.x + 14, y: 1.2, z: AGORA_ANCHOR_SCENE.z + 6 });
+        const cowPasturePosition = scaleLocation({ x: AGORA_ANCHOR_SCENE.x - 42, y: 1.5, z: AGORA_ANCHOR_SCENE.z - 26 });
         
         let currentTimeOfDay = 0;
         let enhancedLighting = true;
@@ -3577,6 +3583,116 @@ async function loadAthensGeo() {
             }, "1m").start("+0.5m");
             blacksmithLoop.probability = 0.9;
 
+            // Animal life around the Agora
+            dogSynth = new Tone.MembraneSynth({
+                pitchDecay: 0.05,
+                octaves: 4,
+                oscillator: { type: "square" },
+                envelope: { attack: 0.001, decay: 0.45, sustain: 0, release: 0.3 }
+            });
+            const dogFilter = new Tone.Filter({
+                type: "bandpass",
+                frequency: 380,
+                Q: 1.5
+            });
+            dogVolume = new Tone.Volume(-28);
+            dogPanner = new Tone.Panner3D({
+                positionX: kennelPosition.x,
+                positionY: kennelPosition.y,
+                positionZ: kennelPosition.z,
+            });
+            dogSynth.chain(dogFilter, dogVolume, dogPanner);
+            dogPanner.connect(masterBus);
+            dogPanner.connect(environmentReverb);
+
+            dogLoop = new Tone.Loop((time) => {
+                const barkNote = Math.random() > 0.5 ? "G2" : "A2";
+                const barkVelocity = 0.4 + Math.random() * 0.25;
+                dogSynth.triggerAttackRelease(barkNote, "16n", time, barkVelocity);
+                Tone.Transport.scheduleOnce((secondBarkTime) => {
+                    dogSynth.triggerAttackRelease(barkNote, "16n", secondBarkTime, barkVelocity * 0.8);
+                }, time + Tone.Time("16n").toSeconds() * (0.35 + Math.random() * 0.25));
+            }, "4m").start("+1.5m");
+            dogLoop.probability = 0.35;
+
+            catSynth = new Tone.Synth({
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.9 }
+            });
+            catSynth.portamento = 0.15;
+            const catFilter = new Tone.Filter({
+                type: "bandpass",
+                frequency: 900,
+                Q: 1.2
+            });
+            const catVibrato = new Tone.Vibrato(5, 0.12).start();
+            catVolume = new Tone.Volume(-30);
+            catPanner = new Tone.Panner3D({
+                positionX: catAlleyPosition.x,
+                positionY: catAlleyPosition.y,
+                positionZ: catAlleyPosition.z,
+            });
+            catSynth.chain(catFilter, catVibrato, catVolume, catPanner);
+            catPanner.connect(masterBus);
+            catPanner.connect(environmentReverb);
+
+            catLoop = new Tone.Loop((time) => {
+                const startNote = ["E4", "F4", "G4"][Math.floor(Math.random() * 3)];
+                const peakFrequency = Tone.Frequency(startNote).transpose(3).toFrequency();
+                const releaseDelay = 1.0 + Math.random() * 0.4;
+
+                catSynth.triggerAttack(startNote, time, 0.25);
+
+                Tone.Transport.scheduleOnce((glideTime) => {
+                    catSynth.frequency.rampTo(peakFrequency, 0.4, glideTime);
+                }, time + 0.25);
+
+                Tone.Transport.scheduleOnce((releaseTime) => {
+                    catSynth.triggerRelease(releaseTime);
+                }, time + releaseDelay);
+            }, "5m").start("+2.2m");
+            catLoop.probability = 0.3;
+
+            cowSynth = new Tone.AMSynth({
+                harmonicity: 0.6,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.3, decay: 0.6, sustain: 0.8, release: 2.4 },
+                modulation: { type: "triangle" },
+                modulationEnvelope: { attack: 0.2, decay: 0.4, sustain: 0.7, release: 1.6 }
+            });
+            const cowFilter = new Tone.Filter({
+                type: "lowpass",
+                frequency: 280,
+                Q: 0.9
+            });
+            const cowVibrato = new Tone.Vibrato(1.5, 0.25).start();
+            cowVolume = new Tone.Volume(-28);
+            cowPanner = new Tone.Panner3D({
+                positionX: cowPasturePosition.x,
+                positionY: cowPasturePosition.y,
+                positionZ: cowPasturePosition.z,
+            });
+            cowSynth.chain(cowFilter, cowVibrato, cowVolume, cowPanner);
+            cowPanner.connect(masterBus);
+            cowPanner.connect(environmentReverb);
+
+            cowLoop = new Tone.Loop((time) => {
+                const baseNote = ["C2", "D2", "A1"][Math.floor(Math.random() * 3)];
+                const dropTarget = Tone.Frequency(baseNote).transpose(-3).toFrequency();
+                const sustain = 1.8 + Math.random() * 0.9;
+
+                cowSynth.triggerAttack(baseNote, time, 0.35);
+
+                Tone.Transport.scheduleOnce((glideTime) => {
+                    cowSynth.frequency.rampTo(dropTarget, 0.9, glideTime);
+                }, time + 0.5);
+
+                Tone.Transport.scheduleOnce((releaseTime) => {
+                    cowSynth.triggerRelease(releaseTime);
+                }, time + sustain);
+            }, "8m").start("+2.8m");
+            cowLoop.probability = 0.45;
+
             if (Tone.Transport.state !== "started") {
                 Tone.Transport.start();
             }
@@ -3616,9 +3732,15 @@ async function loadAthensGeo() {
                     fadeVolume(windVolume, -28);
                     fadeVolume(templeVolume, -26);
                     fadeVolume(seagullVolume, -28);
+                    fadeVolume(dogVolume, -30);
+                    fadeVolume(catVolume, -34);
+                    fadeVolume(cowVolume, -26);
                     setLoopProbability(merchantLoop, 0.35);
                     setLoopProbability(seagullLoop, 0.45);
                     setLoopProbability(blacksmithLoop, 0.65);
+                    setLoopProbability(dogLoop, 0.32);
+                    setLoopProbability(catLoop, 0.22);
+                    setLoopProbability(cowLoop, 0.55);
                     break;
                 case 1: // Bright Noon
                     fadeVolume(marketVolume, -16);
@@ -3627,9 +3749,15 @@ async function loadAthensGeo() {
                     fadeVolume(windVolume, -30);
                     fadeVolume(templeVolume, -24);
                     fadeVolume(seagullVolume, -24);
+                    fadeVolume(dogVolume, -26);
+                    fadeVolume(catVolume, -30);
+                    fadeVolume(cowVolume, -22);
                     setLoopProbability(merchantLoop, 0.75);
                     setLoopProbability(seagullLoop, 0.55);
                     setLoopProbability(blacksmithLoop, 0.95);
+                    setLoopProbability(dogLoop, 0.4);
+                    setLoopProbability(catLoop, 0.28);
+                    setLoopProbability(cowLoop, 0.65);
                     break;
                 case 2: // Crimson Sunset
                     fadeVolume(marketVolume, -18);
@@ -3638,9 +3766,15 @@ async function loadAthensGeo() {
                     fadeVolume(windVolume, -26);
                     fadeVolume(templeVolume, -22);
                     fadeVolume(seagullVolume, -30);
+                    fadeVolume(dogVolume, -27);
+                    fadeVolume(catVolume, -26);
+                    fadeVolume(cowVolume, -24);
                     setLoopProbability(merchantLoop, 0.45);
                     setLoopProbability(seagullLoop, 0.35);
                     setLoopProbability(blacksmithLoop, 0.8);
+                    setLoopProbability(dogLoop, 0.38);
+                    setLoopProbability(catLoop, 0.4);
+                    setLoopProbability(cowLoop, 0.5);
                     break;
                 case 3: // Starlit Night
                     fadeVolume(marketVolume, -34);
@@ -3649,9 +3783,15 @@ async function loadAthensGeo() {
                     fadeVolume(windVolume, -24);
                     fadeVolume(templeVolume, -18);
                     fadeVolume(seagullVolume, -40);
+                    fadeVolume(dogVolume, -24);
+                    fadeVolume(catVolume, -22);
+                    fadeVolume(cowVolume, -32);
                     setLoopProbability(merchantLoop, 0.15);
                     setLoopProbability(seagullLoop, 0.2);
                     setLoopProbability(blacksmithLoop, 0.35);
+                    setLoopProbability(dogLoop, 0.5);
+                    setLoopProbability(catLoop, 0.55);
+                    setLoopProbability(cowLoop, 0.18);
                     break;
                 case 4: // Blue Hour
                 default:
@@ -3661,9 +3801,15 @@ async function loadAthensGeo() {
                     fadeVolume(windVolume, -25);
                     fadeVolume(templeVolume, -20);
                     fadeVolume(seagullVolume, -32);
+                    fadeVolume(dogVolume, -26);
+                    fadeVolume(catVolume, -24);
+                    fadeVolume(cowVolume, -26);
                     setLoopProbability(merchantLoop, 0.25);
                     setLoopProbability(seagullLoop, 0.3);
                     setLoopProbability(blacksmithLoop, 0.55);
+                    setLoopProbability(dogLoop, 0.42);
+                    setLoopProbability(catLoop, 0.45);
+                    setLoopProbability(cowLoop, 0.35);
                     break;
             }
         }
