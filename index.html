@@ -586,6 +586,7 @@ async function loadAthensGeo() {
         const skyboxMaterials = {};
         let sunMoon;
         const clouds = [];
+        let starField, galaxySystem;
         let canChickenCluck = true;
         let lastCluckTime = 0;
         
@@ -1351,18 +1352,294 @@ async function loadAthensGeo() {
         }
         
         function createSkybox() {
-            const skyGeo = new THREE.SphereGeometry(500, 32, 32);
-            
-            const dayMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB, side: THREE.BackSide });
-            const sunsetMaterial = new THREE.MeshBasicMaterial({ color: 0xFF4500, side: THREE.BackSide });
-            const nightMaterial = new THREE.MeshBasicMaterial({ color: 0x000033, side: THREE.BackSide });
-            
-            skybox = new THREE.Mesh(skyGeo, dayMaterial);
+            const skyGeo = new THREE.SphereGeometry(500, 64, 64);
+
+            const createSkyMaterial = (gradientStops, options = {}) => {
+                const texture = generateTexture(2048, 1024, (ctx, w, h) => {
+                    const gradient = ctx.createLinearGradient(0, 0, 0, h);
+                    gradientStops.forEach(stop => gradient.addColorStop(stop.offset, stop.color));
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, w, h);
+
+                    if (options.horizonGlow) {
+                        const horizon = Object.assign({ color: 'rgba(255, 200, 150, 0.55)', height: 0.25 }, options.horizonGlow);
+                        const glowGradient = ctx.createLinearGradient(0, h * (1 - horizon.height), 0, h);
+                        glowGradient.addColorStop(0, horizon.color);
+                        glowGradient.addColorStop(1, 'rgba(255, 200, 150, 0)');
+                        ctx.fillStyle = glowGradient;
+                        ctx.fillRect(0, h * (1 - horizon.height), w, h * horizon.height);
+                    }
+
+                    if (options.sunGlow) {
+                        const sunGlow = Object.assign({ position: { x: 0.5, y: 0.25 }, radius: 0.35, color: 'rgba(255, 255, 210, 0.5)' }, options.sunGlow);
+                        const sx = sunGlow.position.x * w;
+                        const sy = sunGlow.position.y * h;
+                        const glowGradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, sunGlow.radius * h);
+                        glowGradient.addColorStop(0, sunGlow.color);
+                        glowGradient.addColorStop(1, 'rgba(255, 255, 210, 0)');
+                        ctx.fillStyle = glowGradient;
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, sunGlow.radius * h, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    if (options.clouds) {
+                        const cloudOptions = Object.assign({ count: 24, minScale: 0.05, maxScale: 0.12, minOpacity: 0.2, maxOpacity: 0.45, verticalRange: [0.05, 0.65], tint: 'rgba(255,255,255,0.9)' }, options.clouds);
+                        for (let i = 0; i < cloudOptions.count; i++) {
+                            const x = Math.random() * w;
+                            const y = h * (cloudOptions.verticalRange[0] + Math.random() * (cloudOptions.verticalRange[1] - cloudOptions.verticalRange[0]));
+                            const radiusX = cloudOptions.minScale + Math.random() * (cloudOptions.maxScale - cloudOptions.minScale);
+                            const radiusY = radiusX * (0.35 + Math.random() * 0.25);
+                            ctx.save();
+                            ctx.translate(x, y);
+                            ctx.rotate((Math.random() - 0.5) * 0.6);
+                            ctx.scale(w * radiusX, h * radiusY);
+                            ctx.globalAlpha = cloudOptions.minOpacity + Math.random() * (cloudOptions.maxOpacity - cloudOptions.minOpacity);
+                            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+                            gradient.addColorStop(0, cloudOptions.tint);
+                            gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                            ctx.fillStyle = gradient;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, 1, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+
+                    if (options.nebulae) {
+                        const nebulaOptions = Object.assign({ count: 5, minScale: 0.12, maxScale: 0.25, minOpacity: 0.08, maxOpacity: 0.35, colors: ['rgba(87,67,156,0.45)', 'rgba(44,105,190,0.35)', 'rgba(220,124,182,0.25)'] }, options.nebulae);
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'lighter';
+                        for (let i = 0; i < nebulaOptions.count; i++) {
+                            const x = Math.random() * w;
+                            const y = Math.random() * h * 0.6;
+                            const radiusX = nebulaOptions.minScale + Math.random() * (nebulaOptions.maxScale - nebulaOptions.minScale);
+                            const radiusY = radiusX * (0.4 + Math.random() * 0.35);
+                            const color = nebulaOptions.colors[i % nebulaOptions.colors.length];
+                            ctx.save();
+                            ctx.translate(x, y);
+                            ctx.rotate((Math.random() - 0.5) * Math.PI);
+                            ctx.scale(w * radiusX, h * radiusY);
+                            ctx.globalAlpha = nebulaOptions.minOpacity + Math.random() * (nebulaOptions.maxOpacity - nebulaOptions.minOpacity);
+                            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+                            gradient.addColorStop(0, color);
+                            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = gradient;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, 1, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                        ctx.restore();
+                    }
+
+                    if (options.stars) {
+                        const starOptions = Object.assign({ count: 250, minRadius: 0.4, maxRadius: 1.6, minAlpha: 0.25, maxAlpha: 0.85 }, options.stars);
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'lighter';
+                        for (let i = 0; i < starOptions.count; i++) {
+                            const radius = starOptions.minRadius + Math.random() * (starOptions.maxRadius - starOptions.minRadius);
+                            const alpha = starOptions.minAlpha + Math.random() * (starOptions.maxAlpha - starOptions.minAlpha);
+                            const x = Math.random() * w;
+                            const y = Math.random() * h;
+                            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+                            ctx.beginPath();
+                            ctx.arc(x, y, radius, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        ctx.restore();
+                    }
+                });
+                texture.wrapS = THREE.ClampToEdgeWrapping;
+                texture.wrapT = THREE.ClampToEdgeWrapping;
+                texture.encoding = THREE.sRGBEncoding;
+                texture.needsUpdate = true;
+                return new THREE.MeshBasicMaterial({
+                    map: texture,
+                    side: THREE.BackSide,
+                    depthWrite: false
+                });
+            };
+
+            const dawnMaterial = createSkyMaterial(
+                [
+                    { offset: 0, color: '#2b3a67' },
+                    { offset: 0.4, color: '#485a9c' },
+                    { offset: 0.75, color: '#f6b38d' },
+                    { offset: 1, color: '#fce7c5' }
+                ],
+                {
+                    horizonGlow: { color: 'rgba(255, 192, 134, 0.55)', height: 0.35 },
+                    sunGlow: { position: { x: 0.2, y: 0.25 }, radius: 0.32, color: 'rgba(255, 210, 140, 0.55)' },
+                    clouds: { count: 18, maxOpacity: 0.35, tint: 'rgba(255,255,255,0.85)', verticalRange: [0.15, 0.7] }
+                }
+            );
+
+            const dayMaterial = createSkyMaterial(
+                [
+                    { offset: 0, color: '#2b75c9' },
+                    { offset: 0.55, color: '#6fb5ff' },
+                    { offset: 1, color: '#cbe5ff' }
+                ],
+                {
+                    sunGlow: { position: { x: 0.15, y: 0.2 }, radius: 0.28, color: 'rgba(255, 255, 210, 0.5)' },
+                    clouds: { count: 28, minScale: 0.04, maxScale: 0.11, maxOpacity: 0.4, tint: 'rgba(255,255,255,0.9)' }
+                }
+            );
+
+            const sunsetMaterial = createSkyMaterial(
+                [
+                    { offset: 0, color: '#2c1b3a' },
+                    { offset: 0.45, color: '#6d2f6b' },
+                    { offset: 0.7, color: '#f26d4b' },
+                    { offset: 1, color: '#ffd07f' }
+                ],
+                {
+                    horizonGlow: { color: 'rgba(255, 140, 90, 0.65)', height: 0.4 },
+                    sunGlow: { position: { x: 0.8, y: 0.3 }, radius: 0.38, color: 'rgba(255, 140, 90, 0.45)' },
+                    clouds: { count: 20, minScale: 0.05, maxScale: 0.12, tint: 'rgba(255, 196, 160, 0.8)', maxOpacity: 0.45, verticalRange: [0.1, 0.8] }
+                }
+            );
+
+            const blueHourMaterial = createSkyMaterial(
+                [
+                    { offset: 0, color: '#091124' },
+                    { offset: 0.5, color: '#16325c' },
+                    { offset: 1, color: '#2a4f7b' }
+                ],
+                {
+                    horizonGlow: { color: 'rgba(80, 120, 180, 0.45)', height: 0.25 },
+                    clouds: { count: 10, minScale: 0.05, maxScale: 0.1, minOpacity: 0.1, maxOpacity: 0.25, tint: 'rgba(180, 210, 255, 0.6)', verticalRange: [0.2, 0.7] },
+                    stars: { count: 120, minRadius: 0.3, maxRadius: 1.2, minAlpha: 0.15, maxAlpha: 0.5 }
+                }
+            );
+
+            const nightMaterial = createSkyMaterial(
+                [
+                    { offset: 0, color: '#030511' },
+                    { offset: 0.45, color: '#081a34' },
+                    { offset: 1, color: '#10294f' }
+                ],
+                {
+                    nebulae: { count: 6, colors: ['rgba(94, 72, 168, 0.45)', 'rgba(52, 101, 193, 0.4)', 'rgba(219, 144, 206, 0.3)'], minScale: 0.12, maxScale: 0.28 },
+                    stars: { count: 320, minRadius: 0.35, maxRadius: 1.8, minAlpha: 0.2, maxAlpha: 0.85 }
+                }
+            );
+
+            skybox = new THREE.Mesh(skyGeo, dawnMaterial);
+            skybox.renderOrder = -1;
+
+            skyboxMaterials.dawn = dawnMaterial;
             skyboxMaterials.day = dayMaterial;
             skyboxMaterials.sunset = sunsetMaterial;
             skyboxMaterials.night = nightMaterial;
+            skyboxMaterials.blueHour = blueHourMaterial;
 
             scene.add(skybox);
+            createNightSkyElements();
+        }
+
+        function createNightSkyElements() {
+            const starSprite = generateTexture(64, 64, (ctx, w, h) => {
+                const gradient = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, w, h);
+            });
+            starSprite.wrapS = THREE.ClampToEdgeWrapping;
+            starSprite.wrapT = THREE.ClampToEdgeWrapping;
+            starSprite.encoding = THREE.sRGBEncoding;
+            starSprite.needsUpdate = true;
+
+            const starCount = 2000;
+            const starPositions = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount; i++) {
+                const i3 = i * 3;
+                const u = Math.random();
+                const v = Math.random();
+                const theta = 2 * Math.PI * u;
+                const phi = Math.acos(2 * v - 1);
+                const radius = 480 + Math.random() * 10;
+                const sinPhi = Math.sin(phi);
+                starPositions[i3] = radius * sinPhi * Math.cos(theta);
+                starPositions[i3 + 1] = radius * Math.cos(phi);
+                starPositions[i3 + 2] = radius * sinPhi * Math.sin(theta);
+            }
+
+            const starGeometry = new THREE.BufferGeometry();
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+
+            const starMaterial = new THREE.PointsMaterial({
+                map: starSprite,
+                size: 5,
+                transparent: true,
+                opacity: 0.85,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+            starMaterial.alphaTest = 0.1;
+
+            starField = new THREE.Points(starGeometry, starMaterial);
+            starField.visible = false;
+            starField.frustumCulled = false;
+            scene.add(starField);
+
+            const galaxyCount = 1400;
+            const galaxyPositions = new Float32Array(galaxyCount * 3);
+            const galaxyColors = new Float32Array(galaxyCount * 3);
+            const color = new THREE.Color();
+
+            for (let i = 0; i < galaxyCount; i++) {
+                const i3 = i * 3;
+                const angle = Math.random() * Math.PI * 2;
+                const radius = THREE.MathUtils.lerp(200, 320, Math.pow(Math.random(), 0.6));
+                const swirl = angle + radius * 0.003;
+                const height = THREE.MathUtils.randFloatSpread(50);
+                const x = Math.cos(swirl) * radius;
+                const z = Math.sin(swirl) * radius;
+                const tilt = THREE.MathUtils.degToRad(25);
+                const y = height * Math.cos(tilt) - z * Math.sin(tilt);
+                const zTilted = height * Math.sin(tilt) + z * Math.cos(tilt);
+
+                galaxyPositions[i3] = x;
+                galaxyPositions[i3 + 1] = y;
+                galaxyPositions[i3 + 2] = zTilted;
+
+                const hue = THREE.MathUtils.randFloat(0.55, 0.7);
+                const saturation = THREE.MathUtils.randFloat(0.35, 0.65);
+                const lightness = THREE.MathUtils.randFloat(0.55, 0.85);
+                color.setHSL(hue, saturation, lightness);
+
+                galaxyColors[i3] = color.r;
+                galaxyColors[i3 + 1] = color.g;
+                galaxyColors[i3 + 2] = color.b;
+            }
+
+            const galaxyGeometry = new THREE.BufferGeometry();
+            galaxyGeometry.setAttribute('position', new THREE.Float32BufferAttribute(galaxyPositions, 3));
+            galaxyGeometry.setAttribute('color', new THREE.Float32BufferAttribute(galaxyColors, 3));
+
+            const galaxyMaterial = new THREE.PointsMaterial({
+                map: starSprite,
+                size: 9,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                vertexColors: true,
+                sizeAttenuation: true
+            });
+            galaxyMaterial.alphaTest = 0.1;
+
+            galaxySystem = new THREE.Points(galaxyGeometry, galaxyMaterial);
+            galaxySystem.visible = false;
+            galaxySystem.frustumCulled = false;
+            galaxySystem.rotation.x = THREE.MathUtils.degToRad(12);
+            galaxySystem.rotation.z = THREE.MathUtils.degToRad(-18);
+            scene.add(galaxySystem);
         }
 
         function createFountain() {
@@ -2047,7 +2324,7 @@ async function loadAthensGeo() {
                     hemiColorTop = 0xffa500; hemiColorBottom = 0x8B4513;
                     fogColor = 0x877d8f; fogDensity = 0.003;
                     sunPos.set(scaleValue(100), 20, scaleValue(50));
-                    skyboxMat = skyboxMaterials.sunset;
+                    skyboxMat = skyboxMaterials.dawn;
                     break;
                 case 1: // Noon
                     directionalColor = 0xffffff; directionalIntensity = 1.0; ambientIntensity = 0.4;
@@ -2075,7 +2352,7 @@ async function loadAthensGeo() {
                     hemiColorTop = 0x4a5a70; hemiColorBottom = 0x2e3540;
                     fogColor = 0x3a404d; fogDensity = 0.005;
                     sunPos.set(scaleValue(-100), 10, scaleValue(50));
-                    skyboxMat = skyboxMaterials.night;
+                    skyboxMat = skyboxMaterials.blueHour;
                     break;
             }
 
@@ -2084,19 +2361,44 @@ async function loadAthensGeo() {
             directionalLight.color.setHex(directionalColor);
             directionalLight.intensity = directionalIntensity;
             sunMoon.position.copy(sunPos);
-            sunMoon.material.color.setHex(currentTimeOfDay !== 3 ? 0xFFFF00 : 0xFFFFFF);
-            sunMoon.material.emissive.setHex(currentTimeOfDay !== 3 ? 0xFFFF00 : 0xE0E0E0);
-            
+            const isNightPhase = currentTimeOfDay >= 3;
+            sunMoon.material.color.setHex(isNightPhase ? 0xFFFFFF : 0xFFF1A0);
+            sunMoon.material.emissive.setHex(isNightPhase ? 0xbfd2ff : 0xFFFF00);
+            sunMoon.material.emissiveIntensity = isNightPhase ? 0.45 : 1.0;
+
             ambientLight.intensity = ambientIntensity;
             hemisphereLight.color.setHex(hemiColorTop);
             hemisphereLight.groundColor.setHex(hemiColorBottom);
-            
+
             if (scene.fog) {
                 scene.fog.color.setHex(fogColor);
                 scene.fog.density = fogDensity;
             }
-            
+
             pointLights.forEach(light => light.visible = currentTimeOfDay === 3 || currentTimeOfDay === 4);
+
+            const showStars = currentTimeOfDay === 3 || currentTimeOfDay === 4;
+            if (starField) {
+                if (showStars) {
+                    starField.visible = true;
+                    starField.material.opacity = currentTimeOfDay === 3 ? 0.75 : 0.35;
+                } else {
+                    starField.visible = false;
+                    starField.material.opacity = 0.0;
+                }
+                starField.material.needsUpdate = true;
+            }
+
+            if (galaxySystem) {
+                if (showStars) {
+                    galaxySystem.visible = true;
+                    galaxySystem.material.opacity = currentTimeOfDay === 3 ? 0.8 : 0.3;
+                } else {
+                    galaxySystem.visible = false;
+                    galaxySystem.material.opacity = 0.0;
+                }
+                galaxySystem.material.needsUpdate = true;
+            }
         }
         
         function updateNPCs(delta) {
@@ -2271,7 +2573,15 @@ async function loadAthensGeo() {
             updateNPCs(delta);
             updateCamera();
             updateMiniMap();
-            
+
+            if (starField) {
+                starField.rotation.y += delta * 0.005;
+            }
+
+            if (galaxySystem) {
+                galaxySystem.rotation.y += delta * 0.01;
+            }
+
             composer.render();
         }
 
