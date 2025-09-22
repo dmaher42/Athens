@@ -701,130 +701,6 @@
         const externalAnimationMixers = [];
         window.externalAnimationMixers = externalAnimationMixers;
 
-        // --- GEOJSON LOADER & LANDMARK RENDERING ---
-// Put your file at:  ./data/athens_places.geojson  (folder "data" next to index.html)
-async function loadAthensGeo() {
-    try {
-        // Make sure the projector exists (it’s defined in your <script type="module"> below)
-        const projector = window?.AthensGeo?.projector;
-        if (!projector) {
-            console.warn("Geo projector not ready yet; delaying GeoJSON load by 1s…");
-            setTimeout(loadAthensGeo, 1000);
-            return;
-        }
-
-        // 1) Load the GeoJSON
-        const response = await fetch('./data/athens_places.geojson');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const geoJson = await response.json();
-
-        // 2) Add simple 3D pins for each Point feature
-        const pinGroup = new THREE.Group();
-        pinGroup.name = "AthensGeoPins";
-        scene.add(pinGroup);
-
-        const pinMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.2, roughness: 0.6 });
-        const labelMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
-        // Helper to make a pin (a small cylinder + sphere)
-        function makePin() {
-            const g = new THREE.Group();
-            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * CITY_SCALE, 0.15 * CITY_SCALE, 1.2, 8), pinMaterial);
-            shaft.castShadow = true;
-            const head  = new THREE.Mesh(new THREE.SphereGeometry(0.32 * CITY_SCALE, 12, 10), pinMaterial);
-            head.position.y = 0.75;
-            head.castShadow = true;
-            g.add(shaft, head);
-            return g;
-        }
-
-        // Helper to add a floating nameplate (simple plane; optional)
-        function addNameplate(text) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'rgba(0,0,0,0.6)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#FFD700';
-            ctx.font = '48px Cinzel, serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-            const tex = new THREE.CanvasTexture(canvas);
-            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
-            const geo = new THREE.PlaneGeometry(3 * CITY_SCALE, 0.75 * CITY_SCALE);
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.y = 1.2;
-            return mesh;
-        }
-
-        // 3) Convert each Point feature’s lon/lat to local x/z and drop a pin
-        const newlyAddedLocations = []; // to show in your mini-map & on-screen location text
-        for (const f of geoJson.features || []) {
-            if (f?.geometry?.type !== 'Point') continue;
-
-            const [lon, lat] = f.geometry.coordinates;
-            const name = f.properties?.title || f.properties?.name || 'Unnamed';
-            const categoryRaw = (f.properties?.category || 'cultural').toString().toLowerCase();
-            const category = ['democracy', 'cultural', 'natural'].includes(categoryRaw) ? categoryRaw : 'cultural';
-
-            // Convert lon/lat → local meters using your projector
-            const { x, y } = projector.project({ lat, lon }); // y here is “northing”; we’ll use it as z
-            const localX = x;     // meters east from origin (Parthenon)
-            const localZ = y;     // meters north from origin
-
-            // Scale down to your scene scale (your helpers use CITY_SCALE on top of these numbers)
-            // We’ll treat these as your “design units” and set position via setScaledPosition.
-            const pin = makePin();
-            setScaledPosition(pin, localX, 0, localZ);
-            pinGroup.add(pin);
-
-            // Optional floating label
-            const label = addNameplate(name);
-            pin.add(label);
-
-            // Register in your “locations” list so UI picks it up
-            newlyAddedLocations.push({
-                name,
-                position: new THREE.Vector3(scaleValue(localX), 0, scaleValue(localZ)),
-                radius: scaleValue(12),
-                title: `📍 ${name}`,
-                type: category
-            });
-        }
-
-        // 4) Add the new points into your existing systems:
-        //    - locations[] (for on-screen “You are at …”)
-        //    - mini-map icons
-        if (Array.isArray(newlyAddedLocations) && newlyAddedLocations.length) {
-            // Add to locations array the simplest way: push them in
-            if (Array.isArray(locations)) {
-                newlyAddedLocations.forEach(loc => locations.push(loc));
-            }
-
-            // Add icons to mini-map (reusing your createMapIcons() logic: we’ll just add the DOM dots ourselves)
-            const mapContainer = document.getElementById('mini-map-container');
-            const worldWidth = mapBounds.xMax - mapBounds.xMin;
-            const worldDepth = mapBounds.zMax - mapBounds.zMin;
-
-            newlyAddedLocations.forEach(loc => {
-                const icon = document.createElement('div');
-                const rawType = typeof loc.type === 'string' ? loc.type.toLowerCase() : 'cultural';
-                const cat = ['democracy', 'cultural', 'natural'].includes(rawType) ? rawType : 'cultural';
-                icon.className = `map-icon map-icon-${cat}`;
-                const percentX = THREE.MathUtils.clamp((loc.position.x - mapBounds.xMin) / worldWidth, 0, 1);
-                const percentZ = THREE.MathUtils.clamp((loc.position.z - mapBounds.zMin) / worldDepth, 0, 1);
-                icon.style.left = `${percentX * 200}px`;
-                icon.style.top  = `${percentZ * 200}px`;
-                mapContainer.appendChild(icon);
-            });
-
-            console.log(`Loaded ${newlyAddedLocations.length} Athens landmarks from GeoJSON.`);
-        }
-    } catch (err) {
-        console.error('loadAthensGeo() failed:', err);
-    }
-}
 
         const scaleBounds = ({ xMin, xMax, zMin, zMax }) => ({
             xMin: scaleValue(xMin),
@@ -876,6 +752,8 @@ async function loadAthensGeo() {
         let templeChantSynth, templeChantPanner, templeVolume, templeChantLoop;
         let animalAmbiences = null;
         let masterBus, environmentReverb;
+        let landmarkLabelUpdater = null;
+        let landmarkGroups = null;
         const blacksmithPosition = scaleLocation({ x: -12, y: 1, z: 10 });
         const marketAmbiencePosition = scaleLocation({ x: 12, y: 1.5, z: -8 });
         const fountainPosition = scaleLocation({ x: 24, y: 1, z: 14 });
@@ -927,7 +805,7 @@ async function loadAthensGeo() {
 
 
         // --- INITIALIZATION ---
-        function init() {
+        async function init() {
             // Physics World
             world = new CANNON.World();
             world.gravity.set(0, -9.82, 0); 
@@ -1096,7 +974,8 @@ async function loadAthensGeo() {
             createMapIcons();
             // Load the temple model (GLB)
             loadGreekTemple();
-            loadAthensGeo();
+
+            await setupLandmarks();
 
 
 
@@ -3593,7 +3472,10 @@ async function loadAthensGeo() {
             updateNPCs(delta);
             updateCamera();
             updateMiniMap();
-            
+            if (typeof landmarkLabelUpdater === 'function') {
+                landmarkLabelUpdater(camera);
+            }
+
             composer.render();
         }
 
@@ -4356,36 +4238,102 @@ async function loadAthensGeo() {
             camera.lookAt(lookAtPosition);
         }
 
-        function createMapIcons() {
+        function addMiniMapDot(category, worldPos) {
             const mapContainer = document.getElementById('mini-map-container');
+            if (!mapContainer || !worldPos) {
+                return null;
+            }
+
+            const worldWidth = mapBounds.xMax - mapBounds.xMin;
+            const worldDepth = mapBounds.zMax - mapBounds.zMin;
+            if (worldWidth === 0 || worldDepth === 0) {
+                return null;
+            }
+
+            const safeCategory = (category ?? 'cultural').toString().toLowerCase();
+            const normalizedCategory = ['democracy', 'cultural', 'natural'].includes(safeCategory)
+                ? safeCategory
+                : 'cultural';
+
+            const icon = document.createElement('div');
+            icon.className = `map-icon map-icon-${normalizedCategory}`;
+
+            const mapWidth = 200;
+            const mapHeight = 200;
+            const percentX = THREE.MathUtils.clamp((worldPos.x - mapBounds.xMin) / worldWidth, 0, 1);
+            const percentZ = THREE.MathUtils.clamp((worldPos.z - mapBounds.zMin) / worldDepth, 0, 1);
+
+            icon.style.left = `${percentX * mapWidth}px`;
+            icon.style.top = `${percentZ * mapHeight}px`;
+
+            mapContainer.appendChild(icon);
+            return icon;
+        }
+
+        function createMapIcons() {
             const allLocations = [
-                ...locations.map(l => ({...l, type: 'cultural'})),
+                ...locations.map(l => ({...l, type: (l.type || 'cultural')})),
                 { name: 'Pnyx', position: scaleLocation({ x: PNYX_POSITION.x, z: PNYX_POSITION.z }), type: 'democracy' },
                 { name: 'Dikasteria', position: scaleLocation({ x: 0, z: -15 }), type: 'democracy' },
                 { name: 'Bouleuterion', position: scaleLocation({ x: AGORA_FEATURES.bouleuterion.position.x, z: AGORA_FEATURES.bouleuterion.position.z }), type: 'democracy' }
             ];
 
             allLocations.forEach(loc => {
-                const icon = document.createElement('div');
-                icon.className = `map-icon map-icon-${loc.type}`;
-                
-                const mapWidth = 200;
-                const mapHeight = 200;
-                const worldWidth = mapBounds.xMax - mapBounds.xMin;
-                const worldDepth = mapBounds.zMax - mapBounds.zMin;
+                if (!loc || !loc.position) {
+                    return;
+                }
 
-                let percentX = (loc.position.x - mapBounds.xMin) / worldWidth;
-                let percentZ = (loc.position.z - mapBounds.zMin) / worldDepth;
-                percentX = THREE.MathUtils.clamp(percentX, 0, 1);
-                percentZ = THREE.MathUtils.clamp(percentZ, 0, 1);
-
-                icon.style.left = `${percentX * mapWidth}px`;
-                icon.style.top = `${percentZ * mapHeight}px`;
-
-                mapContainer.appendChild(icon);
+                addMiniMapDot(loc.type, loc.position);
             });
         }
-        
+
+        async function setupLandmarks() {
+            try {
+                const { loadLandmarks } = await import('./src/landmarks-loader.js');
+
+                const projectorInstance = window?.AthensGeo?.projector;
+                const projectorFn = projectorInstance && typeof projectorInstance.project === 'function'
+                    ? (lon, lat) => {
+                        const { x, y } = projectorInstance.project({ lat, lon });
+                        return new THREE.Vector3(scaleValue(x), 0, scaleValue(y));
+                    }
+                    : null;
+
+                const { groups, update } = await loadLandmarks({
+                    scene,
+                    geoJsonUrl: './data/athens_places.geojson',
+                    projector: projectorFn,
+                    onPoint: (feature, pin, worldPos) => {
+                        const props = feature.properties || {};
+                        const name = props.title || props.name || 'Unnamed';
+                        const rawCategory = (props.category || 'cultural').toString().toLowerCase();
+                        const category = ['democracy', 'cultural', 'natural'].includes(rawCategory) ? rawCategory : 'cultural';
+
+                        locations.push({
+                            name,
+                            position: worldPos.clone(),
+                            radius: scaleValue(12),
+                            title: `📍 ${name}`,
+                            type: category
+                        });
+
+                        addMiniMapDot(category, worldPos);
+                    }
+                });
+
+                landmarkGroups = groups;
+                landmarkLabelUpdater = update;
+
+                if (landmarkGroups?.democracy) landmarkGroups.democracy.visible = true;
+                if (landmarkGroups?.cultural) landmarkGroups.cultural.visible = true;
+                if (landmarkGroups?.natural) landmarkGroups.natural.visible = true;
+
+                window.AthensLandmarks = { groups, update };
+            } catch (error) {
+                console.error('Failed to load landmarks:', error);
+            }
+        }
+
         function updateMiniMap() {
             if (!player || !player.body || !player.model) return;
 
@@ -4420,7 +4368,9 @@ async function loadAthensGeo() {
         }
         
         // Initialize the application
-        init();
+        init().catch((error) => {
+            console.error('Failed to initialize Athens experience:', error);
+        });
         
         } // End of main function
         
