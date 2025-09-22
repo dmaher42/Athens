@@ -4,23 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ancient Athens - Visual Masterpiece</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <!-- Physics and Post-processing libraries -->
+    <!-- Physics library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
     <script type="importmap">
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
             "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js",
-            "three/examples/jsm/objects/Sky.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/objects/Sky.js"
+            "three/examples/jsm/objects/Sky.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/objects/Sky.js",
+            "three/examples/jsm/postprocessing/EffectComposer.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js",
+            "three/examples/jsm/postprocessing/RenderPass.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/postprocessing/RenderPass.js",
+            "three/examples/jsm/postprocessing/UnrealBloomPass.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/postprocessing/UnrealBloomPass.js"
         }
     }
     </script>
@@ -440,6 +435,10 @@
 
     <script type="module">
         import * as THREE from 'three';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+        import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
 
         if (typeof window.THREE !== 'undefined') {
@@ -693,7 +692,7 @@
 
         // --- LOAD THE GREEK TEMPLE GLB ---
         function loadGreekTemple() {
-          const loader = new THREE.GLTFLoader();
+          const loader = new GLTFLoader();
           const url = './models/greek_temple.glb'; // path is relative to index.html
           console.log('Loading GLB:', url);
 
@@ -2276,10 +2275,10 @@
         }
 
         function setupPostFX() {
-            composer = new THREE.EffectComposer(renderer);
-            const renderPass = new THREE.RenderPass(scene, camera);
+            composer = new EffectComposer(renderer);
+            const renderPass = new RenderPass(scene, camera);
             composer.addPass(renderPass);
-            bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.25, 0.4, 0.85);
+            bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.25, 0.4, 0.85);
             bloomPass.threshold = 0.2;
             bloomPass.strength = 0.25;
             bloomPass.radius = 0.2;
@@ -3128,7 +3127,7 @@
             world.addBody(player.body);
             
             // Load Animated Player Model
-            const playerLoader = new THREE.GLTFLoader();
+            const playerLoader = new GLTFLoader();
             const CHARACTER_MODEL_URL = './models/character.glb';
             playerLoader.load(CHARACTER_MODEL_URL, (gltf) => {
                 const model = gltf.scene;
@@ -4579,6 +4578,9 @@
   }
 </script>
     <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
         const waitForWorld = () => {
             if (window.athensWorldBuilt && window.scene && window.renderer) {
                 return Promise.resolve();
@@ -4629,18 +4631,13 @@
 
         await waitForWorld();
 
-        const { THREE, scene, renderer } = window;
-        if (!THREE || !scene || !renderer) {
+        const { scene, renderer } = window;
+        if (!scene || !renderer) {
             console.error('THREE.js scene was not initialized before loading models.');
             throw new Error('Scene not ready');
         }
 
-        if (typeof THREE.GLTFLoader !== 'function') {
-            console.error('THREE.GLTFLoader is not available. Ensure the loader script is loaded before this module.');
-            throw new Error('GLTFLoader unavailable');
-        }
-
-        const gltfLoader = new THREE.GLTFLoader();
+        const gltfLoader = new GLTFLoader();
 
         const loadTemple = () => {
             const templeGroup = new THREE.Group();
