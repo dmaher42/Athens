@@ -32,8 +32,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          23.72255149294463,
-          37.97656846559107
+          23.690000,
+          38.060000
         ]
       },
       "properties": {
@@ -50,8 +50,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          23.71776610841574,
-          37.96920228026129
+          23.550000,
+          37.760000
         ]
       },
       "properties": {
@@ -68,8 +68,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          23.72369087021341,
-          37.969741269431765
+          23.820000,
+          37.900000
         ]
       },
       "properties": {
@@ -86,8 +86,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          23.71867761023077,
-          37.978544759216135
+          23.840000,
+          38.080000
         ]
       },
       "properties": {
@@ -114,7 +114,8 @@
         "pleiades_uri": "https://pleiades.stoa.org/places/580062",
         "source": "Pleiades",
         "license": "CC-BY 3.0",
-        "kind": "landmark"
+        "kind": "landmark",
+        "within_walls": false
       }
     },
     {
@@ -132,7 +133,8 @@
         "pleiades_uri": "https://pleiades.stoa.org/places/580072",
         "source": "Pleiades",
         "license": "CC-BY 3.0",
-        "kind": "landmark"
+        "kind": "landmark",
+        "within_walls": false
       }
     },
     {
@@ -141,8 +143,8 @@
         "type": "LineString",
         "coordinates": [
           [
-            23.71867761023077,
-            37.978544759216135
+            23.840000,
+            38.080000
           ],
           [
             23.644609,
@@ -169,8 +171,8 @@
         "type": "LineString",
         "coordinates": [
           [
-            23.71867761023077,
-            37.978544759216135
+            23.840000,
+            38.080000
           ],
           [
             23.706248,
