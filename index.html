@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ancient Athens - Visual Masterpiece</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- Physics library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
     <script type="importmap">
@@ -440,6 +439,40 @@
         import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
+
+        const TONE_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js';
+        let toneLoadingPromise = null;
+
+        function loadToneLibrary() {
+            if (window.Tone) {
+                return Promise.resolve(window.Tone);
+            }
+
+            if (!toneLoadingPromise) {
+                toneLoadingPromise = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = TONE_JS_URL;
+                    script.async = true;
+                    script.crossOrigin = 'anonymous';
+                    script.addEventListener('load', () => {
+                        if (window.Tone) {
+                            resolve(window.Tone);
+                        } else {
+                            toneLoadingPromise = null;
+                            reject(new Error('Tone.js loaded without exposing a global Tone object.'));
+                        }
+                    }, { once: true });
+                    script.addEventListener('error', () => {
+                        script.remove();
+                        toneLoadingPromise = null;
+                        reject(new Error('Failed to load Tone.js'));
+                    }, { once: true });
+                    document.head.appendChild(script);
+                });
+            }
+
+            return toneLoadingPromise;
+        }
 
         const THREE = window.THREE ?? ThreeModule;
         if (!window.THREE) {
@@ -4067,11 +4100,22 @@
         }
 
         function addEventListeners() {
-            document.getElementById('start-button').addEventListener('click', async () => {
-                document.getElementById('start-overlay').classList.add('fade-out');
+            const startButton = document.getElementById('start-button');
+            const startOverlay = document.getElementById('start-overlay');
+            startButton.addEventListener('pointerdown', () => {
+                loadToneLibrary().catch(() => {
+                    // Preloading can fail if the user releases the pointer early; retry on click.
+                });
+            });
+            startButton.addEventListener('click', async () => {
+                startOverlay.classList.add('fade-out');
                 if (!audioStarted) {
                     try {
-                        await Tone.start();
+                        const tone = await loadToneLibrary();
+                        if (!tone || typeof tone.start !== 'function') {
+                            throw new Error('Tone.js is unavailable after loading.');
+                        }
+                        await tone.start();
                         console.log("Audio context started.");
                         createAmbientSounds();
                         initializeChickenAudio();
@@ -4154,7 +4198,10 @@
                 }
                 if(e.code === 'KeyM') {
                     soundEnabled = !soundEnabled;
-                    Tone.getDestination().mute = !soundEnabled;
+                    const tone = window.Tone;
+                    if (tone && typeof tone.getDestination === 'function') {
+                        tone.getDestination().mute = !soundEnabled;
+                    }
                 }
                 if(e.code === 'KeyP') {
                     document.getElementById('fps-counter').classList.toggle('show');
