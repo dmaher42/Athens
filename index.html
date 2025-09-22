@@ -2126,32 +2126,64 @@ async function loadAthensGeo() {
             }
 
             vec3 starLayer(vec2 uv, float density, float twinkleSpeed) {
-                vec2 grid = floor(uv);
-                float spawn = hash(grid);
-                float star = step(1.0 - density, spawn);
-                if (star < 0.5) {
+                if (density <= 0.0) {
                     return vec3(0.0);
                 }
 
-                vec2 offset = vec2(hash(grid + 1.3), hash(grid + 8.7)) - 0.5;
-                vec2 local = fract(uv) - 0.5 - offset * 0.35;
-                float dist = length(local);
+                const int CANDIDATE_COUNT = 3;
+                const float STAR_SPREAD = 1.2;
 
-                float halo = smoothstep(0.0, 0.6, 0.6 - dist);
-                float falloff = smoothstep(0.0, 0.4, 0.4 - dist);
-                float core = smoothstep(0.0, 0.18, 0.18 - dist);
+                vec2 baseCell = floor(uv);
+                vec3 color = vec3(0.0);
+                float candidateProbability = clamp(density / float(CANDIDATE_COUNT), 0.0, 1.0);
 
-                float baseBrightness = mix(0.55, 1.2, hash(grid + 6.1));
-                float slowTwinkle = 0.8 + 0.2 * sin(uTime * (twinkleSpeed * 0.18) + spawn * 6.28318);
-                float fastTwinkle = 0.9 + 0.1 * sin(uTime * (twinkleSpeed * 0.72) + hash(grid + 19.7) * 6.28318);
-                float shimmer = 0.85 + 0.15 * pow(0.5 + 0.5 * sin(uTime * (twinkleSpeed * 0.42) + hash(grid + 4.3) * 6.28318), 2.0);
-                float twinkle = slowTwinkle * fastTwinkle * shimmer;
+                for (int y = -1; y <= 1; y++) {
+                    for (int x = -1; x <= 1; x++) {
+                        vec2 cell = baseCell + vec2(float(x), float(y));
 
-                vec3 palette = sampleStarPalette(hash(grid + 12.8));
-                vec3 color = palette * (falloff * baseBrightness * twinkle);
+                        for (int i = 0; i < CANDIDATE_COUNT; i++) {
+                            float idx = float(i);
+                            float candidateSeed = hash(cell + vec2(37.23 + idx * 17.11, 91.7 + idx * 29.17));
 
-                color += palette * pow(halo, 2.0) * 0.25 * baseBrightness;
-                color += vec3(1.0) * pow(core, 6.0) * 0.35 * baseBrightness;
+                            if (candidateSeed > candidateProbability) {
+                                continue;
+                            }
+
+                            vec2 jitter = vec2(
+                                hash(cell + vec2(13.1 + idx * 11.5, 7.7 + idx * 19.3)),
+                                hash(cell + vec2(5.9 + idx * 13.7, 17.5 + idx * 23.1))
+                            );
+
+                            vec2 starCenter = cell + vec2(0.5) + (jitter - 0.5) * STAR_SPREAD;
+                            vec2 local = uv - starCenter;
+                            float dist = length(local);
+
+                            float halo = smoothstep(0.0, 0.6, 0.6 - dist);
+                            float falloff = smoothstep(0.0, 0.4, 0.4 - dist);
+                            float core = smoothstep(0.0, 0.18, 0.18 - dist);
+
+                            float baseBrightness = mix(0.55, 1.2, hash(cell + vec2(6.1 + idx * 21.1, 2.3 + idx * 29.3)));
+
+                            float slowPhase = hash(cell + vec2(11.7 + idx * 13.7, 17.9 + idx * 23.9));
+                            float fastPhase = hash(cell + vec2(23.7 + idx * 15.3, 27.5 + idx * 21.1));
+                            float shimmerPhase = hash(cell + vec2(13.3 + idx * 19.1, 31.9 + idx * 27.1));
+
+                            float slowTwinkle = 0.8 + 0.2 * sin(uTime * (twinkleSpeed * 0.18) + slowPhase * 6.28318);
+                            float fastTwinkle = 0.9 + 0.1 * sin(uTime * (twinkleSpeed * 0.72) + fastPhase * 6.28318);
+                            float shimmer = 0.85 + 0.15 * pow(0.5 + 0.5 * sin(uTime * (twinkleSpeed * 0.42) + shimmerPhase * 6.28318), 2.0);
+                            float twinkle = slowTwinkle * fastTwinkle * shimmer;
+
+                            float paletteSeed = hash(cell + vec2(12.8 + idx * 9.17, 44.5 + idx * 3.31));
+                            vec3 palette = sampleStarPalette(paletteSeed);
+
+                            vec3 starColor = palette * (falloff * baseBrightness * twinkle);
+                            starColor += palette * pow(halo, 2.0) * 0.25 * baseBrightness;
+                            starColor += vec3(1.0) * pow(core, 6.0) * 0.35 * baseBrightness;
+
+                            color += starColor;
+                        }
+                    }
+                }
 
                 return color;
             }
