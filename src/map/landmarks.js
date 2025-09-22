@@ -4,10 +4,34 @@ import { AgoraLayer } from './agoraLayer.js';
 
 const LANDMARK_LABELS = {
     'Acropolis of Athens': 'Acropolis',
+    'Ancient Agora': 'Agora',
     'Agora of Athens (Ancient Agora)': 'Agora',
+    'Agora of Athens': 'Agora',
+    'Parthenon': 'Parthenon',
+    'Erechtheion': 'Erechtheion',
+    'Propylaea': 'Propylaea',
+    'Temple of Athena Nike': 'Athena Nike',
+    'Theatre of Dionysus': 'Theatre',
+    'Odeon of Herodes Atticus': 'Odeon',
+    'Temple of Olympian Zeus': 'Olympeion',
+    'Roman Agora': 'Roman Agora',
+    'Tower of the Winds': 'Tower of the Winds',
+    'Hadrian’s Library': 'Hadrian’s Library',
+    "Hadrian's Library": 'Hadrian’s Library',
+    'Panathenaic Stadium': 'Stadium',
+    'Temple of Hephaistos': 'Hephaistos',
+    'Stoa of Attalos (Interior)': 'Stoa of Attalos',
+    'Stoa of Attalos': 'Stoa of Attalos',
+    'Tholos': 'Tholos',
+    'Bouleuterion': 'Bouleuterion',
+    'Altar of the Twelve Gods': 'Altar of the XII Gods',
     'Pnyx': 'Pnyx',
     'Areopagus (Areios Pagos)': 'Areopagus',
-    'Kerameikos': 'Kerameikos'
+    'Areopagus': 'Areopagus',
+    'Kerameikos': 'Kerameikos',
+    'Peiraieus / Piraeus': 'Piraeus',
+    'Piraeus': 'Piraeus',
+    'Phaleron': 'Phaleron'
 };
 
 const LONG_WALL_LABELS = {
@@ -384,17 +408,22 @@ export class LandmarkOverlay {
             if (geometry.type === 'Point') {
                 const world = this.projection.projectGeoJsonPosition(geometry.coordinates);
                 this._extendBounds(world);
-                const label = LANDMARK_LABELS[properties.name];
-                if (label) {
-                    const withinWallsFlag = properties.within_walls ?? properties.withinWalls;
-                    const includeInCity = withinWallsFlag !== false;
-                    const landmark = { name: properties.name, label, world, withinWalls: includeInCity };
-                    this.landmarks.push(landmark);
-                    if (includeInCity) {
-                        cityPoints.push({ x: world.x, y: world.y });
-                    }
+                const name = properties.title || properties.name || properties.id || 'Unnamed landmark';
+                const label = LANDMARK_LABELS[name] || name;
+                const withinWallsFlag = properties.within_walls ?? properties.withinWalls;
+                const includeInCity = withinWallsFlag !== false;
+                const landmark = {
+                    name,
+                    label,
+                    world,
+                    withinWalls: includeInCity,
+                    category: properties.category
+                };
+                this.landmarks.push(landmark);
+                if (includeInCity) {
+                    cityPoints.push({ x: world.x, y: world.y });
                 }
-                if (properties.name === 'Agora of Athens (Ancient Agora)') {
+                if (!this.agoraAnchorWorld && (name === 'Ancient Agora' || name === 'Agora of Athens' || properties.name === 'Agora of Athens (Ancient Agora)')) {
                     this.agoraAnchorWorld = { x: world.x, y: world.y };
                     if (this.agoraLayer) {
                         this.agoraLayer.setAnchorWorld(this.agoraAnchorWorld);

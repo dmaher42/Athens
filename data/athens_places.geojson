@@ -1,6 +1,6 @@
 {
   "type": "FeatureCollection",
-  "name": "athens_landmarks_subset",
+  "name": "athens_landmarks",
   "crs": {
     "type": "name",
     "properties": {
@@ -10,131 +10,301 @@
   "features": [
     {
       "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          23.7277356595,
-          37.9705497532
-        ]
-      },
+      "geometry": { "type": "Point", "coordinates": [23.7267, 37.9715] },
       "properties": {
         "name": "Acropolis of Athens",
+        "title": "Acropolis of Athens",
+        "category": "cultural",
+        "within_walls": true,
         "pleiades_id": "638356144",
         "pleiades_uri": "https://pleiades.stoa.org/places/638356144",
-        "source": "Pleiades",
-        "license": "CC-BY 3.0",
-        "kind": "landmark",
-        "within_walls": false
+        "license": "CC BY 4.0"
       }
     },
     {
       "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          23.690000,
-          38.060000
-        ]
-      },
+      "geometry": { "type": "Point", "coordinates": [23.726663, 37.971536] },
+      "properties": {
+        "name": "Parthenon",
+        "title": "Parthenon",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579885",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579885",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.726588, 37.972058] },
+      "properties": {
+        "name": "Erechtheion",
+        "title": "Erechtheion",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579861",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579861",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.725638, 37.971833] },
+      "properties": {
+        "name": "Propylaea",
+        "title": "Propylaea",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579892",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579892",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.725235, 37.971548] },
+      "properties": {
+        "name": "Temple of Athena Nike",
+        "title": "Temple of Athena Nike",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579862",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579862",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.726032, 37.970468] },
+      "properties": {
+        "name": "Theatre of Dionysus",
+        "title": "Theatre of Dionysus",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579889",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579889",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.724302, 37.970065] },
+      "properties": {
+        "name": "Odeon of Herodes Atticus",
+        "title": "Odeon of Herodes Atticus",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579888",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579888",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.7229, 37.9753] },
       "properties": {
         "name": "Agora of Athens (Ancient Agora)",
+        "title": "Ancient Agora",
+        "category": "democracy",
+        "within_walls": true,
         "pleiades_id": "807514119",
         "pleiades_uri": "https://pleiades.stoa.org/places/807514119",
-        "source": "Pleiades",
-        "license": "CC-BY 3.0",
-        "kind": "landmark"
+        "license": "CC BY 4.0"
       }
     },
     {
       "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          23.550000,
-          37.760000
-        ]
-      },
+      "geometry": { "type": "Point", "coordinates": [23.7209, 37.9758] },
       "properties": {
-        "name": "Pnyx",
-        "pleiades_id": "205264674",
-        "pleiades_uri": "https://pleiades.stoa.org/places/205264674",
-        "source": "Pleiades",
-        "license": "CC-BY 3.0",
-        "kind": "landmark"
+        "name": "Temple of Hephaistos",
+        "title": "Temple of Hephaistos",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579874",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579874",
+        "license": "CC BY 4.0"
       }
     },
     {
       "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          23.820000,
-          37.900000
-        ]
-      },
+      "geometry": { "type": "Point", "coordinates": [23.72489, 37.97504] },
+      "properties": {
+        "name": "Stoa of Attalos (Interior)",
+        "title": "Stoa of Attalos",
+        "category": "democracy",
+        "within_walls": true,
+        "pleiades_id": "579891",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579891",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72239, 37.97421] },
+      "properties": {
+        "name": "Tholos",
+        "title": "Tholos",
+        "category": "democracy",
+        "within_walls": true,
+        "pleiades_id": "579902",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579902",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72195, 37.97405] },
+      "properties": {
+        "name": "Bouleuterion",
+        "title": "Bouleuterion",
+        "category": "democracy",
+        "within_walls": true,
+        "pleiades_id": "579886",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579886",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72425, 37.97521] },
+      "properties": {
+        "name": "Altar of the Twelve Gods",
+        "title": "Altar of the Twelve Gods",
+        "category": "democracy",
+        "within_walls": true,
+        "pleiades_id": "579883",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579883",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.73257, 37.96914] },
+      "properties": {
+        "name": "Temple of Olympian Zeus",
+        "title": "Temple of Olympian Zeus",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579884",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579884",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72472, 37.97546] },
+      "properties": {
+        "name": "Roman Agora",
+        "title": "Roman Agora",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579894",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579894",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72559, 37.97564] },
+      "properties": {
+        "name": "Tower of the Winds",
+        "title": "Tower of the Winds",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "579904",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579904",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72586, 37.97585] },
+      "properties": {
+        "name": "Hadrian’s Library",
+        "title": "Hadrian’s Library",
+        "category": "cultural",
+        "within_walls": true,
+        "pleiades_id": "580034",
+        "pleiades_uri": "https://pleiades.stoa.org/places/580034",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72113, 37.973] },
       "properties": {
         "name": "Areopagus (Areios Pagos)",
+        "title": "Areopagus",
+        "category": "democracy",
+        "within_walls": true,
         "pleiades_id": "969121823",
         "pleiades_uri": "https://pleiades.stoa.org/places/969121823",
-        "source": "Pleiades",
-        "license": "CC-BY 3.0",
-        "kind": "landmark"
+        "license": "CC BY 4.0"
       }
     },
     {
       "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          23.840000,
-          38.080000
-        ]
-      },
+      "geometry": { "type": "Point", "coordinates": [23.71921, 37.97365] },
+      "properties": {
+        "name": "Pnyx",
+        "title": "Pnyx",
+        "category": "democracy",
+        "within_walls": true,
+        "pleiades_id": "205264674",
+        "pleiades_uri": "https://pleiades.stoa.org/places/205264674",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72094, 37.9781] },
       "properties": {
         "name": "Kerameikos",
+        "title": "Kerameikos",
+        "category": "cultural",
+        "within_walls": true,
         "pleiades_id": "97294452",
         "pleiades_uri": "https://pleiades.stoa.org/places/97294452",
-        "source": "Pleiades",
-        "license": "CC-BY 3.0",
-        "kind": "landmark"
+        "license": "CC BY 4.0"
       }
     },
     {
       "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          23.644609,
-          37.937222
-        ]
-      },
+      "geometry": { "type": "Point", "coordinates": [23.74169, 37.96825] },
+      "properties": {
+        "name": "Panathenaic Stadium",
+        "title": "Panathenaic Stadium",
+        "category": "cultural",
+        "within_walls": false,
+        "pleiades_id": "579860",
+        "pleiades_uri": "https://pleiades.stoa.org/places/579860",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.644609, 37.937222] },
       "properties": {
         "name": "Peiraieus / Piraeus",
+        "title": "Piraeus",
+        "category": "cultural",
+        "within_walls": false,
         "pleiades_id": "580062",
         "pleiades_uri": "https://pleiades.stoa.org/places/580062",
-        "source": "Pleiades",
-        "license": "CC-BY 3.0",
-        "kind": "landmark",
-        "within_walls": false
+        "license": "CC BY 4.0"
       }
     },
     {
       "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          23.706248,
-          37.937309
-        ]
-      },
+      "geometry": { "type": "Point", "coordinates": [23.706248, 37.937309] },
       "properties": {
         "name": "Phaleron",
+        "title": "Phaleron",
+        "category": "natural",
+        "within_walls": false,
         "pleiades_id": "580072",
         "pleiades_uri": "https://pleiades.stoa.org/places/580072",
-        "source": "Pleiades",
-        "license": "CC-BY 3.0",
-        "kind": "landmark",
-        "within_walls": false
+        "license": "CC BY 4.0"
       }
     },
     {
@@ -142,14 +312,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            23.840000,
-            38.080000
-          ],
-          [
-            23.644609,
-            37.937222
-          ]
+          [23.72094, 37.9781],
+          [23.644609, 37.937222]
         ]
       },
       "properties": {
@@ -160,8 +324,8 @@
           "97294452",
           "580062"
         ],
-        "source": "Pleiades representative points; schematic line between them",
-        "license": "CC-BY 3.0",
+        "source": "Representative points from Pleiades; schematic line between them",
+        "license": "CC BY 4.0",
         "kind": "wall_corridor"
       }
     },
@@ -170,14 +334,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            23.840000,
-            38.080000
-          ],
-          [
-            23.706248,
-            37.937309
-          ]
+          [23.72094, 37.9781],
+          [23.706248, 37.937309]
         ]
       },
       "properties": {
@@ -188,11 +346,11 @@
           "97294452",
           "580072"
         ],
-        "source": "Pleiades representative points; schematic line between them",
-        "license": "CC-BY 3.0",
+        "source": "Representative points from Pleiades; schematic line between them",
+        "license": "CC BY 4.0",
         "kind": "wall_corridor"
       }
     }
   ],
-  "note": "Representative points from Pleiades; linework is a schematic approximation to be refined with ASCSA plans."
+  "note": "Representative points for visualization; temple offsets approximate to align with Agora overlays."
 }
