@@ -441,6 +441,123 @@
     <script>
         console.log("🏛️ Initializing Enhanced Ancient Athens Experience...");
 
+        // --- Space Night module: Milky Way skybox + dust + nebulas -----------------
+        let milkyWayTex = null;
+        let spaceGroup = null;
+        let savedDayBackground = null;
+
+        function loadMilkyWay(renderer) {
+            if (milkyWayTex) return milkyWayTex;
+            const urls = [
+                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_px.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_py.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_pz.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
+            ];
+            const loader = new THREE.CubeTextureLoader();
+            milkyWayTex = loader.load(urls, (tex) => {
+                if ('colorSpace' in tex && 'SRGBColorSpace' in THREE) tex.colorSpace = THREE.SRGBColorSpace;
+            });
+            return milkyWayTex;
+        }
+
+        function makeSpaceDust(count = 15000, spread = { x: 40000, y: 10000, z: 40000 }) {
+            const geo = new THREE.BufferGeometry();
+            const pts = new Float32Array(count * 3);
+            for (let i = 0; i < count; i++) {
+                pts[i * 3 + 0] = (Math.random() - 0.5) * spread.x;
+                pts[i * 3 + 1] = (Math.random() - 0.5) * spread.y;
+                pts[i * 3 + 2] = (Math.random() - 0.5) * spread.z;
+            }
+            geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+            const mat = new THREE.PointsMaterial({
+                color: 0xaaaaaa, size: 1.4, transparent: true, opacity: 0.55,
+                depthWrite: false, blending: THREE.AdditiveBlending
+            });
+            const dust = new THREE.Points(geo, mat);
+            dust.frustumCulled = false;
+            return dust;
+        }
+
+        function makeNebulas(textureLoader, howMany = 10) {
+            const group = new THREE.Group();
+            const baseMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/sprites/cloud.png', (t) => {
+                if ('colorSpace' in t && 'SRGBColorSpace' in THREE) t.colorSpace = THREE.SRGBColorSpace;
+            });
+            for (let i = 0; i < howMany; i++) {
+                const mat = new THREE.SpriteMaterial({
+                    map: baseMap, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+                    opacity: 0.22, color: new THREE.Color().setHSL(Math.random(), 0.5, 0.7)
+                });
+                const s = Math.random() * 2000 + 1500;
+                const spr = new THREE.Sprite(mat);
+                spr.scale.set(s, s, 1);
+                spr.position.set(
+                    (Math.random() - 0.5) * 25000,
+                    (Math.random() - 0.5) * 5000,
+                    (Math.random() - 0.5) * 25000 - 1000
+                );
+                spr.material.rotation = Math.random() * Math.PI;
+                spr.frustumCulled = false;
+                group.add(spr);
+            }
+            return group;
+        }
+
+        function initSpaceNight({ scene, renderer, textureLoader, camera }) {
+            if (camera && camera.far < 50000) {
+                camera.far = 50000;
+                camera.updateProjectionMatrix();
+            }
+
+            savedDayBackground = scene.background || null;
+
+            spaceGroup = new THREE.Group();
+            spaceGroup.name = 'SpaceNightFX';
+            const dust = makeSpaceDust();
+            const nebulas = makeNebulas(textureLoader);
+            spaceGroup.add(dust, nebulas);
+
+            spaceGroup.traverse(o => {
+                if (o.material) {
+                    o.material.fog = false;
+                    o.renderOrder = -100;
+                }
+            });
+
+            spaceGroup.visible = false;
+            scene.add(spaceGroup);
+
+            loadMilkyWay(renderer);
+
+            return {
+                update(dt, camera) {
+                    if (!spaceGroup) return;
+                    spaceGroup.children.forEach((o, i) => {
+                        if (o.isPoints) o.rotation.y += dt * 0.002;
+                        if (o.isSprite) o.material.rotation += (i % 2 ? 1 : -1) * dt * 0.05;
+                    });
+                    if (camera) {
+                        spaceGroup.position.lerp(camera.position, 0.05);
+                    }
+                },
+                setAmount(nightAmount) {
+                    if (!spaceGroup) return;
+                    if (nightAmount > 0.6) {
+                        scene.background = milkyWayTex || savedDayBackground;
+                        spaceGroup.visible = true;
+                        spaceGroup.traverse(o => { if (o.material?.opacity !== undefined) o.material.opacity = THREE.MathUtils.lerp(0.0, 1.0, nightAmount); });
+                    } else {
+                        spaceGroup.visible = nightAmount > 0.0;
+                        spaceGroup.traverse(o => { if (o.material?.opacity !== undefined) o.material.opacity = nightAmount; });
+                        scene.background = savedDayBackground;
+                    }
+                }
+            };
+        }
+
         // Wait for THREE.js to be available before proceeding
         async function initializeAthens() {
             if (window.threeJSReady) {
@@ -716,7 +833,7 @@ async function loadAthensGeo() {
             zMax: scaleValue(zMax)
         });
         let isFlying = false;
-        let clock = new THREE.Clock();
+        const clock = new THREE.Clock();
 
         let cameraOffset = new THREE.Vector3(0, 3, 7);
 
@@ -742,6 +859,7 @@ async function loadAthensGeo() {
         let skyUniforms;
         let bloomPass;
         let fogEnabled = true;
+        let spaceNight = null;
         let canChickenCluck = true;
         let lastCluckTime = 0;
         
@@ -832,7 +950,12 @@ async function loadAthensGeo() {
                 powerPreference: "high-performance"
             });
             renderer.physicallyCorrectLights = true;
-            renderer.outputEncoding = THREE.sRGBEncoding;
+            if ('outputColorSpace' in renderer && 'SRGBColorSpace' in THREE) {
+                renderer.outputColorSpace = THREE.SRGBColorSpace;
+            }
+            if ('outputEncoding' in renderer) {
+                renderer.outputEncoding = THREE.sRGBEncoding;
+            }
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = 1.0;
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -840,6 +963,14 @@ async function loadAthensGeo() {
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
+
+            const textureLoader = new THREE.TextureLoader();
+            spaceNight = initSpaceNight({
+                scene,
+                renderer,
+                textureLoader,
+                camera
+            });
 
             // Lighting
             ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Reduced intensity
@@ -2407,6 +2538,13 @@ async function loadAthensGeo() {
                     scene.fog = null;
                 }
             }
+
+            let night = 0;
+            if (name === 'Starlit Night') night = 1;
+            else if (name === 'Blue Hour') night = 0.35;
+            if (spaceNight) {
+                spaceNight.setAmount(night);
+            }
         }
 
         function updateNightCycle(dt = 0.016) {
@@ -3416,7 +3554,11 @@ async function loadAthensGeo() {
             requestAnimationFrame(animate);
             canChickenCluck = true;
 
-            const delta = clock.getDelta();
+            const dt = clock.getDelta();
+            const delta = dt;
+            if (spaceNight) {
+                spaceNight.update(dt, camera);
+            }
             if (player && player.mixer) player.mixer.update(delta);
             externalAnimationMixers.forEach(m => m.update(delta));
 
