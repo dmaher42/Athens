@@ -975,6 +975,24 @@
             // Load the temple model (GLB)
             loadGreekTemple();
 
+            try {
+                const { buildFromGeoJSON } = await import('./src/buildings-from-geojson.js');
+                const projectorInstance = window?.AthensGeo?.projector;
+                const projector = projectorInstance && typeof projectorInstance.project === 'function'
+                    ? (lon, lat) => {
+                        const { x, y } = projectorInstance.project({ lat, lon });
+                        return new THREE.Vector3(scaleValue(x), 0, scaleValue(y));
+                    }
+                    : null;
+                await buildFromGeoJSON({
+                    scene,
+                    geoJsonUrl: './data/athens_places.geojson',
+                    projector
+                });
+            } catch (error) {
+                console.error('Failed to build procedural monuments:', error);
+            }
+
             await setupLandmarks();
 
 
