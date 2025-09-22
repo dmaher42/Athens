@@ -208,4 +208,102 @@ export function makeWallPath(points, { segment = 6, height = 3, width = 2 } = {}
   return g;
 }
 
+/** Propylon (ceremonial gate) */
+export function makePropylon({ span = 12, depth = 8, colH = 7, colR = 0.5, columns = 4 } = {}) {
+  const root = new THREE.Group();
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(span + 1.5, 0.6, depth + 1.5), MAT.marble);
+  base.position.y = 0.3;
+  root.add(base);
+
+  const colGeo = new THREE.CylinderGeometry(colR, colR, colH, 16, 1);
+  const perRow = Math.max(1, columns);
+  const colIM = new THREE.InstancedMesh(colGeo, MAT.marble, perRow * 2);
+  const x0 = -span * 0.5 + colR * 1.5;
+  const x1 = span * 0.5 - colR * 1.5;
+  for (let i = 0; i < perRow; i++) {
+    const t = perRow === 1 ? 0.5 : i / (perRow - 1);
+    const x = THREE.MathUtils.lerp(x0, x1, t);
+    const front = new THREE.Matrix4().makeTranslation(x, colH * 0.5 + 0.6, -depth * 0.5 + colR * 1.5);
+    const back = new THREE.Matrix4().makeTranslation(x, colH * 0.5 + 0.6, depth * 0.5 - colR * 1.5);
+    colIM.setMatrixAt(i * 2, front);
+    colIM.setMatrixAt(i * 2 + 1, back);
+  }
+  root.add(colIM);
+
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(span, 0.8, Math.max(1, depth - 2)), MAT.marble);
+  lintel.position.y = colH + 0.6 + 0.4;
+  root.add(lintel);
+
+  const attic = new THREE.Mesh(new THREE.BoxGeometry(Math.max(1, span - 1), 1.2, Math.max(1, depth - 1.5)), MAT.stone);
+  attic.position.y = lintel.position.y + 0.8;
+  root.add(attic);
+
+  return root;
+}
+
+/** Simple solid block */
+export function makeBlock({ width = 10, depth = 10, height = 4, material = MAT.stone } = {}) {
+  const g = new THREE.Group();
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+  mesh.position.y = height * 0.5;
+  g.add(mesh);
+  return g;
+}
+
+/** Marble altar (stepped) */
+export function makeAltar({ width = 6, depth = 4, height = 3 } = {}) {
+  const g = new THREE.Group();
+  const baseH = height * 0.45;
+  const upperH = height - baseH;
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(width, baseH, depth), MAT.marble);
+  base.position.y = baseH * 0.5;
+  g.add(base);
+
+  const top = new THREE.Mesh(new THREE.BoxGeometry(width * 0.7, upperH, depth * 0.7), MAT.marble);
+  top.position.y = baseH + upperH * 0.5;
+  g.add(top);
+
+  return g;
+}
+
+// --- NEW: semi-circular exedra (curved bench + back wall + arc of columns)
+export function makeExedra({
+  radius = 9, wallHeight = 4, benchH = 0.6, colH = 5, colR = 0.45, cols = 12
+} = {}) {
+  const g = new THREE.Group();
+
+  // Bench / stylobate (half-disc)
+  const bench = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, benchH, 48, 1, false, -Math.PI / 2, Math.PI),
+    new THREE.MeshStandardMaterial({ color: 0xefeae1, roughness: 0.7 })
+  );
+  bench.position.y = benchH / 2;
+  g.add(bench);
+
+  // Back wall (half-cylinder shell)
+  const wall = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, wallHeight, 48, 1, true, -Math.PI / 2, Math.PI),
+    new THREE.MeshStandardMaterial({ color: 0xded7c8, roughness: 0.85 })
+  );
+  wall.position.y = benchH + wallHeight / 2;
+  g.add(wall);
+
+  // Arc of columns
+  const colGeo = new THREE.CylinderGeometry(colR, colR, colH, 16, 1);
+  const im = new THREE.InstancedMesh(colGeo, new THREE.MeshStandardMaterial({ color: 0xefeae1, roughness: 0.65 }), cols);
+  for (let i = 0; i < cols; i++) {
+    const t = cols === 1 ? 0.5 : i / (cols - 1);
+    const theta = -Math.PI / 2 + t * Math.PI;
+    const x = Math.cos(theta) * (radius - 0.9);
+    const z = Math.sin(theta) * (radius - 0.9);
+    const m = new THREE.Matrix4().makeTranslation(x, benchH + colH / 2, z);
+    im.setMatrixAt(i, m);
+  }
+  g.add(im);
+
+  return g;
+}
+
 export { MAT };
