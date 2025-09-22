@@ -770,6 +770,13 @@
         if (currentTimeOfDay === -1) {
             currentTimeOfDay = 0;
         }
+        const debugSkyCycleModes = ["High Noon", "Blue Hour", "Starlit Night"];
+        const debugSkyLevels = [0, 0.4, 1];
+        let debugSkyCycleIndex = debugSkyCycleModes.indexOf(timeNames[currentTimeOfDay] || '');
+        if (debugSkyCycleIndex === -1) {
+            debugSkyCycleIndex = 0;
+        }
+        let skipNightHotkeyOnce = false;
 
         // Declare texture and material variables globally
         let stoneTexture, marbleTexture, redTileTexture, groundTexture, pavedRoadTexture;
@@ -841,6 +848,20 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
+
+            try {
+                const { createPhotoSkydome } = await import('./src/sky/photoSkydome.js');
+                const skydome = await createPhotoSkydome({
+                    scene,
+                    renderer,
+                    url: '/assets/textures/milkyway.jpg',
+                    radius: 5000,
+                    initialYawDeg: 35
+                });
+                window.__AthensSky__ = skydome;
+            } catch (error) {
+                console.error('Failed to initialize photo skydome:', error);
+            }
 
             const textureLoader = new THREE.TextureLoader();
             spaceNight = initSpaceNight({
@@ -2438,10 +2459,11 @@
 
             let night = 0;
             if (name === 'Starlit Night') night = 1;
-            else if (name === 'Blue Hour') night = 0.35;
+            else if (name === 'Blue Hour') night = 0.4;
             if (spaceNight) {
                 spaceNight.setAmount(night);
             }
+            window.__AthensSky__?.setAmount(night);
         }
 
         function updateNightCycle(dt = 0.016) {
@@ -3285,6 +3307,10 @@
         function updateEnvironment() {
             const currentName = timeNames[currentTimeOfDay];
             setTimeOfDay(currentName);
+            const cycleIdx = debugSkyCycleModes.indexOf(currentName);
+            if (cycleIdx !== -1) {
+                debugSkyCycleIndex = cycleIdx;
+            }
             updateAmbientSoundscape();
         }
 
@@ -4058,7 +4084,11 @@
             document.addEventListener('keyup', (e) => {
                 controls[e.code] = false;
                 if (e.code === 'KeyN') {
-                    forceNightMode();
+                    if (skipNightHotkeyOnce) {
+                        skipNightHotkeyOnce = false;
+                    } else {
+                        forceNightMode();
+                    }
                     delete toggleKeyTimestamps[e.code];
                 }
                 if (e.code === 'KeyD') {
@@ -4113,7 +4143,34 @@
                     document.getElementById('fps-counter').classList.toggle('show');
                 }
             });
-            
+
+            window.addEventListener('keydown', (e) => {
+                if (e.repeat) return;
+                const sky = window.__AthensSky__;
+                if (!sky) return;
+                if (e.key === '[' || e.key === ']') {
+                    const delta = e.key === '[' ? -5 : 5;
+                    const currentYawDeg = THREE.MathUtils.radToDeg(sky.mesh.rotation.y);
+                    sky.setYaw(currentYawDeg + delta);
+                    return;
+                }
+                if (e.key && e.key.toLowerCase() === 'n' && !e.shiftKey && !e.altKey && !e.metaKey) {
+                    e.preventDefault();
+                    debugSkyCycleIndex = (debugSkyCycleIndex + 1) % debugSkyCycleModes.length;
+                    const targetMode = debugSkyCycleModes[debugSkyCycleIndex];
+                    const nightAmount = debugSkyLevels[debugSkyCycleIndex] ?? 0;
+                    const idx = timeNames.indexOf(targetMode);
+                    if (idx !== -1) {
+                        currentTimeOfDay = idx;
+                        updateEnvironment();
+                    } else {
+                        sky.setAmount(nightAmount);
+                    }
+                    console.log('Night amount:', nightAmount);
+                    skipNightHotkeyOnce = true;
+                }
+            });
+
             document.getElementById('close-info-scroll').addEventListener('click', () => {
                 document.getElementById('info-scroll-overlay').classList.remove('show');
             });
