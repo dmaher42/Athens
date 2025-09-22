@@ -28,15 +28,23 @@ const LANDMARK_LABELS = {
     'Pnyx': 'Pnyx',
     'Areopagus (Areios Pagos)': 'Areopagus',
     'Areopagus': 'Areopagus',
+    'Areopagus Viewpoint (Acropolis Vista)': 'Acropolis Vista',
+    'Areopagus Viewpoint (Agora Outlook)': 'Agora Outlook',
+    'Areopagus Viewpoint (Kerameikos Gate)': 'Kerameikos View',
     'Kerameikos': 'Kerameikos',
     'Peiraieus / Piraeus': 'Piraeus',
     'Piraeus': 'Piraeus',
-    'Phaleron': 'Phaleron'
+    'Phaleron': 'Phaleron',
+    'Sacred Way (Eleusis–Athens)': 'Sacred Way'
 };
 
 const LONG_WALL_LABELS = {
     'Makra Teiche (Long Walls) to Piraeus — schematic': 'Long Walls to Piraeus',
     'Phaleric Wall — schematic': 'Long Walls to Phaleron'
+};
+
+const PATH_LABELS = {
+    'Sacred Way (Eleusis–Athens)': 'Sacred Way'
 };
 
 const CITY_WALL_LABEL = 'City Wall';
@@ -49,6 +57,7 @@ const DEFAULT_LABEL_BACKGROUND = 'rgba(18, 24, 36, 0.75)';
 const DEFAULT_PATH_BACKGROUND = 'rgba(18, 24, 36, 0.7)';
 const CITY_WALL_STYLE = { stroke: '#d7c8a8', width: 1.6 };
 const LONG_WALL_STYLE = { stroke: '#bb7832', width: 3.4 };
+const DEFAULT_PATH_STYLE = { stroke: '#caa76a', width: 2.4 };
 const DEFAULT_ZOOM_LIMITS = { min: 0.05, max: 32 };
 
 function measureTextBox(ctx, text) {
@@ -131,6 +140,27 @@ function computePolylineMidpoint(points, { closed = false } = {}) {
     return { point: { x: lastSegment.end.x, y: lastSegment.end.y }, angle };
 }
 
+function extractPathStyle(properties = {}) {
+    const style = properties?.style;
+    const stroke = typeof properties?.pathStroke === 'string'
+        ? properties.pathStroke
+        : typeof properties?.stroke === 'string'
+            ? properties.stroke
+            : typeof properties?.strokeColor === 'string'
+                ? properties.strokeColor
+                : typeof style?.stroke === 'string'
+                    ? style.stroke
+                    : typeof style?.color === 'string'
+                        ? style.color
+                        : DEFAULT_PATH_STYLE.stroke;
+
+    const widthSource = properties?.pathWidth ?? properties?.strokeWidth ?? style?.width ?? style?.lineWidth;
+    const widthValue = typeof widthSource === 'string' ? Number.parseFloat(widthSource) : widthSource;
+    const width = Number.isFinite(widthValue) && widthValue > 0 ? widthValue : DEFAULT_PATH_STYLE.width;
+
+    return { stroke, width };
+}
+
 export class LandmarkOverlay {
     /**
      * @param {HTMLCanvasElement} canvas - Target canvas element used as an overlay.
@@ -187,6 +217,7 @@ export class LandmarkOverlay {
         this.bounds = null;
         this.landmarks = [];
         this.longWalls = [];
+        this.namedPaths = [];
         this.cityWallPath = null;
         this.agoraAnchorWorld = null;
         this.projection = null;
@@ -372,11 +403,29 @@ export class LandmarkOverlay {
                 lonSum += geometry.coordinates[0];
                 latSum += geometry.coordinates[1];
                 count += 1;
-            } else if (geometry.type === 'LineString') {
-                for (const coordinate of geometry.coordinates) {
-                    lonSum += coordinate[0];
-                    latSum += coordinate[1];
-                    count += 1;
+            } else if (geometry.type === 'LineString' || geometry.type === 'MultiLineString') {
+                const coordinateSets = geometry.type === 'MultiLineString'
+                    ? geometry.coordinates
+                    : [geometry.coordinates];
+                for (const coordinates of coordinateSets) {
+                    for (const coordinate of coordinates) {
+                        lonSum += coordinate[0];
+                        latSum += coordinate[1];
+                        count += 1;
+                    }
+                }
+            } else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
+                const polygonSets = geometry.type === 'MultiPolygon'
+                    ? geometry.coordinates
+                    : [geometry.coordinates];
+                for (const polygon of polygonSets) {
+                    for (const ring of polygon) {
+                        for (const coordinate of ring) {
+                            lonSum += coordinate[0];
+                            latSum += coordinate[1];
+                            count += 1;
+                        }
+                    }
                 }
             }
         }
@@ -389,6 +438,7 @@ export class LandmarkOverlay {
         this.projection = new LocalEquirectangularProjection({ origin });
         this.landmarks = [];
         this.longWalls = [];
+        this.namedPaths = [];
         this.cityWallPath = null;
         this.bounds = null;
         this.agoraAnchorWorld = null;
@@ -408,13 +458,18 @@ export class LandmarkOverlay {
             if (geometry.type === 'Point') {
                 const world = this.projection.projectGeoJsonPosition(geometry.coordinates);
                 this._extendBounds(world);
-                const name = properties.title || properties.name || properties.id || 'Unnamed landmark';
-                const label = LANDMARK_LABELS[name] || name;
+                const canonicalName = properties.name || properties.id || properties.title || 'Unnamed landmark';
+                const displayTitle = properties.title || canonicalName;
+                const short = LANDMARK_LABELS[canonicalName]
+                    || LANDMARK_LABELS[displayTitle]
+                    || properties.short
+                    || displayTitle;
                 const withinWallsFlag = properties.within_walls ?? properties.withinWalls;
                 const includeInCity = withinWallsFlag !== false;
                 const landmark = {
-                    name,
-                    label,
+                    name: canonicalName,
+                    title: displayTitle,
+                    label: short,
                     world,
                     withinWalls: includeInCity,
                     category: properties.category
@@ -423,25 +478,93 @@ export class LandmarkOverlay {
                 if (includeInCity) {
                     cityPoints.push({ x: world.x, y: world.y });
                 }
-                if (!this.agoraAnchorWorld && (name === 'Ancient Agora' || name === 'Agora of Athens' || properties.name === 'Agora of Athens (Ancient Agora)')) {
+                if (!this.agoraAnchorWorld && (
+                    canonicalName === 'Agora of Athens (Ancient Agora)'
+                    || canonicalName === 'Agora of Athens'
+                    || displayTitle === 'Ancient Agora'
+                    || displayTitle === 'Agora of Athens'
+                )) {
                     this.agoraAnchorWorld = { x: world.x, y: world.y };
                     if (this.agoraLayer) {
                         this.agoraLayer.setAnchorWorld(this.agoraAnchorWorld);
                     }
                 }
-            } else if (geometry.type === 'LineString') {
-                const points = geometry.coordinates.map((coordinate) => this.projection.projectGeoJsonPosition(coordinate));
-                for (const point of points) {
-                    this._extendBounds(point);
+            } else if (geometry.type === 'LineString' || geometry.type === 'MultiLineString') {
+                const coordinateSets = geometry.type === 'MultiLineString'
+                    ? geometry.coordinates
+                    : [geometry.coordinates];
+                const name = properties.name || properties.title || properties.id || 'Unnamed path';
+                const isLongWall = Boolean(LONG_WALL_LABELS[name]);
+                for (const coordinates of coordinateSets) {
+                    const points = coordinates.map((coordinate) => this.projection.projectGeoJsonPosition(coordinate));
+                    for (const point of points) {
+                        this._extendBounds(point);
+                    }
+                    if (points.length < 2) {
+                        continue;
+                    }
+                    if (isLongWall) {
+                        const label = LONG_WALL_LABELS[name];
+                        this.longWalls.push({ name, label, points });
+                    } else {
+                        const label = PATH_LABELS[name]
+                            || properties.short
+                            || properties.title
+                            || name;
+                        this.namedPaths.push({
+                            name,
+                            label,
+                            points,
+                            closed: false,
+                            style: extractPathStyle(properties)
+                        });
+                    }
                 }
-                const label = LONG_WALL_LABELS[properties.name];
-                if (label) {
-                    this.longWalls.push({ name: properties.name, label, points });
+            } else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
+                const polygonSets = geometry.type === 'MultiPolygon'
+                    ? geometry.coordinates
+                    : [geometry.coordinates];
+                const name = properties.name || properties.title || properties.id || 'Unnamed area';
+                const isCityWall = properties.kind === 'city_wall'
+                    || /city wall/i.test(name)
+                    || /city wall/i.test(properties.title ?? '');
+                for (const polygon of polygonSets) {
+                    if (!Array.isArray(polygon) || !polygon.length) {
+                        continue;
+                    }
+                    const outerRing = polygon[0].map((coordinate) => this.projection.projectGeoJsonPosition(coordinate));
+                    for (const point of outerRing) {
+                        this._extendBounds(point);
+                    }
+                    if (outerRing.length >= 3) {
+                        if (outerRing.length >= 2) {
+                            const first = outerRing[0];
+                            const last = outerRing[outerRing.length - 1];
+                            if (first && last && Math.abs(first.x - last.x) < 1e-6 && Math.abs(first.y - last.y) < 1e-6) {
+                                outerRing.pop();
+                            }
+                        }
+                        if (isCityWall && !this.cityWallPath) {
+                            this.cityWallPath = outerRing;
+                        } else if (!isCityWall) {
+                            const label = PATH_LABELS[name]
+                                || properties.short
+                                || properties.title
+                                || name;
+                            this.namedPaths.push({
+                                name,
+                                label,
+                                points: outerRing,
+                                closed: true,
+                                style: extractPathStyle(properties)
+                            });
+                        }
+                    }
                 }
             }
         }
 
-        if (cityPoints.length >= 3) {
+        if (!this.cityWallPath && cityPoints.length >= 3) {
             this.cityWallPath = sortPointsClockwise(cityPoints);
         }
     }
@@ -505,6 +628,17 @@ export class LandmarkOverlay {
                 this._drawPolyline(wall.points, { closed: false, stroke: this.longWallStyle.stroke, width: this.longWallStyle.width });
                 this._drawPathLabel(wall.points, wall.label);
             }
+        }
+
+        for (const path of this.namedPaths) {
+            if (!path || !Array.isArray(path.points) || path.points.length < 2) {
+                continue;
+            }
+            const style = path.style ?? DEFAULT_PATH_STYLE;
+            const stroke = typeof style.stroke === 'string' ? style.stroke : DEFAULT_PATH_STYLE.stroke;
+            const width = Number.isFinite(style.width) ? style.width : DEFAULT_PATH_STYLE.width;
+            this._drawPolyline(path.points, { closed: Boolean(path.closed), stroke, width });
+            this._drawPathLabel(path.points, path.label, { closed: Boolean(path.closed) });
         }
 
         if (this.showAgoraLayer && this.agoraLayer) {
