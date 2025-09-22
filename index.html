@@ -438,7 +438,33 @@
 </canvas>
 
 
-    <script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { createPhotoSkydome } from './src/sky/photoSkydome.js';
+
+        if (typeof window.THREE !== 'undefined') {
+            Object.assign(THREE, window.THREE);
+        }
+        window.THREE = THREE;
+
+        let __level = 1; // start at night since we call setAmount(1)
+        window.addEventListener('keydown', (e) => {
+            if (!window.__AthensSky__) return;
+            if (e.key.toLowerCase() === 'n') {
+                __level = __level === 0 ? 0.4 : (__level === 0.4 ? 1 : 0);
+                window.__AthensSky__.setAmount(__level);
+                console.log('Night level:', __level);
+            }
+            if (e.key === '[') {
+                const deg = window.__AthensSky__.mesh.rotation.y * 180 / Math.PI;
+                window.__AthensSky__.setYaw(deg - 5);
+            }
+            if (e.key === ']') {
+                const deg = window.__AthensSky__.mesh.rotation.y * 180 / Math.PI;
+                window.__AthensSky__.setYaw(deg + 5);
+            }
+        });
+
         console.log("🏛️ Initializing Enhanced Ancient Athens Experience...");
 
         // --- Space Night module: Milky Way skybox + dust + nebulas -----------------
@@ -835,12 +861,8 @@
                 powerPreference: "high-performance"
             });
             renderer.physicallyCorrectLights = true;
-            if ('outputColorSpace' in renderer && 'SRGBColorSpace' in THREE) {
-                renderer.outputColorSpace = THREE.SRGBColorSpace;
-            }
-            if ('outputEncoding' in renderer) {
-                renderer.outputEncoding = THREE.sRGBEncoding;
-            }
+            if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+            else renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = 1.0;
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -849,19 +871,15 @@
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
 
-            try {
-                const { createPhotoSkydome } = await import('./src/sky/photoSkydome.js');
-                const skydome = await createPhotoSkydome({
-                    scene,
-                    renderer,
-                    url: '/assets/textures/milkyway.jpg',
-                    radius: 5000,
-                    initialYawDeg: 35
-                });
-                window.__AthensSky__ = skydome;
-            } catch (error) {
-                console.error('Failed to initialize photo skydome:', error);
-            }
+            const photoSky = await createPhotoSkydome({
+                scene,
+                renderer,
+                radius: 5000,
+                initialYawDeg: 35
+            });
+            photoSky.setAmount(1);
+            window.__AthensSky__ = photoSky;
+            __level = 1;
 
             const textureLoader = new THREE.TextureLoader();
             spaceNight = initSpaceNight({

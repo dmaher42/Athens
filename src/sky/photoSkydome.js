@@ -1,44 +1,49 @@
+// src/sky/photoSkydome.js
 import * as THREE from 'three';
 
-export async function createPhotoSkydome({ scene, renderer, url = '/assets/textures/milkyway.jpg', radius = 5000, initialYawDeg = 0 }) {
-  // Load texture
+export async function createPhotoSkydome({
+  scene,
+  renderer,
+  url = new URL('./milkyway.jpg', import.meta.url).href, // resolves /src/sky/milkyway.jpg
+  radius = 5000,
+  initialYawDeg = 0
+}) {
   const tex = await new THREE.TextureLoader().loadAsync(url);
+  // three r150+: colorSpace; older three: encoding fallback
   if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+  else tex.encoding = THREE.sRGBEncoding;
 
-  // Big inside-out sphere
   const geo = new THREE.SphereGeometry(radius, 64, 64);
   const mat = new THREE.MeshBasicMaterial({
     map: tex,
-    side: THREE.BackSide,
+    side: THREE.BackSide,     // view from inside
     transparent: true,
-    opacity: 0.0,        // start hidden (day)
+    opacity: 0.0,             // start hidden (day)
     depthWrite: false
   });
   const dome = new THREE.Mesh(geo, mat);
   dome.name = 'PhotoSkydome';
-  dome.renderOrder = -1000; // behind everything
+  dome.renderOrder = -1000;   // draw behind world
   dome.rotation.y = THREE.MathUtils.degToRad(initialYawDeg);
   scene.add(dome);
 
-  // Optional: env map for nicer PBR at night (precompute once)
-  let envTex = null;
+  // Optional environment map for subtle night reflections
+  let env = null;
   if (renderer) {
     const pmrem = new THREE.PMREMGenerator(renderer);
-    envTex = pmrem.fromEquirectangular(tex).texture;
+    env = pmrem.fromEquirectangular(tex).texture;
     pmrem.dispose();
   }
 
-  const api = {
+  return {
     mesh: dome,
     setAmount(a) {
       const t = THREE.MathUtils.clamp(a, 0, 1);
       dome.material.opacity = t;
-      // only use environment when it's mostly night
-      if (envTex) scene.environment = t > 0.6 ? envTex : null;
+      if (env) scene.environment = t > 0.6 ? env : null;
     },
     setYaw(deg) {
       dome.rotation.y = THREE.MathUtils.degToRad(deg);
     }
   };
-  return api;
 }
