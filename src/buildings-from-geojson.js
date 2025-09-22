@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import { makeTemple, makeStoa, makeTheatre, makeTholos, makeWallPath } from './building-kit.js';
+import {
+  makeTemple, makeStoa, makeTheatre, makeTholos, makeWallPath,
+  makePropylon, makeBlock, makeAltar, makeExedra
+} from './building-kit.js';
 
 const deg = (d)=> THREE.MathUtils.degToRad(d);
 
@@ -7,13 +10,28 @@ function normalizeName(s='') {
   return s
     .replace(/[’']/g, "'")
     .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-    .trim()
-    // common shorthands
+    .toLowerCase().trim()
+
+    // existing replacements...
     .replace(/\bodeon\b.*herodes.*atticus/, 'odeon of herodes atticus')
-    .replace(/\bdionysus\b.*theatre|\btheatre of dionysus\b/, 'theatre of dionysus')
+    .replace(/\btheatre of dionysus|\bdionysus theatre\b/, 'theatre of dionysus')
     .replace(/\bolymp(e)?ion\b/, 'olympeion')
-    .replace(/\bhadrian.?s library/, "hadrian's library");
+    .replace(/\bhadrian.?s library\b/, "hadrian's library")
+
+    // NEW: stoas & gates
+    .replace(/\bpainted stoa\b/, 'stoa poikile')
+    .replace(/\broyal stoa\b/, 'stoa basileios')
+    .replace(/\broman agora east gate|east gate of the roman agora|gate of the roman agora east\b/,
+              'gate of the roman agora (east)')
+    .replace(/\broman agora west gate|west gate of the roman agora|gate of the roman agora west\b/,
+              'gate of the roman agora (west)')
+
+    // Library exedrae generic
+    .replace(/\bhadrian.?s library (n|north) exedra\b/, "hadrian's library north exedra")
+    .replace(/\bhadrian.?s library (e|east) exedra\b/,  "hadrian's library east exedra")
+    .replace(/\bhadrian.?s library (s|south) exedra\b/, "hadrian's library south exedra")
+    .replace(/\bhadrian.?s library (w|west) exedra\b/,  "hadrian's library west exedra")
+    ;
 }
 
 /** Known monuments with sensible defaults (easy to tweak) */
@@ -43,6 +61,65 @@ const REGISTRY = {
   'Stoa of Attalos':         { kind: 'stoa',    dims: { length: 115, depth: 20, colH: 9, cols: 46 },                     defaultRotationDeg: 5 },
   'Tholos':                  { kind: 'tholos',  dims: { radius: 12, colH: 6.5, cols: 18 },                                defaultRotationDeg: 0 },
   'Bouleuterion':            { kind: 'stoa',    dims: { length: 35, depth: 28, colH: 8, cols: 10 },                      defaultRotationDeg: -20 },
+
+  // --- NEW: Stoas in the Agora
+  'Stoa Poikile': {
+    kind: 'stoa',
+    dims: { length: 115, depth: 16, colH: 9, cols: 46 },
+    defaultRotationDeg: -5
+  },
+  'Stoa Basileios': {
+    kind: 'stoa',
+    dims: { length: 40, depth: 14, colH: 8.5, cols: 16 },
+    defaultRotationDeg: -10
+  },
+
+  // --- NEW: Roman Agora gate (East)
+  'Gate of the Roman Agora (East)': {
+    kind: 'propylon',
+    dims: { span: 14, depth: 9, colH: 7.2, colR: 0.55, columns: 4 },
+    defaultRotationDeg: 90
+  },
+  // (Optional) West gate too, if you add a point for it:
+  'Gate of the Roman Agora (West)': {
+    kind: 'propylon',
+    dims: { span: 14, depth: 9, colH: 7.2, colR: 0.55, columns: 4 },
+    defaultRotationDeg: 270
+  },
+
+  // --- NEW: Hadrian's Library exedrae (N/E/S/W + generic)
+  "Hadrian's Library North Exedra": {
+    kind: 'exedra',
+    dims: { radius: 9, wallHeight: 4, benchH: 0.6, colH: 5, cols: 12 },
+    defaultRotationDeg: 0
+  },
+  "Hadrian's Library East Exedra": {
+    kind: 'exedra',
+    dims: { radius: 9, wallHeight: 4, benchH: 0.6, colH: 5, cols: 12 },
+    defaultRotationDeg: 90
+  },
+  "Hadrian's Library South Exedra": {
+    kind: 'exedra',
+    dims: { radius: 9, wallHeight: 4, benchH: 0.6, colH: 5, cols: 12 },
+    defaultRotationDeg: 180
+  },
+  "Hadrian's Library West Exedra": {
+    kind: 'exedra',
+    dims: { radius: 9, wallHeight: 4, benchH: 0.6, colH: 5, cols: 12 },
+    defaultRotationDeg: 270
+  },
+  'Library Exedra': {
+    kind: 'exedra',
+    dims: { radius: 9, wallHeight: 4, benchH: 0.6, colH: 5, cols: 12 },
+    defaultRotationDeg: 0
+  },
+
+  // --- NEW: Temple of Ares (Agora)
+  'Temple of Ares': {
+    kind: 'temple',
+    dims: { width: 13, length: 30, colsShort: 6, colsLong: 13, colH: 8.5 },
+    defaultRotationDeg: -10
+  },
 
   // Assembly hills (modeled as big open theatres)
   'Pnyx':                    { kind: 'theatre', dims: { radius: 90, height: 12, steps: 20, openAngleDeg: 180 },          defaultRotationDeg: 200 },
@@ -88,10 +165,14 @@ export async function buildFromGeoJSON({ scene, geoJsonUrl, projector }) {
       if (!cfg) continue; // unknown names are skipped for buildings (but still in pins/labels)
 
       let mesh;
-      if (cfg.kind === 'temple')    mesh = makeTemple(cfg.dims);
-      else if (cfg.kind === 'stoa') mesh = makeStoa(cfg.dims);
-      else if (cfg.kind === 'theatre') mesh = makeTheatre(cfg.dims);
-      else if (cfg.kind === 'tholos')  mesh = makeTholos(cfg.dims);
+      if (cfg.kind === 'temple')        mesh = makeTemple(cfg.dims);
+      else if (cfg.kind === 'stoa')     mesh = makeStoa(cfg.dims);
+      else if (cfg.kind === 'theatre')  mesh = makeTheatre(cfg.dims);
+      else if (cfg.kind === 'tholos')   mesh = makeTholos(cfg.dims);
+      else if (cfg.kind === 'propylon') mesh = makePropylon(cfg.dims);
+      else if (cfg.kind === 'block')    mesh = makeBlock(cfg.dims);
+      else if (cfg.kind === 'altar')    mesh = makeAltar(cfg.dims);
+      else if (cfg.kind === 'exedra')   mesh = makeExedra(cfg.dims);
 
       mesh.position.copy(pos);
       mesh.rotation.y = deg(rotDeg);
