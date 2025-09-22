@@ -734,17 +734,12 @@ async function loadAthensGeo() {
         const pointLights = [];
         const physicsObjects = [];
         let sky;
-        let skyUniforms;
         let sun;
+        const starMaterials = [];
         let starLayerInner;
         let starLayerOuter;
-        const starMaterials = [];
-        let starOpacityTarget = 0;
         let milkyWayMesh;
-        let milkyWayMaterial;
-        let milkyWayOpacityTarget = 0;
-        let moon;
-        let moonLight;
+        let skyUniforms;
         let bloomPass;
         let fogEnabled = true;
         let canChickenCluck = true;
@@ -869,9 +864,8 @@ async function loadAthensGeo() {
             scene.fog = null;
 
             // Sky, stars, and post-processing
-            createStarsAndSky();
+            initSkyAndStars();
             setupPostFX();
-            console.log("[Athens] Night diagnostics: sky + stars forced ON.");
 
             // Initialize textures and materials now that renderer exists
             stoneTexture = generateTexture(256, 256, (ctx, w, h) => {
@@ -2141,180 +2135,77 @@ async function loadAthensGeo() {
             treePositions.forEach(pos => { scene.add(createEnhancedTree(pos.x, pos.z, pos.scale)); });
         }
         
-        function createStarsAndSky() {
+        function initSkyAndStars() {
+            const SkyClass = window.Sky;
+            if (!SkyClass) {
+                console.warn('Sky class is unavailable; skipping sky dome and starfield.');
+                return;
+            }
+
             starMaterials.length = 0;
 
-            const SkyClass = window.Sky;
-            if (SkyClass) {
-                if (!sky) {
-                    sky = new SkyClass();
-                    sky.material.fog = false;
-                    sky.material.depthWrite = false;
-                    sky.material.transparent = true;
-                    sky.scale.setScalar(60000);
-                    scene.add(sky);
-                }
-
-                skyUniforms = sky.material.uniforms;
-                skyUniforms.turbidity.value = 4.0;
-                skyUniforms.rayleigh.value = 1.4;
-                skyUniforms.mieCoefficient.value = 0.002;
-                skyUniforms.mieDirectionalG.value = 0.8;
-                if (!sun) {
-                    sun = new THREE.Vector3(0, -1, 0);
-                } else {
-                    sun.set(0, -1, 0);
-                }
-                if (skyUniforms.sunPosition) {
-                    skyUniforms.sunPosition.value.set(0, -1, 0).multiplyScalar(400000);
-                }
-            } else {
-                console.warn('Sky class is unavailable; using fallback background.');
-                if (!sun) {
-                    sun = new THREE.Vector3(0, -1, 0);
-                } else {
-                    sun.set(0, -1, 0);
-                }
-                scene.background = new THREE.Color(0x04060f);
-            }
-
-            if (!starLayerInner) {
-                starLayerInner = createStarLayer(3000, 16000, 140, 0xffffff);
-            }
-            if (!starLayerOuter) {
-                starLayerOuter = createStarLayer(6000, 24000, 200, 0xdfe8ff);
+            if (sky) {
+                scene.remove(sky);
             }
             if (starLayerInner) {
-                starMaterials.push(starLayerInner.material);
+                scene.remove(starLayerInner);
             }
             if (starLayerOuter) {
-                starMaterials.push(starLayerOuter.material);
+                scene.remove(starLayerOuter);
+            }
+            if (milkyWayMesh) {
+                scene.remove(milkyWayMesh);
             }
 
-            if (!milkyWayMaterial) {
-                const milkyTexture = createMilkyWayTexture();
-                milkyWayMaterial = new THREE.MeshBasicMaterial({
-                    map: milkyTexture,
-                    transparent: true,
-                    opacity: 0,
-                    fog: false,
-                    depthWrite: false,
-                    depthTest: false,
-                    side: THREE.BackSide
-                });
-            }
-            if (!milkyWayMesh) {
-                milkyWayMesh = new THREE.Mesh(new THREE.SphereGeometry(32000, 64, 64), milkyWayMaterial);
-                milkyWayMesh.rotation.set(0, Math.PI * 0.22, Math.PI * 0.05);
-                scene.add(milkyWayMesh);
-            }
+            sky = new SkyClass();
+            sky.scale.setScalar(450000);
+            scene.add(sky);
 
-            if (!moon) {
-                const moonMaterial = new THREE.MeshStandardMaterial({
-                    color: 0xf6f3e8,
-                    roughness: 0.55,
-                    metalness: 0.08,
-                    emissive: new THREE.Color(0x202428),
-                    emissiveIntensity: 0.06
-                });
-                moon = new THREE.Mesh(new THREE.SphereGeometry(22, 48, 48), moonMaterial);
-                moon.castShadow = false;
-                moon.receiveShadow = false;
-                scene.add(moon);
-            }
+            skyUniforms = sky.material.uniforms;
+            skyUniforms.turbidity.value = 2.0;
+            skyUniforms.rayleigh.value = 1.2;
+            skyUniforms.mieCoefficient.value = 0.003;
+            skyUniforms.mieDirectionalG.value = 0.8;
 
-            if (!moonLight) {
-                moonLight = new THREE.DirectionalLight(0xbfd6ff, 0.0);
-                moonLight.castShadow = false;
-                moonLight.position.set(0, 1, 0);
-                scene.add(moonLight);
-                scene.add(moonLight.target);
-            }
+            sun = new THREE.Vector3();
+            setSun(-10, 120);
 
-            starOpacityTarget = 0;
-            milkyWayOpacityTarget = 0;
+            starLayerInner = makeStars(5000, 2500, 0.8);
+            starLayerOuter = makeStars(8000, 4200, 1.2);
+            scene.add(starLayerInner, starLayerOuter);
+
+            const mwGeo = new THREE.RingGeometry(3000, 3050, 128, 1, 0, Math.PI * 1.4);
+            const mwMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.0, depthWrite: false, depthTest: false });
+            milkyWayMesh = new THREE.Mesh(mwGeo, mwMat);
+            milkyWayMesh.rotation.set(Math.PI / 4, 0, Math.PI / 8);
+            milkyWayMesh.position.y = 50;
+            scene.add(milkyWayMesh);
+
+            renderer.setClearColor(0x03050a, 1.0);
+            if (scene.fog) {
+                scene.fog.color.set(0x03050a);
+            }
         }
 
-        function createStarLayer(count, radius, size, color = 0xffffff) {
+        function makeStars(count, radius, size = 1.0) {
             const positions = new Float32Array(count * 3);
             for (let i = 0; i < count; i++) {
-                const direction = new THREE.Vector3(
-                    Math.random() * 2 - 1,
-                    Math.random() * 2 - 1,
-                    Math.random() * 2 - 1
-                ).normalize().multiplyScalar(radius + (Math.random() - 0.5) * 800);
-                positions[i * 3] = direction.x;
-                positions[i * 3 + 1] = direction.y;
-                positions[i * 3 + 2] = direction.z;
+                const u = Math.random();
+                const v = Math.random();
+                const theta = 2 * Math.PI * u;
+                const phi = Math.acos(2 * v - 1);
+                const r = radius * (0.985 + 0.015 * Math.random());
+                positions[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = r * Math.cos(phi);
+                positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
             }
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const baseOpacity = 0.9;
-            const material = new THREE.PointsMaterial({
-                color,
-                size,
-                sizeAttenuation: true,
-                transparent: true,
-                opacity: baseOpacity,
-                fog: false,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending
-            });
-            material.depthTest = false;
-            material.userData.baseOpacity = baseOpacity;
-            const layer = new THREE.Points(geometry, material);
-            layer.frustumCulled = false;
-            layer.renderOrder = -5;
-            scene.add(layer);
-            return layer;
-        }
-
-        function createMilkyWayTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 2048;
-            canvas.height = 1024;
-            const ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(-Math.PI / 6);
-
-            const gradient = ctx.createRadialGradient(0, 0, canvas.height * 0.1, 0, 0, canvas.width * 0.6);
-            gradient.addColorStop(0, 'rgba(255,255,255,0.42)');
-            gradient.addColorStop(0.25, 'rgba(210,220,255,0.25)');
-            gradient.addColorStop(0.55, 'rgba(120,140,200,0.08)');
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(-canvas.width, -canvas.height, canvas.width * 2, canvas.height * 2);
-
-            for (let i = 0; i < 2200; i++) {
-                const x = (Math.random() - 0.5) * canvas.width;
-                const y = (Math.random() - 0.5) * canvas.height * 0.6;
-                const r = Math.random() * 1.6 + 0.4;
-                const alpha = Math.random() * 0.2 + 0.05;
-                ctx.fillStyle = `rgba(${200 + Math.random() * 55}, ${200 + Math.random() * 55}, 255, ${alpha})`;
-                ctx.beginPath();
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            for (let i = 0; i < 1600; i++) {
-                const x = (Math.random() - 0.5) * canvas.width;
-                const y = (Math.random() - 0.5) * canvas.height;
-                const alpha = Math.random() * 0.12;
-                ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-                ctx.fillRect(x, y, 1.5, 1.5);
-            }
-
-            ctx.restore();
-
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.encoding = THREE.sRGBEncoding;
-            return texture;
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ size, sizeAttenuation: true, transparent: true, opacity: 0.0, depthWrite: false });
+            starMaterials.push(mat);
+            const pts = new THREE.Points(geo, mat);
+            pts.frustumCulled = false;
+            return pts;
         }
 
         function setupPostFX() {
@@ -2329,17 +2220,17 @@ async function loadAthensGeo() {
             composer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        function setSun(elevationRad, azimuthRad) {
+        function setSun(elevationDeg, azimuthDeg) {
             if (!sun) {
                 sun = new THREE.Vector3();
             }
 
-            const phi = Math.PI / 2 - elevationRad;
-            const theta = azimuthRad;
+            const phi = THREE.MathUtils.degToRad(90 - elevationDeg);
+            const theta = THREE.MathUtils.degToRad(azimuthDeg);
             sun.setFromSphericalCoords(1, phi, theta);
 
-            if (skyUniforms && skyUniforms.sunPosition) {
-                skyUniforms.sunPosition.value.copy(sun).multiplyScalar(400000);
+            if (sky && sky.material && sky.material.uniforms && sky.material.uniforms.sunPosition) {
+                sky.material.uniforms.sunPosition.value.copy(sun);
             }
 
             if (directionalLight) {
@@ -2347,19 +2238,6 @@ async function loadAthensGeo() {
                 directionalLight.position.copy(sun).multiplyScalar(lightDistance);
                 directionalLight.target.position.set(0, 0, 0);
                 directionalLight.target.updateMatrixWorld();
-            }
-
-            const moonDirection = new THREE.Vector3(-sun.x, -sun.y, -sun.z).normalize();
-            if (moon) {
-                const moonDistance = 2400;
-                moon.position.copy(moonDirection.clone().multiplyScalar(moonDistance));
-                moon.lookAt(0, 0, 0);
-            }
-            if (moonLight) {
-                const moonLightDistance = 2600;
-                moonLight.position.copy(moonDirection.clone().multiplyScalar(moonLightDistance));
-                moonLight.target.position.set(0, 0, 0);
-                moonLight.target.updateMatrixWorld();
             }
         }
 
@@ -2369,10 +2247,9 @@ async function loadAthensGeo() {
                 timeInfo.textContent = name;
             }
 
-            const deg = THREE.MathUtils.degToRad;
             const settings = {
-                elevation: deg(45),
-                azimuth: deg(180),
+                elevation: 45,
+                azimuth: 180,
                 ambientIntensity: 0.28,
                 ambientColor: 0xffffff,
                 directionalIntensity: 0.85,
@@ -2384,9 +2261,6 @@ async function loadAthensGeo() {
                 bloomStrength: 0.22,
                 fogColor: 0xcfe8ff,
                 starOpacity: 0.0,
-                milkyOpacity: 0.0,
-                moonVisible: false,
-                moonLightIntensity: 0.0,
                 skyTurbidity: 4.0,
                 skyRayleigh: 1.4,
                 skyMie: 0.002,
@@ -2395,8 +2269,8 @@ async function loadAthensGeo() {
 
             switch (name) {
                 case 'Golden Dawn':
-                    settings.elevation = deg(6);
-                    settings.azimuth = deg(95);
+                    settings.elevation = 6;
+                    settings.azimuth = 95;
                     settings.ambientIntensity = 0.26;
                     settings.ambientColor = 0xffe5b0;
                     settings.directionalIntensity = 0.65;
@@ -2412,8 +2286,8 @@ async function loadAthensGeo() {
                     settings.skyMie = 0.0065;
                     break;
                 case 'Blue Hour':
-                    settings.elevation = deg(-3);
-                    settings.azimuth = deg(110);
+                    settings.elevation = -3;
+                    settings.azimuth = 110;
                     settings.ambientIntensity = 0.18;
                     settings.ambientColor = 0x9fb5d1;
                     settings.directionalIntensity = 0.18;
@@ -2425,16 +2299,13 @@ async function loadAthensGeo() {
                     settings.bloomStrength = 0.4;
                     settings.fogColor = 0x4a5c78;
                     settings.starOpacity = 0.25;
-                    settings.milkyOpacity = 0.15;
-                    settings.moonVisible = true;
-                    settings.moonLightIntensity = 0.18;
                     settings.skyTurbidity = 2.5;
                     settings.skyRayleigh = 3.4;
                     settings.skyMie = 0.0015;
                     break;
                 case 'High Noon':
-                    settings.elevation = deg(72);
-                    settings.azimuth = deg(180);
+                    settings.elevation = 72;
+                    settings.azimuth = 180;
                     settings.ambientIntensity = 0.36;
                     settings.ambientColor = 0xfef7eb;
                     settings.directionalIntensity = 1.05;
@@ -2450,8 +2321,8 @@ async function loadAthensGeo() {
                     settings.skyMie = 0.002;
                     break;
                 case 'Golden Dusk':
-                    settings.elevation = deg(4);
-                    settings.azimuth = deg(265);
+                    settings.elevation = 4;
+                    settings.azimuth = 265;
                     settings.ambientIntensity = 0.24;
                     settings.ambientColor = 0xffcba5;
                     settings.directionalIntensity = 0.6;
@@ -2468,8 +2339,8 @@ async function loadAthensGeo() {
                     break;
                 case 'Starlit Night':
                 default:
-                    settings.elevation = deg(-10);
-                    settings.azimuth = deg(220);
+                    settings.elevation = -10;
+                    settings.azimuth = 220;
                     settings.ambientIntensity = 0.1;
                     settings.ambientColor = 0x1a2335;
                     settings.directionalIntensity = 0.08;
@@ -2481,9 +2352,6 @@ async function loadAthensGeo() {
                     settings.bloomStrength = 0.55;
                     settings.fogColor = 0x0a101b;
                     settings.starOpacity = 1.0;
-                    settings.milkyOpacity = 0.3;
-                    settings.moonVisible = true;
-                    settings.moonLightIntensity = 0.35;
                     settings.skyTurbidity = 1.2;
                     settings.skyRayleigh = 1.1;
                     settings.skyMie = 0.0008;
@@ -2515,20 +2383,7 @@ async function loadAthensGeo() {
                 scene.background.setHex(settings.fogColor);
             }
 
-            starOpacityTarget = settings.starOpacity;
-            milkyWayOpacityTarget = settings.milkyOpacity;
-
-            if (moon) {
-                moon.visible = settings.moonVisible;
-                if (moon.material && moon.material.emissiveIntensity !== undefined) {
-                    moon.material.emissiveIntensity = 0.04 + settings.starOpacity * 0.2;
-                }
-            }
-            if (moonLight) {
-                moonLight.intensity = settings.moonLightIntensity;
-            }
-
-            const showCityLights = settings.starOpacity > 0.2 || settings.moonLightIntensity > 0.1;
+            const showCityLights = settings.starOpacity > 0.2;
             pointLights.forEach(light => {
                 light.visible = showCityLights;
             });
@@ -2551,37 +2406,44 @@ async function loadAthensGeo() {
                 } else {
                     scene.fog = null;
                 }
-                renderer.setClearColor(fogCol, 1.0);
             }
         }
 
-        function updateStars(delta) {
-            if (!starLayerInner && !starLayerOuter && !milkyWayMaterial) {
+        function updateNightCycle(dt = 0.016) {
+            if (!renderer || !sky || !sky.material || !sky.material.uniforms) {
                 return;
             }
 
-            const twinkleTime = performance.now() * 0.0005;
-            starMaterials.forEach((material, index) => {
-                const baseOpacity = material?.userData?.baseOpacity ?? 1;
-                const flicker = starOpacityTarget > 0 ? 0.03 * Math.sin(twinkleTime + index) : 0;
-                const target = THREE.MathUtils.clamp((starOpacityTarget + flicker) * baseOpacity, 0, baseOpacity);
-                material.opacity = THREE.MathUtils.lerp(material.opacity, target, 0.08);
+            const sunPosition = sky.material.uniforms.sunPosition.value;
+            const isNight = sunPosition.y < 0.0;
+
+            const starTarget = isNight ? 0.9 : 0.0;
+            const mwTarget = isNight ? 0.35 : 0.0;
+
+            starMaterials.forEach((material) => {
+                material.opacity += (starTarget - material.opacity) * 0.02;
             });
 
-            if (starLayerInner) {
-                starLayerInner.rotation.y += delta * 0.0007;
-                starLayerInner.rotation.x += delta * 0.0002;
-            }
-            if (starLayerOuter) {
-                starLayerOuter.rotation.y -= delta * 0.0004;
-                starLayerOuter.rotation.z += delta * 0.00015;
+            if (milkyWayMesh && milkyWayMesh.material) {
+                milkyWayMesh.material.opacity += (mwTarget - milkyWayMesh.material.opacity) * 0.02;
             }
 
-            if (milkyWayMaterial) {
-                milkyWayMaterial.opacity = THREE.MathUtils.lerp(milkyWayMaterial.opacity, milkyWayOpacityTarget, 0.05);
+            if (starLayerInner) {
+                starLayerInner.rotation.y += dt * 0.0007;
+                starLayerInner.rotation.x += dt * 0.0002;
             }
-            if (milkyWayMesh) {
-                milkyWayMesh.rotation.y += delta * 0.0006;
+            if (starLayerOuter) {
+                starLayerOuter.rotation.y -= dt * 0.0004;
+                starLayerOuter.rotation.z += dt * 0.00015;
+            }
+
+            const clearNight = 0x03050a;
+            const clearDay = 0x87a6ff;
+            renderer.setClearColor(isNight ? clearNight : clearDay, 1);
+            if (scene.fog) {
+                const dayColor = new THREE.Color(clearDay);
+                const nightColor = new THREE.Color(clearNight);
+                scene.fog.color.lerpColors(dayColor, nightColor, isNight ? 1 : 0);
             }
         }
 
@@ -3568,7 +3430,7 @@ async function loadAthensGeo() {
                 updateSoundPositions(delta);
             }
 
-            updateStars(delta);
+            updateNightCycle(delta);
             
             world.step(1 / 60, delta, 3);
             physicsObjects.forEach(obj => {
