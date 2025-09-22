@@ -23,6 +23,29 @@
         }
     }
     </script>
+    <script type="module">
+        // Fallback to ensure THREE is available globally when CDN fails
+        async function ensureThreeJS() {
+            if (typeof window.THREE !== 'undefined') {
+                console.log('THREE.js loaded from CDN');
+                return window.THREE;
+            }
+            
+            try {
+                console.log('Attempting to load THREE.js via ES modules...');
+                const THREE = await import('three');
+                window.THREE = THREE;
+                console.log('THREE.js loaded via ES modules as fallback');
+                return THREE;
+            } catch (error) {
+                console.warn('Failed to load THREE.js via modules:', error);
+                return null;
+            }
+        }
+        
+        // Ensure THREE is available before the main script runs
+        window.threeJSReady = ensureThreeJS();
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
         
@@ -414,6 +437,23 @@
     <script>
         console.log("🏛️ Initializing Enhanced Ancient Athens Experience...");
 
+        // Wait for THREE.js to be available before proceeding
+        async function initializeAthens() {
+            if (window.threeJSReady) {
+                await window.threeJSReady;
+            }
+            
+            if (typeof THREE === 'undefined') {
+                console.error('THREE.js is not available. Please ensure external resources can be loaded.');
+                document.body.innerHTML = '<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:Arial,sans-serif;color:#fff;background:rgba(0,0,0,0.8);padding:20px;border-radius:10px;"><h2>🏛️ Ancient Athens</h2><p>External libraries are required to run this experience.<br>Please allow external resources or use a different environment.</p><p><small>THREE.js library could not be loaded.</small></p></div>';
+                return;
+            }
+
+            console.log('THREE.js is ready, initializing Athens...');
+            main();
+        }
+
+        function main() {
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
         let world;
@@ -4193,9 +4233,14 @@ async function loadAthensGeo() {
             }
         }
         
+        // Initialize the application
+        init();
+        
+        } // End of main function
+        
         // --- START ---
         window.onload = function() {
-            init();
+            initializeAthens();
         };
 
     </script>
