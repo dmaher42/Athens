@@ -283,6 +283,97 @@
     },
     {
       "type": "Feature",
+      "geometry": { "type": "LineString", "coordinates": [
+        [23.54104, 38.04132],
+        [23.58621, 38.01474],
+        [23.62995, 38.00289],
+        [23.66546, 37.98376],
+        [23.70041, 37.97972],
+        [23.72094, 37.9781],
+        [23.72394, 37.97549],
+        [23.72559, 37.97233]
+      ] },
+      "properties": {
+        "name": "Sacred Way (Eleusis–Athens)",
+        "title": "Sacred Way from Eleusis to the Acropolis",
+        "category": "cultural",
+        "kind": "processional_route",
+        "pleiades_refs": [
+          "580105",
+          "579889",
+          "638356144"
+        ],
+        "license": "CC BY 4.0",
+        "source": "Representative path via Eleusis, Daphni, Kerameikos, Agora, Acropolis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [23.71254, 37.97661],
+        [23.71684, 37.98092],
+        [23.72483, 37.98466],
+        [23.73492, 37.98492],
+        [23.74198, 37.98012],
+        [23.74434, 37.97309],
+        [23.73908, 37.96798],
+        [23.72841, 37.96701],
+        [23.71786, 37.96962],
+        [23.71254, 37.97661]
+      ]] },
+      "properties": {
+        "name": "City Wall of Athens — schematic",
+        "title": "City Wall",
+        "category": "cultural",
+        "kind": "city_wall",
+        "license": "CC BY 4.0",
+        "source": "Approximate footprint of the Themistoclean wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72058, 37.97416] },
+      "properties": {
+        "name": "Areopagus Viewpoint (Acropolis Vista)",
+        "title": "Areopagus Acropolis Viewpoint",
+        "short": "Acropolis Vista",
+        "category": "natural",
+        "within_walls": true,
+        "pleiades_id": "969121823",
+        "pleiades_uri": "https://pleiades.stoa.org/places/969121823",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.71985, 37.97448] },
+      "properties": {
+        "name": "Areopagus Viewpoint (Agora Outlook)",
+        "title": "Areopagus Agora Outlook",
+        "short": "Agora Outlook",
+        "category": "natural",
+        "within_walls": true,
+        "pleiades_id": "969121823",
+        "pleiades_uri": "https://pleiades.stoa.org/places/969121823",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.72143, 37.97346] },
+      "properties": {
+        "name": "Areopagus Viewpoint (Kerameikos Gate)",
+        "title": "Areopagus Kerameikos Viewpoint",
+        "short": "Kerameikos View",
+        "category": "natural",
+        "within_walls": true,
+        "pleiades_id": "969121823",
+        "pleiades_uri": "https://pleiades.stoa.org/places/969121823",
+        "license": "CC BY 4.0"
+      }
+    },
+    {
+      "type": "Feature",
       "geometry": { "type": "Point", "coordinates": [23.644609, 37.937222] },
       "properties": {
         "name": "Peiraieus / Piraeus",

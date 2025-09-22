@@ -647,7 +647,7 @@ async function loadAthensGeo() {
 
             const [lon, lat] = f.geometry.coordinates;
             const name = f.properties?.title || f.properties?.name || 'Unnamed';
-            const categoryRaw = f.properties?.category || 'cultural';
+            const categoryRaw = (f.properties?.category || 'cultural').toString().toLowerCase();
             const category = ['democracy', 'cultural', 'natural'].includes(categoryRaw) ? categoryRaw : 'cultural';
 
             // Convert lon/lat → local meters using your projector
@@ -691,8 +691,9 @@ async function loadAthensGeo() {
 
             newlyAddedLocations.forEach(loc => {
                 const icon = document.createElement('div');
-                const iconCategory = ['democracy', 'cultural', 'natural'].includes(loc.type) ? loc.type : 'cultural';
-                icon.className = `map-icon map-icon-${iconCategory}`;
+                const rawType = typeof loc.type === 'string' ? loc.type.toLowerCase() : 'cultural';
+                const cat = ['democracy', 'cultural', 'natural'].includes(rawType) ? rawType : 'cultural';
+                icon.className = `map-icon map-icon-${cat}`;
                 const percentX = THREE.MathUtils.clamp((loc.position.x - mapBounds.xMin) / worldWidth, 0, 1);
                 const percentZ = THREE.MathUtils.clamp((loc.position.z - mapBounds.zMin) / worldDepth, 0, 1);
                 icon.style.left = `${percentX * 200}px`;
@@ -4389,7 +4390,7 @@ async function loadAthensGeo() {
 </script>
 
 <script type="module">
-  import { createLandmarkOverlay } from './src/map/landmarks.js';
+  import { createLandmarkOverlay, LandmarkOverlay } from './src/map/landmarks.js';
 
   function waitForWorldBuilt() {
     if (typeof window === 'undefined') {
@@ -4412,14 +4413,41 @@ async function loadAthensGeo() {
   if (overlayCanvas) {
     try {
       await waitForWorldBuilt();
-      await createLandmarkOverlay(overlayCanvas, {
+      const options = {
         geoJsonUrl: './data/athens_places.geojson',
-        showAgoraLayer: true,
         agoraDataUrl: './data/agora_local.json',
+        showAgoraLayer: true,
         markerFill: '#FFD700',
         markerStroke: '#704c00',
         fitPadding: 48
-      });
+      };
+
+      let overlay = null;
+      if (typeof createLandmarkOverlay === 'function') {
+        overlay = createLandmarkOverlay(overlayCanvas, options);
+        if (overlay && typeof overlay.then === 'function') {
+          overlay = await overlay;
+        }
+      }
+
+      if (!overlay) {
+        const overlayNamespace = typeof window !== 'undefined' ? window.AthensMap : undefined;
+        const OverlayClass = LandmarkOverlay || overlayNamespace?.LandmarkOverlay;
+        if (OverlayClass) {
+          overlay = new OverlayClass(overlayCanvas, options);
+        }
+      }
+
+      if (overlay && typeof overlay.initialize === 'function') {
+        const initResult = overlay.initialize();
+        if (initResult && typeof initResult.then === 'function') {
+          await initResult;
+        }
+      }
+
+      if (overlay && typeof window !== 'undefined') {
+        window.AthensLandmarkOverlay = overlay;
+      }
     } catch (error) {
       console.error('Landmark overlay failed to initialize:', error);
     }
