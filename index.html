@@ -647,6 +647,8 @@ async function loadAthensGeo() {
 
             const [lon, lat] = f.geometry.coordinates;
             const name = f.properties?.title || f.properties?.name || 'Unnamed';
+            const categoryRaw = f.properties?.category || 'cultural';
+            const category = ['democracy', 'cultural', 'natural'].includes(categoryRaw) ? categoryRaw : 'cultural';
 
             // Convert lon/lat → local meters using your projector
             const { x, y } = projector.project({ lat, lon }); // y here is “northing”; we’ll use it as z
@@ -669,7 +671,7 @@ async function loadAthensGeo() {
                 position: new THREE.Vector3(scaleValue(localX), 0, scaleValue(localZ)),
                 radius: scaleValue(12),
                 title: `📍 ${name}`,
-                type: 'cultural'
+                type: category
             });
         }
 
@@ -689,7 +691,8 @@ async function loadAthensGeo() {
 
             newlyAddedLocations.forEach(loc => {
                 const icon = document.createElement('div');
-                icon.className = 'map-icon map-icon-cultural';
+                const iconCategory = ['democracy', 'cultural', 'natural'].includes(loc.type) ? loc.type : 'cultural';
+                icon.className = `map-icon map-icon-${iconCategory}`;
                 const percentX = THREE.MathUtils.clamp((loc.position.x - mapBounds.xMin) / worldWidth, 0, 1);
                 const percentZ = THREE.MathUtils.clamp((loc.position.z - mapBounds.zMin) / worldDepth, 0, 1);
                 icon.style.left = `${percentX * 200}px`;
@@ -1039,6 +1042,7 @@ async function loadAthensGeo() {
             createAreopagusHill();
             createKerameikosDistrict();
             createLongWallsCorridors();
+            createLongWallPosts();
             createPhaleronHarbor();
             createHouses();
             createTrees();
@@ -1970,6 +1974,87 @@ async function loadAthensGeo() {
 
             createCorridor(PEIRAEUS_POSITION, { maxLength: 170, width: 12 });
             createCorridor(PHALERON_POSITION, { maxLength: 140, width: 10 });
+        }
+
+        function createLongWallPosts() {
+            const start = KERAMEIKOS_POSITION;
+            const spacing = 24;
+            const postHeight = 3.4;
+            const postGeometry = new THREE.CylinderGeometry(0.6 * CITY_SCALE, 0.8 * CITY_SCALE, postHeight, 6);
+            const capGeometry = new THREE.ConeGeometry(0.9 * CITY_SCALE, 1.2, 4);
+            const braceGeometry = new THREE.BoxGeometry(scaleValue(2.6), 0.45, scaleValue(0.9));
+            const postMaterial = stoneMaterial.clone();
+            postMaterial.color = postMaterial.color.clone().offsetHSL(-0.08, -0.06, -0.06);
+            const capMaterial = postMaterial.clone();
+            capMaterial.color = capMaterial.color.clone().offsetHSL(0.12, 0.12, 0.22);
+            const braceMaterial = postMaterial.clone();
+            braceMaterial.color = braceMaterial.color.clone().offsetHSL(-0.05, -0.04, -0.12);
+            const baseRoadMaterial = pavedRoadMaterial.clone();
+            baseRoadMaterial.color = baseRoadMaterial.color.clone().offsetHSL(-0.12, -0.15, 0.12);
+            baseRoadMaterial.transparent = true;
+            baseRoadMaterial.opacity = 0.25;
+            baseRoadMaterial.side = THREE.DoubleSide;
+
+            const corridors = [
+                { end: PEIRAEUS_POSITION, orientation: LONG_WALL_DIRECTION },
+                { end: PHALERON_POSITION, orientation: Math.atan2(PHALERON_POSITION.x - start.x, PHALERON_POSITION.z - start.z) }
+            ];
+
+            corridors.forEach(({ end, orientation }) => {
+                const dx = end.x - start.x;
+                const dz = end.z - start.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                if (!Number.isFinite(distance) || distance <= spacing) {
+                    return;
+                }
+                const steps = Math.floor(distance / spacing);
+                if (steps < 2) {
+                    return;
+                }
+                const angle = orientation ?? Math.atan2(dx, dz);
+                const midX = (start.x + end.x) / 2;
+                const midZ = (start.z + end.z) / 2;
+
+                const decalGroup = new THREE.Group();
+                const corridorMaterial = baseRoadMaterial.clone();
+                const decal = new THREE.Mesh(new THREE.PlaneGeometry(scaleValue(distance), scaleValue(4.2)), corridorMaterial);
+                decal.rotation.x = -Math.PI / 2;
+                decal.receiveShadow = true;
+                decalGroup.add(decal);
+                decalGroup.rotation.y = angle;
+                decalGroup.position.set(scaleValue(midX), 0.035, scaleValue(midZ));
+                scene.add(decalGroup);
+
+                for (let i = 1; i < steps; i += 1) {
+                    const ratio = (i * spacing) / distance;
+                    const px = start.x + dx * ratio;
+                    const pz = start.z + dz * ratio;
+
+                    const postGroup = new THREE.Group();
+
+                    const post = new THREE.Mesh(postGeometry, postMaterial);
+                    post.position.y = postHeight / 2;
+                    post.castShadow = true;
+                    post.receiveShadow = true;
+                    postGroup.add(post);
+
+                    const cap = new THREE.Mesh(capGeometry, capMaterial);
+                    cap.position.y = postHeight;
+                    cap.castShadow = true;
+                    cap.receiveShadow = true;
+                    postGroup.add(cap);
+
+                    const brace = new THREE.Mesh(braceGeometry, braceMaterial);
+                    brace.position.y = postHeight * 0.65;
+                    brace.castShadow = true;
+                    brace.receiveShadow = true;
+                    postGroup.add(brace);
+
+                    postGroup.position.set(scaleValue(px), 0, scaleValue(pz));
+                    postGroup.rotation.y = angle;
+                    scene.add(postGroup);
+                }
+            });
         }
 
         function createPhaleronHarbor() {
@@ -4306,14 +4391,38 @@ async function loadAthensGeo() {
 <script type="module">
   import { createLandmarkOverlay } from './src/map/landmarks.js';
 
-  const lmCanvas = document.getElementById('landmarks-canvas');
-  if (lmCanvas) {
-    createLandmarkOverlay(lmCanvas, {
-      geoJsonUrl: './data/athens_places.geojson',
-      markerFill: '#FFD700',
-      markerStroke: '#704c00',
-      fitPadding: 48
-    }).catch(err => console.error('Landmark overlay failed to initialize:', err));
+  function waitForWorldBuilt() {
+    if (typeof window === 'undefined') {
+      return Promise.resolve();
+    }
+    if (window.athensWorldBuilt && window.scene && window.renderer) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      const handler = () => {
+        window.removeEventListener('athens-world-built', handler);
+        resolve();
+      };
+      window.addEventListener('athens-world-built', handler, { once: true });
+    });
+  }
+
+  const overlayCanvas = document.getElementById('landmarks-canvas');
+
+  if (overlayCanvas) {
+    try {
+      await waitForWorldBuilt();
+      await createLandmarkOverlay(overlayCanvas, {
+        geoJsonUrl: './data/athens_places.geojson',
+        showAgoraLayer: true,
+        agoraDataUrl: './data/agora_local.json',
+        markerFill: '#FFD700',
+        markerStroke: '#704c00',
+        fitPadding: 48
+      });
+    } catch (error) {
+      console.error('Landmark overlay failed to initialize:', error);
+    }
   } else {
     console.warn('landmarks-canvas not found; overlay disabled.');
   }
