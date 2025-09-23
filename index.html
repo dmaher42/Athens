@@ -4686,11 +4686,54 @@
 
         const gltfLoader = new GLTFLoader();
 
+        const loadModelWithFallback = (paths, onSuccess, onFailure) => {
+            if (!Array.isArray(paths) || paths.length === 0) {
+                console.warn('No model paths provided for loading.');
+                return;
+            }
+
+            let attemptIndex = 0;
+
+            const tryLoad = () => {
+                const currentPath = paths[attemptIndex];
+                gltfLoader.load(
+                    currentPath,
+                    (gltf) => {
+                        if (typeof onSuccess === 'function') {
+                            onSuccess(gltf, currentPath);
+                        }
+                    },
+                    undefined,
+                    (error) => {
+                        attemptIndex += 1;
+                        if (attemptIndex < paths.length) {
+                            const nextPath = paths[attemptIndex];
+                            console.info(
+                                `Model not available at ${currentPath}. Trying fallback: ${nextPath}.`,
+                                error
+                            );
+                            tryLoad();
+                        } else {
+                            console.error(
+                                `Model failed to load after attempting: ${paths.join(', ')}.`,
+                                error
+                            );
+                            if (typeof onFailure === 'function') {
+                                onFailure(error, currentPath);
+                            }
+                        }
+                    }
+                );
+            };
+
+            tryLoad();
+        };
+
         const loadTemple = () => {
-            const templeGroup = new THREE.Group();
-            gltfLoader.load(
-                './data/models/greek_temple.glb',
+            loadModelWithFallback(
+                ['./models/greek_temple.glb'],
                 (gltf) => {
+                    const templeGroup = new THREE.Group();
                     const temple = gltf.scene || new THREE.Group();
                     temple.scale.set(3, 3, 3);
                     templeGroup.add(temple);
@@ -4698,7 +4741,6 @@
                     placeObject(templeGroup, 90, 0, 35);
                     scene.add(templeGroup);
                 },
-                undefined,
                 (error) => {
                     console.error('Error loading Greek temple model:', error);
                 }
@@ -4706,10 +4748,14 @@
         };
 
         const loadNPC = () => {
-            const npcGroup = new THREE.Group();
-            gltfLoader.load(
-                './data/models/npc_athenian.glb',
-                (gltf) => {
+            loadModelWithFallback(
+                [
+                    './models/npc_athenian.glb',
+                    './models/Adventurer.glb',
+                    './models/character.glb'
+                ],
+                (gltf, modelPath) => {
+                    const npcGroup = new THREE.Group();
                     const npc = gltf.scene || new THREE.Group();
                     npc.scale.set(1.2, 1.2, 1.2);
                     npcGroup.add(npc);
@@ -4725,10 +4771,11 @@
                         });
                         mixers.push(npcMixer);
                     }
+
+                    console.info(`NPC model loaded from ${modelPath}.`);
                 },
-                undefined,
                 (error) => {
-                    console.warn('NPC model failed to load:', error);
+                    console.error('NPC model failed to load after all fallback attempts.', error);
                 }
             );
         };
