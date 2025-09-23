@@ -1,12 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ancient Athens - Visual Masterpiece</title>
-    <!-- Physics library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <script type="importmap">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ancient Athens - Visual Masterpiece</title>
+<!-- Physics library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+<script type="importmap">
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
@@ -18,14 +19,14 @@
         }
     }
     </script>
-    <script type="module">
+<script type="module">
         import { threeReady } from './src/three.js';
         import { Sky } from 'three/examples/jsm/objects/Sky.js';
 
         window.Sky = Sky;
         window.threeJSReady = threeReady;
     </script>
-    <style>
+<style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
         
         * {
@@ -359,22 +360,20 @@
     </style>
 </head>
 <body>
-    <div id="start-overlay">
-        <button id="start-button" class="overlay-button">Enter Ancient Athens</button>
-    </div>
-    
-    <div id="fps-counter">FPS: <span id="fps-value">60</span></div>
-    
-    <div id="hud">
-        <div id="hud-left">
-            <div id="mini-map-container">
-                 <div id="map-player"></div>
-            </div>
-            <h3 style="margin: 0; font-size: 20px; margin-left: 220px;" class="golden-text">⚱️ Ancient Athens</h3>
-            <div id="current-location"></div>
-        </div>
-        <div id="hud-center" class="elegant-text">
-            <span class="control-key">WASD</span> Move/Rotate |
+<div id="start-overlay">
+<button class="overlay-button" id="start-button">Enter Ancient Athens</button>
+</div>
+<div id="fps-counter">FPS: <span id="fps-value">60</span></div>
+<div id="hud">
+<div id="hud-left">
+<div id="mini-map-container">
+<div id="map-player"></div>
+</div>
+<h3 class="golden-text" style="margin: 0; font-size: 20px; margin-left: 220px;">⚱️ Ancient Athens</h3>
+<div id="current-location"></div>
+</div>
+<div class="elegant-text" id="hud-center">
+<span class="control-key">WASD</span> Move/Rotate |
             <span class="control-key">Arrows</span> Orbit Camera |
             <span class="control-key">E</span> Interact |
             <span class="control-key">X</span> Toggle Flight |
@@ -382,38 +381,33 @@
             <span class="control-key">M</span> Sound |
             <span class="control-key">P</span> FPS
         </div>
-        <div id="hud-right" class="elegant-text">
-            <div class="golden-text" style="font-weight: 600;">🌅 Time:</div>
-            <span id="current-time">Golden Dawn</span>
-        </div>
-        <button id="toggle-hud">Hide UI</button>
-    </div>
-
-    <!-- Character Interaction UI -->
-    <div id="pnyx-scribe-prompt" class="prompt">
-        <button class="gemini-button" data-info="pnyx">📜 Learn about the Pnyx</button>
-    </div>
-     <div id="bouleuterion-scribe-prompt" class="prompt">
-        <button class="gemini-button" data-info="bouleuterion">📜 Learn about the Bouleuterion</button>
-    </div>
-     <div id="dikasteria-scribe-prompt" class="prompt">
-        <button class="gemini-button" data-info="dikasteria">📜 Learn about the Dikasteria</button>
-    </div>
-    <div id="info-scroll-overlay" class="info-scroll-overlay">
-        <div class="info-content">
-            <button id="close-info-scroll" class="close-info">&times;</button>
-            <h4 id="info-title" class="golden-text" style="text-align: center; margin-bottom: 20px;"></h4>
-            <p id="info-text"></p>
-        </div>
-        
-    </div>
-    <canvas id="landmarks-canvas"
-        style="position:fixed; right:16px; top:16px; width:420px; height:420px; z-index:150;
+<div class="elegant-text" id="hud-right">
+<div class="golden-text" style="font-weight: 600;">🌅 Time:</div>
+<span id="current-time">Golden Dawn</span>
+</div>
+<button id="toggle-hud">Hide UI</button>
+</div>
+<!-- Character Interaction UI -->
+<div class="prompt" id="pnyx-scribe-prompt">
+<button class="gemini-button" data-info="pnyx">📜 Learn about the Pnyx</button>
+</div>
+<div class="prompt" id="bouleuterion-scribe-prompt">
+<button class="gemini-button" data-info="bouleuterion">📜 Learn about the Bouleuterion</button>
+</div>
+<div class="prompt" id="dikasteria-scribe-prompt">
+<button class="gemini-button" data-info="dikasteria">📜 Learn about the Dikasteria</button>
+</div>
+<div class="info-scroll-overlay" id="info-scroll-overlay">
+<div class="info-content">
+<button class="close-info" id="close-info-scroll">×</button>
+<h4 class="golden-text" id="info-title" style="text-align: center; margin-bottom: 20px;"></h4>
+<p id="info-text"></p>
+</div>
+</div>
+<canvas id="landmarks-canvas" style="position:fixed; right:16px; top:16px; width:420px; height:420px; z-index:150;
                border:1px solid #FFD700; border-radius:10px; background:rgba(0,0,0,.18);">
 </canvas>
-
-
-    <script type="module">
+<script type="module">
         import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -822,7 +816,7 @@
             try {
                 if (window.threeJSReady) {
                     await window.threeJSReady;
-                } catch (error) { console.error('Error caught in Athens script:', error); }
+                } catch (error) { console.error('Error caught in script:', error); }
 
                 if (typeof THREE === 'undefined') {
                     console.error('THREE.js is not available. Please ensure external resources can be loaded.');
@@ -830,7 +824,7 @@
                     return;
                 }
 
-console.log("console.log('THREE.js is ready, initializing Athens...');");
+console.log('console.log('THREE.js is ready, initializing Athens...');
 try {
     await main();
 } catch (error) {
@@ -838,13 +832,9 @@ try {
         console.error('Athens experience failed to initialize:', error);
         if (error?.stack) {
             console.error(error.stack);
-        }
-
-        // Keep the overlay & detailed logging
+        } catch (error) { console.error('Error caught in script:', error); }
         logDetailedError('Main Function Execution', error);
         showErrorOverlay('Main Function Execution', error, true);
-
-        // Mark the error so it doesn’t get double-logged
         error.__athensLogged = true;
     }
     throw error;
@@ -1268,7 +1258,7 @@ async function main() {
             loadGreekTemple();
 
             try {
-                const { buildFromGeoJSON } catch (error) { console.error('Error caught in Athens script:', error); } = await import('./src/buildings-from-geojson.js');
+                const { buildFromGeoJSON } catch (error) { console.error('Error caught in script:', error); } = await import('./src/buildings-from-geojson.js');
                 const projectorInstance = window?.AthensGeo?.projector;
                 const projector = projectorInstance && typeof projectorInstance.project === 'function'
                     ? (lon, lat) => {
@@ -4738,7 +4728,7 @@ function createAgoraComplex() {
                         const tone = await loadToneLibrary();
                         if (!tone || typeof tone.start !== 'function') {
                             throw new Error('Tone.js is unavailable after loading.');
-                        } catch (error) { console.error('Error caught in Athens script:', error); }
+                        } catch (error) { console.error('Error caught in script:', error); }
                         await tone.start();
                         console.log("Audio context started.");
                         createAmbientSounds();
@@ -5052,7 +5042,7 @@ function createAgoraComplex() {
 
         async function setupLandmarks() {
             try {
-                const { loadLandmarks } catch (error) { console.error('Error caught in Athens script:', error); } = await import('./src/landmarks-loader.js');
+                const { loadLandmarks } catch (error) { console.error('Error caught in script:', error); } = await import('./src/landmarks-loader.js');
 
                 const projectorInstance = window?.AthensGeo?.projector;
                 const projectorFn = projectorInstance && typeof projectorInstance.project === 'function'
@@ -5130,29 +5120,29 @@ function createAgoraComplex() {
             }
         }
         
-// Initialize the application
+        // Initialize the application
 try {
     await init();
 } catch (error) {
     console.error('Failed to initialize Athens experience:', error);
     if (error?.stack) {
         console.error(error.stack);
-    }
+    } catch (error) { console.error('Error caught in script:', error); }
     logDetailedError('Async Initialization', error);
     showErrorOverlay('Async Initialization', error, false);
     error.__athensLogged = true;
     throw error;
 }
 
-// --- START ---
-window.onload = function() {
-    initializeAthens();
-};
+        } // End of main function
+        
+        // --- START ---
+        window.onload = function() {
+            initializeAthens();
+        };
 
-
-    </script>
-
-    <script type="module">
+    }})</script>
+<script type="module">
         import { loadGeoJson } from './src/geo/geoLoader.js';
         import { LocalEquirectangularProjection } from './src/geo/projection.js';
 
@@ -5189,7 +5179,6 @@ window.onload = function() {
        
   // if your file lives at data/athens_places.geojson in the repo, this keeps it safe on GitHub Pages:
 </script>
-
 <script type="module">
   import { createLandmarkOverlay, LandmarkOverlay } from './src/map/landmarks.js';
 
@@ -5221,7 +5210,7 @@ window.onload = function() {
         markerFill: '#FFD700',
         markerStroke: '#704c00',
         fitPadding: 48
-      } catch (error) { console.error('Error caught in Athens script:', error); };
+      } catch (error) { console.error('Error caught in script:', error); };
 
       let overlay = null;
       if (typeof createLandmarkOverlay === 'function') {
@@ -5256,7 +5245,7 @@ window.onload = function() {
     console.warn('landmarks-canvas not found; overlay disabled.');
   }
 </script>
-    <script type="module">
+<script type="module">
         import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
@@ -5415,8 +5404,5 @@ window.onload = function() {
         loadTemple();
         loadNPC();
     </script>
-
-
 </body>
 </html>
-
