@@ -19,3 +19,25 @@ public/assets/sky/high_noon.jpg
 
 During startup the experience now tries to load this asset for the photographic skydome. If the file is missing, the engine
 falls back to the bundled `src/sky/sunset.jpg` texture so development builds still render.
+
+## Golden Hour Photo Sky
+
+Place the golden-hour panorama used for both sunrise and sunset moods at:
+
+```
+public/assets/sky/golden_hour.jpg
+```
+
+The loader reuses this texture for the "Golden Dawn" and "Golden Dusk" presets, with runtime fallbacks to the bundled
+`src/sky/sunset.jpg` image when necessary.
+
+## Blue Hour Photo Sky
+
+Drop the blue-hour panorama into:
+
+```
+public/assets/sky/blue_hour.jpg
+```
+
+This file is prefetched during initialization so the skydome can swap immediately when entering the "Blue Hour" preset. If
+it's absent the experience will fall back to the built-in dusk assets.
