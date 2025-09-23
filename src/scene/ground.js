@@ -1,89 +1,142 @@
 import * as THREE from 'three';
 
-function configureBaseTexture(texture, repeats) {
+const GROUND_SIZE = 10000;
+const TEXTURE_REPEAT = 100;
+const OVERLAY_OPACITY = 0.4;
+const FALLBACK_COLOR = 0x808040;
+
+function configureRepeatingTexture(texture, repeats, anisotropy, colorSpace) {
   if (!texture) return;
+
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(repeats, repeats);
-  texture.anisotropy = Math.max(texture.anisotropy || 0, 8);
-  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = Math.max(texture.anisotropy ?? 0, anisotropy);
+  texture.colorSpace = colorSpace;
   texture.needsUpdate = true;
 }
 
-function configureOverlayTexture(texture, repeats) {
-  if (!texture) return;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(repeats, repeats);
-  texture.anisotropy = Math.max(texture.anisotropy || 0, 8);
-  texture.colorSpace = THREE.LinearSRGBColorSpace;
-  texture.needsUpdate = true;
+function loadTexture(loader, url, warningMessage) {
+  return new Promise((resolve) => {
+    const onLoad = (texture) => resolve(texture);
+    const onError = (error) => {
+      console.warn(warningMessage, error);
+      resolve(null);
+    };
+
+    try {
+      loader.load(url, onLoad, undefined, onError);
+    } catch (error) {
+      onError(error);
+    }
+  });
 }
 
-export function createGroundPlane({ size = 8000, repeats = 80, textures = {} } = {}) {
+function injectOverlayShader(material) {
+  material.userData = material.userData || {};
+
+  if (material.userData.overlayShaderApplied) {
+    const uniforms = material.userData.overlayUniforms;
+    if (uniforms?.overlayOpacity) {
+      uniforms.overlayOpacity.value = material.userData.overlayOpacity ?? OVERLAY_OPACITY;
+    }
+    return;
+  }
+
+  const existingCacheKey = material.customProgramCacheKey?.();
+
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.overlayOpacity = {
+      value: material.userData.overlayOpacity ?? OVERLAY_OPACITY
+    };
+
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <alphamap_pars_fragment>',
+        '#include <alphamap_pars_fragment>\nuniform float overlayOpacity;\n'
+      )
+      .replace(
+        '#include <alphamap_fragment>',
+        `#ifdef USE_ALPHAMAP\n  vec4 overlayColor = mapTexelToLinear( texture2D( alphaMap, vAlphaMapUv ) );\n  diffuseColor.rgb = mix( diffuseColor.rgb, overlayColor.rgb, overlayOpacity );\n  diffuseColor.a = 1.0;\n#endif`
+      );
+
+    material.userData.overlayUniforms = shader.uniforms;
+  };
+
+  material.customProgramCacheKey = () =>
+    `${existingCacheKey ?? 'ground'}-overlay-${material.userData.overlayOpacity ?? OVERLAY_OPACITY}`;
+
+  material.userData.overlayShaderApplied = true;
+  material.needsUpdate = true;
+}
+
+function applyOverlayTexture(material, texture, opacity) {
+  if (!material) return;
+
+  material.userData = material.userData || {};
+  material.userData.overlayOpacity = opacity;
+
+  if (!texture) {
+    material.alphaMap = null;
+    const uniforms = material.userData.overlayUniforms;
+    if (uniforms?.overlayOpacity) {
+      uniforms.overlayOpacity.value = 0;
+    }
+    return;
+  }
+
+  material.alphaMap = texture;
+  material.transparent = false;
+  material.opacity = 1;
+
+  injectOverlayShader(material);
+
+  const uniforms = material.userData.overlayUniforms;
+  if (uniforms?.overlayOpacity) {
+    uniforms.overlayOpacity.value = opacity;
+  }
+
+  material.needsUpdate = true;
+}
+
+export async function loadGround(scene, renderer) {
   const loader = new THREE.TextureLoader();
+  const anisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 1;
+
   const material = new THREE.MeshStandardMaterial({
-    color: 0xb7b09a,
-    roughness: 1.0,
-    metalness: 0.0,
-    transparent: false
+    color: FALLBACK_COLOR,
+    roughness: 1,
+    metalness: 0
   });
 
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(size, size), material);
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.receiveShadow = true;
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE), material);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = 0;
+  ground.receiveShadow = true;
 
-  const { base: baseTexture, overlay: overlayTexture } = textures;
+  const [grassTexture, dustTexture] = await Promise.all([
+    loadTexture(loader, 'assets/textures/grass.jpg', '[ground] grass.jpg not found; using flat color.'),
+    loadTexture(loader, 'assets/textures/athens_dust.jpg', '[ground] athens_dust.jpg not found; alpha blend disabled.')
+  ]);
 
-  const applyBaseTexture = (texture) => {
-    if (!texture) {
-      return;
-    }
-    configureBaseTexture(texture, repeats);
-    material.map = texture;
+  if (grassTexture) {
+    configureRepeatingTexture(grassTexture, TEXTURE_REPEAT, anisotropy, THREE.SRGBColorSpace);
+    material.map = grassTexture;
     material.color.set(0xffffff);
-    material.needsUpdate = true;
-  };
-
-  const applyOverlayTexture = (texture) => {
-    if (!texture) {
-      return;
-    }
-    configureOverlayTexture(texture, repeats);
-    material.alphaMap = texture;
-    material.transparent = true;
-    material.needsUpdate = true;
-  };
-
-  if (baseTexture) {
-    applyBaseTexture(baseTexture);
-  } else {
-    loader.load(
-      'assets/textures/grass.jpg',
-      (texture) => {
-        applyBaseTexture(texture);
-      },
-      undefined,
-      (error) => {
-        console.warn('[ground] grass.jpg not found; using flat color.', error);
-      }
-    );
   }
 
-  if (overlayTexture) {
-    applyOverlayTexture(overlayTexture);
+  if (dustTexture) {
+    configureRepeatingTexture(dustTexture, TEXTURE_REPEAT, anisotropy, THREE.SRGBColorSpace);
+    applyOverlayTexture(material, dustTexture, OVERLAY_OPACITY);
   } else {
-    loader.load(
-      'assets/textures/athens_dust.jpg',
-      (texture) => {
-        applyOverlayTexture(texture);
-      },
-      undefined,
-      (error) => {
-        console.warn('[ground] athens_dust.jpg not found; alpha blend disabled.', error);
-      }
-    );
+    applyOverlayTexture(material, null, 0);
   }
 
-  return mesh;
+  material.needsUpdate = true;
+
+  if (scene && !scene.children.includes(ground)) {
+    scene.add(ground);
+  }
+
+  return ground;
 }
