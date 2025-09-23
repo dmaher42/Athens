@@ -2493,28 +2493,272 @@ function createPristineAgoraComplex() {
 
 // Integration instructions:
 // 1. Replace your existing createAgoraComplex() function with this:
-function createAgoraComplex() {
-    const pristineAgora = createPristineAgoraComplex();
-    
-    // Add the entire agora to the scene
-    scene.add(pristineAgora.group);
-    
-    // Add buildings to your buildings array for interactions
-    pristineAgora.buildings.forEach(building => {
-        buildings.push(building); // Add to your existing buildings array
-    });
+// FIXED VERSION - Replace your createAgoraComplex() function with this:
 
-    // Add groves if you want to keep them
-    const groveConfigs = [
-        { x: AGORA_FEATURES.templeOfHephaistos.position.x - 8, z: AGORA_FEATURES.templeOfHephaistos.position.z + 12, scale: 1.2 },
-        { x: AGORA_FEATURES.templeOfHephaistos.position.x - 12, z: AGORA_FEATURES.templeOfHephaistos.position.z - 8, scale: 1.0 },
-        { x: AGORA_FEATURES.stoaOfAttalos.position.x + 10, z: AGORA_FEATURES.stoaOfAttalos.position.z - 12, scale: 0.9 }
-    ];
-    groveConfigs.forEach((config) => {
-        const tree = createEnhancedTree(0, 0, config.scale);
-        tree.position.set(scaleValue(config.x), 0, scaleValue(config.z));
-        scene.add(tree);
-    });
+function createAgoraComplex() {
+    // Create pristine marble plaza with proper error handling
+    try {
+        const plazaMaterial = groundMaterial ? groundMaterial.clone() : new THREE.MeshLambertMaterial({ color: 0xD2C3A4 });
+        plazaMaterial.color = plazaMaterial.color.clone().offsetHSL(0.05, 0.08, 0.08);
+        plazaMaterial.roughness = Math.min(1, (plazaMaterial.roughness || 0.8) + 0.1);
+        
+        const plaza = new THREE.Mesh(new THREE.PlaneGeometry(scaleValue(90), scaleValue(70)), plazaMaterial);
+        plaza.rotation.x = -Math.PI / 2;
+        plaza.position.set(scaleValue(AGORA_ANCHOR_SCENE.x), 0.02, scaleValue(AGORA_ANCHOR_SCENE.z));
+        plaza.receiveShadow = true;
+        scene.add(plaza);
+
+        const processional = new THREE.Mesh(
+            new THREE.PlaneGeometry(scaleValue(70), scaleValue(8)), 
+            pavedRoadMaterial ? pavedRoadMaterial.clone() : new THREE.MeshLambertMaterial({ color: 0xA9A9A9 })
+        );
+        processional.rotation.x = -Math.PI / 2;
+        processional.position.set(scaleValue(AGORA_ANCHOR_SCENE.x), 0.03, scaleValue(AGORA_ANCHOR_SCENE.z));
+        processional.receiveShadow = true;
+        scene.add(processional);
+
+        // Create pristine buildings using existing materials safely
+        const pristineBuildings = createPristineAgoraBuildings();
+        
+        // Add buildings to scene and tracking arrays
+        pristineBuildings.forEach(building => {
+            scene.add(building.mesh);
+            if (typeof buildings !== 'undefined') {
+                buildings.push(building);
+            }
+        });
+
+        // Add groves if createEnhancedTree function exists
+        if (typeof createEnhancedTree === 'function') {
+            const groveConfigs = [
+                { x: AGORA_FEATURES.templeOfHephaistos.position.x - 8, z: AGORA_FEATURES.templeOfHephaistos.position.z + 12, scale: 1.2 },
+                { x: AGORA_FEATURES.templeOfHephaistos.position.x - 12, z: AGORA_FEATURES.templeOfHephaistos.position.z - 8, scale: 1.0 },
+                { x: AGORA_FEATURES.stoaOfAttalos.position.x + 10, z: AGORA_FEATURES.stoaOfAttalos.position.z - 12, scale: 0.9 }
+            ];
+            groveConfigs.forEach((config) => {
+                try {
+                    const tree = createEnhancedTree(0, 0, config.scale);
+                    tree.position.set(scaleValue(config.x), 0, scaleValue(config.z));
+                    scene.add(tree);
+                } catch (error) {
+                    console.warn('Could not create tree:', error);
+                }
+            });
+        }
+
+        console.log('Pristine Agora created successfully');
+        
+    } catch (error) {
+        console.error('Error creating Agora complex:', error);
+        // Fallback to basic structures if pristine version fails
+        createBasicAgoraFallback();
+    }
+}
+
+// Safe pristine building creation
+function createPristineAgoraBuildings() {
+    const buildings = [];
+
+    // Helper function to create materials safely
+    function createSafeMaterial(color, shininess = 30) {
+        return new THREE.MeshPhongMaterial({ 
+            color: color,
+            shininess: shininess,
+            specular: 0x222222
+        });
+    }
+
+    // Helper function to create perfect columns
+    function createPerfectColumn(height = 8, radius = 0.8) {
+        const group = new THREE.Group();
+        
+        const marbleMat = createSafeMaterial(0xFFFAF0, 50);
+        const goldMat = createSafeMaterial(0xFFD700, 80);
+        
+        // Base
+        const base = new THREE.Mesh(
+            new THREE.CylinderGeometry(radius * 1.4, radius * 1.6, 1, 20), 
+            marbleMat
+        );
+        base.position.y = 0.5;
+        base.castShadow = true;
+        base.receiveShadow = true;
+        group.add(base);
+        
+        // Column
+        const column = new THREE.Mesh(
+            new THREE.CylinderGeometry(radius, radius * 1.1, height, 20), 
+            marbleMat
+        );
+        column.position.y = 1 + height / 2;
+        column.castShadow = true;
+        column.receiveShadow = true;
+        group.add(column);
+        
+        // Capital
+        const capital = new THREE.Mesh(
+            new THREE.CylinderGeometry(radius * 1.5, radius * 1.1, 1.2, 20), 
+            goldMat
+        );
+        capital.position.y = 1 + height + 0.6;
+        capital.castShadow = true;
+        group.add(capital);
+        
+        return group;
+    }
+
+    // Temple of Hephaestus
+    const temple = new THREE.Group();
+    
+    // Platform
+    const platform = new THREE.Mesh(
+        new THREE.BoxGeometry(scaleValue(32), 1.5, scaleValue(16)), 
+        createSafeMaterial(0xF8F8FF)
+    );
+    platform.position.y = 0.75;
+    platform.castShadow = true;
+    platform.receiveShadow = true;
+    temple.add(platform);
+    
+    // Main structure
+    const cella = new THREE.Mesh(
+        new THREE.BoxGeometry(scaleValue(20), 8, scaleValue(10)), 
+        createSafeMaterial(0xFFFAF0)
+    );
+    cella.position.y = 1.5 + 4;
+    cella.castShadow = true;
+    cella.receiveShadow = true;
+    temple.add(cella);
+    
+    // Columns
+    for (let i = 0; i < 8; i++) {
+        const frontColumn = createPerfectColumn(12, 0.8);
+        frontColumn.position.set(scaleValue(-14 + i * 4), 1.5, scaleValue(8));
+        temple.add(frontColumn);
+        
+        const backColumn = createPerfectColumn(12, 0.8);
+        backColumn.position.set(scaleValue(-14 + i * 4), 1.5, scaleValue(-8));
+        temple.add(backColumn);
+    }
+    
+    // Roof
+    const roof = new THREE.Mesh(
+        new THREE.BoxGeometry(scaleValue(30), 2, scaleValue(14)), 
+        createSafeMaterial(0xDC143C, 20)
+    );
+    roof.position.y = 1.5 + 12 + 1;
+    roof.castShadow = true;
+    temple.add(roof);
+    
+    temple.rotation.y = AGORA_FEATURES.templeOfHephaistos.rotation;
+    temple.position.set(
+        scaleValue(AGORA_FEATURES.templeOfHephaistos.position.x),
+        0,
+        scaleValue(AGORA_FEATURES.templeOfHephaistos.position.z)
+    );
+    buildings.push({ mesh: temple, name: "🔨 Temple of Hephaestus", position: temple.position.clone() });
+
+    // Stoa of Attalos
+    const stoa = new THREE.Group();
+    
+    const stoaBase = new THREE.Mesh(
+        new THREE.BoxGeometry(scaleValue(70), 2, scaleValue(18)), 
+        createSafeMaterial(0xF5F5DC)
+    );
+    stoaBase.position.y = 1;
+    stoaBase.castShadow = true;
+    stoaBase.receiveShadow = true;
+    stoa.add(stoaBase);
+    
+    const stoaBuilding = new THREE.Mesh(
+        new THREE.BoxGeometry(scaleValue(65), 10, scaleValue(15)), 
+        createSafeMaterial(0xFFFAF0)
+    );
+    stoaBuilding.position.y = 2 + 5;
+    stoaBuilding.castShadow = true;
+    stoaBuilding.receiveShadow = true;
+    stoa.add(stoaBuilding);
+    
+    // Colonnade
+    for (let i = 0; i < 12; i++) {
+        const column = createPerfectColumn(10, 0.7);
+        column.position.set(scaleValue(-30 + i * 5), 2, scaleValue(9));
+        stoa.add(column);
+    }
+    
+    stoa.rotation.y = AGORA_FEATURES.stoaOfAttalos.rotation;
+    stoa.position.set(
+        scaleValue(AGORA_FEATURES.stoaOfAttalos.position.x),
+        0,
+        scaleValue(AGORA_FEATURES.stoaOfAttalos.position.z)
+    );
+    buildings.push({ mesh: stoa, name: "🏛️ Stoa of Attalos", position: stoa.position.clone() });
+
+    // Tholos
+    const tholos = new THREE.Group();
+    
+    const tholosBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(scaleValue(10), scaleValue(10), 1.5, 32), 
+        createSafeMaterial(0xFFFAF0)
+    );
+    tholosBase.position.y = 0.75;
+    tholosBase.castShadow = true;
+    tholosBase.receiveShadow = true;
+    tholos.add(tholosBase);
+    
+    // Ring of columns
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const column = createPerfectColumn(8, 0.6);
+        column.position.set(
+            Math.cos(angle) * scaleValue(7),
+            1.5,
+            Math.sin(angle) * scaleValue(7)
+        );
+        tholos.add(column);
+    }
+    
+    // Conical roof
+    const tholosRoof = new THREE.Mesh(
+        new THREE.ConeGeometry(scaleValue(8), 6, 24), 
+        createSafeMaterial(0xDC143C)
+    );
+    tholosRoof.position.y = 1.5 + 8 + 3;
+    tholosRoof.castShadow = true;
+    tholos.add(tholosRoof);
+    
+    tholos.position.set(
+        scaleValue(AGORA_FEATURES.tholos.position.x),
+        0,
+        scaleValue(AGORA_FEATURES.tholos.position.z)
+    );
+    buildings.push({ mesh: tholos, name: "⚖️ The Tholos", position: tholos.position.clone() });
+
+    return buildings;
+}
+
+// Fallback function if pristine version fails
+function createBasicAgoraFallback() {
+    console.log('Creating basic Agora fallback...');
+    
+    // Create very basic structures using existing materials
+    const basicMaterial = stoneMaterial || new THREE.MeshLambertMaterial({ color: 0x808080 });
+    
+    // Simple temple
+    const simpleTemple = new THREE.Mesh(
+        new THREE.BoxGeometry(scaleValue(25), 8, scaleValue(12)), 
+        basicMaterial
+    );
+    simpleTemple.position.set(
+        scaleValue(AGORA_FEATURES.templeOfHephaistos.position.x),
+        4,
+        scaleValue(AGORA_FEATURES.templeOfHephaistos.position.z)
+    );
+    simpleTemple.castShadow = true;
+    simpleTemple.receiveShadow = true;
+    scene.add(simpleTemple);
+    
+    console.log('Basic Agora fallback created');
 }
 
         function createAreopagusHill() {
