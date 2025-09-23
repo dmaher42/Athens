@@ -834,23 +834,21 @@ console.log('THREE.js is ready, initializing Athens...');
 try {
     await main();
 } catch (error) {
-    // Keep the extra console logging from `main`
     if (!error?.__athensLogged) {
-console.error('Athens experience failed to initialize:', error);
-if (error?.stack) {
-    console.error(error.stack);
+        console.error('Athens experience failed to initialize:', error);
+        if (error?.stack) {
+            console.error(error.stack);
+        }
+
+        // Keep overlay & detailed logging
+        logDetailedError('Main Function Execution', error);
+        showErrorOverlay('Main Function Execution', error, true);
+
+        // Mark the error so it doesn’t get double-logged
+        error.__athensLogged = true;
+    }
+    throw error;
 }
-
-    // Keep the overlay & detailed logging from `copilot/fix…`
-    logDetailedError('Main Function Execution', error);
-    showErrorOverlay('Main Function Execution', error, true);
-
-    // Mark the error so it doesn’t get double-logged later
-    error.__athensLogged = true;
-    throw error;    
-} 
-                
-        async function main() {
 
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
