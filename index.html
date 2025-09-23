@@ -1113,13 +1113,13 @@
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
 
-          const sunsetSky = await createPhotoSkydome({
-  scene,
-  renderer,
-  url: 'athens/assets/sky/sunset.jpg',   // <— your new file
-  radius: 5000,
-  initialYawDeg: 0
-});
+            const photoSky = await createPhotoSkydome({
+                scene,
+                renderer,
+                url: new URL('./src/sky/sunset.jpg', import.meta.url).href,
+                radius: 5000,
+                initialYawDeg: 0
+            });
 
             photoSky.setAmount(1);
             window.__AthensSky__ = photoSky;
