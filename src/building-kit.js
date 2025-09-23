@@ -80,12 +80,18 @@ export function makeTemple({
 
   // Roof slopes
   const roofH = 2.6;
-  const roof1 = new THREE.Mesh(new THREE.BoxGeometry(width + 1.6, roofH, (length + 1.6) / 2), materials.roof);
+  const roofDepth = (length + 1.6) / 2;
+  const roofHalfDepth = roofDepth * 0.5;
+  const roofPitch = deg(12);
+  const roofY = ent.position.y + entablatureH * 0.5 + roofH * 0.5;
+  const ridgeOffset = Math.sin(roofPitch) * (roofH * 0.5) + Math.cos(roofPitch) * roofHalfDepth;
+
+  const roof1 = new THREE.Mesh(new THREE.BoxGeometry(width + 1.6, roofH, roofDepth), materials.roof);
   const roof2 = roof1.clone();
-  roof1.position.set(0, ent.position.y + entablatureH * 0.5 + roofH * 0.5, -(length / 4));
-  roof2.position.set(0, roof1.position.y,  (length / 4));
-  roof1.rotation.x =  deg(12);
-  roof2.rotation.x = -deg(12);
+  roof1.position.set(0, roofY, -ridgeOffset);
+  roof2.position.set(0, roofY,  ridgeOffset);
+  roof1.rotation.x =  roofPitch;
+  roof2.rotation.x = -roofPitch;
   root.add(roof1, roof2);
 
   // Pediments (triangular)
