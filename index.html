@@ -452,7 +452,7 @@
             return toneLoadingPromise;
         }
 
-        let __level = 1; // start at night since we call setAmount(1)
+        let __level = 0; // updated whenever setTimeOfDay applies a new preset
         window.addEventListener('keydown', (e) => {
             if (!window.__AthensSky__) return;
             if (e.key.toLowerCase() === 'n') {
@@ -500,6 +500,127 @@
                 isFallback: true
             });
         }
+
+        const photoSkyTexturesByKey = new Map();
+
+        const makePhotoSkySources = (fileName, labelPrefix, fallbackEntries = []) => {
+            const sources = [];
+            const seen = new Set();
+
+            const pushSource = (entry) => {
+                const url = entry?.url;
+                if (!url || seen.has(url)) {
+                    return;
+                }
+                seen.add(url);
+                sources.push(entry);
+            };
+
+            skyAssetLocations.forEach(({ prefix, label }, index) => {
+                const url = resolveRelativeUrl(`${prefix}${fileName}`);
+                pushSource({
+                    url,
+                    label: `${labelPrefix} (${label})`,
+                    isFallback: index > 0
+                });
+            });
+
+            fallbackEntries.forEach((entry) => {
+                if (!entry?.url) {
+                    return;
+                }
+                const shouldResolve = entry.resolve !== false;
+                const resolvedUrl = shouldResolve ? resolveRelativeUrl(entry.url) : entry.url;
+                pushSource({
+                    url: resolvedUrl,
+                    label: entry.label || entry.url,
+                    isFallback: true
+                });
+            });
+
+            return sources;
+        };
+
+        const registerPhotoSkySources = (key, fileName, labelPrefix, fallbackEntries = []) => {
+            if (photoSkyTexturesByKey.has(key)) {
+                return photoSkyTexturesByKey.get(key);
+            }
+            const sources = makePhotoSkySources(fileName, labelPrefix, fallbackEntries);
+            photoSkyTexturesByKey.set(key, sources);
+            return sources;
+        };
+
+        const goldenHourPhotoSources = registerPhotoSkySources(
+            'golden-hour',
+            'golden_hour.jpg',
+            'Golden hour sky panorama',
+            [
+                { url: './src/sky/sunset.jpg', label: 'Bundled sunset fallback' }
+            ]
+        );
+
+        const blueHourPhotoSources = registerPhotoSkySources(
+            'blue-hour',
+            'blue_hour.jpg',
+            'Blue hour sky panorama',
+            [
+                { url: './src/sky/night_sky.jpg', label: 'Bundled night sky fallback' }
+            ]
+        );
+
+        const highNoonPhotoSources = registerPhotoSkySources(
+            'high-noon',
+            'high_noon.jpg',
+            'High Noon sky panorama',
+            [
+                { url: './src/sky/sunset.jpg', label: 'Bundled sunset fallback' }
+            ]
+        );
+
+        const starlitNightPhotoSources = registerPhotoSkySources(
+            'starlit-night',
+            'night_sky.jpg',
+            'Night sky panorama',
+            [
+                { url: './src/sky/night_sky.jpg', label: 'Bundled night sky fallback' },
+                ...(typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0
+                    ? [{ url: nightSkyDataUrl, label: 'embedded fallback night sky', resolve: false }]
+                    : [])
+            ]
+        );
+
+        const photoSkyTimeConfig = {
+            'Golden Dawn': {
+                textureKey: 'golden-hour',
+                sources: goldenHourPhotoSources,
+                skydomeOpacity: 0.75,
+                spaceNightAmount: 0.35
+            },
+            'Blue Hour': {
+                textureKey: 'blue-hour',
+                sources: blueHourPhotoSources,
+                skydomeOpacity: 0.9,
+                spaceNightAmount: 0.6
+            },
+            'High Noon': {
+                textureKey: 'high-noon',
+                sources: highNoonPhotoSources,
+                skydomeOpacity: 0.2,
+                spaceNightAmount: 0.0
+            },
+            'Golden Dusk': {
+                textureKey: 'golden-hour',
+                sources: goldenHourPhotoSources,
+                skydomeOpacity: 0.78,
+                spaceNightAmount: 0.45
+            },
+            'Starlit Night': {
+                textureKey: 'starlit-night',
+                sources: starlitNightPhotoSources,
+                skydomeOpacity: 1.0,
+                spaceNightAmount: 1.0
+            }
+        };
 
         const nightSkyCubeSources = skyAssetLocations.map(({ prefix, label }, index) => ({
             label: `cube map (${label})`,
@@ -1089,6 +1210,8 @@
         let bloomPass;
         let fogEnabled = true;
         let spaceNight = null;
+        let photoSkydome = null;
+        let currentPhotoSkyKey = null;
         let canChickenCluck = true;
         let lastCluckTime = 0;
         
@@ -1198,36 +1321,33 @@
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
 
-            const photoSkyTextureSources = skyAssetLocations.map(({ prefix, label }, index) => ({
-                url: resolveRelativeUrl(`${prefix}high_noon.jpg`),
-                label: `High Noon sky panorama (${label})`,
-                isFallback: index > 0
-            }));
-
-            photoSkyTextureSources.push({
-                url: resolveRelativeUrl('./src/sky/sunset.jpg'),
-                label: 'Bundled sunset fallback',
-                isFallback: true
-            });
-
-            const photoSky = await createPhotoSkydome({
+            photoSkydome = await createPhotoSkydome({
                 scene,
                 renderer,
-                sources: photoSkyTextureSources,
+                sources: highNoonPhotoSources,
                 radius: 5000,
                 initialYawDeg: 0
             });
 
-            if (photoSky?.source) {
-                const { label, url, isFallback } = photoSky.source;
+            if (photoSkydome?.source) {
+                const { label, url, isFallback } = photoSkydome.source;
                 const description = label || url;
                 const suffix = isFallback ? ' (fallback)' : '';
                 console.info(`Photo skydome texture loaded: ${description}${suffix}`);
             }
 
-            photoSky.setAmount(1);
-            window.__AthensSky__ = photoSky;
-            __level = 1;
+            window.__AthensSky__ = photoSkydome;
+            currentPhotoSkyKey = 'high-noon';
+            __level = 0;
+
+            photoSkyTexturesByKey.forEach((sources, key) => {
+                if (!photoSkydome || key === currentPhotoSkyKey) {
+                    return;
+                }
+                photoSkydome.prefetchSources(sources).catch((error) => {
+                    console.debug(`Photo skydome prefetch skipped for ${key}:`, error);
+                });
+            });
 
             const textureLoader = new THREE.TextureLoader();
             spaceNight = initSpaceNight({
@@ -3399,6 +3519,8 @@ function createBasicAgoraFallback() {
                 skyMieDirectional: 0.8
             };
 
+            const skydomePreset = photoSkyTimeConfig[name];
+
             switch (name) {
                 case 'Golden Dawn':
                     settings.elevation = 6;
@@ -3540,13 +3662,63 @@ function createBasicAgoraFallback() {
                 }
             }
 
-            let night = 0;
-            if (name === 'Starlit Night') night = 1;
-            else if (name === 'Blue Hour') night = 0.4;
+            const fallbackNightLevel = name === 'Starlit Night' ? 1 : (name === 'Blue Hour' ? 0.4 : 0);
+            const targetNightAmount = typeof skydomePreset?.spaceNightAmount === 'number'
+                ? THREE.MathUtils.clamp(skydomePreset.spaceNightAmount, 0, 1)
+                : fallbackNightLevel;
             if (spaceNight) {
-                spaceNight.setAmount(night);
+                spaceNight.setAmount(targetNightAmount);
             }
-            window.__AthensSky__?.setAmount(night);
+
+            const targetOpacity = typeof skydomePreset?.skydomeOpacity === 'number'
+                ? THREE.MathUtils.clamp(skydomePreset.skydomeOpacity, 0, 1)
+                : fallbackNightLevel;
+            const shouldDelaySkydome = Boolean(
+                photoSkydome && skydomePreset?.textureKey && currentPhotoSkyKey !== skydomePreset.textureKey
+            );
+            const activeSkyController = photoSkydome || window.__AthensSky__;
+            if (activeSkyController) {
+                const currentOpacityValue = typeof activeSkyController.opacity === 'number'
+                    ? activeSkyController.opacity
+                    : 0;
+                const nextOpacity = shouldDelaySkydome
+                    ? Math.min(currentOpacityValue, targetOpacity)
+                    : targetOpacity;
+                activeSkyController.setAmount(nextOpacity);
+                if (typeof skydomePreset?.yawDeg === 'number') {
+                    activeSkyController.setYaw(skydomePreset.yawDeg);
+                }
+            }
+            __level = targetOpacity;
+
+            if (photoSkydome && skydomePreset?.textureKey && Array.isArray(skydomePreset.sources)) {
+                if (currentPhotoSkyKey !== skydomePreset.textureKey) {
+                    const targetKey = skydomePreset.textureKey;
+                    const targetName = name;
+                    photoSkydome.swapTexture({ sources: skydomePreset.sources })
+                        .then((result) => {
+                            if (!result) {
+                                return;
+                            }
+                            const activeName = timeNames[currentTimeOfDay];
+                            if (activeName !== targetName) {
+                                return;
+                            }
+                            currentPhotoSkyKey = targetKey;
+                            const controller = photoSkydome || window.__AthensSky__;
+                            controller?.setAmount(targetOpacity);
+                            if (result.source) {
+                                const { label, url, isFallback } = result.source;
+                                const description = label || url;
+                                const suffix = isFallback ? ' (fallback)' : '';
+                                console.info(`Photo skydome texture loaded for ${targetName}: ${description}${suffix}`);
+                            }
+                        })
+                        .catch((error) => {
+                            console.warn(`Photo skydome texture swap failed for ${targetName}:`, error);
+                        });
+                }
+            }
         }
 
         function updateNightCycle(dt = 0.016) {
