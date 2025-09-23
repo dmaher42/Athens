@@ -4729,7 +4729,7 @@ function createAgoraComplex() {
                         const tone = await loadToneLibrary();
                         if (!tone || typeof tone.start !== 'function') {
                             throw new Error('Tone.js is unavailable after loading.');
-                        } catch (error) { console.error('Error caught in script:', error); }
+                        }
                         await tone.start();
                         console.log("Audio context started.");
                         createAmbientSounds();
