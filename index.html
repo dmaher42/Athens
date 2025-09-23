@@ -418,7 +418,7 @@
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
-        import { createGroundPlane } from './src/scene/ground.js';
+        import { setupGround } from './src/main.js';
         import { setEnvironment } from './src/scene/sky.js';
         import { loadBuildingTextures, retargetBuildingMaterials } from './src/scene/materials.js';
 
@@ -1442,73 +1442,6 @@
 
             const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 8;
             const textureLoader = new THREE.TextureLoader();
-            let groundBaseTexture = null;
-            let groundDustTexture = null;
-
-            try {
-                groundBaseTexture = textureLoader.load(
-                    'assets/textures/grass.jpg',
-                    undefined,
-                    undefined,
-                    (error) => {
-                        console.warn('[ground] grass.jpg not found; using flat color.', error);
-                    }
-                );
-            } catch (error) {
-                console.warn('[ground] grass.jpg not found; using flat color.', error);
-            }
-
-            try {
-                groundDustTexture = textureLoader.load(
-                    'assets/textures/athens_dust.jpg',
-                    undefined,
-                    undefined,
-                    (error) => {
-                        console.warn('[ground] athens_dust.jpg not found; alpha blend disabled.', error);
-                    }
-                );
-            } catch (error) {
-                console.warn('[ground] athens_dust.jpg not found; alpha blend disabled.', error);
-            }
-
-            groundMesh = createGroundPlane({
-                size: 10000,
-                repeats: 100,
-                textures: { base: groundBaseTexture, overlay: groundDustTexture }
-            });
-
-            if (groundMesh) {
-                const { map, alphaMap } = groundMesh.material;
-                if (map) {
-                    map.anisotropy = Math.max(map.anisotropy || 0, maxAnisotropy);
-                    map.needsUpdate = true;
-                }
-                if (alphaMap) {
-                    alphaMap.anisotropy = Math.max(alphaMap.anisotropy || 0, maxAnisotropy);
-                    alphaMap.needsUpdate = true;
-                }
-                scene.add(groundMesh);
-            }
-
-            if (!groundMaterial) {
-                groundMaterial = new THREE.MeshStandardMaterial({
-                    color: 0xb7b09a,
-                    roughness: 0.95,
-                    metalness: 0.0
-                });
-            }
-
-            if (groundBaseTexture) {
-                groundMaterial.map = groundBaseTexture;
-                groundMaterial.color.set(0xffffff);
-                groundMaterial.needsUpdate = true;
-                groundBaseTexture.anisotropy = Math.max(groundBaseTexture.anisotropy || 0, maxAnisotropy);
-                groundBaseTexture.needsUpdate = true;
-                groundTexture = groundBaseTexture;
-            }
-
-            groundMaterial.alphaMap = null;
-            groundMaterial.transparent = false;
 
             if (buildingMaterialSet?.marbleMat?.map) {
                 buildingMaterialSet.marbleMat.map.anisotropy = Math.max(
@@ -1609,6 +1542,13 @@
 
             hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x8B4513, 0.3); // Reduced intensity
             scene.add(hemisphereLight);
+
+            groundMesh = await setupGround(scene, renderer);
+
+            if (groundMesh) {
+                groundMaterial = groundMesh.material;
+                groundTexture = groundMaterial.map || null;
+            }
 
             scene.fog = null;
 
