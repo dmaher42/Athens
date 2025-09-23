@@ -1,4 +1,5 @@
 import THREE from './three.js';
+import { applyFeatureOffset } from './geo/featureOffsets.js';
 
 /**
  * Load every feature from a GeoJSON file and add to the scene.
@@ -38,7 +39,10 @@ export async function loadLandmarks({
     const targetGroup = groups[cat] || groups.cultural;
 
     if (f.geometry?.type === 'Point') {
-      const [lon, lat] = f.geometry.coordinates;
+      const [lon, lat] = applyFeatureOffset(f.geometry.coordinates, {
+        properties: props,
+        fallbackName: name
+      });
       const pos = projector ? projector(lon, lat) : lonLatToLocal(lon, lat);
 
       const pin = makePinMesh(cat);

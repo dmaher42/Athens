@@ -1,5 +1,6 @@
 import { loadGeoJson } from '../geo/geoLoader.js';
 import { LocalEquirectangularProjection } from '../geo/projection.js';
+import { applyFeatureOffset } from '../geo/featureOffsets.js';
 import { AgoraLayer } from './agoraLayer.js';
 
 const LANDMARK_LABELS = {
@@ -456,9 +457,13 @@ export class LandmarkOverlay {
             }
 
             if (geometry.type === 'Point') {
-                const world = this.projection.projectGeoJsonPosition(geometry.coordinates);
-                this._extendBounds(world);
                 const canonicalName = properties.name || properties.id || properties.title || 'Unnamed landmark';
+                const adjustedCoords = applyFeatureOffset(geometry.coordinates, {
+                    properties,
+                    fallbackName: canonicalName
+                });
+                const world = this.projection.projectGeoJsonPosition(adjustedCoords);
+                this._extendBounds(world);
                 const displayTitle = properties.title || canonicalName;
                 const short = LANDMARK_LABELS[canonicalName]
                     || LANDMARK_LABELS[displayTitle]

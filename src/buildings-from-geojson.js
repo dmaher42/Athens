@@ -3,6 +3,7 @@ import {
   makeTemple, makeStoa, makeTheatre, makeTholos, makeWallPath,
   makePropylon, makeBlock, makeAltar, makeExedra
 } from './building-kit.js';
+import { applyFeatureOffset } from './geo/featureOffsets.js';
 
 const deg = (d)=> THREE.MathUtils.degToRad(d);
 
@@ -158,7 +159,10 @@ export async function buildFromGeoJSON({ scene, geoJsonUrl, projector }) {
     const rotDeg = props.rotation_deg ?? cfgDirect?.defaultRotationDeg ?? 0;
 
     if (f.geometry?.type === 'Point') {
-      const [lon, lat] = f.geometry.coordinates;
+      const [lon, lat] = applyFeatureOffset(
+        f.geometry.coordinates,
+        { properties: props, fallbackName: rawName }
+      );
       const pos = toWorld(lon, lat);
 
       const cfg = cfgDirect;
