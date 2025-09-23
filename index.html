@@ -1259,7 +1259,7 @@
             loadGreekTemple();
 
             try {
-                const { buildFromGeoJSON } catch (error) { console.error('Error caught in script:', error); } = await import('./src/buildings-from-geojson.js');
+                const { buildFromGeoJSON } = await import('./src/buildings-from-geojson.js');
                 const projectorInstance = window?.AthensGeo?.projector;
                 const projector = projectorInstance && typeof projectorInstance.project === 'function'
                     ? (lon, lat) => {
@@ -5043,7 +5043,7 @@ function createAgoraComplex() {
 
         async function setupLandmarks() {
             try {
-                const { loadLandmarks } catch (error) { console.error('Error caught in script:', error); } = await import('./src/landmarks-loader.js');
+                const { loadLandmarks } = await import('./src/landmarks-loader.js');
 
                 const projectorInstance = window?.AthensGeo?.projector;
                 const projectorFn = projectorInstance && typeof projectorInstance.project === 'function'
