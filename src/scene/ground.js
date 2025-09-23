@@ -114,9 +114,12 @@ export async function loadGround(scene, renderer) {
   ground.position.y = 0;
   ground.receiveShadow = true;
 
+  const grassTextureUrl = new URL('../../public/assets/textures/grass.jpg', import.meta.url).href;
+  const dustTextureUrl = new URL('../../public/assets/textures/athens_dust.jpg', import.meta.url).href;
+
   const [grassTexture, dustTexture] = await Promise.all([
-    loadTexture(loader, 'assets/textures/grass.jpg', '[ground] grass.jpg not found; using flat color.'),
-    loadTexture(loader, 'assets/textures/athens_dust.jpg', '[ground] athens_dust.jpg not found; alpha blend disabled.')
+    loadTexture(loader, grassTextureUrl, '[ground] grass.jpg not found; using flat color.'),
+    loadTexture(loader, dustTextureUrl, '[ground] athens_dust.jpg not found; alpha blend disabled.')
   ]);
 
   if (grassTexture) {
