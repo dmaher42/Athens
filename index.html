@@ -411,6 +411,7 @@
 <script type="module">
         import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+        import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
         import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -985,6 +986,58 @@
         let audioStarted = false;
         const chickens = [];
         const citizens = [];
+        const CITIZEN_MODEL_URL = './models/npc_athenian.glb';
+        const citizenLoader = new GLTFLoader();
+        let citizenModelCache = null;
+        let citizenModelLoadingPromise = null;
+
+        function loadCitizenModel() {
+            if (citizenModelCache) {
+                return Promise.resolve(citizenModelCache);
+            }
+
+            if (citizenModelLoadingPromise) {
+                return citizenModelLoadingPromise;
+            }
+
+            citizenModelLoadingPromise = new Promise((resolve, reject) => {
+                citizenLoader.load(
+                    CITIZEN_MODEL_URL,
+                    (gltf) => {
+                        const baseModel = gltf.scene || gltf.scenes?.[0];
+                        if (!baseModel) {
+                            citizenModelLoadingPromise = null;
+                            reject(new Error('Citizen model GLB did not include a scene graph.'));
+                            return;
+                        }
+
+                        baseModel.updateMatrixWorld(true);
+                        const bounds = new THREE.Box3().setFromObject(baseModel);
+                        const height = Math.max(0.001, bounds.max.y - bounds.min.y);
+                        const targetHeight = 1.8;
+                        const scaleFactor = targetHeight / height;
+                        const pivotOffset = -bounds.min.y * scaleFactor;
+
+                        citizenModelCache = {
+                            baseModel,
+                            animations: gltf.animations || [],
+                            scaleFactor,
+                            pivotOffset
+                        };
+
+                        citizenModelLoadingPromise = null;
+                        resolve(citizenModelCache);
+                    },
+                    undefined,
+                    (error) => {
+                        citizenModelLoadingPromise = null;
+                        reject(error);
+                    }
+                );
+            });
+
+            return citizenModelLoadingPromise;
+        }
         const citizenZones = [
             { name: 'agora', center: scaleLocation(AGORA_ANCHOR_SCENE), radius: scaleValue(12), count: 6 },
             { name: 'pnyx', center: scaleLocation(PNYX_POSITION), radius: scaleValue(8), count: 3 },
@@ -3938,45 +3991,108 @@ function createBasicAgoraFallback() {
                 0x4d5c8b
             ];
 
-            citizenZones.forEach(zone => {
-                for (let i = 0; i < zone.count; i++) {
-                    const color = tunicPalette[Math.floor(Math.random() * tunicPalette.length)];
-                    const model = createCitizenModel(color);
-                    const spawnPosition = getRandomPointInZone(zone);
+            const registerCitizen = (model, zone, spawnPosition) => {
+                model.position.copy(spawnPosition);
+                model.rotation.y = Math.random() * Math.PI * 2;
 
-                    model.position.copy(spawnPosition);
-                    model.rotation.y = Math.random() * Math.PI * 2;
+                const limbs = {
+                    armL: model.getObjectByName('armL'),
+                    armR: model.getObjectByName('armR'),
+                    legL: model.getObjectByName('legL'),
+                    legR: model.getObjectByName('legR')
+                };
 
-                    const npc = {
-                        model,
-                        zone,
-                        baseY: spawnPosition.y,
-                        speed: Math.random() * 0.6 + 0.8,
-                        state: Math.random() < 0.6 ? 'walking' : 'idle',
-                        walkTimer: 0,
-                        idleTimer: 0,
-                        walkCycle: Math.random() * Math.PI * 2,
-                        animationOffset: Math.random() * Math.PI * 2,
-                        destination: null,
-                        limbs: {
-                            armL: model.getObjectByName('armL'),
-                            armR: model.getObjectByName('armR'),
-                            legL: model.getObjectByName('legL'),
-                            legR: model.getObjectByName('legR')
-                        }
-                    };
+                const npc = {
+                    model,
+                    zone,
+                    baseY: spawnPosition.y,
+                    speed: Math.random() * 0.6 + 0.8,
+                    state: Math.random() < 0.6 ? 'walking' : 'idle',
+                    walkTimer: 0,
+                    idleTimer: 0,
+                    walkCycle: Math.random() * Math.PI * 2,
+                    animationOffset: Math.random() * Math.PI * 2,
+                    destination: null,
+                    limbs,
+                    hasProceduralLimbs: Boolean(limbs.armL || limbs.armR || limbs.legL || limbs.legR)
+                };
 
-                    chooseNewCitizenDestination(npc);
-                    if (npc.state === 'walking') {
-                        npc.walkTimer = Math.random() * 5 + 3;
-                    } else {
-                        npc.idleTimer = Math.random() * 3 + 2;
-                    }
-
-                    citizens.push(npc);
-                    scene.add(model);
+                chooseNewCitizenDestination(npc);
+                if (npc.state === 'walking') {
+                    npc.walkTimer = Math.random() * 5 + 3;
+                } else {
+                    npc.idleTimer = Math.random() * 3 + 2;
                 }
-            });
+
+                citizens.push(npc);
+                scene.add(model);
+
+                return npc;
+            };
+
+            const spawnProceduralCitizens = () => {
+                citizenZones.forEach((zone) => {
+                    for (let i = 0; i < zone.count; i++) {
+                        const color = tunicPalette[Math.floor(Math.random() * tunicPalette.length)];
+                        const model = createCitizenModel(color);
+                        const spawnPosition = getRandomPointInZone(zone);
+                        registerCitizen(model, zone, spawnPosition);
+                    }
+                });
+            };
+
+            loadCitizenModel()
+                .then((asset) => {
+                    const { baseModel, animations, scaleFactor, pivotOffset } = asset;
+
+                    citizenZones.forEach((zone) => {
+                        for (let i = 0; i < zone.count; i++) {
+                            const color = tunicPalette[Math.floor(Math.random() * tunicPalette.length)];
+                            const citizenRoot = new THREE.Group();
+                            citizenRoot.name = 'Citizen NPC';
+                            citizenRoot.userData = {
+                                ...(citizenRoot.userData || {}),
+                                tunicColor: color,
+                                source: 'npc_athenian.glb'
+                            };
+
+                            const clone = SkeletonUtils?.clone
+                                ? SkeletonUtils.clone(baseModel)
+                                : baseModel.clone(true);
+
+                            clone.traverse((child) => {
+                                if (!child.isMesh) return;
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                                if (child.material) {
+                                    child.material = child.material.clone();
+                                    child.material.needsUpdate = true;
+                                }
+                            });
+
+                            clone.scale.setScalar(scaleFactor);
+                            clone.position.y = pivotOffset;
+                            citizenRoot.add(clone);
+
+                            const spawnPosition = getRandomPointInZone(zone);
+                            const npc = registerCitizen(citizenRoot, zone, spawnPosition);
+
+                            if (Array.isArray(animations) && animations.length) {
+                                const mixer = new THREE.AnimationMixer(clone);
+                                animations.forEach((clip) => {
+                                    const action = mixer.clipAction(clip);
+                                    action.play();
+                                });
+                                externalAnimationMixers.push(mixer);
+                                npc.mixer = mixer;
+                            }
+                        }
+                    });
+                })
+                .catch((error) => {
+                    console.error('Failed to load Athenian citizen model, using fallback citizens.', error);
+                    spawnProceduralCitizens();
+                });
         }
 
         function createChickenModel() {
@@ -4251,11 +4367,19 @@ function createBasicAgoraFallback() {
                     npc.walkTimer -= delta;
                     const toTarget = npc.destination.clone().sub(npc.model.position);
                     const distance = toTarget.length();
+                    const hasProceduralLimbs =
+                        npc.hasProceduralLimbs ?? Boolean(
+                            npc.limbs && (npc.limbs.armL || npc.limbs.armR || npc.limbs.legL || npc.limbs.legR)
+                        );
 
                     if (distance < 0.3 || npc.walkTimer <= 0) {
                         npc.state = 'idle';
                         npc.idleTimer = Math.random() * 3 + 2;
                         npc.model.position.y = npc.baseY;
+                        if (!hasProceduralLimbs) {
+                            npc.model.rotation.x = THREE.MathUtils.lerp(npc.model.rotation.x, 0, 0.3);
+                            npc.model.rotation.z = THREE.MathUtils.lerp(npc.model.rotation.z, 0, 0.3);
+                        }
                     } else {
                         toTarget.normalize();
                         npc.model.position.addScaledVector(toTarget, npc.speed * delta);
@@ -4266,18 +4390,58 @@ function createBasicAgoraFallback() {
 
                         npc.walkCycle += delta * npc.speed * 4;
                         const swing = Math.sin(npc.walkCycle);
-                        if (npc.limbs.armL) npc.limbs.armL.rotation.x = swing * 0.5;
-                        if (npc.limbs.armR) npc.limbs.armR.rotation.x = -swing * 0.5;
-                        if (npc.limbs.legL) npc.limbs.legL.rotation.x = -swing * 0.6;
-                        if (npc.limbs.legR) npc.limbs.legR.rotation.x = swing * 0.6;
+                        if (hasProceduralLimbs) {
+                            if (npc.limbs.armL) npc.limbs.armL.rotation.x = swing * 0.5;
+                            if (npc.limbs.armR) npc.limbs.armR.rotation.x = -swing * 0.5;
+                            if (npc.limbs.legL) npc.limbs.legL.rotation.x = -swing * 0.6;
+                            if (npc.limbs.legR) npc.limbs.legR.rotation.x = swing * 0.6;
+                        } else {
+                            const bounce = Math.abs(Math.sin(npc.walkCycle)) * 0.08;
+                            npc.model.position.y = npc.baseY + bounce;
+                            npc.model.rotation.z = THREE.MathUtils.lerp(npc.model.rotation.z, swing * 0.08, 0.2);
+                            npc.model.rotation.x = THREE.MathUtils.lerp(
+                                npc.model.rotation.x,
+                                Math.cos(npc.walkCycle) * 0.04,
+                                0.2
+                            );
+                        }
                     }
                 } else {
                     npc.idleTimer -= delta;
                     const relaxFactor = Math.min(1, delta * 5);
-                    if (npc.limbs.armL) npc.limbs.armL.rotation.x = THREE.MathUtils.lerp(npc.limbs.armL.rotation.x, 0, relaxFactor);
-                    if (npc.limbs.armR) npc.limbs.armR.rotation.x = THREE.MathUtils.lerp(npc.limbs.armR.rotation.x, 0, relaxFactor);
-                    if (npc.limbs.legL) npc.limbs.legL.rotation.x = THREE.MathUtils.lerp(npc.limbs.legL.rotation.x, 0, relaxFactor);
-                    if (npc.limbs.legR) npc.limbs.legR.rotation.x = THREE.MathUtils.lerp(npc.limbs.legR.rotation.x, 0, relaxFactor);
+                    const hasProceduralLimbs =
+                        npc.hasProceduralLimbs ?? Boolean(
+                            npc.limbs && (npc.limbs.armL || npc.limbs.armR || npc.limbs.legL || npc.limbs.legR)
+                        );
+                    if (hasProceduralLimbs) {
+                        if (npc.limbs.armL)
+                            npc.limbs.armL.rotation.x = THREE.MathUtils.lerp(
+                                npc.limbs.armL.rotation.x,
+                                0,
+                                relaxFactor
+                            );
+                        if (npc.limbs.armR)
+                            npc.limbs.armR.rotation.x = THREE.MathUtils.lerp(
+                                npc.limbs.armR.rotation.x,
+                                0,
+                                relaxFactor
+                            );
+                        if (npc.limbs.legL)
+                            npc.limbs.legL.rotation.x = THREE.MathUtils.lerp(
+                                npc.limbs.legL.rotation.x,
+                                0,
+                                relaxFactor
+                            );
+                        if (npc.limbs.legR)
+                            npc.limbs.legR.rotation.x = THREE.MathUtils.lerp(
+                                npc.limbs.legR.rotation.x,
+                                0,
+                                relaxFactor
+                            );
+                    } else {
+                        npc.model.rotation.x = THREE.MathUtils.lerp(npc.model.rotation.x, 0, relaxFactor);
+                        npc.model.rotation.z = THREE.MathUtils.lerp(npc.model.rotation.z, 0, relaxFactor);
+                    }
 
                     npc.model.position.y = npc.baseY + Math.sin(time * 1.5 + npc.animationOffset) * 0.02;
 
