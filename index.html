@@ -1114,13 +1114,32 @@
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
 
+            const photoSkyTextureSources = [
+                {
+                    url: new URL('./assets/sky/high_noon.jpg', import.meta.url).href,
+                    label: 'High Noon sky panorama'
+                },
+                {
+                    url: new URL('./src/sky/sunset.jpg', import.meta.url).href,
+                    label: 'Bundled sunset fallback',
+                    isFallback: true
+                }
+            ];
+
             const photoSky = await createPhotoSkydome({
                 scene,
                 renderer,
-                url: new URL('./src/sky/sunset.jpg', import.meta.url).href,
+                sources: photoSkyTextureSources,
                 radius: 5000,
                 initialYawDeg: 0
             });
+
+            if (photoSky?.source) {
+                const { label, url, isFallback } = photoSky.source;
+                const description = label || url;
+                const suffix = isFallback ? ' (fallback)' : '';
+                console.info(`Photo skydome texture loaded: ${description}${suffix}`);
+            }
 
             photoSky.setAmount(1);
             window.__AthensSky__ = photoSky;
