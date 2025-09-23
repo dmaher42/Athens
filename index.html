@@ -15,7 +15,8 @@
             "three/examples/jsm/objects/Sky.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/objects/Sky.js",
             "three/examples/jsm/postprocessing/EffectComposer.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js",
             "three/examples/jsm/postprocessing/RenderPass.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/postprocessing/RenderPass.js",
-            "three/examples/jsm/postprocessing/UnrealBloomPass.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/postprocessing/UnrealBloomPass.js"
+            "three/examples/jsm/postprocessing/UnrealBloomPass.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/postprocessing/UnrealBloomPass.js",
+            "three/examples/jsm/utils/SkeletonUtils.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/utils/SkeletonUtils.js"
         }
     }
     </script>
@@ -5492,6 +5493,7 @@ function createBasicAgoraFallback() {
 <script type="module">
         import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+        import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
         const waitForWorld = () => {
             if (window.athensWorldBuilt && window.scene && window.renderer) {
@@ -5540,6 +5542,34 @@ function createBasicAgoraFallback() {
                 object.position.set(x, y, z);
             }
         };
+
+        const hoplitePlacements = [
+            {
+                name: 'Agora Hoplite',
+                position: { x: -1090.575, y: 0, z: 950.573 },
+                rotation: Math.PI / 3
+            },
+            {
+                name: 'Acropolis Hoplite',
+                position: { x: 115.092, y: 0, z: -85.479 },
+                rotation: -Math.PI / 2
+            },
+            {
+                name: 'Pnyx Hoplite',
+                position: { x: -1643.722, y: 0, z: 623.381 },
+                rotation: (3 * Math.PI) / 4
+            },
+            {
+                name: 'Areopagus Hoplite',
+                position: { x: 2161.233, y: 0, z: -1655.909 },
+                rotation: Math.PI / 8
+            },
+            {
+                name: 'Kerameikos Hoplite',
+                position: { x: 1398.34, y: 0, z: -708.156 },
+                rotation: -Math.PI / 4
+            }
+        ];
 
         await waitForWorld();
 
@@ -5612,41 +5642,69 @@ function createBasicAgoraFallback() {
             );
         };
 
-        const loadNPC = () => {
+        const loadHopliteGuards = () => {
             loadModelWithFallback(
                 [
+                    './models/hoplite_npc.glb',
                     './models/npc_athenian.glb',
                     './models/Adventurer.glb',
                     './models/character.glb'
                 ],
                 (gltf, modelPath) => {
-                    const npcGroup = new THREE.Group();
-                    const npc = gltf.scene || new THREE.Group();
-                    npc.scale.set(1.2, 1.2, 1.2);
-                    npcGroup.add(npc);
-                    applyMeshEnhancements(npcGroup, renderer);
-                    placeObject(npcGroup, -10, 0, 5);
-                    scene.add(npcGroup);
+                    const baseModel = gltf.scene || new THREE.Group();
+                    const mixers = window.externalAnimationMixers || (window.externalAnimationMixers = []);
+                    const hopliteGroups = [];
 
-                    if (Array.isArray(gltf.animations) && gltf.animations.length) {
-                        const mixers = window.externalAnimationMixers || (window.externalAnimationMixers = []);
-                        const npcMixer = new THREE.AnimationMixer(npc);
-                        gltf.animations.forEach((clip) => {
-                            npcMixer.clipAction(clip).play();
-                        });
-                        mixers.push(npcMixer);
-                    }
+                    hoplitePlacements.forEach((placement, index) => {
+                        const hopliteGroup = new THREE.Group();
+                        const hoplite = SkeletonUtils?.clone
+                            ? SkeletonUtils.clone(baseModel)
+                            : baseModel.clone(true);
 
-                    console.info(`NPC model loaded from ${modelPath}.`);
+                        hoplite.scale.set(1.2, 1.2, 1.2);
+                        hopliteGroup.add(hoplite);
+
+                        if (typeof placement.rotation === 'number') {
+                            hopliteGroup.rotation.y = placement.rotation;
+                        }
+
+                        hopliteGroup.name = placement.name || `Hoplite Guard ${index + 1}`;
+                        hopliteGroup.userData = {
+                            ...hopliteGroup.userData,
+                            hopliteRole: placement.name,
+                            hopliteIndex: index
+                        };
+
+                        applyMeshEnhancements(hopliteGroup, renderer);
+
+                        const { x, y = 0, z } = placement.position;
+                        placeObject(hopliteGroup, x, y, z);
+                        scene.add(hopliteGroup);
+                        hopliteGroups.push(hopliteGroup);
+
+                        if (Array.isArray(gltf.animations) && gltf.animations.length) {
+                            const mixer = new THREE.AnimationMixer(hoplite);
+                            gltf.animations.forEach((clip) => {
+                                mixer.clipAction(clip).play();
+                            });
+                            mixers.push(mixer);
+                        }
+                    });
+
+                    window.hopliteNPCs = hopliteGroups;
+
+                    console.info(
+                        `Hoplite NPC model loaded from ${modelPath} and deployed at ${hoplitePlacements.length} locations.`
+                    );
                 },
                 (error) => {
-                    console.error('NPC model failed to load after all fallback attempts.', error);
+                    console.error('Hoplite NPC model failed to load after all fallback attempts.', error);
                 }
             );
         };
 
         loadTemple();
-        loadNPC();
+        loadHopliteGuards();
     </script>
 </body>
 </html>
