@@ -2,10 +2,30 @@ import THREE from './three.js';
 
 /** Lightweight materials (one-time) */
 const MAT = {
-  stone: new THREE.MeshStandardMaterial({ color: 0xded7c8, roughness: 0.8, metalness: 0.0 }),
-  marble: new THREE.MeshStandardMaterial({ color: 0xe2d4c6, roughness: 0.7, metalness: 0.03 }),
-  roof:   new THREE.MeshStandardMaterial({ color: 0x9d3e26,  roughness: 0.9, metalness: 0.0 }),
-  dark:   new THREE.MeshStandardMaterial({ color: 0x6b6b6b,  roughness: 0.9, metalness: 0.0 }),
+  stone: new THREE.MeshStandardMaterial({
+    color: 0xb8a27c, // muted honey limestone
+    roughness: 0.82,
+    metalness: 0.04,
+    emissiveIntensity: 0.02
+  }),
+  marble: new THREE.MeshStandardMaterial({
+    color: 0xe5e4e2,
+    roughness: 0.68,
+    metalness: 0.05,
+    emissiveIntensity: 0.015
+  }),
+  roof: new THREE.MeshStandardMaterial({
+    color: 0x8b0000,
+    roughness: 0.72,
+    metalness: 0.06,
+    emissiveIntensity: 0.015
+  }),
+  dark: new THREE.MeshStandardMaterial({
+    color: 0x7a7a7a,
+    roughness: 0.88,
+    metalness: 0.03,
+    emissiveIntensity: 0.01
+  })
 };
 
 /** Shared helpers */
@@ -283,7 +303,7 @@ export function makeExedra({
   // Bench / stylobate (half-disc)
   const bench = new THREE.Mesh(
     new THREE.CylinderGeometry(radius, radius, benchH, 48, 1, false, -Math.PI / 2, Math.PI),
-    new THREE.MeshStandardMaterial({ color: 0xefeae1, roughness: 0.7 })
+    MAT.marble
   );
   bench.position.y = benchH / 2;
   g.add(bench);
@@ -291,14 +311,14 @@ export function makeExedra({
   // Back wall (half-cylinder shell)
   const wall = new THREE.Mesh(
     new THREE.CylinderGeometry(radius, radius, wallHeight, 48, 1, true, -Math.PI / 2, Math.PI),
-    new THREE.MeshStandardMaterial({ color: 0xded7c8, roughness: 0.85 })
+    MAT.stone
   );
   wall.position.y = benchH + wallHeight / 2;
   g.add(wall);
 
   // Arc of columns
   const colGeo = new THREE.CylinderGeometry(colR, colR, colH, 16, 1);
-  const im = new THREE.InstancedMesh(colGeo, new THREE.MeshStandardMaterial({ color: 0xefeae1, roughness: 0.65 }), cols);
+  const im = new THREE.InstancedMesh(colGeo, MAT.marble, cols);
   for (let i = 0; i < cols; i++) {
     const t = cols === 1 ? 0.5 : i / (cols - 1);
     const theta = -Math.PI / 2 + t * Math.PI;
