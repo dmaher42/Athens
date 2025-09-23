@@ -5589,11 +5589,11 @@ function createBasicAgoraFallback() {
             
             // Handle movement
             const moveDirection = new THREE.Vector3();
-            if (controls.KeyW) moveDirection.z -= 1;
-            if (controls.KeyS) moveDirection.z += 1;
+            if (controls.KeyS) moveDirection.z -= 1;
+            if (controls.KeyW) moveDirection.z += 1;
 
             const hasHorizontalInput = moveDirection.lengthSq() > 0;
-            const isMoving = controls.KeyW || controls.KeyS;
+            const isMoving = controls.KeyS || controls.KeyW;
 
             if (player && player.actions && player.playAction) {
                 const actionKeys = Object.keys(player.actions);
