@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import THREE from './three.js';
 
 /**
  * Load every feature from a GeoJSON file and add to the scene.
