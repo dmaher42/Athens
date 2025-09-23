@@ -5122,27 +5122,26 @@ function createAgoraComplex() {
         }
         
         // Initialize the application
-try {
-    await init();
-} catch (error) {
-    console.error('Failed to initialize Athens experience:', error);
-    if (error?.stack) {
-        console.error(error.stack);
-    } catch (error) { console.error('Error caught in script:', error); }
-    logDetailedError('Async Initialization', error);
-    showErrorOverlay('Async Initialization', error, false);
-    error.__athensLogged = true;
-    throw error;
-}
+        try {
+            await init();
+        } catch (error) {
+            console.error('Failed to initialize Athens experience:', error);
+            if (error?.stack) {
+                console.error(error.stack);
+            }
+            logDetailedError('Async Initialization', error);
+            showErrorOverlay('Async Initialization', error, false);
+            error.__athensLogged = true;
+            throw error;
+        }
 
-        } // End of main function
+} // End of main function
         
         // --- START ---
         window.onload = function() {
             initializeAthens();
         };
-
-    }})</script>
+</script>
 <script type="module">
         import { loadGeoJson } from './src/geo/geoLoader.js';
         import { LocalEquirectangularProjection } from './src/geo/projection.js';
