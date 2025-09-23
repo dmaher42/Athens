@@ -474,10 +474,24 @@
 
         // --- Space Night module: Milky Way skybox + dust + nebulas -----------------
         const useCubeMap = false;
-        const nightSkyTextureUrl = '/assets/sky/night_sky.jpg';
-        const nightSkyTextureSources = [
-            { url: nightSkyTextureUrl, label: 'night_sky.jpg asset' }
+
+        const resolveRelativeUrl = (relativePath) => new URL(relativePath, import.meta.url).href;
+        const skyAssetLocations = [
+            { prefix: './public/assets/sky/', label: 'public/assets/sky' },
+            { prefix: './assets/sky/', label: 'assets/sky (legacy)' }
         ];
+
+        const nightSkyTextureSources = skyAssetLocations.map(({ prefix, label }, index) => ({
+            url: resolveRelativeUrl(`${prefix}night_sky.jpg`),
+            label: `night_sky.jpg (${label})`,
+            isFallback: index > 0
+        }));
+
+        nightSkyTextureSources.push({
+            url: resolveRelativeUrl('./src/sky/night_sky.jpg'),
+            label: 'Bundled night sky fallback',
+            isFallback: true
+        });
 
         if (typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0) {
             nightSkyTextureSources.push({
@@ -487,14 +501,18 @@
             });
         }
 
-        const nightSkyCubeUrls = [
-            '/assets/sky/night_sky_right.jpg',
-            '/assets/sky/night_sky_left.jpg',
-            '/assets/sky/night_sky_top.jpg',
-            '/assets/sky/night_sky_bottom.jpg',
-            '/assets/sky/night_sky_front.jpg',
-            '/assets/sky/night_sky_back.jpg'
-        ];
+        const nightSkyCubeSources = skyAssetLocations.map(({ prefix, label }, index) => ({
+            label: `cube map (${label})`,
+            urls: [
+                resolveRelativeUrl(`${prefix}night_sky_right.jpg`),
+                resolveRelativeUrl(`${prefix}night_sky_left.jpg`),
+                resolveRelativeUrl(`${prefix}night_sky_top.jpg`),
+                resolveRelativeUrl(`${prefix}night_sky_bottom.jpg`),
+                resolveRelativeUrl(`${prefix}night_sky_front.jpg`),
+                resolveRelativeUrl(`${prefix}night_sky_back.jpg`)
+            ],
+            isFallback: index > 0
+        }));
 
         let nightSkyTexture = null;
         let nightSkyCubeTexture = null;
@@ -556,10 +574,18 @@
             trySource(0);
         }
 
-        function loadNightSkyCube(scene, renderer) {
+        function loadNightSkyCube(scene, renderer, attempt = 0) {
             const loader = new THREE.CubeTextureLoader();
+            const source = nightSkyCubeSources[attempt];
+
+            if (!source) {
+                console.warn('Cube map night sky failed to load from all known locations; falling back to equirectangular.');
+                loadNightSkyEquirectangular(scene, renderer);
+                return;
+            }
+
             nightSkyCubeTexture = loader.load(
-                nightSkyCubeUrls,
+                source.urls,
                 (texture) => {
                     if ('colorSpace' in texture && THREE.SRGBColorSpace) {
                         texture.colorSpace = THREE.SRGBColorSpace;
@@ -570,8 +596,13 @@
                 },
                 undefined,
                 (error) => {
-                    console.warn('Cube map night sky failed to load, falling back to equirectangular.', error);
-                    loadNightSkyEquirectangular(scene, renderer);
+                    const nextAttempt = attempt + 1;
+                    const hasFallback = nextAttempt < nightSkyCubeSources.length;
+                    const message = hasFallback
+                        ? `Cube map night sky failed to load from ${source.label}, trying fallback.`
+                        : `Cube map night sky failed to load from ${source.label}; falling back to equirectangular.`;
+                    console.warn(message, error);
+                    loadNightSkyCube(scene, renderer, nextAttempt);
                 }
             );
         }
@@ -1167,17 +1198,17 @@
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
 
-            const photoSkyTextureSources = [
-                {
-                    url: new URL('./assets/sky/high_noon.jpg', import.meta.url).href,
-                    label: 'High Noon sky panorama'
-                },
-                {
-                    url: new URL('./src/sky/sunset.jpg', import.meta.url).href,
-                    label: 'Bundled sunset fallback',
-                    isFallback: true
-                }
-            ];
+            const photoSkyTextureSources = skyAssetLocations.map(({ prefix, label }, index) => ({
+                url: resolveRelativeUrl(`${prefix}high_noon.jpg`),
+                label: `High Noon sky panorama (${label})`,
+                isFallback: index > 0
+            }));
+
+            photoSkyTextureSources.push({
+                url: resolveRelativeUrl('./src/sky/sunset.jpg'),
+                label: 'Bundled sunset fallback',
+                isFallback: true
+            });
 
             const photoSky = await createPhotoSkydome({
                 scene,
