@@ -4160,7 +4160,6 @@ function createBasicAgoraFallback() {
         // --- GAME LOGIC & ANIMATION ---
         
         const locations = [
-            { name: "The Parthenon", position: scaleLocation({ x: ACROPOLIS_POSITION.x, y: 10, z: ACROPOLIS_POSITION.z }), radius: scaleValue(30), title: "🏛️ The Parthenon" },
             { name: "Temple of Hephaistos", position: scaleLocation({ x: AGORA_FEATURES.templeOfHephaistos.position.x, y: 4, z: AGORA_FEATURES.templeOfHephaistos.position.z }), radius: scaleValue(18), title: "🛠️ Temple of Hephaistos" },
             { name: "Stoa of Attalos", position: scaleLocation({ x: AGORA_FEATURES.stoaOfAttalos.position.x, y: 4, z: AGORA_FEATURES.stoaOfAttalos.position.z }), radius: scaleValue(28), title: "🏛️ Stoa of Attalos" },
             { name: "Tholos", position: scaleLocation({ x: AGORA_FEATURES.tholos.position.x, y: 3, z: AGORA_FEATURES.tholos.position.z }), radius: scaleValue(16), title: "⚖️ The Tholos" },
@@ -5307,6 +5306,19 @@ function createBasicAgoraFallback() {
                         const name = props.title || props.name || 'Unnamed';
                         const rawCategory = (props.category || 'cultural').toString().toLowerCase();
                         const category = ['democracy', 'cultural', 'natural'].includes(rawCategory) ? rawCategory : 'cultural';
+
+                        const normalizedName = name.toLowerCase();
+                        if (normalizedName === 'parthenon' || normalizedName === 'the parthenon') {
+                            locations.push({
+                                name: 'The Parthenon',
+                                position: worldPos.clone(),
+                                radius: scaleValue(30),
+                                title: '🏛️ The Parthenon',
+                                type: category
+                            });
+                            addMiniMapDot(category, worldPos);
+                            return;
+                        }
 
                         locations.push({
                             name,
