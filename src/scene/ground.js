@@ -59,7 +59,7 @@ export function createGroundPlane({ size = 8000, repeats = 80, textures = {} } =
     applyBaseTexture(baseTexture);
   } else {
     loader.load(
-      '/assets/textures/grass.jpg',
+      'assets/textures/grass.jpg',
       (texture) => {
         applyBaseTexture(texture);
       },
@@ -74,7 +74,7 @@ export function createGroundPlane({ size = 8000, repeats = 80, textures = {} } =
     applyOverlayTexture(overlayTexture);
   } else {
     loader.load(
-      '/assets/textures/athens_dust.jpg',
+      'assets/textures/athens_dust.jpg',
       (texture) => {
         applyOverlayTexture(texture);
       },
