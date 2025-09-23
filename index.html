@@ -816,7 +816,7 @@
             try {
                 if (window.threeJSReady) {
                     await window.threeJSReady;
-                } catch (error) { console.error('Error caught in script:', error); }
+                }
 
                 if (typeof THREE === 'undefined') {
                     console.error('THREE.js is not available. Please ensure external resources can be loaded.');
@@ -824,23 +824,24 @@
                     return;
                 }
 
-console.log('console.log('THREE.js is ready, initializing Athens...');
-try {
-    await main();
-} catch (error) {
-    if (!error?.__athensLogged) {
-        console.error('Athens experience failed to initialize:', error);
-        if (error?.stack) {
-            console.error(error.stack);
-        } catch (error) { console.error('Error caught in script:', error); }
-        logDetailedError('Main Function Execution', error);
-        showErrorOverlay('Main Function Execution', error, true);
-        error.__athensLogged = true;
-    }
-    throw error;
-}
+                console.log('THREE.js is ready, initializing Athens...');
 
-async function main() {
+                await main();
+            } catch (error) {
+                if (!error?.__athensLogged) {
+                    console.error('Athens experience failed to initialize:', error);
+                    if (error?.stack) {
+                        console.error(error.stack);
+                    }
+                    logDetailedError('Main Function Execution', error);
+                    showErrorOverlay('Main Function Execution', error, true);
+                    error.__athensLogged = true;
+                }
+                throw error;
+            }
+        }
+
+        async function main() {
 
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
