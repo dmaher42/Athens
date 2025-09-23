@@ -4689,7 +4689,7 @@
         const loadTemple = () => {
             const templeGroup = new THREE.Group();
             gltfLoader.load(
-                './data/models/greek_temple.glb',
+                './models/greek_temple.glb',
                 (gltf) => {
                     const temple = gltf.scene || new THREE.Group();
                     temple.scale.set(3, 3, 3);
@@ -4708,7 +4708,7 @@
         const loadNPC = () => {
             const npcGroup = new THREE.Group();
             gltfLoader.load(
-                './data/models/npc_athenian.glb',
+                './models/character.glb',
                 (gltf) => {
                     const npc = gltf.scene || new THREE.Group();
                     npc.scale.set(1.2, 1.2, 1.2);
