@@ -822,7 +822,7 @@
             try {
                 if (window.threeJSReady) {
                     await window.threeJSReady;
-                }
+                } catch (error) { console.error('Error caught in Athens script:', error); }
 
                 if (typeof THREE === 'undefined') {
                     console.error('THREE.js is not available. Please ensure external resources can be loaded.');
@@ -1268,7 +1268,7 @@ async function main() {
             loadGreekTemple();
 
             try {
-                const { buildFromGeoJSON } = await import('./src/buildings-from-geojson.js');
+                const { buildFromGeoJSON } catch (error) { console.error('Error caught in Athens script:', error); } = await import('./src/buildings-from-geojson.js');
                 const projectorInstance = window?.AthensGeo?.projector;
                 const projector = projectorInstance && typeof projectorInstance.project === 'function'
                     ? (lon, lat) => {
@@ -4738,7 +4738,7 @@ function createAgoraComplex() {
                         const tone = await loadToneLibrary();
                         if (!tone || typeof tone.start !== 'function') {
                             throw new Error('Tone.js is unavailable after loading.');
-                        }
+                        } catch (error) { console.error('Error caught in Athens script:', error); }
                         await tone.start();
                         console.log("Audio context started.");
                         createAmbientSounds();
@@ -5052,7 +5052,7 @@ function createAgoraComplex() {
 
         async function setupLandmarks() {
             try {
-                const { loadLandmarks } = await import('./src/landmarks-loader.js');
+                const { loadLandmarks } catch (error) { console.error('Error caught in Athens script:', error); } = await import('./src/landmarks-loader.js');
 
                 const projectorInstance = window?.AthensGeo?.projector;
                 const projectorFn = projectorInstance && typeof projectorInstance.project === 'function'
@@ -5221,7 +5221,7 @@ window.onload = function() {
         markerFill: '#FFD700',
         markerStroke: '#704c00',
         fitPadding: 48
-      };
+      } catch (error) { console.error('Error caught in Athens script:', error); };
 
       let overlay = null;
       if (typeof createLandmarkOverlay === 'function') {
