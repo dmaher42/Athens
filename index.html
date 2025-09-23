@@ -836,11 +836,11 @@ try {
 } catch (error) {
     // Keep the extra console logging from `main`
     if (!error?.__athensLogged) {
-        console.error('Athens experience failed to initialize:', error);
-        if (error?.stack) {
-            console.error(error.stack);
-        }
-    }
+console.error('Athens experience failed to initialize:', error);
+if (error?.stack) {
+    console.error(error.stack);
+}
+}
     // Keep the overlay & detailed logging from `copilot/fix…`
     logDetailedError('Main Function Execution', error);
     showErrorOverlay('Main Function Execution', error, true);
@@ -853,6 +853,7 @@ try {
         }
 
         async function main() {
+
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
         let world;
