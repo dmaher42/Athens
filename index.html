@@ -378,7 +378,7 @@
             <span class="control-key">Arrows</span> Orbit Camera |
             <span class="control-key">E</span> Interact |
             <span class="control-key">X</span> Toggle Flight |
-            <span class="control-key">Space</span>/<span class="control-key">Shift</span> Fly Up/Down |
+            <span class="control-key">Space</span>/<span class="control-key">Shift</span> Fly Up/Down (Hold Shift to Run) |
             <span class="control-key">M</span> Sound |
             <span class="control-key">P</span> FPS
         </div>
@@ -1002,7 +1002,8 @@
         let world;
         let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, ShiftRight: false, Space: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
         const toggleKeyTimestamps = {};
-        const playerSpeed = 8.0;
+        const playerWalkSpeed = 8.0;
+        const playerRunSpeed = 14.0;
         const playerRotationSpeed = 3.0;
         const flightSpeed = 10.0;
         const flightVerticalSpeed = 8.0;
@@ -5593,7 +5594,14 @@ function createBasicAgoraFallback() {
             if (controls.KeyW) moveDirection.z += 1;
 
             const hasHorizontalInput = moveDirection.lengthSq() > 0;
-            const isMoving = controls.KeyS || controls.KeyW;
+            const isMoving = Boolean(controls.KeyS || controls.KeyW);
+            const wantsToRun = controls.ShiftLeft || controls.ShiftRight;
+            const isRunning = Boolean(!isFlying && isMoving && wantsToRun);
+            const currentGroundSpeed = isRunning ? playerRunSpeed : playerWalkSpeed;
+
+            if (player) {
+                player.isRunning = isRunning;
+            }
 
             if (player && player.actions && player.playAction) {
                 const actionKeys = Object.keys(player.actions);
@@ -5604,7 +5612,9 @@ function createBasicAgoraFallback() {
                     const idleActionName = findActionKey('idle');
                     const fallbackActionName = player.defaultActionName || actionKeys[0];
                     const targetActionName = isMoving
-                        ? (walkActionName || runActionName || fallbackActionName)
+                        ? (isRunning
+                            ? (runActionName || walkActionName || fallbackActionName)
+                            : (walkActionName || runActionName || fallbackActionName))
                         : (idleActionName || walkActionName || runActionName || fallbackActionName);
 
                     if (targetActionName) {
@@ -5648,9 +5658,9 @@ function createBasicAgoraFallback() {
                 }
             } else {
                 const currentVelocity = new CANNON.Vec3(
-                    moveDirection.x * playerSpeed,
+                    moveDirection.x * currentGroundSpeed,
                     player.body.velocity.y, // Preserve vertical velocity
-                    moveDirection.z * playerSpeed
+                    moveDirection.z * currentGroundSpeed
                 );
 
                 if (player.body.velocity) {
