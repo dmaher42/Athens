@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import THREE from './three.js';
 import {
   makeTemple, makeStoa, makeTheatre, makeTholos, makeWallPath,
   makePropylon, makeBlock, makeAltar, makeExedra

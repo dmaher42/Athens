@@ -1,5 +1,5 @@
 // src/sky/photoSkydome.js
-import * as THREE from 'three';
+import THREE from '../three.js';
 
 export async function createPhotoSkydome({
   scene,

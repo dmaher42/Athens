@@ -19,30 +19,11 @@
     }
     </script>
     <script type="module">
+        import { threeReady } from './src/three.js';
         import { Sky } from 'three/examples/jsm/objects/Sky.js';
 
-        // Fallback to ensure THREE is available globally when CDN fails
-        async function ensureThreeJS() {
-            if (typeof window.THREE !== 'undefined') {
-                console.log('THREE.js loaded from CDN');
-                return window.THREE;
-            }
-
-            try {
-                console.log('Attempting to load THREE.js via ES modules...');
-                const THREE = await import('three');
-                window.THREE = THREE;
-                console.log('THREE.js loaded via ES modules as fallback');
-                return THREE;
-            } catch (error) {
-                console.warn('Failed to load THREE.js via modules:', error);
-                return null;
-            }
-        }
-
-        // Ensure THREE is available before the main script runs
         window.Sky = Sky;
-        window.threeJSReady = ensureThreeJS();
+        window.threeJSReady = threeReady;
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
@@ -433,12 +414,13 @@
 
 
     <script type="module">
-        import * as ThreeModule from 'three';
+        import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
+        import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
 
         const TONE_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js';
         let toneLoadingPromise = null;
@@ -474,11 +456,6 @@
             return toneLoadingPromise;
         }
 
-        const THREE = window.THREE ?? ThreeModule;
-        if (!window.THREE) {
-            window.THREE = THREE;
-        }
-
         let __level = 1; // start at night since we call setAmount(1)
         window.addEventListener('keydown', (e) => {
             if (!window.__AthensSky__) return;
@@ -500,25 +477,125 @@
         console.log("🏛️ Initializing Enhanced Ancient Athens Experience...");
 
         // --- Space Night module: Milky Way skybox + dust + nebulas -----------------
-        let milkyWayTex = null;
+        const useCubeMap = false;
+        const nightSkyTextureUrl = '/assets/sky/night_sky.jpg';
+        const nightSkyTextureSources = [
+            { url: nightSkyTextureUrl, label: 'night_sky.jpg asset' }
+        ];
+
+        if (typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0) {
+            nightSkyTextureSources.push({
+                url: nightSkyDataUrl,
+                label: 'embedded fallback night sky',
+                isFallback: true
+            });
+        }
+
+        const nightSkyCubeUrls = [
+            '/assets/sky/night_sky_right.jpg',
+            '/assets/sky/night_sky_left.jpg',
+            '/assets/sky/night_sky_top.jpg',
+            '/assets/sky/night_sky_bottom.jpg',
+            '/assets/sky/night_sky_front.jpg',
+            '/assets/sky/night_sky_back.jpg'
+        ];
+
+        let nightSkyTexture = null;
+        let nightSkyCubeTexture = null;
+        let nightSkyEnvironment = null;
         let spaceGroup = null;
         let savedDayBackground = null;
+        let savedDayEnvironment = null;
 
-        function loadMilkyWay(renderer) {
-            if (milkyWayTex) return milkyWayTex;
-            const urls = [
-                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_px.jpg',
-                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
-                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_py.jpg',
-                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
-                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_pz.jpg',
-                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
-            ];
+        function loadNightSkyEquirectangular(scene, renderer) {
+            const loader = new THREE.TextureLoader();
+
+            const sources = nightSkyTextureSources.length > 0
+                ? nightSkyTextureSources
+                : [{ url: nightSkyDataUrl, label: 'embedded fallback night sky', isFallback: true }];
+
+            const trySource = (index = 0) => {
+                if (index >= sources.length) {
+                    console.error('Failed to load any night sky background texture.');
+                    return;
+                }
+
+                const source = sources[index];
+                loader.load(
+                    source.url,
+                    (texture) => {
+                        texture.mapping = THREE.EquirectangularReflectionMapping;
+                        if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+                            texture.colorSpace = THREE.SRGBColorSpace;
+                        } else if ('encoding' in texture) {
+                            texture.encoding = THREE.sRGBEncoding;
+                        }
+
+                        nightSkyTexture = texture;
+                        scene.background = texture;
+
+                        if (renderer) {
+                            const pmrem = new THREE.PMREMGenerator(renderer);
+                            nightSkyEnvironment = pmrem.fromEquirectangular(texture).texture;
+                            pmrem.dispose();
+                        } else {
+                            nightSkyEnvironment = texture;
+                        }
+
+                        scene.environment = nightSkyEnvironment;
+
+                        if (source.isFallback) {
+                            console.info('Loaded embedded fallback night sky texture.');
+                        }
+                    },
+                    undefined,
+                    (error) => {
+                        const log = source.isFallback ? console.error : console.warn;
+                        log(`Failed to load ${source.label}; ${source.isFallback ? 'no further fallbacks available.' : 'trying next source.'}`, error);
+                        trySource(index + 1);
+                    }
+                );
+            };
+
+            trySource(0);
+        }
+
+        function loadNightSkyCube(scene, renderer) {
             const loader = new THREE.CubeTextureLoader();
-            milkyWayTex = loader.load(urls, (tex) => {
-                if ('colorSpace' in tex && 'SRGBColorSpace' in THREE) tex.colorSpace = THREE.SRGBColorSpace;
-            });
-            return milkyWayTex;
+            nightSkyCubeTexture = loader.load(
+                nightSkyCubeUrls,
+                (texture) => {
+                    if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+                        texture.colorSpace = THREE.SRGBColorSpace;
+                    }
+                    scene.background = texture;
+                    nightSkyEnvironment = texture;
+                    scene.environment = nightSkyEnvironment;
+                },
+                undefined,
+                (error) => {
+                    console.warn('Cube map night sky failed to load, falling back to equirectangular.', error);
+                    loadNightSkyEquirectangular(scene, renderer);
+                }
+            );
+        }
+
+        function ensureNightSkyBackground(scene, renderer) {
+            if (useCubeMap) {
+                if (nightSkyCubeTexture) {
+                    scene.background = nightSkyCubeTexture;
+                    scene.environment = nightSkyEnvironment ?? nightSkyCubeTexture;
+                } else {
+                    loadNightSkyCube(scene, renderer);
+                }
+            } else if (nightSkyTexture) {
+                scene.background = nightSkyTexture;
+                if (nightSkyEnvironment) {
+                    scene.environment = nightSkyEnvironment;
+                }
+            } else {
+                loadNightSkyEquirectangular(scene, renderer);
+            }
         }
 
         function makeSpaceDust(count = 15000, spread = { x: 40000, y: 10000, z: 40000 }) {
@@ -531,11 +608,12 @@
             }
             geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
             const mat = new THREE.PointsMaterial({
-                color: 0xaaaaaa, size: 1.4, transparent: true, opacity: 0.55,
+                color: 0xaaaaaa, size: 1.2, transparent: true, opacity: 0.1,
                 depthWrite: false, blending: THREE.AdditiveBlending
             });
             const dust = new THREE.Points(geo, mat);
             dust.frustumCulled = false;
+            dust.userData.baseOpacity = mat.opacity;
             return dust;
         }
 
@@ -547,7 +625,7 @@
             for (let i = 0; i < howMany; i++) {
                 const mat = new THREE.SpriteMaterial({
                     map: baseMap, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
-                    opacity: 0.22, color: new THREE.Color().setHSL(Math.random(), 0.5, 0.7)
+                    opacity: 0.08, color: new THREE.Color().setHSL(Math.random(), 0.5, 0.7)
                 });
                 const s = Math.random() * 2000 + 1500;
                 const spr = new THREE.Sprite(mat);
@@ -559,6 +637,7 @@
                 );
                 spr.material.rotation = Math.random() * Math.PI;
                 spr.frustumCulled = false;
+                spr.userData.baseOpacity = mat.opacity;
                 group.add(spr);
             }
             return group;
@@ -571,9 +650,11 @@
             }
 
             savedDayBackground = scene.background || null;
+            savedDayEnvironment = scene.environment || null;
 
             spaceGroup = new THREE.Group();
             spaceGroup.name = 'SpaceNightFX';
+            spaceGroup.renderOrder = -110;
             const dust = makeSpaceDust();
             const nebulas = makeNebulas(textureLoader);
             spaceGroup.add(dust, nebulas);
@@ -588,7 +669,7 @@
             spaceGroup.visible = false;
             scene.add(spaceGroup);
 
-            loadMilkyWay(renderer);
+            ensureNightSkyBackground(scene, renderer);
 
             return {
                 update(dt, camera) {
@@ -603,14 +684,24 @@
                 },
                 setAmount(nightAmount) {
                     if (!spaceGroup) return;
-                    if (nightAmount > 0.6) {
-                        scene.background = milkyWayTex || savedDayBackground;
-                        spaceGroup.visible = true;
-                        spaceGroup.traverse(o => { if (o.material?.opacity !== undefined) o.material.opacity = THREE.MathUtils.lerp(0.0, 1.0, nightAmount); });
+                    const clamped = THREE.MathUtils.clamp(nightAmount, 0, 1);
+                    spaceGroup.visible = clamped > 0.0;
+                    spaceGroup.traverse(o => {
+                        const mat = o.material;
+                        if (mat && typeof mat.opacity === 'number') {
+                            const base = o.userData?.baseOpacity ?? mat.opacity;
+                            mat.opacity = base * clamped;
+                        }
+                    });
+                    if (clamped > 0.6) {
+                        ensureNightSkyBackground(scene, renderer);
                     } else {
-                        spaceGroup.visible = nightAmount > 0.0;
-                        spaceGroup.traverse(o => { if (o.material?.opacity !== undefined) o.material.opacity = nightAmount; });
                         scene.background = savedDayBackground;
+                        if (savedDayEnvironment) {
+                            scene.environment = savedDayEnvironment;
+                        } else {
+                            scene.environment = null;
+                        }
                     }
                 }
             };
@@ -618,21 +709,30 @@
 
         // Wait for THREE.js to be available before proceeding
         async function initializeAthens() {
-            if (window.threeJSReady) {
-                await window.threeJSReady;
-            }
-            
-            if (typeof THREE === 'undefined') {
-                console.error('THREE.js is not available. Please ensure external resources can be loaded.');
-                document.body.innerHTML = '<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:Arial,sans-serif;color:#fff;background:rgba(0,0,0,0.8);padding:20px;border-radius:10px;"><h2>🏛️ Ancient Athens</h2><p>External libraries are required to run this experience.<br>Please allow external resources or use a different environment.</p><p><small>THREE.js library could not be loaded.</small></p></div>';
-                return;
-            }
+            try {
+                if (window.threeJSReady) {
+                    await window.threeJSReady;
+                }
 
-            console.log('THREE.js is ready, initializing Athens...');
-            main();
+                if (typeof THREE === 'undefined') {
+                    console.error('THREE.js is not available. Please ensure external resources can be loaded.');
+                    document.body.innerHTML = '<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:Arial,sans-serif;color:#fff;background:rgba(0,0,0,0.8);padding:20px;border-radius:10px;"><h2>🏛️ Ancient Athens</h2><p>External libraries are required to run this experience.<br>Please allow external resources or use a different environment.</p><p><small>THREE.js library could not be loaded.</small></p></div>';
+                    return;
+                }
+
+                console.log('THREE.js is ready, initializing Athens...');
+                await main();
+            } catch (error) {
+                if (!error?.__athensLogged) {
+                    console.error('Athens experience failed to initialize:', error);
+                    if (error?.stack) {
+                        console.error(error.stack);
+                    }
+                }
+            }
         }
 
-        function main() {
+        async function main() {
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
         let world;
@@ -4912,10 +5012,17 @@ function createAgoraComplex() {
         }
         
         // Initialize the application
-        init().catch((error) => {
+        try {
+            await init();
+        } catch (error) {
             console.error('Failed to initialize Athens experience:', error);
-        });
-        
+            if (error?.stack) {
+                console.error(error.stack);
+            }
+            error.__athensLogged = true;
+            throw error;
+        }
+
         } // End of main function
         
         // --- START ---
@@ -5030,7 +5137,7 @@ function createAgoraComplex() {
   }
 </script>
     <script type="module">
-        import * as THREE from 'three';
+        import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
         const waitForWorld = () => {
