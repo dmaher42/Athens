@@ -903,12 +903,14 @@
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
 
-            const photoSky = await createPhotoSkydome({
-                scene,
-                renderer,
-                radius: 5000,
-                initialYawDeg: 35
-            });
+          const sunsetSky = await createPhotoSkydome({
+  scene,
+  renderer,
+  url: '/assets/sky/sunset.jpg',   // <— your new file
+  radius: 5000,
+  initialYawDeg: 0
+});
+
             photoSky.setAmount(1);
             window.__AthensSky__ = photoSky;
             __level = 1;
