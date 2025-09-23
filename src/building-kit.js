@@ -3,7 +3,7 @@ import THREE from './three.js';
 /** Lightweight materials (one-time) */
 const MAT = {
   stone: new THREE.MeshStandardMaterial({ color: 0xded7c8, roughness: 0.8, metalness: 0.0 }),
-  marble: new THREE.MeshStandardMaterial({ color: 0xefeae1, roughness: 0.6, metalness: 0.05 }),
+  marble: new THREE.MeshStandardMaterial({ color: 0xe2d4c6, roughness: 0.7, metalness: 0.03 }),
   roof:   new THREE.MeshStandardMaterial({ color: 0x9d3e26,  roughness: 0.9, metalness: 0.0 }),
   dark:   new THREE.MeshStandardMaterial({ color: 0x6b6b6b,  roughness: 0.9, metalness: 0.0 }),
 };
