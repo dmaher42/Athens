@@ -180,7 +180,7 @@ export async function buildFromGeoJSON({ scene, geoJsonUrl, projector }) {
 
       mesh.position.copy(pos);
       mesh.rotation.y = deg(rotDeg);
-      mesh.traverse(o => (o.castShadow = o.receiveShadow = false));
+      mesh.traverse(o => (o.castShadow = o.receiveShadow = true));
       mesh.userData.monument = rawName || name;
 
       root.add(mesh);

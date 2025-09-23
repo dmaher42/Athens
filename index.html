@@ -418,6 +418,9 @@
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
+        import { createGroundPlane } from './src/scene/ground.js';
+        import { setEnvironment } from './src/scene/sky.js';
+        import { loadBuildingTextures, retargetBuildingMaterials } from './src/scene/materials.js';
 
         const TONE_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js';
         let toneLoadingPromise = null;
@@ -1357,6 +1360,22 @@
         // Declare texture and material variables globally
         let stoneTexture, marbleTexture, redTileTexture, groundTexture, pavedRoadTexture;
         let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial;
+
+        const buildingMaterialSet = loadBuildingTextures();
+        let groundMesh = null;
+        let currentEnvironmentMode = null;
+
+        const applyEnvironmentMode = (mode = 'day') => {
+            if (!renderer || !scene) {
+                return;
+            }
+            const normalized = mode === 'night' ? 'night' : (mode === 'sunset' ? 'sunset' : 'day');
+            if (currentEnvironmentMode === normalized) {
+                return;
+            }
+            currentEnvironmentMode = normalized;
+            setEnvironment(renderer, scene, normalized);
+        };
         
         const baseMapBounds = { xMin: -80, xMax: 80, zMin: -80, zMax: 80 };
         const mapBounds = scaleBounds(baseMapBounds);
@@ -1414,12 +1433,105 @@
             if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
             else renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.0;
+            renderer.toneMappingExposure = 0.9;
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
             window.renderer = renderer;
+
+            const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 8;
+            const textureLoader = new THREE.TextureLoader();
+            let groundBaseTexture = null;
+            let groundDustTexture = null;
+
+            try {
+                groundBaseTexture = textureLoader.load(
+                    '/assets/textures/grass.jpg',
+                    undefined,
+                    undefined,
+                    (error) => {
+                        console.warn('[ground] grass.jpg not found; using flat color.', error);
+                    }
+                );
+            } catch (error) {
+                console.warn('[ground] grass.jpg not found; using flat color.', error);
+            }
+
+            try {
+                groundDustTexture = textureLoader.load(
+                    '/assets/textures/athens_dust.jpg',
+                    undefined,
+                    undefined,
+                    (error) => {
+                        console.warn('[ground] athens_dust.jpg not found; alpha blend disabled.', error);
+                    }
+                );
+            } catch (error) {
+                console.warn('[ground] athens_dust.jpg not found; alpha blend disabled.', error);
+            }
+
+            groundMesh = createGroundPlane({
+                size: 10000,
+                repeats: 100,
+                textures: { base: groundBaseTexture, overlay: groundDustTexture }
+            });
+
+            if (groundMesh) {
+                const { map, alphaMap } = groundMesh.material;
+                if (map) {
+                    map.anisotropy = Math.max(map.anisotropy || 0, maxAnisotropy);
+                    map.needsUpdate = true;
+                }
+                if (alphaMap) {
+                    alphaMap.anisotropy = Math.max(alphaMap.anisotropy || 0, maxAnisotropy);
+                    alphaMap.needsUpdate = true;
+                }
+                scene.add(groundMesh);
+            }
+
+            if (!groundMaterial) {
+                groundMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xb7b09a,
+                    roughness: 0.95,
+                    metalness: 0.0
+                });
+            }
+
+            if (groundBaseTexture) {
+                groundMaterial.map = groundBaseTexture;
+                groundMaterial.color.set(0xffffff);
+                groundMaterial.needsUpdate = true;
+                groundBaseTexture.anisotropy = Math.max(groundBaseTexture.anisotropy || 0, maxAnisotropy);
+                groundBaseTexture.needsUpdate = true;
+                groundTexture = groundBaseTexture;
+            }
+
+            groundMaterial.alphaMap = null;
+            groundMaterial.transparent = false;
+
+            if (buildingMaterialSet?.marbleMat?.map) {
+                buildingMaterialSet.marbleMat.map.anisotropy = Math.max(
+                    buildingMaterialSet.marbleMat.map.anisotropy || 0,
+                    maxAnisotropy
+                );
+                buildingMaterialSet.marbleMat.map.needsUpdate = true;
+            }
+            if (buildingMaterialSet?.roofMat?.map) {
+                buildingMaterialSet.roofMat.map.anisotropy = Math.max(
+                    buildingMaterialSet.roofMat.map.anisotropy || 0,
+                    maxAnisotropy
+                );
+                buildingMaterialSet.roofMat.map.needsUpdate = true;
+            }
+
+            applyEnvironmentMode('day');
+            window.setEnvironment = applyEnvironmentMode;
+            window.addEventListener('keydown', (event) => {
+                if (event.key === '1') applyEnvironmentMode('day');
+                if (event.key === '2') applyEnvironmentMode('sunset');
+                if (event.key === '3') applyEnvironmentMode('night');
+            });
 
             photoSkydome = await createPhotoSkydome({
                 scene,
@@ -1449,7 +1561,6 @@
                 });
             });
 
-            const textureLoader = new THREE.TextureLoader();
             spaceNight = initSpaceNight({
                 scene,
                 renderer,
@@ -1521,120 +1632,50 @@
                     ctx.fill();
                 }
             });
-            marbleTexture = generateTexture(512, 512, (ctx, w, h) => {
-                ctx.fillStyle = '#F0F0F0';
-                ctx.fillRect(0, 0, w, h);
-                ctx.lineWidth = Math.random() * 2 + 1;
-                ctx.strokeStyle = `rgba(128, 128, 128, 0.3)`;
-                for(let i=0; i<10; i++) {
-                     ctx.beginPath();
-                     ctx.moveTo(Math.random() * w, Math.random() * h);
-                     ctx.bezierCurveTo(Math.random() * w, Math.random() * h, Math.random() * w, Math.random() * h, Math.random() * w, Math.random() * h);
-                     ctx.stroke();
-                }
-            });
-            redTileTexture = generateTexture(256, 256, (ctx, w, h) => {
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(0, 0, w, h);
-                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-                ctx.lineWidth = 2;
-                for(let i = 0; i < w; i += 32) {
-                    ctx.beginPath();
-                    ctx.moveTo(i, 0);
-                    ctx.lineTo(i, h);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(0, i);
-                    ctx.lineTo(w, i);
-                    ctx.stroke();
-                }
-            });
-            groundTexture = generateTexture(1024, 1024, (ctx, w, h) => {
-                const baseGradient = ctx.createLinearGradient(0, 0, w, h);
-                baseGradient.addColorStop(0, '#d5c48b');
-                baseGradient.addColorStop(0.5, '#c3ad6f');
-                baseGradient.addColorStop(1, '#e0d2a0');
-                ctx.fillStyle = baseGradient;
-                ctx.fillRect(0, 0, w, h);
-
-                const addDustLayer = (count, color, alpha, minSize, maxSize) => {
-                    ctx.fillStyle = color;
-                    ctx.globalAlpha = alpha;
-                    for (let i = 0; i < count; i++) {
-                        const x = Math.random() * w;
-                        const y = Math.random() * h;
-                        const radiusX = minSize + Math.random() * (maxSize - minSize);
-                        const radiusY = radiusX * (0.4 + Math.random() * 0.6);
-                        ctx.save();
-                        ctx.translate(x, y);
-                        ctx.rotate(Math.random() * Math.PI * 2);
+            if (buildingMaterialSet?.marbleMat?.map) {
+                marbleTexture = buildingMaterialSet.marbleMat.map;
+            } else {
+                marbleTexture = generateTexture(512, 512, (ctx, w, h) => {
+                    ctx.fillStyle = '#F0F0F0';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.lineWidth = Math.random() * 2 + 1;
+                    ctx.strokeStyle = `rgba(128, 128, 128, 0.3)`;
+                    for(let i=0; i<10; i++) {
                         ctx.beginPath();
-                        ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.restore();
+                        ctx.moveTo(Math.random() * w, Math.random() * h);
+                        ctx.bezierCurveTo(
+                            Math.random() * w,
+                            Math.random() * h,
+                            Math.random() * w,
+                            Math.random() * h,
+                            Math.random() * w,
+                            Math.random() * h
+                        );
+                        ctx.stroke();
                     }
-                    ctx.globalAlpha = 1;
-                };
+                });
+            }
 
-                addDustLayer(260, '#b7995d', 0.12, 18, 42);
-                addDustLayer(340, '#e7d7a3', 0.09, 12, 28);
-                addDustLayer(180, '#a88d55', 0.1, 30, 60);
-
-                const addPebbles = (count, baseColorFn) => {
-                    for (let i = 0; i < count; i++) {
-                        const x = Math.random() * w;
-                        const y = Math.random() * h;
-                        const radius = Math.random() * 1.8 + 0.2;
-                        ctx.fillStyle = baseColorFn();
+            if (buildingMaterialSet?.roofMat?.map) {
+                redTileTexture = buildingMaterialSet.roofMat.map;
+            } else {
+                redTileTexture = generateTexture(256, 256, (ctx, w, h) => {
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                    ctx.lineWidth = 2;
+                    for(let i = 0; i < w; i += 32) {
                         ctx.beginPath();
-                        ctx.arc(x, y, radius, 0, Math.PI * 2);
-                        ctx.fill();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, h);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(0, i);
+                        ctx.lineTo(w, i);
+                        ctx.stroke();
                     }
-                };
-
-                addPebbles(2600, () => {
-                    const shade = 150 + Math.random() * 45;
-                    return `rgba(${shade - 25}, ${shade - 5}, ${shade - 45}, ${0.22 + Math.random() * 0.35})`;
                 });
-                addPebbles(1600, () => {
-                    const shade = 205 + Math.random() * 25;
-                    return `rgba(${shade}, ${shade - 20}, ${shade - 70}, ${0.16 + Math.random() * 0.25})`;
-                });
-
-                ctx.lineWidth = 0.8;
-                for (let i = 0; i < 260; i++) {
-                    const x = Math.random() * w;
-                    const y = Math.random() * h;
-                    const length = Math.random() * 70 + 20;
-                    ctx.save();
-                    ctx.translate(x, y);
-                    ctx.rotate(Math.random() * Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(117, 94, 58, 0.1)';
-                    ctx.beginPath();
-                    ctx.moveTo(-length / 2, 0);
-                    ctx.lineTo(length / 2, 0);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-
-                ctx.globalAlpha = 0.25;
-                for (let i = 0; i < 90; i++) {
-                    const x = Math.random() * w;
-                    const y = Math.random() * h;
-                    const radius = Math.random() * 50 + 25;
-                    ctx.save();
-                    ctx.translate(x, y);
-                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-                    gradient.addColorStop(0, 'rgba(255, 245, 210, 0.18)');
-                    gradient.addColorStop(1, 'rgba(140, 110, 60, 0)');
-                    ctx.fillStyle = gradient;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-                ctx.globalAlpha = 1;
-            });
+            }
             pavedRoadTexture = generateTexture(256, 256, (ctx, w, h) => {
                 ctx.fillStyle = '#A9A9A9';
                 ctx.fillRect(0, 0, w, h);
@@ -1648,22 +1689,60 @@
                 }
             });
 
-            stoneTexture.wrapS = stoneTexture.wrapT = THREE.RepeatWrapping;
-            marbleTexture.wrapS = marbleTexture.wrapT = THREE.RepeatWrapping; 
-            redTileTexture.wrapS = redTileTexture.wrapT = THREE.RepeatWrapping;
-            groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping; 
-            pavedRoadTexture.wrapS = pavedRoadTexture.wrapT = THREE.RepeatWrapping;
-            
+            if (stoneTexture) {
+                stoneTexture.wrapS = stoneTexture.wrapT = THREE.RepeatWrapping;
+            }
+            if (marbleTexture) {
+                marbleTexture.wrapS = marbleTexture.wrapT = THREE.RepeatWrapping;
+            }
+            if (redTileTexture) {
+                redTileTexture.wrapS = redTileTexture.wrapT = THREE.RepeatWrapping;
+            }
+            if (pavedRoadTexture) {
+                pavedRoadTexture.wrapS = pavedRoadTexture.wrapT = THREE.RepeatWrapping;
+            }
+
             stoneMaterial = new THREE.MeshStandardMaterial({ map: stoneTexture, roughness: 0.85, metalness: 0.05 });
-            marbleMaterial = new THREE.MeshStandardMaterial({ map: marbleTexture, roughness: 0.4, metalness: 0.1 });
+
+            marbleMaterial = buildingMaterialSet?.marbleMat?.clone
+                ? buildingMaterialSet.marbleMat.clone()
+                : new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75, metalness: 0.0 });
+            if (!marbleMaterial.map && marbleTexture) {
+                marbleMaterial.map = marbleTexture;
+                marbleMaterial.needsUpdate = true;
+            }
+
             goldMaterial = createEnhancedMaterial(0xFFD700, 0.2, 0.9);
-            redTileMaterial = new THREE.MeshStandardMaterial({ map: redTileTexture, roughness: 0.7, metalness: 0.0 });
-            groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture, roughness: 0.95, metalness: 0.0 });
-            columnMaterial = new THREE.MeshStandardMaterial({ map: marbleTexture, roughness: 0.5, metalness: 0.15 });
+
+            redTileMaterial = buildingMaterialSet?.roofMat?.clone
+                ? buildingMaterialSet.roofMat.clone()
+                : new THREE.MeshStandardMaterial({ color: 0x8b3a2f, roughness: 0.9, metalness: 0.0 });
+            if (!redTileMaterial.map && redTileTexture) {
+                redTileMaterial.map = redTileTexture;
+                redTileMaterial.needsUpdate = true;
+            }
+
+            columnMaterial = buildingMaterialSet?.marbleMat?.clone
+                ? buildingMaterialSet.marbleMat.clone()
+                : marbleMaterial.clone();
+            if (!columnMaterial.map && marbleTexture) {
+                columnMaterial.map = marbleTexture;
+                columnMaterial.needsUpdate = true;
+            }
+
             waterMaterial = createEnhancedMaterial(0x5f9ea0, 0.2, 0.1);
             waterMaterial.transparent = true;
             waterMaterial.opacity = 0.7;
             pavedRoadMaterial = new THREE.MeshStandardMaterial({ map: pavedRoadTexture, roughness: 0.8, metalness: 0.1 });
+
+            if (buildingMaterialSet?.marbleMat) {
+                MAT.marble.copy(buildingMaterialSet.marbleMat);
+                MAT.marble.needsUpdate = true;
+            }
+            if (buildingMaterialSet?.roofMat) {
+                MAT.roof.copy(buildingMaterialSet.roofMat);
+                MAT.roof.needsUpdate = true;
+            }
 
 
             // Build Scene
@@ -1739,15 +1818,9 @@
         // --- WORLD BUILDING ---
         function buildWorld() {
             // Ground
-            const groundGeometry = new THREE.PlaneGeometry(scaleValue(400), scaleValue(400));
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-            if (ground.material.map) {
-                ground.material.map.repeat.set(16 * CITY_SCALE, 16 * CITY_SCALE);
+            if (groundMesh && !scene.children.includes(groundMesh)) {
+                scene.add(groundMesh);
             }
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
-            
             const groundPhysMat = new CANNON.Material("groundMaterial");
             const groundBody = new CANNON.Body({ mass: 0, material: groundPhysMat });
             groundBody.addShape(new CANNON.Plane());
@@ -3952,7 +4025,8 @@ function createBasicAgoraFallback() {
             }
 
             if (renderer) {
-                renderer.toneMappingExposure = settings.exposure;
+                const targetExposure = Math.min(settings.exposure, 0.9);
+                renderer.toneMappingExposure = targetExposure;
                 const fogCol = new THREE.Color(settings.fogColor);
                 if (fogEnabled) {
                     if (!scene.fog) {
@@ -4043,6 +4117,14 @@ function createBasicAgoraFallback() {
                     }
                 }
             }
+
+            let environmentMode = 'day';
+            if (name === 'Starlit Night' || name === 'Blue Hour') {
+                environmentMode = 'night';
+            } else if (name === 'Golden Dawn' || name === 'Golden Dusk') {
+                environmentMode = 'sunset';
+            }
+            applyEnvironmentMode(environmentMode);
         }
 
         function updateNightCycle(dt = 0.016) {
@@ -6433,6 +6515,7 @@ function createBasicAgoraFallback() {
                     const temple = gltf.scene || new THREE.Group();
                     temple.scale.set(3, 3, 3);
                     templeGroup.add(temple);
+                    retargetBuildingMaterials(templeGroup, buildingMaterialSet);
                     applyMeshEnhancements(templeGroup, renderer);
                     placeObject(templeGroup, 90, 0, 35);
                     scene.add(templeGroup);
