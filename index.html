@@ -792,7 +792,7 @@
             return group;
         }
 
-        function initSpaceNight({ scene, renderer, textureLoader, camera }) {
+        function initSpaceNight({ scene, renderer, textureLoader, camera, requestDayEnvironment } = {}) {
             if (camera && camera.far < 50000) {
                 camera.far = 50000;
                 camera.updateProjectionMatrix();
@@ -800,6 +800,67 @@
 
             savedDayBackground = scene.background || null;
             savedDayEnvironment = scene.environment || null;
+
+            let currentNightAmount = 0;
+
+            const captureDayState = ({
+                force = false,
+                captureBackground = true,
+                captureEnvironment = true
+            } = {}) => {
+                let envFromCallback;
+                let backgroundFromCallback;
+
+                if ((captureEnvironment || captureBackground) && typeof requestDayEnvironment === 'function') {
+                    try {
+                        const response = requestDayEnvironment({
+                            scene,
+                            renderer,
+                            force,
+                            captureBackground,
+                            captureEnvironment
+                        });
+
+                        if (response && typeof response === 'object' && !response?.isTexture) {
+                            if (captureBackground && Object.prototype.hasOwnProperty.call(response, 'background')) {
+                                backgroundFromCallback = response.background;
+                                savedDayBackground = backgroundFromCallback ?? null;
+                            }
+                            if (captureEnvironment && Object.prototype.hasOwnProperty.call(response, 'environment')) {
+                                envFromCallback = response.environment;
+                                savedDayEnvironment = envFromCallback ?? null;
+                            }
+                        } else if (captureEnvironment && response !== undefined) {
+                            envFromCallback = response;
+                            savedDayEnvironment = envFromCallback ?? null;
+                        }
+                    } catch (error) {
+                        console.warn('SpaceNight: failed to refresh day environment map.', error);
+                    }
+                }
+
+                if (captureBackground && backgroundFromCallback === undefined) {
+                    const candidateBg = scene.background;
+                    if (
+                        candidateBg === null ||
+                        (candidateBg !== nightSkyTexture && candidateBg !== nightSkyCubeTexture)
+                    ) {
+                        savedDayBackground = candidateBg ?? null;
+                    }
+                }
+
+                if (captureEnvironment && envFromCallback === undefined) {
+                    const candidateEnv = scene.environment;
+                    if (
+                        candidateEnv === null ||
+                        (candidateEnv !== nightSkyEnvironment && candidateEnv !== nightSkyCubeTexture)
+                    ) {
+                        savedDayEnvironment = candidateEnv ?? null;
+                    }
+                }
+
+                return { background: savedDayBackground, environment: savedDayEnvironment };
+            };
 
             spaceGroup = new THREE.Group();
             spaceGroup.name = 'SpaceNightFX';
@@ -817,6 +878,8 @@
 
             spaceGroup.visible = false;
             scene.add(spaceGroup);
+
+            captureDayState({ force: true });
 
             ensureNightSkyBackground(scene, renderer);
 
@@ -842,16 +905,43 @@
                             mat.opacity = base * clamped;
                         }
                     });
+                    currentNightAmount = clamped;
                     if (clamped > 0.6) {
                         ensureNightSkyBackground(scene, renderer);
                     } else {
-                        scene.background = savedDayBackground;
-                        if (savedDayEnvironment) {
-                            scene.environment = savedDayEnvironment;
-                        } else {
-                            scene.environment = null;
-                        }
+                        captureDayState({ force: true });
+                        scene.background = savedDayBackground ?? null;
+                        scene.environment = savedDayEnvironment ?? null;
                     }
+                },
+                syncDayEnvironment(options = {}) {
+                    const { environment, background, force = false } = options ?? {};
+                    const captureBackground = background === undefined;
+                    const captureEnvironment = environment === undefined;
+
+                    if (!captureBackground) {
+                        savedDayBackground = background ?? null;
+                    }
+
+                    if (!captureEnvironment) {
+                        savedDayEnvironment = environment ?? null;
+                    }
+
+                    const result = captureDayState({
+                        force,
+                        captureBackground,
+                        captureEnvironment
+                    });
+
+                    if (options?.restore === true && currentNightAmount <= 0.6) {
+                        scene.background = savedDayBackground ?? null;
+                        scene.environment = savedDayEnvironment ?? null;
+                    }
+
+                    return result;
+                },
+                get amount() {
+                    return currentNightAmount;
                 }
             };
         }
@@ -1364,7 +1454,29 @@
                 scene,
                 renderer,
                 textureLoader,
-                camera
+                camera,
+                requestDayEnvironment: ({ captureEnvironment = true, captureBackground = false } = {}) => {
+                    const result = {};
+
+                    if (captureEnvironment) {
+                        if (photoSkydome && typeof photoSkydome.refreshEnvironment === 'function') {
+                            try {
+                                result.environment = photoSkydome.refreshEnvironment() ?? null;
+                            } catch (error) {
+                                console.warn('Photo skydome environment refresh failed.', error);
+                                result.environment = scene.environment ?? null;
+                            }
+                        } else {
+                            result.environment = scene.environment ?? null;
+                        }
+                    }
+
+                    if (captureBackground) {
+                        result.background = scene.background ?? null;
+                    }
+
+                    return result;
+                }
             });
 
             // Lighting
@@ -3900,6 +4012,15 @@ function createBasicAgoraFallback() {
                             currentPhotoSkyKey = targetKey;
                             const controller = photoSkydome || window.__AthensSky__;
                             controller?.setAmount(targetOpacity);
+                            const refreshedEnv = typeof photoSkydome.refreshEnvironment === 'function'
+                                ? photoSkydome.refreshEnvironment()
+                                : undefined;
+                            if (spaceNight && typeof spaceNight.syncDayEnvironment === 'function') {
+                                spaceNight.syncDayEnvironment({
+                                    environment: refreshedEnv,
+                                    force: true
+                                });
+                            }
                             if (result.source) {
                                 const { label, url, isFallback } = result.source;
                                 const description = label || url;
@@ -3910,6 +4031,16 @@ function createBasicAgoraFallback() {
                         .catch((error) => {
                             console.warn(`Photo skydome texture swap failed for ${targetName}:`, error);
                         });
+                } else {
+                    const refreshedEnv = typeof photoSkydome.refreshEnvironment === 'function'
+                        ? photoSkydome.refreshEnvironment()
+                        : undefined;
+                    if (spaceNight && typeof spaceNight.syncDayEnvironment === 'function') {
+                        spaceNight.syncDayEnvironment({
+                            environment: refreshedEnv,
+                            force: true
+                        });
+                    }
                 }
             }
         }

@@ -217,6 +217,9 @@ export async function createPhotoSkydome({
     refreshEnvironmentMap() {
       return refreshEnvironment();
     },
+    refreshEnvironment() {
+      return refreshEnvironment();
+    },
     dispose() {
       scene.remove(dome);
       geometry.dispose();
