@@ -830,7 +830,7 @@
                     return;
                 }
 
-console.log('THREE.js is ready, initializing Athens...');
+console.log('console.log('THREE.js is ready, initializing Athens...');
 try {
     await main();
 } catch (error) {
@@ -840,7 +840,7 @@ try {
             console.error(error.stack);
         }
 
-        // Keep overlay & detailed logging
+        // Keep the overlay & detailed logging
         logDetailedError('Main Function Execution', error);
         showErrorOverlay('Main Function Execution', error, true);
 
@@ -849,6 +849,8 @@ try {
     }
     throw error;
 }
+
+async function main() {
 
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
