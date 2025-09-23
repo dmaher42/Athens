@@ -4689,7 +4689,7 @@
         const loadTemple = () => {
             const templeGroup = new THREE.Group();
             gltfLoader.load(
-                './data/models/greek_temple.glb',
+                './models/greek_temple.glb',
                 (gltf) => {
                     const temple = gltf.scene || new THREE.Group();
                     temple.scale.set(3, 3, 3);
