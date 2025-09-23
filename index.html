@@ -617,6 +617,116 @@
         }
 
         // Wait for THREE.js to be available before proceeding
+        // Enhanced error diagnostics utility
+        function logDetailedError(context, error) {
+            console.group(`🏛️ Athens Initialization Error - ${context}`);
+            
+            // Basic error information
+            console.error('Error:', error);
+            
+            // Enhanced error details
+            if (error instanceof Event) {
+                console.warn('Error is an Event object:', {
+                    type: error.type,
+                    target: error.target,
+                    currentTarget: error.currentTarget,
+                    eventPhase: error.eventPhase,
+                    bubbles: error.bubbles,
+                    cancelable: error.cancelable,
+                    timeStamp: error.timeStamp
+                });
+            } else if (error instanceof Error) {
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
+            } else if (typeof error === 'object' && error !== null) {
+                console.warn('Non-standard error object:', error);
+                console.warn('Error properties:', Object.getOwnPropertyNames(error));
+            } else {
+                console.warn('Primitive error value:', typeof error, error);
+            }
+            
+            // Browser and environment context
+            console.info('Environment context:', {
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString(),
+                url: window.location.href,
+                threeJSAvailable: typeof THREE !== 'undefined',
+                cannonJSAvailable: typeof CANNON !== 'undefined'
+            });
+            
+            console.groupEnd();
+        }
+
+        // Create user-friendly error overlay
+        function showErrorOverlay(context, error, isBlocking = false) {
+            const existingOverlay = document.getElementById('athens-error-overlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+
+            const overlay = document.createElement('div');
+            overlay.id = 'athens-error-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 400px;
+                background: rgba(139, 0, 0, 0.95);
+                border: 2px solid #ff6b6b;
+                border-radius: 10px;
+                padding: 20px;
+                color: #ffffff;
+                font-family: 'Cinzel', serif;
+                z-index: 10000;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(5px);
+                ${isBlocking ? 'top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 600px;' : ''}
+            `;
+
+            const errorType = error instanceof Event ? 'Event' : error?.name || 'Unknown';
+            const errorMessage = error instanceof Event 
+                ? `Event type: ${error.type}` 
+                : error?.message || String(error);
+
+            overlay.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 24px; margin-right: 10px;">⚠️</span>
+                    <h3 style="margin: 0; color: #ff6b6b;">Athens Initialization ${isBlocking ? 'Failed' : 'Warning'}</h3>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>Context:</strong> ${context}<br>
+                    <strong>Error Type:</strong> ${errorType}<br>
+                    <strong>Details:</strong> ${errorMessage}
+                </div>
+                <div style="font-size: 12px; opacity: 0.8; margin-bottom: 15px;">
+                    Check browser console for detailed error information and stack trace.
+                </div>
+                <button onclick="this.parentElement.remove()" style="
+                    background: transparent;
+                    border: 1px solid #ff6b6b;
+                    color: #ffffff;
+                    padding: 8px 16px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-family: inherit;
+                ">Dismiss</button>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Auto-dismiss non-blocking overlays after 10 seconds
+            if (!isBlocking) {
+                setTimeout(() => {
+                    if (overlay.parentElement) {
+                        overlay.remove();
+                    }
+                }, 10000);
+            }
+        }
+
         async function initializeAthens() {
             if (window.threeJSReady) {
                 await window.threeJSReady;
@@ -629,7 +739,12 @@
             }
 
             console.log('THREE.js is ready, initializing Athens...');
-            main();
+            try {
+                main();
+            } catch (error) {
+                logDetailedError('Main Function Execution', error);
+                showErrorOverlay('Main Function Execution', error, true);
+            }
         }
 
         function main() {
@@ -4913,7 +5028,8 @@ function createAgoraComplex() {
         
         // Initialize the application
         init().catch((error) => {
-            console.error('Failed to initialize Athens experience:', error);
+            logDetailedError('Async Initialization', error);
+            showErrorOverlay('Async Initialization', error, false);
         });
         
         } // End of main function
