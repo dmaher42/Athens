@@ -28,6 +28,58 @@ const MAT = {
   })
 };
 
+const WALL_FALLBACK_PROPS = {
+  color: 0xb8a27c,
+  roughness: 0.82,
+  metalness: 0.04,
+  emissiveIntensity: 0.02
+};
+
+const applyWallFallback = (material) => {
+  material.color.set(WALL_FALLBACK_PROPS.color);
+  material.roughness = WALL_FALLBACK_PROPS.roughness;
+  material.metalness = WALL_FALLBACK_PROPS.metalness;
+  material.emissiveIntensity = WALL_FALLBACK_PROPS.emissiveIntensity;
+  material.map = null;
+  material.needsUpdate = true;
+};
+
+MAT.wall = new THREE.MeshStandardMaterial(WALL_FALLBACK_PROPS);
+
+try {
+  const texLoader = new THREE.TextureLoader();
+  const wallURL = new URL('../public/assets/textures/wall_city.jpg', import.meta.url).href;
+  texLoader.load(
+    wallURL,
+    (wallTex) => {
+      wallTex.wrapS = THREE.RepeatWrapping;
+      wallTex.wrapT = THREE.RepeatWrapping;
+      wallTex.anisotropy = Math.max(wallTex.anisotropy || 0, 8);
+      if ('SRGBColorSpace' in THREE) {
+        wallTex.colorSpace = THREE.SRGBColorSpace;
+      } else if ('sRGBEncoding' in THREE) {
+        wallTex.encoding = THREE.sRGBEncoding;
+      }
+
+      wallTex.needsUpdate = true;
+
+      MAT.wall.color.set(0xffffff);
+      MAT.wall.roughness = 0.82;
+      MAT.wall.metalness = 0.04;
+      MAT.wall.map = wallTex;
+      MAT.wall.needsUpdate = true;
+    },
+    undefined,
+    (error) => {
+      console.warn('[building-kit] Failed to load wall texture; using fallback wall material.', error);
+      applyWallFallback(MAT.wall);
+    }
+  );
+} catch (error) {
+  console.warn('[building-kit] wall texture loader unavailable; using fallback wall material.', error);
+  applyWallFallback(MAT.wall);
+}
+
 /** Shared helpers */
 const deg = (d)=> THREE.MathUtils.degToRad(d);
 const add = (g, ...children)=> { children.forEach(c => g.add(c)); return g; };
@@ -233,8 +285,15 @@ export function makeWallPath(points, { segment = 6, height = 3, width = 2 } = {}
     for (let s = 0; s < nSeg; s++) {
       const t0 = s / nSeg, t1 = (s + 1) / nSeg;
       const p = new THREE.Vector3().lerpVectors(a, b, (t0 + t1) / 2);
-      const block = new THREE.Mesh(new THREE.BoxGeometry(width, height, (dist / nSeg) * 0.9), MAT.stone);
+      const segLen = (dist / nSeg) * 0.9;
+      const block = new THREE.Mesh(new THREE.BoxGeometry(width, height, segLen), MAT.wall);
       block.position.copy(p); block.quaternion.copy(quat);
+      if (MAT.wall && MAT.wall.map) {
+        const repeatX = Math.max(1, Math.round(segLen / 2));
+        const repeatY = Math.max(1, Math.round(height / 1));
+        MAT.wall.map.repeat.set(repeatX, repeatY);
+        MAT.wall.map.needsUpdate = true;
+      }
       g.add(block);
     }
   }
