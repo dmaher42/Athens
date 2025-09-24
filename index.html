@@ -1394,6 +1394,12 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         let audioStarted = false;
         const chickens = [];
         const citizens = [];
+        const HOPLITE_PATROL_SCRATCH = {
+            position: new THREE.Vector3(),
+            forward: new THREE.Vector3(),
+            quaternion: new THREE.Quaternion()
+        };
+        const HOPLITE_PATROL_Y_AXIS = new THREE.Vector3(0, 1, 0);
         const CITIZEN_MODEL_URL = './models/npc_athenian.glb';
         const citizenLoader = new GLTFLoader();
         let citizenModelCache = null;
@@ -5371,6 +5377,79 @@ function createBasicAgoraFallback() {
                     }
                 }
             });
+
+            const hoplitePatrols = Array.isArray(window?.hoplitePatrols)
+                ? window.hoplitePatrols
+                : null;
+            if (hoplitePatrols?.length) {
+                const scratch = HOPLITE_PATROL_SCRATCH;
+                const yAxis = HOPLITE_PATROL_Y_AXIS;
+
+                hoplitePatrols.forEach((patrol) => {
+                    if (!patrol?.group) {
+                        return;
+                    }
+
+                    const radiusX = typeof patrol.radiusX === 'number' ? patrol.radiusX : 60;
+                    const radiusZ = typeof patrol.radiusZ === 'number' ? patrol.radiusZ : radiusX;
+                    const angularSpeed = typeof patrol.angularSpeed === 'number' ? patrol.angularSpeed : 0;
+                    const phase = typeof patrol.phase === 'number' ? patrol.phase : 0;
+                    const sampleOffset = typeof patrol.sampleOffset === 'number' ? patrol.sampleOffset : 0.05;
+
+                    patrol.angle = (patrol.angle ?? 0) + angularSpeed * delta;
+                    const angle = (patrol.angle ?? 0) + phase;
+
+                    scratch.position.set(
+                        radiusX * Math.cos(angle),
+                        0,
+                        radiusZ * Math.sin(angle)
+                    );
+
+                    if (patrol.rotationQuaternion instanceof THREE.Quaternion) {
+                        scratch.position.applyQuaternion(patrol.rotationQuaternion);
+                    } else if (typeof patrol.rotation === 'number') {
+                        scratch.quaternion.setFromAxisAngle(yAxis, patrol.rotation);
+                        scratch.position.applyQuaternion(scratch.quaternion);
+                    }
+
+                    if (patrol.center instanceof THREE.Vector3) {
+                        scratch.position.add(patrol.center);
+                    }
+
+                    if (typeof patrol.verticalOffset === 'number') {
+                        scratch.position.y += patrol.verticalOffset;
+                    }
+
+                    patrol.group.position.copy(scratch.position);
+
+                    scratch.forward.set(
+                        radiusX * Math.cos(angle + sampleOffset),
+                        0,
+                        radiusZ * Math.sin(angle + sampleOffset)
+                    );
+
+                    if (patrol.rotationQuaternion instanceof THREE.Quaternion) {
+                        scratch.forward.applyQuaternion(patrol.rotationQuaternion);
+                    } else if (typeof patrol.rotation === 'number') {
+                        scratch.quaternion.setFromAxisAngle(yAxis, patrol.rotation);
+                        scratch.forward.applyQuaternion(scratch.quaternion);
+                    }
+
+                    if (patrol.center instanceof THREE.Vector3) {
+                        scratch.forward.add(patrol.center);
+                    }
+
+                    if (typeof patrol.verticalOffset === 'number') {
+                        scratch.forward.y += patrol.verticalOffset;
+                    }
+
+                    scratch.forward.sub(scratch.position).setY(0);
+
+                    if (scratch.forward.lengthSq() > 1e-6) {
+                        patrol.group.rotation.y = Math.atan2(scratch.forward.x, scratch.forward.z);
+                    }
+                });
+            }
         }
         
         function updateLabels() {
@@ -6690,6 +6769,196 @@ function createBasicAgoraFallback() {
             }
         };
 
+        const resolveParthenonAnchor = (scene) => {
+            const fallbackCenter = (() => {
+                const defaultCenter = new THREE.Vector3(120, 0, -90);
+                if (typeof window.setScaledPosition === 'function') {
+                    const dummy = new THREE.Object3D();
+                    window.setScaledPosition(dummy, defaultCenter.x, defaultCenter.y, defaultCenter.z);
+                    return dummy.position.clone();
+                }
+                return defaultCenter;
+            })();
+
+            const fallbackRotation = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 1, 0),
+                THREE.MathUtils.degToRad(15)
+            );
+
+            const fallback = {
+                center: fallbackCenter,
+                rotationQuaternion: fallbackRotation,
+                radiusX: 90,
+                radiusZ: 60,
+                groundY: fallbackCenter.y
+            };
+
+            if (!scene) {
+                return fallback;
+            }
+
+            let parthenonNode = null;
+            scene.traverse((object) => {
+                if (parthenonNode) {
+                    return;
+                }
+                const label = (object.userData?.monument || object.name || '').toString().toLowerCase();
+                if (label.includes('parthenon')) {
+                    parthenonNode = object;
+                }
+            });
+
+            if (!parthenonNode) {
+                return fallback;
+            }
+
+            if (typeof parthenonNode.updateWorldMatrix === 'function') {
+                parthenonNode.updateWorldMatrix(true, true);
+            }
+
+            const center = new THREE.Vector3();
+            parthenonNode.getWorldPosition(center);
+
+            const rotationQuaternion = new THREE.Quaternion();
+            parthenonNode.getWorldQuaternion(rotationQuaternion);
+
+            const bounds = new THREE.Box3().setFromObject(parthenonNode);
+            if (!bounds.isEmpty()) {
+                const size = new THREE.Vector3();
+                bounds.getSize(size);
+                const radiusX = Math.max(size.x * 0.5 + 12, 45);
+                const radiusZ = Math.max(size.z * 0.5 + 12, 35);
+                center.y = bounds.min.y;
+                return {
+                    center,
+                    rotationQuaternion,
+                    radiusX,
+                    radiusZ,
+                    groundY: bounds.min.y
+                };
+            }
+
+            return {
+                center,
+                rotationQuaternion,
+                radiusX: fallback.radiusX,
+                radiusZ: fallback.radiusZ,
+                groundY: center.y
+            };
+        };
+
+        const createParthenonPatrols = ({
+            scene,
+            renderer,
+            baseModel,
+            animations,
+            mixers,
+            startIndex = 0
+        }) => {
+            const patrols = [];
+            window.hoplitePatrols = patrols;
+
+            if (!scene || !baseModel) {
+                return [];
+            }
+
+            const anchor = resolveParthenonAnchor(scene);
+            const worldCenter = anchor.center.clone();
+            if (Number.isFinite(anchor.groundY)) {
+                worldCenter.y = anchor.groundY;
+            }
+
+            const orientation = anchor.rotationQuaternion instanceof THREE.Quaternion
+                ? anchor.rotationQuaternion.clone()
+                : new THREE.Quaternion();
+
+            const radiusX = Math.max(Math.abs(anchor.radiusX) || 0, 45);
+            const radiusZ = Math.max(Math.abs(anchor.radiusZ) || 0, 35);
+            const phases = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
+            const speeds = [0.22, 0.18, 0.2];
+            const sampleOffset = 0.05;
+            const groups = [];
+
+            phases.forEach((phase, index) => {
+                const hopliteGroup = new THREE.Group();
+                const hoplite = SkeletonUtils?.clone
+                    ? SkeletonUtils.clone(baseModel)
+                    : baseModel.clone(true);
+
+                hoplite.scale.set(1.2, 1.2, 1.2);
+                hopliteGroup.add(hoplite);
+
+                hopliteGroup.name = `Parthenon Patrol ${index + 1}`;
+                hopliteGroup.userData = {
+                    ...(hopliteGroup.userData || {}),
+                    hopliteRole: 'Parthenon Patrol',
+                    hopliteIndex: startIndex + index,
+                    isParthenonPatrol: true
+                };
+
+                applyMeshEnhancements(hopliteGroup, renderer);
+                scene.add(hopliteGroup);
+                groups.push(hopliteGroup);
+
+                if (Array.isArray(animations) && animations.length) {
+                    const mixer = new THREE.AnimationMixer(hoplite);
+                    animations.forEach((clip) => {
+                        mixer.clipAction(clip).play();
+                    });
+                    mixers.push(mixer);
+                }
+
+                const patrol = {
+                    group: hopliteGroup,
+                    center: worldCenter.clone(),
+                    radiusX,
+                    radiusZ,
+                    rotationQuaternion: orientation.clone(),
+                    verticalOffset: 0.3,
+                    angularSpeed: speeds[index % speeds.length],
+                    phase,
+                    angle: 0,
+                    sampleOffset
+                };
+
+                const initialAngle = phase;
+                const position = new THREE.Vector3(
+                    radiusX * Math.cos(initialAngle),
+                    0,
+                    radiusZ * Math.sin(initialAngle)
+                );
+                if (patrol.rotationQuaternion instanceof THREE.Quaternion) {
+                    position.applyQuaternion(patrol.rotationQuaternion);
+                }
+                position.add(patrol.center);
+                if (typeof patrol.verticalOffset === 'number') {
+                    position.y += patrol.verticalOffset;
+                }
+                hopliteGroup.position.copy(position);
+
+                const forward = new THREE.Vector3(
+                    radiusX * Math.cos(initialAngle + sampleOffset),
+                    0,
+                    radiusZ * Math.sin(initialAngle + sampleOffset)
+                );
+                if (patrol.rotationQuaternion instanceof THREE.Quaternion) {
+                    forward.applyQuaternion(patrol.rotationQuaternion);
+                }
+                forward.add(patrol.center);
+                if (typeof patrol.verticalOffset === 'number') {
+                    forward.y += patrol.verticalOffset;
+                }
+                forward.sub(position).setY(0);
+                if (forward.lengthSq() > 1e-6) {
+                    hopliteGroup.rotation.y = Math.atan2(forward.x, forward.z);
+                }
+
+                patrols.push(patrol);
+            });
+
+            return groups;
+        };
+
         const hoplitePlacements = [
             {
                 name: 'Agora Hoplite',
@@ -6795,6 +7064,7 @@ function createBasicAgoraFallback() {
         };
 
         const loadHopliteGuards = () => {
+            window.hoplitePatrols = [];
             loadModelWithFallback(
                 [
                     './models/hoplite_npc.glb',
@@ -6843,10 +7113,29 @@ function createBasicAgoraFallback() {
                         }
                     });
 
+                    const patrolGroups = createParthenonPatrols({
+                        scene,
+                        renderer,
+                        baseModel,
+                        animations: gltf.animations,
+                        mixers,
+                        startIndex: hoplitePlacements.length
+                    });
+                    if (Array.isArray(patrolGroups) && patrolGroups.length) {
+                        hopliteGroups.push(...patrolGroups);
+                    }
+
                     window.hopliteNPCs = hopliteGroups;
 
+                    const patrolCount = Array.isArray(window.hoplitePatrols)
+                        ? window.hoplitePatrols.length
+                        : 0;
+                    const totalCount = hopliteGroups.length;
+                    const patrolNote = patrolCount
+                        ? ` (including ${patrolCount} Parthenon patrol${patrolCount === 1 ? '' : 's'})`
+                        : '';
                     console.info(
-                        `Hoplite NPC model loaded from ${modelPath} and deployed at ${hoplitePlacements.length} locations.`
+                        `Hoplite NPC model loaded from ${modelPath} and deployed at ${totalCount} locations${patrolNote}.`
                     );
                 },
                 (error) => {
