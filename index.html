@@ -1154,6 +1154,9 @@
         };
 
         const BUILDING_MODEL_PATH = './public/assets/models/buildings/';
+        if (typeof window !== 'undefined') {
+            window.BUILDING_MODEL_PATH = BUILDING_MODEL_PATH;
+        }
 
         const AGORA_FEATURES = {
             templeOfHephaistos: {
@@ -6402,6 +6405,10 @@ function createBasicAgoraFallback() {
         }
 
         const gltfLoader = new GLTFLoader();
+        const BUILDING_MODEL_PATH =
+            typeof window !== 'undefined' && window.BUILDING_MODEL_PATH
+                ? window.BUILDING_MODEL_PATH
+                : './public/assets/models/buildings/';
 
         const loadModelWithFallback = (paths, onSuccess, onFailure) => {
             if (!Array.isArray(paths) || paths.length === 0) {
