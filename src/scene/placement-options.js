@@ -1,4 +1,4 @@
-const DEFAULT_PLACEMENT_OPTIONS = {
+export const defaultPlacementOptions = {
   minClearanceByKind: {
     temple: 12,
     stoa: 10,
@@ -17,5 +17,4 @@ const DEFAULT_PLACEMENT_OPTIONS = {
   logReport: true
 };
 
-export default DEFAULT_PLACEMENT_OPTIONS;
-export { DEFAULT_PLACEMENT_OPTIONS };
+export default defaultPlacementOptions;
