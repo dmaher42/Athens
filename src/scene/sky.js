@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 const SKY_PATHS = {
-  sunset: '/assets/sky/sunset_4k.jpg',
-  night: '/assets/sky/night_sky_4k.jpg'
+  sunset: 'public/assets/sky/sunset_4k.jpg',
+  night: 'public/assets/sky/night_sky_4k.jpg'
 };
 
 const environmentCache = new Map();
