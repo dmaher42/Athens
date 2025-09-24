@@ -7,6 +7,68 @@ import { applyFeatureOffset } from './geo/featureOffsets.js';
 
 const deg = (d)=> THREE.MathUtils.degToRad(d);
 
+const CITY_WALL_BUILD_OPTS = Object.freeze({
+  segment: 12,
+  height: 10,
+  width: 8
+});
+
+const CITY_WALL_POINT_EPSILON = 0.01;
+
+function isCityWallFeature(properties = {}) {
+  const kind = typeof properties.kind === 'string' ? properties.kind.toLowerCase() : '';
+  if (kind.includes('city_wall') || kind.includes('fortification')) {
+    return true;
+  }
+  const name = typeof properties.name === 'string' ? properties.name.toLowerCase() : '';
+  const title = typeof properties.title === 'string' ? properties.title.toLowerCase() : '';
+  return name.includes('city wall') || title.includes('city wall');
+}
+
+function extractCityWallRings(geometry = {}) {
+  const coords = geometry.coordinates;
+  if (!coords) return [];
+  const { type } = geometry;
+  if (type === 'Polygon') {
+    const outer = coords[0];
+    return Array.isArray(outer) ? [{ coords: outer, closed: true }] : [];
+  }
+  if (type === 'MultiPolygon') {
+    const rings = [];
+    for (const polygon of coords) {
+      if (Array.isArray(polygon) && Array.isArray(polygon[0])) {
+        rings.push({ coords: polygon[0], closed: true });
+      }
+    }
+    return rings;
+  }
+  if (type === 'LineString') {
+    return Array.isArray(coords) ? [{ coords, closed: false }] : [];
+  }
+  if (type === 'MultiLineString') {
+    const segments = [];
+    for (const segment of coords) {
+      if (Array.isArray(segment)) {
+        segments.push({ coords: segment, closed: false });
+      }
+    }
+    return segments;
+  }
+  return [];
+}
+
+function dedupeSequentialPoints(points, epsilon = CITY_WALL_POINT_EPSILON) {
+  const deduped = [];
+  for (const point of points) {
+    if (!point || typeof point.distanceTo !== 'function') continue;
+    const last = deduped[deduped.length - 1];
+    if (!last || last.distanceTo(point) > epsilon) {
+      deduped.push(point);
+    }
+  }
+  return deduped;
+}
+
 function normalizeName(s='') {
   return s
     .replace(/[’']/g, "'")
@@ -184,6 +246,57 @@ export async function buildFromGeoJSON({ scene, geoJsonUrl, projector }) {
       mesh.userData.monument = rawName || name;
 
       root.add(mesh);
+    }
+
+    const cityWallSegments = isCityWallFeature(props) ? extractCityWallRings(f.geometry) : [];
+    if (cityWallSegments.length > 0) {
+      for (const { coords, closed } of cityWallSegments) {
+        if (!Array.isArray(coords) || coords.length < 2) continue;
+        const rawPoints = [];
+        for (const coord of coords) {
+          if (!Array.isArray(coord) || coord.length < 2) continue;
+          const [lon, lat] = coord;
+          const projected = toWorld(lon, lat);
+          if (!projected) continue;
+          const point = typeof projected.clone === 'function'
+            ? projected.clone()
+            : new THREE.Vector3(
+                Number.isFinite(projected.x) ? projected.x : 0,
+                Number.isFinite(projected.y) ? projected.y : 0,
+                Number.isFinite(projected.z) ? projected.z : 0
+              );
+          if (!Number.isFinite(point.x) || !Number.isFinite(point.z)) continue;
+          point.y = (Number.isFinite(point.y) ? point.y : 0) + CITY_WALL_BUILD_OPTS.height * 0.5;
+          rawPoints.push(point);
+        }
+        const filtered = dedupeSequentialPoints(rawPoints);
+        if (filtered.length < 2) continue;
+        if (closed) {
+          const first = filtered[0];
+          const last = filtered[filtered.length - 1];
+          if (first.distanceTo(last) > CITY_WALL_POINT_EPSILON) {
+            filtered.push(first.clone());
+          } else {
+            filtered[filtered.length - 1] = first.clone();
+          }
+          if (filtered.length < 3) continue;
+        }
+
+        const wall = makeWallPath(filtered, CITY_WALL_BUILD_OPTS);
+        if (!wall || wall.children.length === 0) continue;
+        const nameForWall = rawName || props.title || 'City Wall';
+        wall.name = nameForWall;
+        wall.userData.monument = nameForWall;
+        wall.userData.kind = 'city_wall';
+        wall.traverse((child) => {
+          if (child && child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+        root.add(wall);
+      }
+      continue;
     }
 
     // Long Walls (LineStrings) → wall modules
