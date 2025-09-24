@@ -1,6 +1,38 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
 
+const textureLoader = new THREE.TextureLoader();
+let cachedBaseTexture = null;
+
+function loadBaseTexture() {
+  if (!cachedBaseTexture) {
+    cachedBaseTexture = textureLoader.load(resolveAssetUrl('assets/textures/grass.jpg'));
+
+    if ('SRGBColorSpace' in THREE) cachedBaseTexture.colorSpace = THREE.SRGBColorSpace;
+    else if ('sRGBEncoding' in THREE) cachedBaseTexture.encoding = THREE.sRGBEncoding;
+  }
+  return cachedBaseTexture;
+}
+
+function configureTexture(baseTexture, { repeat, anisotropy }) {
+  const texture = baseTexture.clone();
+  texture.needsUpdate = true;
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
+  if (typeof repeat === 'number') {
+    texture.repeat.set(repeat, repeat);
+  }
+
+  if (typeof anisotropy === 'number') {
+    texture.anisotropy = Math.max(texture.anisotropy || 0, anisotropy);
+  }
+
+  if ('SRGBColorSpace' in THREE) texture.colorSpace = THREE.SRGBColorSpace;
+  else if ('sRGBEncoding' in THREE) texture.encoding = THREE.sRGBEncoding;
+
+  return texture;
+}
+
 export function createGrassGround({
   size = 200,
   repeat = 16,
@@ -15,18 +47,7 @@ export function createGrassGround({
   geo.rotateX(-Math.PI / 2);
   geo.translate(0, height, 0);
 
-  const texLoader = new THREE.TextureLoader();
-
-  const color = texLoader.load(resolveAssetUrl('assets/textures/grass.jpg'));
-
-  [color].forEach(t => {
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(repeat, repeat);
-    t.anisotropy = Math.max(t.anisotropy || 0, anisotropy);
-  });
-
-  if ('SRGBColorSpace' in THREE) color.colorSpace = THREE.SRGBColorSpace;
-  else if ('sRGBEncoding' in THREE) color.encoding = THREE.sRGBEncoding;
+  const color = configureTexture(loadBaseTexture(), { repeat, anisotropy });
 
   const mat = new THREE.MeshStandardMaterial({
     map: color,
