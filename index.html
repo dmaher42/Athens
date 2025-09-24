@@ -569,11 +569,21 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 return relativePath;
             }
         };
+
+        // SAFETY: don't assume skyAssetLocations exists; fall back to bundled /src/sky files
+        const windowSkyAssetLocations = Array.isArray(window.skyAssetLocations) ? window.skyAssetLocations : [];
+
+        // If nothing is configured, use local defaults so the app still starts
+        const defaultSkyPrefixes = windowSkyAssetLocations.length
+            ? windowSkyAssetLocations
+            : [{ prefix: './src/sky/', label: 'bundled' }];
+
         const skyAssetLocations = [
-            { prefix: resolveAssetUrl('assets/sky/'), label: 'assets/sky' }
+            { prefix: resolveAssetUrl('assets/sky/'), label: 'assets/sky' },
+            ...defaultSkyPrefixes
         ];
 
-        const nightSkyCubeSources = (window.skyAssetLocations || [{ prefix: './src/sky/', label: 'bundled' }]).map(({ prefix, label }, index) => ({
+        const nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
             url: resolveRelativeUrl(`${prefix}night_sky.jpg`),
             label: `night_sky.jpg (${label})`,
             isFallback: index > 0
@@ -713,14 +723,17 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 spaceNightAmount: 1.0
             }};
     // SAFETY: don't assume skyAssetLocations exists; fall back to bundled /src/sky files
-const skyAssetLocationsSafe = Array.isArray(window.skyAssetLocations) ? window.skyAssetLocations : [];
+const skyAssetLocationsSafe =
+  (typeof window !== 'undefined' && Array.isArray(window.skyAssetLocations))
+    ? window.skyAssetLocations
+    : [];
 
 // if nothing configured, use local defaults so the app still starts
 const defaultSkyPrefixes = skyAssetLocationsSafe.length
   ? skyAssetLocationsSafe
   : [{ prefix: './src/sky/', label: 'bundled' }];
 
-const __DUPLICATE_nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
+const nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
   label: `cube map (${label})`,
   urls: [
     resolveRelativeUrl(`${prefix}night_sky_right.jpg`),
@@ -732,7 +745,6 @@ const __DUPLICATE_nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label 
   ],
   isFallback: index > 0
 }));
-
 
         let nightSkyTexture = null;
         let nightSkyCubeTexture = null;
