@@ -830,14 +830,12 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             ]
         );
 
-        const highNoonPhotoSources = registerPhotoSkySources(
-            'high-noon',
-            'high_noon.jpg',
-            'High Noon sky panorama',
-            [
-                { url: './src/sky/high_noon.jpg', label: 'Bundled sunset fallback' }
-            ]
-        );
+        // High-noon (blue daytime) photo sources: prefer assets/, fallback to bundled
+        const highNoonPhotoSources = [
+            { url: resolveAssetUrl('assets/sky/high_noon.jpg'), label: 'assets/high_noon' },
+            { url: resolveRelativeUrl('./src/sky/high_noon.jpg'), label: 'bundled/high_noon', isFallback: true }
+        ];
+        photoSkyTexturesByKey.set('high-noon', highNoonPhotoSources);
 
         const starlitNightPhotoSources = registerPhotoSkySources(
             'starlit-night',
@@ -867,8 +865,8 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             'High Noon': {
                 textureKey: 'high-noon',
                 sources: highNoonPhotoSources,
-                skydomeOpacity: 1.3,
-                spaceNightAmount: 0.0
+                skydomeOpacity: 1.0,   // show the blue sky fully
+                spaceNightAmount: 0.0  // no stars at noon
             },
             'Golden Dusk': {
                 textureKey: 'golden-hour',
@@ -1722,7 +1720,9 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             }
             currentEnvironmentMode = normalized;
             const hasPhotoSky = Boolean(photoSkydome || window.__AthensSky__);
-            const shouldPreserveBackground = hasPhotoSky && (normalized === 'sunset' || normalized === 'night');
+            const shouldPreserveBackground = hasPhotoSky && (
+                normalized === 'sunset' || normalized === 'night' || normalized === 'day'
+            );
             setEnvironment(renderer, scene, normalized, { preserveBackground: shouldPreserveBackground });
         };
         
@@ -1830,8 +1830,11 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 powerPreference: "high-performance"
             });
             renderer.physicallyCorrectLights = true;
-            if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
-            else renderer.outputEncoding = THREE.sRGBEncoding;
+            if ('SRGBColorSpace' in THREE) {
+                renderer.outputColorSpace = THREE.SRGBColorSpace;
+            } else if ('sRGBEncoding' in THREE) {
+                renderer.outputEncoding = THREE.sRGBEncoding;
+            }
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = 0.9;
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1888,37 +1891,47 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 if (event.key === '3') applyEnvironmentMode('night');
             });
 
-            photoSkydome = await createPhotoSkydome({
-                scene,
-                renderer,
-                sources: highNoonPhotoSources,
-                radius: 5000,
-                initialYawDeg: 0
-            });
-
-            if (photoSkydome?.mesh) {
-                photoSkydomeYawDeg = THREE.MathUtils.radToDeg(photoSkydome.mesh.rotation.y);
-            }
-
-            if (photoSkydome?.source) {
-                const { label, url, isFallback } = photoSkydome.source;
-                const description = label || url;
-                const suffix = isFallback ? ' (fallback)' : '';
-                console.info(`Photo skydome texture loaded: ${description}${suffix}`);
-            }
-
-            window.__AthensSky__ = photoSkydome;
-            currentPhotoSkyKey = 'high-noon';
-            __level = 0;
-
-            photoSkyTexturesByKey.forEach((sources, key) => {
-                if (!photoSkydome || key === currentPhotoSkyKey) {
-                    return;
-                }
-                photoSkydome.prefetchSources(sources).catch((error) => {
-                    console.debug(`Photo skydome prefetch skipped for ${key}:`, error);
+            try {
+                photoSkydome = await createPhotoSkydome({
+                    scene,
+                    renderer,
+                    sources: highNoonPhotoSources,
+                    radius: 5000,
+                    initialYawDeg: 0
                 });
-            });
+
+                if (photoSkydome?.mesh) {
+                    photoSkydomeYawDeg = THREE.MathUtils.radToDeg(photoSkydome.mesh.rotation.y);
+                }
+
+                if (photoSkydome?.source) {
+                    const { label, url, isFallback } = photoSkydome.source;
+                    const description = label || url;
+                    const suffix = isFallback ? ' (fallback)' : '';
+                    console.info(`Photo skydome texture loaded: ${description}${suffix}`);
+                }
+
+                window.__AthensSky__ = photoSkydome;
+                currentPhotoSkyKey = 'high-noon';
+                __level = 0;
+
+                photoSkyTexturesByKey.forEach((sources, key) => {
+                    if (!photoSkydome || key === currentPhotoSkyKey) {
+                        return;
+                    }
+                    photoSkydome.prefetchSources(sources).catch((error) => {
+                        console.debug(`Photo skydome prefetch skipped for ${key}:`, error);
+                    });
+                });
+            } catch (error) {
+                console.warn('Photo skydome initialization failed; using fallback blue sky.', error);
+                photoSkydome = null;
+                window.__AthensSky__ = null;
+                currentPhotoSkyKey = null;
+                scene.background = new THREE.Color(0x87c5eb);
+                scene.environment = null;
+                __level = 0;
+            }
 
             spaceNight = initSpaceNight({
                 scene,
@@ -4354,6 +4367,8 @@ function createBasicAgoraFallback() {
                 exposure: 1.0,
                 bloomStrength: 0.22,
                 fogColor: 0xcfe8ff,
+                fogNear: 600,
+                fogFar: 6000,
                 starOpacity: 0.0,
                 skyTurbidity: 4.0,
                 skyRayleigh: 1.4,
@@ -4400,21 +4415,27 @@ function createBasicAgoraFallback() {
                     settings.skyMie = 0.0015;
                     break;
                 case 'High Noon':
-                    settings.elevation = 72;
+                    settings.elevation = 70;            // high sun
                     settings.azimuth = 180;
-                    settings.ambientIntensity = 0.36;
-                    settings.ambientColor = 0xe4f2ff;
-                    settings.directionalIntensity = 1.05;
+                    settings.ambientIntensity = 0.35;
+                    settings.ambientColor = 0xffffff;
+                    settings.directionalIntensity = 1.1;
                     settings.directionalColor = 0xffffff;
-                    settings.hemisphereIntensity = 0.6;
-                    settings.hemiSkyColor = 0x4fb5ff;
-                    settings.hemiGroundColor = 0xc5a572;
+                    settings.hemisphereIntensity = 0.35;
+                    settings.hemiSkyColor = 0xdfefff;   // pale blue
+                    settings.hemiGroundColor = 0xcbd5e1;
                     settings.exposure = 1.0;
-                    settings.bloomStrength = 0.18;
-                    settings.fogColor = 0xaad8ff;
-                    settings.skyTurbidity = 2.6;
-                    settings.skyRayleigh = 1.9;
-                    settings.skyMie = 0.0015;
+                    settings.bloomStrength = 0.0;
+
+                    // HAZE / FOG: minimal at noon
+                    settings.fogColor = 0xdfe9f2;       // light blue-gray fog color
+                    settings.fogNear = 150;             // push fog away so it doesn't wash the ground
+                    settings.fogFar  = 3000;
+
+                    // Physical sky scattering (if used): low haze
+                    settings.skyTurbidity = 2.0;        // lower = clearer
+                    settings.skyRayleigh  = 1.0;        // modest
+                    settings.skyMie       = 0.0015;     // very low forward scatter
                     break;
                 case 'Golden Dusk':
                     settings.elevation = 4;
@@ -4492,13 +4513,15 @@ function createBasicAgoraFallback() {
                 const targetExposure = Math.min(settings.exposure, 0.9);
                 renderer.toneMappingExposure = targetExposure;
                 const fogCol = new THREE.Color(settings.fogColor);
+                const fogNear = Number.isFinite(settings.fogNear) ? settings.fogNear : 600;
+                const fogFar = Number.isFinite(settings.fogFar) ? settings.fogFar : 6000;
                 if (fogEnabled) {
                     if (!scene.fog) {
-                        scene.fog = new THREE.Fog(fogCol, 600, 6000);
+                        scene.fog = new THREE.Fog(fogCol, fogNear, fogFar);
                     } else {
                         scene.fog.color.copy(fogCol);
-                        scene.fog.near = 600;
-                        scene.fog.far = 6000;
+                        scene.fog.near = fogNear;
+                        scene.fog.far = fogFar;
                     }
                 } else {
                     scene.fog = null;
