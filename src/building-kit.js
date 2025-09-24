@@ -48,7 +48,7 @@ MAT.wall = new THREE.MeshStandardMaterial(WALL_FALLBACK_PROPS);
 
 try {
   const texLoader = new THREE.TextureLoader();
-  const wallURL = new URL('../public/assets/textures/wall_city.jpg', import.meta.url).href;
+  const wallURL = new URL('../public/assets/textures/city_wall.jpg', import.meta.url).href;
   texLoader.load(
     wallURL,
     (wallTex) => {

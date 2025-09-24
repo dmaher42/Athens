@@ -1511,8 +1511,8 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         let skipNightHotkeyOnce = false;
 
         // Declare texture and material variables globally
-        let stoneTexture, marbleTexture, redTileTexture, groundTexture, pavedRoadTexture;
-        let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial;
+        let stoneTexture, marbleTexture, redTileTexture, groundTexture, pavedRoadTexture, cityWallTexture;
+        let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial, cityWallMaterial;
 
         const buildingMaterialSet = loadBuildingTextures();
         let groundMesh = null;
@@ -1678,6 +1678,34 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
 
             const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 8;
             const textureLoader = new THREE.TextureLoader();
+
+            try {
+                cityWallTexture = textureLoader.load(
+                    'public/assets/textures/city_wall.jpg',
+                    (texture) => {
+                        texture.anisotropy = Math.max(texture.anisotropy || 0, maxAnisotropy);
+                        texture.needsUpdate = true;
+                    },
+                    undefined,
+                    (error) => {
+                        console.warn('Failed to load city wall texture; falling back to procedural stone.', error);
+                        cityWallTexture = null;
+                    }
+                );
+                if (cityWallTexture) {
+                    cityWallTexture.wrapS = cityWallTexture.wrapT = THREE.RepeatWrapping;
+                    if ('SRGBColorSpace' in THREE) {
+                        cityWallTexture.colorSpace = THREE.SRGBColorSpace;
+                    } else if ('sRGBEncoding' in THREE) {
+                        cityWallTexture.encoding = THREE.sRGBEncoding;
+                    }
+                    cityWallTexture.repeat.set(4, 2);
+                    cityWallTexture.needsUpdate = true;
+                }
+            } catch (error) {
+                console.warn('Texture loader unavailable for city wall texture; using procedural fallback.', error);
+                cityWallTexture = null;
+            }
 
             if (buildingMaterialSet?.marbleMat?.map) {
                 buildingMaterialSet.marbleMat.map.anisotropy = Math.max(
@@ -1886,6 +1914,19 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             }
 
             stoneMaterial = new THREE.MeshStandardMaterial({ map: stoneTexture, roughness: 0.85, metalness: 0.05 });
+
+            cityWallMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 0.72,
+                metalness: 0.12
+            });
+            if (cityWallTexture) {
+                cityWallMaterial.map = cityWallTexture;
+                cityWallMaterial.needsUpdate = true;
+            } else {
+                cityWallMaterial.copy(stoneMaterial);
+                cityWallMaterial.needsUpdate = true;
+            }
 
             marbleMaterial = buildingMaterialSet?.marbleMat?.clone
                 ? buildingMaterialSet.marbleMat.clone()
@@ -4471,7 +4512,7 @@ function createBasicAgoraFallback() {
 
             const baseHeight = height * 0.68;
             const walkwayHeight = Math.max(height * 0.12, 0.6);
-            const merlonHeight = height - baseHeight - walkwayHeight;
+            const merlonHeight = Math.max(height - baseHeight - walkwayHeight, 0.6);
 
             const foundationDepth = scaledDepth * 1.15;
             const walkwayDepth = scaledDepth * 0.75;
@@ -4482,17 +4523,37 @@ function createBasicAgoraFallback() {
             wallGroup.position.set(scaledX, 0, scaledZ);
             wallGroup.rotation.y = rotationY;
 
-            const foundationMaterial = stoneMaterial.clone();
-            foundationMaterial.color.offsetHSL(0, 0, -0.08);
-            foundationMaterial.roughness = Math.min(1, foundationMaterial.roughness + 0.05);
+            const baseWallMaterial = cityWallMaterial ?? stoneMaterial;
+            const createWallLayerMaterial = ({ lightness = 0, roughnessDelta = 0, repeatX, repeatY } = {}) => {
+                const mat = baseWallMaterial.clone();
+                if (lightness !== 0) {
+                    mat.color.offsetHSL(0, 0, lightness);
+                }
+                if (roughnessDelta !== 0) {
+                    mat.roughness = THREE.MathUtils.clamp(mat.roughness + roughnessDelta, 0, 1);
+                }
+                if (mat.map) {
+                    mat.map = mat.map.clone();
+                    mat.map.wrapS = mat.map.wrapT = THREE.RepeatWrapping;
+                    if (typeof repeatX === 'number' && Number.isFinite(repeatX)) {
+                        mat.map.repeat.x = repeatX;
+                    }
+                    if (typeof repeatY === 'number' && Number.isFinite(repeatY)) {
+                        mat.map.repeat.y = repeatY;
+                    }
+                    mat.map.anisotropy = cityWallTexture?.anisotropy ?? Math.max(mat.map.anisotropy || 0, maxAnisotropy);
+                    mat.map.needsUpdate = true;
+                }
+                mat.needsUpdate = true;
+                return mat;
+            };
 
-            const walkwayMaterial = stoneMaterial.clone();
-            walkwayMaterial.color.offsetHSL(0, 0, 0.05);
-            walkwayMaterial.roughness = Math.max(0, walkwayMaterial.roughness - 0.1);
-
-            const merlonMaterial = stoneMaterial.clone();
-            merlonMaterial.color.offsetHSL(0, 0, -0.02);
-            merlonMaterial.roughness = Math.min(1, merlonMaterial.roughness + 0.1);
+            const foundationMaterial = createWallLayerMaterial({
+                lightness: -0.08,
+                roughnessDelta: 0.05,
+                repeatX: Math.max(1, Math.round(width / 8)),
+                repeatY: Math.max(1, Math.round(baseHeight / 2))
+            });
 
             const foundation = new THREE.Mesh(
                 new THREE.BoxGeometry(scaledWidth, baseHeight, foundationDepth),
@@ -4505,9 +4566,12 @@ function createBasicAgoraFallback() {
 
             const stringCourseHeight = Math.min(walkwayHeight * 0.8, 0.6);
             if (stringCourseHeight > 0.1) {
-                const courseMaterial = stoneMaterial.clone();
-                courseMaterial.color.offsetHSL(0, 0, -0.15);
-                courseMaterial.roughness = Math.min(1, courseMaterial.roughness + 0.1);
+                const courseMaterial = createWallLayerMaterial({
+                    lightness: -0.15,
+                    roughnessDelta: 0.1,
+                    repeatX: Math.max(1, Math.round(width / 8)),
+                    repeatY: Math.max(1, Math.round(stringCourseHeight / 0.3))
+                });
                 const stringCourse = new THREE.Mesh(
                     new THREE.BoxGeometry(scaledWidth * 0.98, stringCourseHeight, foundationDepth * 1.05),
                     courseMaterial
@@ -4518,6 +4582,12 @@ function createBasicAgoraFallback() {
                 wallGroup.add(stringCourse);
             }
 
+            const walkwayMaterial = createWallLayerMaterial({
+                lightness: 0.05,
+                roughnessDelta: -0.1,
+                repeatX: Math.max(1, Math.round(width / 8)),
+                repeatY: Math.max(1, Math.round(walkwayHeight / 0.6))
+            });
             const walkwayBlock = new THREE.Mesh(
                 new THREE.BoxGeometry(scaledWidth * 0.94, walkwayHeight, walkwayDepth),
                 walkwayMaterial
@@ -4544,9 +4614,12 @@ function createBasicAgoraFallback() {
 
             const buttressCount = Math.max(0, Math.floor(width / 14));
             if (buttressCount > 0) {
-                const buttressMaterial = stoneMaterial.clone();
-                buttressMaterial.color.offsetHSL(0, 0, -0.12);
-                buttressMaterial.roughness = Math.min(1, buttressMaterial.roughness + 0.12);
+                const buttressMaterial = createWallLayerMaterial({
+                    lightness: -0.12,
+                    roughnessDelta: 0.12,
+                    repeatX: 1,
+                    repeatY: Math.max(1, Math.round((baseHeight + walkwayHeight) / 1.5))
+                });
                 const buttressGeometry = new THREE.BoxGeometry(scaleValue(2.5), baseHeight * 1.1, buttressDepth);
                 const buttressY = (baseHeight * 1.1) / 2;
                 const spacing = scaledWidth / (buttressCount + 1);
@@ -4563,6 +4636,12 @@ function createBasicAgoraFallback() {
             merlonCount = Math.min(merlonCount, 48);
             const merlonSpacing = scaledWidth / merlonCount;
             const merlonWidth = merlonSpacing * 0.55;
+            const merlonMaterial = createWallLayerMaterial({
+                lightness: -0.02,
+                roughnessDelta: 0.1,
+                repeatX: 1,
+                repeatY: Math.max(1, Math.round(merlonHeight / 0.5))
+            });
             const merlonGeometry = new THREE.BoxGeometry(merlonWidth, merlonHeight, merlonDepth);
             const merlonY = baseHeight + walkwayHeight + merlonHeight / 2;
             const zOffset = walkwayDepth / 2 - merlonDepth / 2;
@@ -4599,7 +4678,7 @@ function createBasicAgoraFallback() {
             const wallHeight = 10;
             const wallDepth = 4;
 
-            // Walls
+            // Walls wrapping the city perimeter with the shared city_wall texture.
             createCityWall(-wallSize / 2 - 10, -wallSize, wallSize - 20, wallHeight, wallDepth, 0);
             createCityWall(wallSize / 2 + 10, -wallSize, wallSize - 20, wallHeight, wallDepth, 0);
             createCityWall(0, wallSize, wallSize * 2, wallHeight, wallDepth, 0);
@@ -4611,20 +4690,40 @@ function createBasicAgoraFallback() {
             const towerHeight = 15;
             const gateGap = 10;
 
-            const tower1 = createEnhancedBuilding(-gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
+            const baseGateMaterial = cityWallMaterial ?? stoneMaterial;
+            const createGateMaterial = () => {
+                const mat = baseGateMaterial.clone();
+                if (mat.map) {
+                    mat.map = mat.map.clone();
+                    mat.map.wrapS = mat.map.wrapT = THREE.RepeatWrapping;
+                    mat.map.anisotropy = cityWallTexture?.anisotropy ?? Math.max(mat.map.anisotropy || 0, maxAnisotropy);
+                    mat.map.needsUpdate = true;
+                }
+                mat.needsUpdate = true;
+                return mat;
+            };
+
+            const tower1 = createEnhancedBuilding(-gateGap, -wallSize, towerWidth, towerWidth, towerHeight, createGateMaterial(), { includeDetails: false });
             scene.add(tower1);
             const tower1Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight/2, scaleValue(towerWidth) / 2)) });
             tower1Body.position.copy(tower1.position);
             world.addBody(tower1Body);
 
-            const tower2 = createEnhancedBuilding(gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
+            const tower2 = createEnhancedBuilding(gateGap, -wallSize, towerWidth, towerWidth, towerHeight, createGateMaterial(), { includeDetails: false });
             scene.add(tower2);
             const tower2Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight/2, scaleValue(towerWidth) / 2)) });
             tower2Body.position.copy(tower2.position);
             world.addBody(tower2Body);
 
-            const arch = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(gateGap * 2), 4, scaleValue(towerWidth)), stoneMaterial);
+            const archMaterial = createGateMaterial();
+            if (archMaterial.map) {
+                archMaterial.map.repeat.set(Math.max(1, Math.round((gateGap * 2) / 4)), Math.max(1, Math.round(4 / 2)));
+                archMaterial.map.needsUpdate = true;
+            }
+            const arch = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(gateGap * 2), 4, scaleValue(towerWidth)), archMaterial);
             setScaledPosition(arch, 0, towerHeight - 2, -wallSize);
+            arch.castShadow = true;
+            arch.receiveShadow = true;
             scene.add(arch);
             const archBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(gateGap), 2, scaleValue(towerWidth) / 2)) });
             archBody.position.copy(arch.position);
