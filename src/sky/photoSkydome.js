@@ -12,9 +12,7 @@ function normalizeSources(list) {
     if (!entry) return;
     const item = typeof entry === 'string' ? { url: entry } : entry;
     const url = item?.url;
-    if (!url || seen.has(url)) {
-      return;
-    }
+    if (!url || seen.has(url)) return;
     seen.add(url);
     normalized.push({ ...item });
   });
@@ -22,17 +20,21 @@ function normalizeSources(list) {
 }
 
 async function loadTextureWithCache(url, loader = sharedTextureLoader) {
-  if (!url) {
-    throw new Error('PhotoSkydome: invalid texture URL.');
-  }
+  if (!url) throw new Error('PhotoSkydome: invalid texture URL.');
   if (!textureCache.has(url)) {
-    const promise = loader.loadAsync(url)
+    const promise = loader
+      .loadAsync(url)
       .then((texture) => {
+        // Correct color space for photographs
         if ('SRGBColorSpace' in THREE) {
           texture.colorSpace = THREE.SRGBColorSpace;
         } else if ('sRGBEncoding' in THREE) {
           texture.encoding = THREE.sRGBEncoding;
         }
+        // Smoother gradients & sampling
+        texture.generateMipmaps = true;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
         return texture;
       })
       .catch((error) => {
@@ -47,9 +49,7 @@ async function loadTextureWithCache(url, loader = sharedTextureLoader) {
 async function loadTextureSequence(sources, loader) {
   let lastError = null;
   for (const source of sources) {
-    if (!source?.url) {
-      continue;
-    }
+    if (!source?.url) continue;
     try {
       const texture = await loadTextureWithCache(source.url, loader);
       return { texture, source };
@@ -64,14 +64,16 @@ async function loadTextureSequence(sources, loader) {
 
 async function prefetchTextureSources(sources, loader) {
   const normalized = normalizeSources(sources);
-  await Promise.all(normalized.map(async (source) => {
-    try {
-      await loadTextureWithCache(source.url, loader);
-    } catch (error) {
-      const label = source.label ? ` ("${source.label}")` : '';
-      console.debug(`PhotoSkydome: prefetch skipped for${label} ${source.url}`, error);
-    }
-  }));
+  await Promise.all(
+    normalized.map(async (source) => {
+      try {
+        await loadTextureWithCache(source.url, loader);
+      } catch (error) {
+        const label = source.label ? ` ("${source.label}")` : '';
+        console.debug(`PhotoSkydome: prefetch skipped for${label} ${source.url}`, error);
+      }
+    })
+  );
 }
 
 export async function createPhotoSkydome({
@@ -79,7 +81,7 @@ export async function createPhotoSkydome({
   renderer,
   url = new URL('./milkyway.jpg', import.meta.url).href,
   sources = null,
-  radius = 15000,
+  radius = 15000,         // farther away: feels less "close"
   initialYawDeg = 0,
   loader = null
 }) {
@@ -92,19 +94,26 @@ export async function createPhotoSkydome({
     throw new Error('No sky texture source provided for photo skydome.');
   }
 
-  const { texture: initialTexture, source: initialSource } = await loadTextureSequence(initialSources, textureLoader);
+  const { texture: initialTexture, source: initialSource } =
+    await loadTextureSequence(initialSources, textureLoader);
 
-  const geometry = new THREE.SphereGeometry(radius, 64, 64);
+  // Higher segments for smoother silhouette/gradients
+  const geometry = new THREE.SphereGeometry(radius, 96, 64);
+
   const material = new THREE.MeshBasicMaterial({
     map: initialTexture,
     side: THREE.BackSide,
     transparent: true,
     opacity: 0.0,
-    depthWrite: false
+    depthWrite: false,
+    depthTest: false,      // always render behind scene
+    dithering: true        // reduce color banding
   });
+
   const dome = new THREE.Mesh(geometry, material);
   dome.name = 'PhotoSkydome';
   dome.renderOrder = -1000;
+  dome.frustumCulled = false; // never cull the dome
   dome.rotation.y = THREE.MathUtils.degToRad(initialYawDeg);
   dome.userData.skyTextureSource = initialSource;
   scene.add(dome);
@@ -116,6 +125,23 @@ export async function createPhotoSkydome({
   let envRenderTarget = null;
   let envTexture = null;
   let loadToken = 0;
+
+  // Try to maximize anisotropy (sharper sampling at glancing angles)
+  const applyTextureSamplingHints = (tex) => {
+    if (!tex) return;
+    tex.generateMipmaps = true;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    try {
+      const maxA =
+        renderer?.capabilities?.getMaxAnisotropy &&
+        renderer.capabilities.getMaxAnisotropy();
+      if (maxA && Number.isFinite(maxA) && maxA > 0) {
+        tex.anisotropy = Math.min(tex.anisotropy || maxA, maxA);
+      }
+    } catch {}
+    tex.needsUpdate = true;
+  };
 
   const updateEnvironmentVisibility = () => {
     if (!scene) return;
@@ -136,14 +162,11 @@ export async function createPhotoSkydome({
       updateEnvironmentVisibility();
       return null;
     }
-
     const pmrem = new THREE.PMREMGenerator(renderer);
     const target = pmrem.fromEquirectangular(currentTexture);
     pmrem.dispose();
 
-    if (envRenderTarget) {
-      envRenderTarget.dispose();
-    }
+    if (envRenderTarget) envRenderTarget.dispose();
     envRenderTarget = target;
     envTexture = target.texture;
     updateEnvironmentVisibility();
@@ -153,10 +176,8 @@ export async function createPhotoSkydome({
   const applyTexture = (texture, source) => {
     currentTexture = texture;
     currentSource = source;
+    applyTextureSamplingHints(texture);
     material.map = texture;
-    if (texture) {
-      texture.needsUpdate = true;
-    }
     material.needsUpdate = true;
     dome.userData.skyTextureSource = source;
     refreshEnvironment();
@@ -191,12 +212,9 @@ export async function createPhotoSkydome({
     },
     async swapTexture({ url: overrideUrl, sources: overrideSources = [], label } = {}) {
       const combined = [];
-      if (overrideUrl) {
-        combined.push({ url: overrideUrl, label });
-      }
-      if (Array.isArray(overrideSources)) {
-        combined.push(...overrideSources);
-      }
+      if (overrideUrl) combined.push({ url: overrideUrl, label });
+      if (Array.isArray(overrideSources)) combined.push(...overrideSources);
+
       const candidateSources = normalizeSources(combined.length > 0 ? combined : defaultSources);
       if (candidateSources.length === 0) {
         throw new Error('Photo skydome swapTexture called without any sources.');
@@ -204,9 +222,8 @@ export async function createPhotoSkydome({
 
       const requestId = ++loadToken;
       const { texture, source } = await loadTextureSequence(candidateSources, textureLoader);
-      if (requestId !== loadToken) {
-        return null;
-      }
+      if (requestId !== loadToken) return null;
+
       defaultSources = candidateSources;
       applyTexture(texture, source);
       return { texture, source };
