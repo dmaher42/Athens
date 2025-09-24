@@ -5,8 +5,6 @@ const SKY_PATHS = {
   night: '/assets/sky/night_sky_4k.jpg'
 };
 
-};
-
 const environmentCache = new Map();
 const DAY_COLOR = new THREE.Color('#87c5eb');
 
