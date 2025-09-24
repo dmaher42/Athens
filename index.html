@@ -445,21 +445,16 @@
 import { setupGround, configureGround, updateTrees } from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
 import { loadBuildingTextures, retargetBuildingMaterials } from './src/scene/materials.js';
-            createDistrictsLayer,
-            setDistricts,
-            getDistrictAt,
-            onDistrictsChanged,
-            setDistrictFillsVisible,
-            setDistrictOutlinesVisible
-        } from './src/scene/districts.js';
-        import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.js';
+import {
+  createDistrictsLayer,
+  setDistricts,
+  getDistrictAt,
+  onDistrictsChanged,
+  setDistrictFillsVisible,
+  setDistrictOutlinesVisible,
+} from './src/scene/districts.js';
 
-        const TONE_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js';
-        let toneLoadingPromise = null;
-
-        function loadToneLibrary() {
-            if (window.Tone) {
-                return Promise.resolve(window.Tone);
+import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.js';
             }
 
             if (!toneLoadingPromise) {
