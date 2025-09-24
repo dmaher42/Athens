@@ -28,9 +28,9 @@ async function loadTextureWithCache(url, loader = sharedTextureLoader) {
   if (!textureCache.has(url)) {
     const promise = loader.loadAsync(url)
       .then((texture) => {
-        if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+        if ('SRGBColorSpace' in THREE) {
           texture.colorSpace = THREE.SRGBColorSpace;
-        } else if ('encoding' in texture) {
+        } else if ('sRGBEncoding' in THREE) {
           texture.encoding = THREE.sRGBEncoding;
         }
         return texture;
