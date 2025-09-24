@@ -17,11 +17,9 @@ export function createGrassGround({
 
   const texLoader = new THREE.TextureLoader();
 
-  const color = texLoader.load(resolveAssetUrl('assets/textures/grass/color.jpg'));
-  const rough  = texLoader.load(resolveAssetUrl('assets/textures/grass/rough.jpg'));
-  const normal = texLoader.load(resolveAssetUrl('assets/textures/grass/normal.jpg'));
+  const color = texLoader.load(resolveAssetUrl('assets/textures/grass.jpg'));
 
-  [color, rough, normal].forEach(t => {
+  [color].forEach(t => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.repeat.set(repeat, repeat);
     t.anisotropy = Math.max(t.anisotropy || 0, anisotropy);
@@ -32,8 +30,6 @@ export function createGrassGround({
 
   const mat = new THREE.MeshStandardMaterial({
     map: color,
-    roughnessMap: rough,
-    normalMap: normal,
     roughness: 0.9,
   });
 
