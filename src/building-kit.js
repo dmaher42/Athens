@@ -98,21 +98,28 @@ export function makeTemple({
   cella.position.set(0, baseY + (colH * 0.75) * 0.5, 0);
   root.add(cella);
 
-  // Roof slopes
+  // Roof (pitched triangular prism)
   const roofH = 2.6;
-  const roofDepth = (length + 1.6) / 2;
-  const roofHalfDepth = roofDepth * 0.5;
-  const roofPitch = deg(12);
-  const roofY = ent.position.y + entablatureH * 0.5 + roofH * 0.5;
-  const ridgeOffset = Math.sin(roofPitch) * (roofH * 0.5) + Math.cos(roofPitch) * roofHalfDepth;
+  const roofOverhangX = 0.8;
+  const roofOverhangZ = 0.8;
+  const roofBaseY = ent.position.y + entablatureH * 0.5;
+  const roofPeakY = roofBaseY + roofH;
+  const roofHalfWidth = width * 0.5 + roofOverhangX;
+  const roofDepth = length + roofOverhangZ * 2;
 
-  const roof1 = new THREE.Mesh(new THREE.BoxGeometry(width + 1.6, roofH, roofDepth), materials.roof);
-  const roof2 = roof1.clone();
-  roof1.position.set(0, roofY, -ridgeOffset);
-  roof2.position.set(0, roofY,  ridgeOffset);
-  roof1.rotation.x =  roofPitch;
-  roof2.rotation.x = -roofPitch;
-  root.add(roof1, roof2);
+  const roofShape = new THREE.Shape();
+  roofShape.moveTo(-roofHalfWidth, 0);
+  roofShape.lineTo(0, roofH);
+  roofShape.lineTo(roofHalfWidth, 0);
+  roofShape.closePath();
+
+  const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: roofDepth, bevelEnabled: false });
+  roofGeo.translate(0, 0, -roofDepth * 0.5);
+  roofGeo.computeVertexNormals();
+
+  const roof = new THREE.Mesh(roofGeo, materials.roof);
+  roof.position.set(0, roofBaseY, 0);
+  root.add(roof);
 
   // Pediments (triangular)
   const pedW = width + 1.6, pedT = 1.0;
@@ -122,8 +129,8 @@ export function makeTemple({
   const pedF = new THREE.Mesh(pedGeo, materials.marble);
   const pedB = pedF.clone();
   pedF.rotation.x = Math.PI * 0.5; pedB.rotation.x = Math.PI * 0.5;
-  pedF.position.set(0, roof1.position.y + roofH * 0.5,  length * 0.5);
-  pedB.position.set(0, roof1.position.y + roofH * 0.5, -length * 0.5 - pedT);
+  pedF.position.set(0, roofPeakY,  roofDepth * 0.5 - roofOverhangZ);
+  pedB.position.set(0, roofPeakY, -roofDepth * 0.5 + roofOverhangZ - pedT);
   root.add(pedF, pedB);
 
   return root;
