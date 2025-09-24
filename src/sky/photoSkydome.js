@@ -79,7 +79,7 @@ export async function createPhotoSkydome({
   renderer,
   url = new URL('./milkyway.jpg', import.meta.url).href,
   sources = null,
-  radius = 5000,
+  radius = 15000,
   initialYawDeg = 0,
   loader = null
 }) {
