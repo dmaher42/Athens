@@ -433,6 +433,9 @@
                border:1px solid #FFD700; border-radius:10px; background:rgba(0,0,0,.18);">
 </canvas>
 <script type="module">
+// SAFETY helper: treat non-arrays as [] so `.map()` never crashes
+const asArray = (v) => (Array.isArray(v) ? v : (v == null ? [] : [v]));
+
         import THREE from './src/three.js';
         import { makeTemple, makeStoa, makeTholos, makeAltar, MAT, setCityWallMaterial } from './src/building-kit.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -570,7 +573,7 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             { prefix: resolveAssetUrl('assets/sky/'), label: 'assets/sky' }
         ];
 
-        const nightSkyCubeSources = skyAssetLocations.map(({ prefix, label }, index) => ({
+        const nightSkyCubeSources = (window.skyAssetLocations || [{ prefix: './src/sky/', label: 'bundled' }]).map(({ prefix, label }, index) => ({
             url: resolveRelativeUrl(`${prefix}night_sky.jpg`),
             label: `night_sky.jpg (${label})`,
             isFallback: index > 0
@@ -717,7 +720,7 @@ const defaultSkyPrefixes = skyAssetLocationsSafe.length
   ? skyAssetLocationsSafe
   : [{ prefix: './src/sky/', label: 'bundled' }];
 
-const nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
+const __DUPLICATE_nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
   label: `cube map (${label})`,
   urls: [
     resolveRelativeUrl(`${prefix}night_sky_right.jpg`),
