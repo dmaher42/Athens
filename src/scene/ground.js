@@ -36,8 +36,8 @@ export async function loadGround(scene, renderer, options = {}) {
     // simple defaults
     size = 400,
     repeat = 32,
-    showDirt = true,
-    showGrass = true,
+    showDirt,
+    showGrass,
 
     // allow detailed overrides
     dirtOptions = {},
@@ -49,12 +49,18 @@ export async function loadGround(scene, renderer, options = {}) {
     tileSpacing = 0,
   } = options;
 
+  const hasShowDirtOverride = Object.prototype.hasOwnProperty.call(options, 'showDirt');
+  const hasShowGrassOverride = Object.prototype.hasOwnProperty.call(options, 'showGrass');
+
+  const initialShowDirt = hasShowDirtOverride ? !!showDirt : true;
+  const initialShowGrass = hasShowGrassOverride ? !!showGrass : true;
+
   if (!__groundSingleton) {
     __groundSingleton = createGroundLayered({
       dirtOptions: { size, repeat, height: 0, ...dirtOptions },
       grassOptions: { size, repeat, height: 0.02, ...grassOptions },
-      showDirt,
-      showGrass,
+      showDirt: initialShowDirt,
+      showGrass: initialShowGrass,
       tiles,
       tileGrid,
       tileSize,
@@ -67,11 +73,11 @@ export async function loadGround(scene, renderer, options = {}) {
     }
   }
 
-  if (__groundSingleton?.dirt) {
+  if (hasShowDirtOverride && __groundSingleton?.dirt) {
     __groundSingleton.dirt.visible = !!showDirt;
   }
 
-  if (__groundSingleton?.grass) {
+  if (hasShowGrassOverride && __groundSingleton?.grass) {
     __groundSingleton.grass.visible = !!showGrass;
   }
 
