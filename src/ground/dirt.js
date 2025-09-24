@@ -80,6 +80,10 @@ export function createDirtGround({
     roughness: 1.0,
   });
 
+  mat.polygonOffset = true;
+  mat.polygonOffsetFactor = 1;
+  mat.polygonOffsetUnits = 1;
+
   const mesh = new THREE.Mesh(geo, mat);
   mesh.receiveShadow = receiveShadow;
 

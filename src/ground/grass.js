@@ -71,7 +71,8 @@ export function createGrassGround({
 
   const geo = new THREE.PlaneGeometry(size, size, 1, 1);
   geo.rotateX(-Math.PI / 2);
-  geo.translate(0, height, 0);
+  const finalHeight = Math.max(typeof height === 'number' ? height : 0.02, 0.02);
+  geo.translate(0, finalHeight, 0);
 
   const color = configureTexture(loadBaseTexture(), { repeat, anisotropy });
 
@@ -82,6 +83,7 @@ export function createGrassGround({
 
   const mesh = new THREE.Mesh(geo, mat);
   mesh.receiveShadow = receiveShadow;
+  mesh.renderOrder = 1;
 
   group.add(mesh);
   return group;
