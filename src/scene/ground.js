@@ -57,7 +57,7 @@ function injectOverlayShader(material) {
       )
       .replace(
         '#include <alphamap_fragment>',
-        `#ifdef USE_ALPHAMAP\n  vec4 overlayColor = mapTexelToLinear( texture2D( alphaMap, vAlphaMapUv ) );\n  diffuseColor.rgb = mix( diffuseColor.rgb, overlayColor.rgb, overlayOpacity );\n  diffuseColor.a = 1.0;\n#endif`
+        `#ifdef USE_ALPHAMAP\n  vec4 overlayColor = texture2D( alphaMap, vAlphaMapUv );\n  diffuseColor.rgb = mix( diffuseColor.rgb, overlayColor.rgb, overlayOpacity );\n  diffuseColor.a = 1.0;\n#endif`
       );
 
     material.userData.overlayUniforms = shader.uniforms;
