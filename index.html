@@ -1311,6 +1311,8 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+        // Controls how quickly the photographic sky panorama pans across the horizon.
+        const PHOTO_SKYDOME_SCROLL_SPEED_DEG_PER_SECOND = 1.0;
         const GEO_TO_SCENE_MATRIX = Object.freeze({
             a: 0.1990872551715,
             b: -0.05643461237683576,
@@ -1592,6 +1594,7 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         let fogEnabled = true;
         let spaceNight = null;
         let photoSkydome = null;
+        let photoSkydomeYawDeg = 0;
         let currentPhotoSkyKey = null;
         let canChickenCluck = true;
         let lastCluckTime = 0;
@@ -1838,6 +1841,10 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 radius: 5000,
                 initialYawDeg: 0
             });
+
+            if (photoSkydome?.mesh) {
+                photoSkydomeYawDeg = THREE.MathUtils.radToDeg(photoSkydome.mesh.rotation.y);
+            }
 
             if (photoSkydome?.source) {
                 const { label, url, isFallback } = photoSkydome.source;
@@ -4399,6 +4406,7 @@ function createBasicAgoraFallback() {
                 activeSkyController.setAmount(nextOpacity);
                 if (typeof skydomePreset?.yawDeg === 'number') {
                     activeSkyController.setYaw(skydomePreset.yawDeg);
+                    photoSkydomeYawDeg = THREE.MathUtils.euclideanModulo(skydomePreset.yawDeg, 360);
                 }
                 if (scene && nextOpacity > 0) {
                     scene.background = null;
@@ -4461,6 +4469,39 @@ function createBasicAgoraFallback() {
                 environmentMode = 'sunset';
             }
             applyEnvironmentMode(environmentMode);
+        }
+
+        function updatePhotoSkydomeScroll(dt = 0.016) {
+            if (!Number.isFinite(dt) || dt <= 0) {
+                return;
+            }
+
+            const controller = photoSkydome || window.__AthensSky__;
+            if (!controller || typeof controller.setYaw !== 'function' || !controller.mesh) {
+                return;
+            }
+
+            const mesh = controller.mesh;
+            const currentYawDeg = THREE.MathUtils.radToDeg(mesh.rotation.y);
+
+            if (!Number.isFinite(photoSkydomeYawDeg)) {
+                photoSkydomeYawDeg = currentYawDeg;
+            } else {
+                const normalizedDiff = Math.abs(
+                    THREE.MathUtils.euclideanModulo(currentYawDeg - photoSkydomeYawDeg + 180, 360) - 180
+                );
+                if (normalizedDiff > 0.05) {
+                    photoSkydomeYawDeg = currentYawDeg;
+                }
+            }
+
+            const scrollDelta = PHOTO_SKYDOME_SCROLL_SPEED_DEG_PER_SECOND * dt;
+            if (!Number.isFinite(scrollDelta) || scrollDelta === 0) {
+                return;
+            }
+
+            photoSkydomeYawDeg = THREE.MathUtils.euclideanModulo(photoSkydomeYawDeg + scrollDelta, 360);
+            controller.setYaw(photoSkydomeYawDeg);
         }
 
         function updateNightCycle(dt = 0.016) {
@@ -5743,8 +5784,9 @@ world.addBody(archBody);
                 updateSoundPositions(delta);
             }
 
+            updatePhotoSkydomeScroll(delta);
             updateNightCycle(delta);
-            
+
             world.step(1 / 60, delta, 3);
             physicsObjects.forEach(obj => {
                 obj.mesh.position.copy(obj.body.position);
