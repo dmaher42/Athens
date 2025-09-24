@@ -512,8 +512,55 @@ import {
 
 import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.js';
 
-        const TONE_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js';
+        const TONE_JS_SOURCES = [
+            resolveAssetUrl('assets/vendor/Tone.js'),
+            'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js'
+        ];
         let toneLoadingPromise = null;
+
+        function loadToneFromUrl(url) {
+            return new Promise((resolve, reject) => {
+                if (!url) {
+                    reject(new Error('Tone.js source URL is empty.'));
+                    return;
+                }
+                if (typeof document === 'undefined' || !document.head) {
+                    reject(new Error('Tone.js can only be loaded in a document environment.'));
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.async = true;
+                script.crossOrigin = 'anonymous';
+                script.dataset.toneSource = url;
+                script.src = url;
+
+                const cleanup = () => {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                };
+
+                script.addEventListener('load', () => {
+                    if (window.Tone) {
+                        cleanup();
+                        resolve(window.Tone);
+                    } else {
+                        cleanup();
+                        reject(new Error(`Tone.js loaded from ${url} but did not expose a global Tone object.`));
+                    }
+                }, { once: true });
+
+                script.addEventListener('error', (event) => {
+                    cleanup();
+                    const error = new Error(`Failed to load Tone.js from ${url}`);
+                    error.event = event;
+                    reject(error);
+                }, { once: true });
+
+                document.head.appendChild(script);
+            });
+        }
 
         async function loadToneLibrary() {
             if (typeof window === 'undefined') {
@@ -525,25 +572,32 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             }
 
             if (!toneLoadingPromise) {
-                toneLoadingPromise = new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = TONE_JS_URL;
-                    script.async = true;
-                    script.crossOrigin = 'anonymous';
-                    script.addEventListener('load', () => {
-                        if (window.Tone) {
-                            resolve(window.Tone);
-                        } else {
-                            toneLoadingPromise = null;
-                            reject(new Error('Tone.js loaded without exposing a global Tone object.'));
+                toneLoadingPromise = (async () => {
+                    const errors = [];
+                    for (const source of TONE_JS_SOURCES) {
+                        if (!source) {
+                            continue;
                         }
-                    }, { once: true });
-                    script.addEventListener('error', () => {
-                        script.remove();
-                        toneLoadingPromise = null;
-                        reject(new Error('Failed to load Tone.js'));
-                    }, { once: true });
-                    document.head.appendChild(script);
+
+                        try {
+                            const tone = await loadToneFromUrl(source);
+                            if (tone) {
+                                console.info(`Tone.js loaded from ${source}`);
+                                return tone;
+                            }
+                        } catch (error) {
+                            console.warn(`Tone.js failed to load from ${source}`, error);
+                            errors.push({ source, error });
+                        }
+                    }
+
+                    const aggregateError = new Error('Tone.js failed to load from all configured sources.');
+                    aggregateError.cause = errors;
+                    throw aggregateError;
+                })();
+
+                toneLoadingPromise.catch(() => {
+                    toneLoadingPromise = null;
                 });
             }
 
@@ -2272,16 +2326,56 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         function createParthenon() {
             const acropolis = new THREE.Group();
 
-            const hillMaterialBase = groundMaterial.clone();
-            let hillTexture = null;
-            if (groundMaterial.map) {
-                hillTexture = groundMaterial.map.clone();
-                hillTexture.wrapS = hillTexture.wrapT = THREE.RepeatWrapping;
-                hillTexture.repeat.set(6 * CITY_SCALE, 3 * CITY_SCALE);
-                hillTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                hillTexture.needsUpdate = true;
-                hillMaterialBase.map = hillTexture;
-            }
+            const sourceGroundMaterial = (groundMaterial && typeof groundMaterial.clone === 'function')
+                ? groundMaterial
+                : new THREE.MeshStandardMaterial({ color: 0xBCA67C, roughness: 0.9 });
+            const hillMaterialBase = sourceGroundMaterial.clone();
+            const hillLayerMaterials = [];
+
+            const configureHillBaseTexture = () => {
+                if (!groundMaterial?.map || !groundMaterial.map.image) {
+                    return null;
+                }
+
+                const texture = groundMaterial.map.clone();
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(6 * CITY_SCALE, 3 * CITY_SCALE);
+
+                const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.();
+                if (typeof maxAnisotropy === 'number' && maxAnisotropy > 0) {
+                    texture.anisotropy = Math.max(texture.anisotropy || 0, maxAnisotropy);
+                }
+
+                texture.needsUpdate = true;
+                hillMaterialBase.map = texture;
+                hillMaterialBase.needsUpdate = true;
+                return texture;
+            };
+
+            const applyHillTextureToLayers = (texture) => {
+                if (!texture) {
+                    return;
+                }
+
+                const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.();
+
+                hillLayerMaterials.forEach(({ material, repeatX, repeatY }) => {
+                    const layerTexture = texture.clone();
+                    layerTexture.wrapS = layerTexture.wrapT = THREE.RepeatWrapping;
+                    layerTexture.repeat.set(repeatX, repeatY);
+
+                    if (typeof maxAnisotropy === 'number' && maxAnisotropy > 0) {
+                        layerTexture.anisotropy = Math.max(layerTexture.anisotropy || 0, maxAnisotropy);
+                    } else if (texture.anisotropy) {
+                        layerTexture.anisotropy = texture.anisotropy;
+                    }
+
+                    layerTexture.needsUpdate = true;
+                    material.map = layerTexture;
+                    material.needsUpdate = true;
+                });
+            };
+
             hillMaterialBase.color = new THREE.Color(0xBCA67C);
             hillMaterialBase.roughness = Math.min(0.98, hillMaterialBase.roughness + 0.03);
 
@@ -2295,11 +2389,11 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             let plateauHeight = 0;
             hillLayers.forEach((layer, index) => {
                 const layerMaterial = hillMaterialBase.clone();
-                if (hillTexture) {
-                    layerMaterial.map = hillTexture.clone();
-                    layerMaterial.map.repeat.set((6 + index) * CITY_SCALE, 3 + index * 0.5);
-                    layerMaterial.map.needsUpdate = true;
-                }
+                hillLayerMaterials.push({
+                    material: layerMaterial,
+                    repeatX: (6 + index) * CITY_SCALE,
+                    repeatY: 3 + index * 0.5
+                });
                 const terrace = new THREE.Mesh(
                     new THREE.CylinderGeometry(layer.top, layer.bottom, layer.height, 64, 1, false),
                     layerMaterial
@@ -2310,6 +2404,36 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 acropolis.add(terrace);
                 plateauHeight += layer.height;
             });
+
+            let hillBaseTexture = configureHillBaseTexture();
+            if (hillBaseTexture) {
+                applyHillTextureToLayers(hillBaseTexture);
+            } else if (groundMaterial?.map) {
+                const maxWaitFrames = 240;
+                let waitCount = 0;
+                const schedule = typeof requestAnimationFrame === 'function'
+                    ? requestAnimationFrame
+                    : (fn) => setTimeout(fn, 16);
+
+                const waitForGroundTexture = () => {
+                    const texture = configureHillBaseTexture();
+                    if (texture) {
+                        hillBaseTexture = texture;
+                        applyHillTextureToLayers(texture);
+                        return;
+                    }
+
+                    waitCount += 1;
+                    if (waitCount >= maxWaitFrames) {
+                        console.warn('Parthenon hill texture was unavailable; proceeding without ground detail.');
+                        return;
+                    }
+
+                    schedule(waitForGroundTexture);
+                };
+
+                schedule(waitForGroundTexture);
+            }
 
             const rockMaterial = stoneMaterial.clone();
             rockMaterial.color = new THREE.Color(0x9f8f78);
