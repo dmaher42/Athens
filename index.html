@@ -481,8 +481,7 @@
 
         const resolveRelativeUrl = (relativePath) => new URL(relativePath, import.meta.url).href;
         const skyAssetLocations = [
-            { prefix: './public/assets/sky/', label: 'public/assets/sky' },
-            { prefix: './assets/sky/', label: 'assets/sky (legacy)' }
+            { prefix: './public/assets/sky/', label: 'public/assets/sky' }
         ];
 
         const nightSkyTextureSources = skyAssetLocations.map(({ prefix, label }, index) => ({
@@ -1154,7 +1153,7 @@
             };
         };
 
-        const BUILDING_MODEL_PATH = './assets/models/buildings/';
+        const BUILDING_MODEL_PATH = './public/assets/models/buildings/';
 
         const AGORA_FEATURES = {
             templeOfHephaistos: {
