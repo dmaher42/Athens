@@ -1,45 +1,44 @@
+// src/ground/index.js
 import * as THREE from 'three';
-import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { createDirtGround } from './dirt.js';
+import { createGrassGround } from './grass.js';
 
-export function createDirtGround({
-  size = 200,
-  repeat = 16,
-  height = 0,
-  receiveShadow = true,
-  anisotropy = 8,
+/**
+ * Enumerates available ground types.
+ */
+export const GroundType = Object.freeze({
+  DIRT: 'dirt',
+  GRASS: 'grass',
+});
+
+/**
+ * Builds a layered ground group containing separate dirt and grass groups.
+ * You can toggle visibility on each layer independently.
+ *
+ * @param {Object} options
+ * @param {Object} [options.dirtOptions]  - Options passed to createDirtGround
+ * @param {Object} [options.grassOptions] - Options passed to createGrassGround
+ * @param {boolean} [options.showDirt=true]
+ * @param {boolean} [options.showGrass=true]
+ * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group }}
+ */
+export function createGroundLayered({
+  dirtOptions = {},
+  grassOptions = {},
+  showDirt = true,
+  showGrass = true,
 } = {}) {
-  const group = new THREE.Group();
-  group.name = 'ground:dirt';
+  const root = new THREE.Group();
+  root.name = 'ground:root';
 
-  const geo = new THREE.PlaneGeometry(size, size, 1, 1);
-  geo.rotateX(-Math.PI / 2);
-  geo.translate(0, height, 0);
+  const dirt = createDirtGround(dirtOptions);
+  const grass = createGrassGround(grassOptions);
 
-  const texLoader = new THREE.TextureLoader();
+  dirt.visible = !!showDirt;
+  grass.visible = !!showGrass;
 
-  const color = texLoader.load(resolveAssetUrl('assets/textures/dirt/color.jpg'));
-  const rough  = texLoader.load(resolveAssetUrl('assets/textures/dirt/rough.jpg'));
-  const normal = texLoader.load(resolveAssetUrl('assets/textures/dirt/normal.jpg'));
+  root.add(dirt);
+  root.add(grass);
 
-  [color, rough, normal].forEach(t => {
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(repeat, repeat);
-    t.anisotropy = Math.max(t.anisotropy || 0, anisotropy);
-  });
-
-  if ('SRGBColorSpace' in THREE) color.colorSpace = THREE.SRGBColorSpace;
-  else if ('sRGBEncoding' in THREE) color.encoding = THREE.sRGBEncoding;
-
-  const mat = new THREE.MeshStandardMaterial({
-    map: color,
-    roughnessMap: rough,
-    normalMap: normal,
-    roughness: 1.0,
-  });
-
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.receiveShadow = receiveShadow;
-
-  group.add(mesh);
-  return group;
+  return { root, dirt, grass };
 }
