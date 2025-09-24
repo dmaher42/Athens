@@ -1535,7 +1535,9 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 return;
             }
             currentEnvironmentMode = normalized;
-            setEnvironment(renderer, scene, normalized);
+            const hasPhotoSky = Boolean(photoSkydome || window.__AthensSky__);
+            const shouldPreserveBackground = hasPhotoSky && (normalized === 'sunset' || normalized === 'night');
+            setEnvironment(renderer, scene, normalized, { preserveBackground: shouldPreserveBackground });
         };
         
         const baseMapBounds = { xMin: -80, xMax: 80, zMin: -80, zMax: 80 };
@@ -4256,6 +4258,9 @@ function createBasicAgoraFallback() {
                 activeSkyController.setAmount(nextOpacity);
                 if (typeof skydomePreset?.yawDeg === 'number') {
                     activeSkyController.setYaw(skydomePreset.yawDeg);
+                }
+                if (scene && nextOpacity > 0) {
+                    scene.background = null;
                 }
             }
             __level = targetOpacity;
