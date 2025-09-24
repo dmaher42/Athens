@@ -8,11 +8,16 @@ const SKY_PATHS = {
 const environmentCache = new Map();
 const DAY_COLOR = new THREE.Color('#87c5eb');
 
-export function loadEquirectSky(renderer, scene, path, onDone) {
+export function loadEquirectSky(renderer, scene, path, onDone, options = {}) {
   if (!renderer || !scene) {
     onDone?.(null);
     return;
   }
+
+  const {
+    applyBackground = true,
+    applyEnvironment = true
+  } = options;
 
   const loader = new THREE.TextureLoader();
   loader.load(
@@ -30,8 +35,14 @@ export function loadEquirectSky(renderer, scene, path, onDone) {
       pmrem.dispose();
 
       const environmentTexture = envTarget.texture;
-      scene.background = texture;
-      scene.environment = environmentTexture;
+
+      if (applyBackground) {
+        scene.background = texture;
+      }
+
+      if (applyEnvironment) {
+        scene.environment = environmentTexture;
+      }
 
       onDone?.({ background: texture, environment: environmentTexture });
     },
@@ -43,27 +54,37 @@ export function loadEquirectSky(renderer, scene, path, onDone) {
   );
 }
 
-export function setEnvironment(renderer, scene, mode = 'day') {
+export function setEnvironment(renderer, scene, mode = 'day', options = {}) {
   if (!renderer || !scene) {
     return;
   }
 
+  const {
+    preserveBackground = false
+  } = options;
+
   if (mode === 'day') {
-    scene.background = DAY_COLOR.clone();
+    if (!preserveBackground) {
+      scene.background = DAY_COLOR.clone();
+    }
     scene.environment = null;
     return;
   }
 
   const key = mode === 'night' ? 'night' : (mode === 'sunset' ? 'sunset' : 'day');
   if (key === 'day') {
-    scene.background = DAY_COLOR.clone();
+    if (!preserveBackground) {
+      scene.background = DAY_COLOR.clone();
+    }
     scene.environment = null;
     return;
   }
 
   const cached = environmentCache.get(key);
   if (cached) {
-    scene.background = cached.background;
+    if (!preserveBackground) {
+      scene.background = cached.background;
+    }
     scene.environment = cached.environment;
     return;
   }
@@ -80,8 +101,10 @@ export function setEnvironment(renderer, scene, mode = 'day') {
     if (result) {
       environmentCache.set(key, result);
     } else if (!environmentCache.has(key)) {
-      scene.background = DAY_COLOR.clone();
+      if (!preserveBackground) {
+        scene.background = DAY_COLOR.clone();
+      }
       scene.environment = null;
     }
-  });
+  }, { applyBackground: !preserveBackground });
 }
