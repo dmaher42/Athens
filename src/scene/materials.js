@@ -16,7 +16,7 @@ export function loadBuildingTextures() {
   });
 
   loader.load(
-    'assets/textures/marble.jpg',
+    new URL('../../public/assets/textures/marble.jpg', import.meta.url).href,
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
@@ -41,7 +41,7 @@ export function loadBuildingTextures() {
   });
 
   loader.load(
-    'assets/textures/roof_tiles.jpg',
+    new URL('../../public/assets/textures/roof_tiles.jpg', import.meta.url).href,
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
