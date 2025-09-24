@@ -418,7 +418,7 @@
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
-        import { setupGround } from './src/main.js';
+        import { setupGround, updateTrees } from './src/main.js';
         import { setEnvironment } from './src/scene/sky.js';
         import { loadBuildingTextures, retargetBuildingMaterials } from './src/scene/materials.js';
 
@@ -5243,6 +5243,7 @@ function createBasicAgoraFallback() {
             }
             if (player && player.mixer) player.mixer.update(delta);
             externalAnimationMixers.forEach(m => m.update(delta));
+            updateTrees(delta);
 
             updateFPS();
             if (player && player.body) {
