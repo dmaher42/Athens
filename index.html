@@ -589,17 +589,77 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             isFallback: index > 0
         }));
 
-        nightSkyTextureSources.push({
-            url: resolveRelativeUrl('./src/sky/night_sky.jpg'),
+        const seenNightSkyTextureUrls = new Set();
+        const nightSkyTextureSources = [];
+
+        const pushNightSkyTextureSource = ({ url, label, isFallback = false, resolve = true } = {}) => {
+            if (typeof url !== 'string' || url.length === 0) {
+                return;
+            }
+
+            const resolvedUrl = resolve ? resolveRelativeUrl(url) : url;
+            if (typeof resolvedUrl !== 'string' || resolvedUrl.length === 0) {
+                return;
+            }
+
+            if (seenNightSkyTextureUrls.has(resolvedUrl)) {
+                return;
+            }
+            seenNightSkyTextureUrls.add(resolvedUrl);
+
+            nightSkyTextureSources.push({
+                url: resolvedUrl,
+                label: label || url,
+                isFallback
+            });
+        };
+
+        const customNightSkySources = Array.isArray(window?.nightSkyTextureSources)
+            ? window.nightSkyTextureSources
+            : [];
+
+        customNightSkySources.forEach((entry, index) => {
+            if (typeof entry === 'string') {
+                pushNightSkyTextureSource({
+                    url: entry,
+                    isFallback: index > 0
+                });
+                return;
+            }
+
+            if (!entry || typeof entry !== 'object') {
+                return;
+            }
+
+            const { url, label, isFallback, resolve = true } = entry;
+            pushNightSkyTextureSource({
+                url,
+                label,
+                isFallback: typeof isFallback === 'boolean' ? isFallback : index > 0,
+                resolve
+            });
+        });
+
+        skyAssetLocations.forEach(({ prefix, label }, index) => {
+            pushNightSkyTextureSource({
+                url: `${prefix}night_sky.jpg`,
+                label: `night_sky.jpg (${label})`,
+                isFallback: customNightSkySources.length > 0 || index > 0
+            });
+        });
+
+        pushNightSkyTextureSource({
+            url: './src/sky/night_sky.jpg',
             label: 'Bundled night sky fallback',
             isFallback: true
         });
 
         if (typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0) {
-            nightSkyTextureSources.push({
+            pushNightSkyTextureSource({
                 url: nightSkyDataUrl,
                 label: 'embedded fallback night sky',
-                isFallback: true
+                isFallback: true,
+                resolve: false
             });
         }
 
