@@ -17,20 +17,6 @@ let treesInitialized = false;
 
 // If your main branch had extra tree setup inside setupGround, you can merge it
 // below after the ground is created. For now we keep the original ground setup:
-export async function setupGround(scene, renderer) {
-  const ground = await loadGround(scene, renderer, groundOptions);
-
-  // Optionally integrate tree initialization here (if present on main):
-  // if (!treesInitialized) {
-  //   const { initTrees } = await import('./trees/init.js');
-  //   ({ treeLibraryState, groveGroup } = await initTrees(scene, ground));
-  //   treesInitialized = true;
-  // }
-
-  return ground;
-}
-
-
 async function ensureTrees(scene, renderer) {
   if (treesInitialized) {
     if (scene && groveGroup && !scene.children.includes(groveGroup)) {
@@ -60,7 +46,15 @@ async function ensureTrees(scene, renderer) {
 }
 
 export async function setupGround(scene, renderer) {
-  const ground = await loadGround(scene, renderer);
+  const ground = await loadGround(scene, renderer, groundOptions);
+
+  // Optionally integrate tree initialization here (if present on main):
+  // if (!treesInitialized) {
+  //   const { initTrees } = await import('./trees/init.js');
+  //   ({ treeLibraryState, groveGroup } = await initTrees(scene, ground));
+  //   treesInitialized = true;
+  // }
+
   await ensureTrees(scene, renderer);
   return ground;
 }
