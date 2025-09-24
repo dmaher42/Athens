@@ -436,6 +436,57 @@
 // SAFETY helper: treat non-arrays as [] so `.map()` never crashes
 const asArray = (v) => (Array.isArray(v) ? v : (v == null ? [] : [v]));
 
+// Attempt to extract the first THREE.Material instance from a value that might
+// be a mesh, a group, or one of the objects returned by setupGround.
+const findFirstMaterial = (candidate, visited = new Set()) => {
+    if (!candidate || typeof candidate !== 'object') {
+        return null;
+    }
+    if (visited.has(candidate)) {
+        return null;
+    }
+    visited.add(candidate);
+
+    if ('material' in candidate) {
+        for (const mat of asArray(candidate.material)) {
+            if (mat && typeof mat === 'object' && mat.isMaterial) {
+                return mat;
+            }
+        }
+    }
+
+    if (candidate.isObject3D && Array.isArray(candidate.children)) {
+        for (const child of candidate.children) {
+            const material = findFirstMaterial(child, visited);
+            if (material) {
+                return material;
+            }
+        }
+    }
+
+    const nestedKeys = ['root', 'dirt', 'grass', 'mesh', 'group'];
+    for (const key of nestedKeys) {
+        const value = candidate[key];
+        if (value) {
+            const material = findFirstMaterial(value, visited);
+            if (material) {
+                return material;
+            }
+        }
+    }
+
+    if (Array.isArray(candidate)) {
+        for (const value of candidate) {
+            const material = findFirstMaterial(value, visited);
+            if (material) {
+                return material;
+            }
+        }
+    }
+
+    return null;
+};
+
         import THREE from './src/three.js';
         import { makeTemple, makeStoa, makeTholos, makeAltar, MAT, setCityWallMaterial } from './src/building-kit.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -1857,18 +1908,28 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x8B4513, 0.3); // Reduced intensity
             scene.add(hemisphereLight);
 
-            groundMesh = await setupGround(scene, renderer);
+            const groundSetupResult = await setupGround(scene, renderer);
+            const groundCandidate = groundSetupResult?.root ?? groundSetupResult ?? null;
 
-            if (groundMesh?.userData?.refreshDistrictDustBiasTexture) {
-                groundMesh.userData.refreshDistrictDustBiasTexture();
+            if (groundCandidate?.userData?.refreshDistrictDustBiasTexture) {
+                groundCandidate.userData.refreshDistrictDustBiasTexture();
             }
-            if (groundMesh?.userData?.setDistrictDustBiasEnabled) {
-                groundMesh.userData.setDistrictDustBiasEnabled(districtDustBiasEnabled);
+            if (groundCandidate?.userData?.setDistrictDustBiasEnabled) {
+                groundCandidate.userData.setDistrictDustBiasEnabled(districtDustBiasEnabled);
             }
 
-            if (groundMesh) {
-                groundMaterial = groundMesh.material;
+            groundMesh = groundCandidate ?? null;
+            if (groundMesh && !groundMesh.isObject3D) {
+                console.warn('[ground] setupGround returned a non-Object3D result; ground will not be added to the scene automatically.', groundCandidate);
+            }
+
+            const resolvedGroundMaterial = findFirstMaterial(groundCandidate);
+            if (resolvedGroundMaterial) {
+                groundMaterial = resolvedGroundMaterial;
                 groundTexture = groundMaterial.map || null;
+            } else {
+                groundMaterial = null;
+                groundTexture = null;
             }
 
             scene.fog = null;
@@ -2090,7 +2151,7 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         // --- WORLD BUILDING ---
         function buildWorld() {
             // Ground
-            if (groundMesh && !scene.children.includes(groundMesh)) {
+            if (groundMesh?.isObject3D && !scene.children.includes(groundMesh)) {
                 scene.add(groundMesh);
             }
             const groundPhysMat = new CANNON.Material("groundMaterial");
