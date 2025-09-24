@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export function createGround(scene) {
+export function loadGround(scene) {
   const textureLoader = new THREE.TextureLoader();
 
   // Load Athens dirt texture
