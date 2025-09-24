@@ -11,9 +11,13 @@ function ensureColorSpace(texture) {
   else if ('sRGBEncoding' in THREE) texture.encoding = THREE.sRGBEncoding;
 }
 
-function flushPendingTextureUpdates() {
+function flushPendingTextureUpdates(baseTexture) {
   if (pendingTextureUpdates.size === 0) return;
+  const sourceImage = baseTexture?.image;
   pendingTextureUpdates.forEach((texture) => {
+    if (sourceImage && !texture.image) {
+      texture.image = sourceImage;
+    }
     texture.needsUpdate = true;
   });
   pendingTextureUpdates.clear();
@@ -25,19 +29,22 @@ function loadBaseTexture() {
       resolveAssetUrl('assets/textures/grass.jpg'),
       (texture) => {
         ensureColorSpace(texture);
-        flushPendingTextureUpdates();
+        flushPendingTextureUpdates(texture);
       }
     );
 
     ensureColorSpace(cachedBaseTexture);
   } else if (cachedBaseTexture.image) {
-    flushPendingTextureUpdates();
+    flushPendingTextureUpdates(cachedBaseTexture);
   }
   return cachedBaseTexture;
 }
 
 function configureTexture(baseTexture, { repeat, anisotropy }) {
   const texture = baseTexture.clone();
+  if (baseTexture?.image) {
+    texture.image = baseTexture.image;
+  }
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
   if (typeof repeat === 'number') {
