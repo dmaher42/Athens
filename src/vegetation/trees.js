@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createProceduralTree } from './procTree.js';
+import { resolveAssetUrl } from '../utils/asset-paths.js';
 
 const TREE_MODEL_FILES = {
   olive: 'olive.glb',
@@ -250,7 +251,7 @@ function buildInstancingData(group, height) {
 async function loadTreeDefinition(name, file, loader) {
   let gltfScene = null;
   try {
-    const url = new URL(`../../public/assets/models/${file}`, import.meta.url).href;
+    const url = resolveAssetUrl(`assets/models/${file}`);
     const gltf = await loader.loadAsync(url);
     gltfScene = gltf.scene || (gltf.scenes && gltf.scenes[0]) || null;
   } catch (error) {

@@ -442,6 +442,7 @@
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
+        import { resolveAssetUrl } from './src/utils/asset-paths.js';
 import { setupGround, configureGround, updateTrees } from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
 import { loadBuildingTextures, retargetBuildingMaterials } from './src/scene/materials.js';
@@ -566,7 +567,7 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             }
         };
         const skyAssetLocations = [
-            { prefix: './public/assets/sky/', label: 'public/assets/sky' }
+            { prefix: resolveAssetUrl('assets/sky/'), label: 'assets/sky' }
         ];
 
         const nightSkyTextureSources = skyAssetLocations.map(({ prefix, label }, index) => ({
@@ -1305,7 +1306,7 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             };
         };
 
-        const BUILDING_MODEL_PATH = './public/assets/models/buildings/';
+        const BUILDING_MODEL_PATH = resolveAssetUrl('assets/models/buildings/');
         if (typeof window !== 'undefined') {
             window.BUILDING_MODEL_PATH = BUILDING_MODEL_PATH;
         }
@@ -4475,9 +4476,73 @@ function createBasicAgoraFallback() {
         }
         
         function createCityFortifications() {
-            if (!scene || !world) {
-                return;
-            }
+// Guard clause from main
+if (!scene || !world) {
+  return;
+}
+
+const wallSize = 80;
+
+// City wall geometry is now generated procedurally from GeoJSON using the
+// textured asset in assets/textures/wall_city.jpg. Retain the
+// gatehouse structures to frame the Kerameikos approach.
+
+// Gatehouse
+const towerWidth = 8;
+const towerHeight = 15;
+const gateGap = 10;
+
+const tower1 = createEnhancedBuilding(
+  -gateGap,
+  -wallSize,
+  towerWidth,
+  towerWidth,
+  towerHeight,
+  stoneMaterial,
+  { includeDetails: false }
+);
+scene.add(tower1);
+const tower1Body = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Box(
+    new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight / 2, scaleValue(towerWidth) / 2)
+  )
+});
+tower1Body.position.copy(tower1.position);
+world.addBody(tower1Body);
+
+const tower2 = createEnhancedBuilding(
+  gateGap,
+  -wallSize,
+  towerWidth,
+  towerWidth,
+  towerHeight,
+  stoneMaterial,
+  { includeDetails: false }
+);
+scene.add(tower2);
+const tower2Body = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Box(
+    new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight / 2, scaleValue(towerWidth) / 2)
+  )
+});
+tower2Body.position.copy(tower2.position);
+world.addBody(tower2Body);
+
+const arch = new THREE.Mesh(
+  new THREE.BoxGeometry(scaleValue(gateGap * 2), 4, scaleValue(towerWidth)),
+  stoneMaterial
+);
+setScaledPosition(arch, 0, towerHeight - 2, -wallSize);
+scene.add(arch);
+const archBody = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Box(new CANNON.Vec3(scaleValue(gateGap), 2, scaleValue(towerWidth) / 2))
+});
+archBody.position.copy(arch.position);
+world.addBody(archBody);
+
 
             if (!cityWallGroup) {
                 cityWallGroup = createCityWallPerimeter({ material: cityWallMaterial });
@@ -6734,6 +6799,7 @@ function createBasicAgoraFallback() {
         import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
+        import { resolveAssetUrl } from './src/utils/asset-paths.js';
 
         const waitForWorld = () => {
             if (window.athensWorldBuilt && window.scene && window.renderer) {
@@ -7013,7 +7079,7 @@ function createBasicAgoraFallback() {
         const BUILDING_MODEL_PATH =
             typeof window !== 'undefined' && window.BUILDING_MODEL_PATH
                 ? window.BUILDING_MODEL_PATH
-                : './public/assets/models/buildings/';
+                : resolveAssetUrl('assets/models/buildings/');
 
         const loadModelWithFallback = (paths, onSuccess, onFailure) => {
             if (!Array.isArray(paths) || paths.length === 0) {

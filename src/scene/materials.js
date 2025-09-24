@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { resolveAssetUrl } from '../utils/asset-paths.js';
 
 const fallbackMaterial = new THREE.MeshStandardMaterial({
   color: 0xbfbfbf,
@@ -16,7 +17,7 @@ export function loadBuildingTextures() {
   });
 
   loader.load(
-    new URL('../../public/assets/textures/marble.jpg', import.meta.url).href,
+    resolveAssetUrl('assets/textures/marble.jpg'),
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
@@ -41,7 +42,7 @@ export function loadBuildingTextures() {
   });
 
   loader.load(
-    new URL('../../public/assets/textures/roof_tiles.jpg', import.meta.url).href,
+    resolveAssetUrl('assets/textures/roof_tiles.jpg'),
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;

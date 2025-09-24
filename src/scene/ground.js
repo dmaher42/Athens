@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getAssetBase } from '../utils/asset-paths.js';
 
 const GROUND_SIZE = 10000;
 const TEXTURE_REPEAT = 100;
@@ -6,6 +7,12 @@ const OVERLAY_OPACITY = 0.4;
 const FALLBACK_COLOR = 0x808040;
 const DISTRICT_BIAS_TEXTURE_SIZE = 1024;
 const DISTRICT_BIAS_STRENGTH = 0.5;
+
+// Resolve base for local (/) vs GitHub Pages (/Athens/)
+const BASE = getAssetBase();
+
+const grassTextureUrl = `${BASE}assets/textures/grass.jpg`;
+const dustTextureUrl = `${BASE}assets/textures/athens_dust.jpg`;
 
 function clamp01(value) {
   if (!Number.isFinite(value)) {
@@ -52,7 +59,7 @@ function loadTexture(loader, url, warningMessage) {
   return new Promise((resolve) => {
     const onLoad = (texture) => resolve(texture);
     const onError = (error) => {
-      console.warn(warningMessage, error);
+      console.warn(`${warningMessage} (URL: ${url})`, error);
       resolve(null);
     };
 
@@ -350,9 +357,6 @@ export async function loadGround(scene, renderer, options = {}) {
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = 0;
   ground.receiveShadow = true;
-
-  const grassTextureUrl = new URL('../../public/assets/textures/grass.jpg', import.meta.url).href;
-  const dustTextureUrl = new URL('../../public/assets/textures/athens_dust.jpg', import.meta.url).href;
 
   const [grassTexture, dustTexture] = await Promise.all([
     loadTexture(loader, grassTextureUrl, '[ground] grass.jpg not found; using flat color.'),

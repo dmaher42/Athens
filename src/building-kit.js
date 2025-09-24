@@ -1,4 +1,5 @@
 import THREE from './three.js';
+import { resolveAssetUrl } from './utils/asset-paths.js';
 
 /** Lightweight materials (one-time) */
 const MAT = {
@@ -44,7 +45,46 @@ const applyWallFallback = (material) => {
   material.needsUpdate = true;
 };
 
-const createWallFallbackMaterial = () => new THREE.MeshStandardMaterial({ ...WALL_FALLBACK_PROPS });
+// Helper from main
+const createWallFallbackMaterial = () =>
+  new THREE.MeshStandardMaterial({ ...WALL_FALLBACK_PROPS });
+
+// Start with a safe fallback
+MAT.wall = createWallFallbackMaterial();
+
+try {
+  const texLoader = new THREE.TextureLoader();
+  const wallURL = resolveAssetUrl('assets/textures/wall_city.jpg');
+
+  texLoader.load(
+    wallURL,
+    (wallTex) => {
+      wallTex.wrapS = THREE.RepeatWrapping;
+      wallTex.wrapT = THREE.RepeatWrapping;
+      wallTex.anisotropy = Math.max(wallTex.anisotropy || 0, 8);
+
+      // Handle color space across Three.js versions
+      if ('SRGBColorSpace' in THREE) {
+        wallTex.colorSpace = THREE.SRGBColorSpace;
+      } else if ('sRGBEncoding' in THREE) {
+        wallTex.encoding = THREE.sRGBEncoding;
+      }
+
+      // Apply to material
+      MAT.wall.map = wallTex;
+      MAT.wall.needsUpdate = true;
+    },
+    undefined, // onProgress (optional)
+    (error) => {
+      console.warn('Wall texture failed to load, using fallback material:', error);
+      MAT.wall = createWallFallbackMaterial();
+    }
+  );
+} catch (e) {
+  console.warn('Error initializing wall texture loader, using fallback material:', e);
+  MAT.wall = createWallFallbackMaterial();
+}
+
 
 MAT.wall = createWallFallbackMaterial();
 
