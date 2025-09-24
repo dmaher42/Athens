@@ -1,11 +1,12 @@
-import THREE from './three.js';
+import * as THREE from 'three';
 import {
   makeTemple, makeStoa, makeTheatre, makeTholos, makeWallPath,
   makePropylon, makeBlock, makeAltar, makeExedra
 } from './building-kit.js';
 import { applyFeatureOffset } from './geo/featureOffsets.js';
 import { getDistrictAt, getDistricts } from './scene/districts.js';
-import DEFAULT_PLACEMENT_OPTIONS from './scene/placement-options.js';
+import { defaultPlacementOptions } from './scene/placement-options.js';
+import { estimateAABB, GridIndex } from './scene/placement-grid.js';
 
 const deg = (d)=> THREE.MathUtils.degToRad(d);
 
@@ -290,74 +291,8 @@ function computeFootprint(candidate) {
   return { width, depth, area, longAxis: axis };
 }
 
-function computeAabb({ position, width, depth, rotationDeg, clearance = 0 }) {
-  const hw = width * 0.5 + clearance;
-  const hd = depth * 0.5 + clearance;
-  const angle = deg(rotationDeg);
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-  const halfX = Math.abs(hw * cos) + Math.abs(hd * sin);
-  const halfZ = Math.abs(hw * sin) + Math.abs(hd * cos);
-
-  return {
-    minX: position.x - halfX,
-    maxX: position.x + halfX,
-    minZ: position.z - halfZ,
-    maxZ: position.z + halfZ
-  };
-}
-
 function aabbOverlap(a, b) {
   return a.minX < b.maxX && a.maxX > b.minX && a.minZ < b.maxZ && a.maxZ > b.minZ;
-}
-
-function getGridRange(min, max, cellSize) {
-  const start = Math.floor(min / cellSize);
-  const end = Math.floor(max / cellSize);
-  return { start, end };
-}
-
-function forEachCell(aabb, cellSize, callback) {
-  const rangeX = getGridRange(aabb.minX, aabb.maxX, cellSize);
-  const rangeZ = getGridRange(aabb.minZ, aabb.maxZ, cellSize);
-  for (let ix = rangeX.start; ix <= rangeX.end; ix += 1) {
-    for (let iz = rangeZ.start; iz <= rangeZ.end; iz += 1) {
-      callback(ix, iz);
-    }
-  }
-}
-
-function getCellKey(ix, iz) {
-  return `${ix},${iz}`;
-}
-
-function collectCandidatesFromCells(grid, aabb, cellSize) {
-  const seen = new Set();
-  const candidates = [];
-  forEachCell(aabb, cellSize, (ix, iz) => {
-    const cellKey = getCellKey(ix, iz);
-    const cellEntries = grid.get(cellKey);
-    if (!cellEntries) return;
-    for (const entry of cellEntries) {
-      if (!seen.has(entry.index)) {
-        seen.add(entry.index);
-        candidates.push(entry);
-      }
-    }
-  });
-  return candidates;
-}
-
-function addPlacementToGrid(grid, index, aabb, cellSize) {
-  forEachCell(aabb, cellSize, (ix, iz) => {
-    const cellKey = getCellKey(ix, iz);
-    let cell = grid.get(cellKey);
-    if (!cell) {
-      cell = [];
-      grid.set(cellKey, cell);
-    }
-    cell.push({ index, aabb });
-  });
 }
 
 function length2D(dx, dz) {
@@ -425,6 +360,32 @@ function findNearestPathDirection(position, paths, maxDistance = DEFAULT_PATH_SE
   }
 
   return best;
+}
+
+function alignRotationToPaths(position, rotationDeg, defaultRotationDeg, footprint, paths, maxRotationAdjustDeg) {
+  const nearestPath = findNearestPathDirection(position, paths, DEFAULT_PATH_SEARCH_RADIUS);
+  if (!nearestPath) {
+    const baseAngle = defaultRotationDeg ?? rotationDeg ?? 0;
+    return { rotationDeg: normalizeAngleDeg(baseAngle), aligned: false };
+  }
+
+  const axis = footprint?.longAxis === 'x' ? 'x' : 'z';
+  let pathAngle;
+  if (axis === 'x') {
+    pathAngle = radToDeg(Math.atan2(-nearestPath.direction.z, nearestPath.direction.x));
+  } else {
+    pathAngle = radToDeg(Math.atan2(nearestPath.direction.x, nearestPath.direction.z));
+  }
+  pathAngle = normalizeAngleDeg(pathAngle);
+
+  const baseAngle = normalizeAngleDeg(defaultRotationDeg ?? rotationDeg ?? 0);
+  let delta = shortestAngleDeltaDeg(baseAngle, pathAngle);
+  if (maxRotationAdjustDeg > 0 && Math.abs(delta) > maxRotationAdjustDeg) {
+    delta = Math.sign(delta) * maxRotationAdjustDeg;
+  }
+
+  const adjusted = normalizeAngleDeg(baseAngle + delta);
+  return { rotationDeg: adjusted, aligned: Math.abs(delta) > 1e-3 };
 }
 
 function computeBiasDirection(position, containingDistrict, districts) {
@@ -500,7 +461,7 @@ function generateOffsets(maxRadius, biasDir, maxAttempts = DEFAULT_MAX_NUDGE_ATT
 }
 
 function resolvePlacementOptions(userOptions = {}, contextNamedPaths = []) {
-  const defaults = DEFAULT_PLACEMENT_OPTIONS || {};
+  const defaults = defaultPlacementOptions || {};
   const minClearance = {
     ...(defaults.minClearanceByKind || {}),
     ...(userOptions.minClearanceByKind || {})
@@ -669,15 +630,20 @@ export function planPlacements(candidates, placementOptions = {}) {
   const context = ensureContext();
   const options = resolvePlacementOptions(placementOptions, context.namedPaths);
   const prioritized = prioritizeCandidates(candidates);
-  const districts = options.snapToDistricts ? getDistricts() : [];
+  const districts = getDistricts();
   const collisionGeometry = options.collisionGeometry;
-  const maxAdjustRadius = Number.isFinite(options.maxAdjustRadius) ? Math.max(0, options.maxAdjustRadius) : DEFAULT_PLACEMENT_OPTIONS.maxAdjustRadius ?? 12;
-  const maxRotationAdjustDeg = Number.isFinite(options.maxRotationAdjustDeg) ? Math.max(0, options.maxRotationAdjustDeg) : 0;
-  const maxAttempts = Number.isInteger(options.maxNudgeAttempts) ? Math.max(1, options.maxNudgeAttempts) : DEFAULT_MAX_NUDGE_ATTEMPTS;
+  const maxAdjustRadius = Number.isFinite(options.maxAdjustRadius)
+    ? Math.max(0, options.maxAdjustRadius)
+    : defaultPlacementOptions.maxAdjustRadius ?? 12;
+  const maxRotationAdjustDeg = Number.isFinite(options.maxRotationAdjustDeg)
+    ? Math.max(0, options.maxRotationAdjustDeg)
+    : defaultPlacementOptions.maxRotationAdjustDeg ?? 0;
+  const maxAttempts = Number.isInteger(options.maxNudgeAttempts)
+    ? Math.max(1, options.maxNudgeAttempts)
+    : DEFAULT_MAX_NUDGE_ATTEMPTS;
 
   const placements = [];
   const placementAabbs = [];
-  const grid = new Map();
   let maxSpan = 0;
 
   for (const item of prioritized) {
@@ -688,8 +654,11 @@ export function planPlacements(candidates, placementOptions = {}) {
     }
   }
 
-  const baseCellSize = Number.isFinite(options.gridCellSize) ? options.gridCellSize : DEFAULT_PLACEMENT_OPTIONS.gridCellSize ?? 25;
-  const cellSize = Math.max(baseCellSize, maxSpan || baseCellSize);
+  const baseCellSize = Number.isFinite(options.gridCellSize)
+    ? Math.max(1, options.gridCellSize)
+    : Math.max(1, defaultPlacementOptions.gridCellSize ?? 25);
+  const cellSize = Math.max(baseCellSize, maxSpan || 0, 1);
+  const grid = new GridIndex(cellSize);
 
   const stats = {
     total: prioritized.length,
@@ -698,45 +667,33 @@ export function planPlacements(candidates, placementOptions = {}) {
     maxMoveDistance: 0,
     skippedOverlap: 0,
     pathAligned: 0,
-    exceededAdjustRadius: []
+    exceededAdjustRadius: [],
+    cellSize
   };
 
   for (const item of prioritized) {
     const candidate = item.candidate;
     const basePosition = candidate.worldPos.clone();
-    let rotationDeg = candidate.rotDeg ?? candidate.defaultRotDeg ?? 0;
+    const baseRotationDeg = candidate.rotDeg ?? candidate.defaultRotDeg ?? 0;
+    let rotationDeg = baseRotationDeg;
 
     if (options.alignToPaths && !candidate.rotationLocked) {
-      const nearestPath = findNearestPathDirection(basePosition, options.namedPaths, DEFAULT_PATH_SEARCH_RADIUS);
-      if (nearestPath) {
-        const axis = item.footprint.longAxis;
-        let pathAngle;
-        if (axis === 'x') {
-          pathAngle = radToDeg(Math.atan2(-nearestPath.direction.z, nearestPath.direction.x));
-        } else {
-          pathAngle = radToDeg(Math.atan2(nearestPath.direction.x, nearestPath.direction.z));
-        }
-        pathAngle = normalizeAngleDeg(pathAngle);
-        const baseAngle = normalizeAngleDeg(candidate.defaultRotDeg ?? rotationDeg);
-        let delta = shortestAngleDeltaDeg(baseAngle, pathAngle);
-        if (maxRotationAdjustDeg > 0 && Math.abs(delta) > maxRotationAdjustDeg) {
-          delta = Math.sign(delta) * maxRotationAdjustDeg;
-        }
-        rotationDeg = normalizeAngleDeg(baseAngle + delta);
-        if (Math.abs(delta) > 1e-3) {
-          stats.pathAligned += 1;
-        }
+      const aligned = alignRotationToPaths(basePosition, rotationDeg, candidate.defaultRotDeg, item.footprint, options.namedPaths, maxRotationAdjustDeg);
+      rotationDeg = aligned.rotationDeg;
+      if (aligned.aligned) {
+        stats.pathAligned += 1;
       }
     }
 
     const clearance = getClearanceForKind(candidate.kind, options.minClearanceByKind);
-    const containingDistrict = options.snapToDistricts ? getDistrictAt(basePosition.x, basePosition.z) : null;
+    const containingDistrict = getDistrictAt(basePosition.x, basePosition.z);
     const biasDir = computeBiasDirection(basePosition, containingDistrict, districts);
     const offsets = generateOffsets(maxAdjustRadius, biasDir, maxAttempts);
 
     let acceptedPlacement = null;
     for (const offset of offsets) {
       const testPosition = new THREE.Vector3(basePosition.x + offset.x, basePosition.y, basePosition.z + offset.z);
+
       if (options.snapToDistricts) {
         if (containingDistrict) {
           const districtHere = getDistrictAt(testPosition.x, testPosition.z);
@@ -757,18 +714,17 @@ export function planPlacements(candidates, placementOptions = {}) {
         }
       }
 
-      const aabb = computeAabb({
-        position: testPosition,
-        width: item.footprint.width,
-        depth: item.footprint.depth,
-        rotationDeg,
-        clearance
-      });
+      const footprintDims = {
+        width: item.footprint.width + clearance * 2,
+        depth: item.footprint.depth + clearance * 2
+      };
+      const aabb = estimateAABB(testPosition, footprintDims, deg(rotationDeg));
 
-      const conflicts = collectCandidatesFromCells(grid, aabb, cellSize);
+      const conflicts = grid.query(aabb);
       let intersects = false;
-      for (const existing of conflicts) {
-        if (aabbOverlap(aabb, existing.aabb)) {
+      for (const id of conflicts) {
+        const existing = placementAabbs[id];
+        if (existing && aabbOverlap(aabb, existing)) {
           intersects = true;
           break;
         }
@@ -780,7 +736,7 @@ export function planPlacements(candidates, placementOptions = {}) {
       acceptedPlacement = {
         position: testPosition,
         aabb,
-        distance: length2D(offset.x, offset.z)
+        distance: offset.radius ?? length2D(offset.x, offset.z)
       };
       break;
     }
@@ -796,7 +752,7 @@ export function planPlacements(candidates, placementOptions = {}) {
     const placement = buildPlacement(candidate, acceptedPlacement.position, rotationDeg);
     placements.push(placement);
     placementAabbs.push(acceptedPlacement.aabb);
-    addPlacementToGrid(grid, placementAabbs.length - 1, acceptedPlacement.aabb, cellSize);
+    grid.insert(acceptedPlacement.aabb, placementAabbs.length - 1);
     stats.placed += 1;
     if (acceptedPlacement.distance > 1e-3) {
       stats.movedCount += 1;
@@ -806,10 +762,7 @@ export function planPlacements(candidates, placementOptions = {}) {
     }
   }
 
-  planPlacements.lastReport = {
-    ...stats,
-    cellSize
-  };
+  planPlacements.lastReport = stats;
 
   return placements;
 }
@@ -820,14 +773,18 @@ export function instantiateMeshes(placements, scene) {
   }
 
   const context = ensureContext();
-  const existing = scene.getObjectByName('Buildings');
-  if (existing) {
-    scene.remove(existing);
+  const groupName = 'Buildings';
+  let root = scene.getObjectByName(groupName);
+  if (!root) {
+    root = new THREE.Group();
+    root.name = groupName;
+    scene.add(root);
   }
 
-  const root = new THREE.Group();
-  root.name = 'Buildings';
-  scene.add(root);
+  for (let i = root.children.length - 1; i >= 0; i -= 1) {
+    const child = root.children[i];
+    root.remove(child);
+  }
 
   for (const placement of placements) {
     let mesh = null;
@@ -865,26 +822,22 @@ export function instantiateMeshes(placements, scene) {
 export async function buildFromGeoJSON({ scene, geoJsonUrl, projector, placementOptions } = {}) {
   const candidates = await collectCandidatesFromGeo({ geoJsonUrl, projector });
   const placements = planPlacements(candidates, placementOptions);
-  const root = instantiateMeshes(placements, scene);
+  const group = instantiateMeshes(placements, scene);
 
   const report = planPlacements.lastReport;
-  if (report && (placementOptions?.logReport ?? DEFAULT_PLACEMENT_OPTIONS.logReport ?? true)) {
-    const movedInfo = report.movedCount
-      ? `${report.movedCount} moved (max ${report.maxMoveDistance.toFixed(1)}m)`
-      : 'no moves';
-    const skippedInfo = report.skippedOverlap
-      ? `${report.skippedOverlap} skipped`
-      : 'none skipped';
-    const alignedInfo = report.pathAligned
-      ? `${report.pathAligned} aligned to paths`
-      : 'no path aligns';
+  const shouldLog = placementOptions?.logReport ?? defaultPlacementOptions.logReport ?? true;
+  if (report && shouldLog) {
+    const movedInfo = `${report.movedCount} (max ${report.maxMoveDistance.toFixed(1)}m)`;
+    const skippedInfo = report.skippedOverlap ?? 0;
+    const alignedInfo = report.pathAligned ?? 0;
+    const exceededCount = report.exceededAdjustRadius?.length ?? 0;
     console.info(
-      `[buildings] placed ${report.placed}/${report.total} (${movedInfo}); overlaps: ${skippedInfo}; ${alignedInfo}.`
+      `[placement] placed ${report.placed}/${report.total}; moved ${movedInfo}; skipped ${skippedInfo}; aligned ${alignedInfo}; exceeded radius ${exceededCount}.`
     );
-    if (report.exceededAdjustRadius?.length) {
-      console.info('[buildings] placement radius exceeded for:', report.exceededAdjustRadius.join(', '));
+    if (exceededCount > 0) {
+      console.info('[placement] adjustment radius exceeded for:', report.exceededAdjustRadius.join(', '));
     }
   }
 
-  return root;
+  return { group, placements };
 }
