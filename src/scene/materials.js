@@ -59,7 +59,31 @@ export function loadBuildingTextures() {
     }
   );
 
-  return { marbleMat, roofMat };
+  const cityWallMat = new THREE.MeshStandardMaterial({
+    color: 0xb8a27c,
+    roughness: 0.82,
+    metalness: 0.04
+  });
+
+  loader.load(
+    new URL('../../public/assets/textures/city_wall.jpg', import.meta.url).href,
+    (texture) => {
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.anisotropy = Math.max(texture.anisotropy || 0, 8);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+      cityWallMat.map = texture;
+      cityWallMat.color.set(0xffffff);
+      cityWallMat.needsUpdate = true;
+    },
+    undefined,
+    (error) => {
+      console.warn('[materials] city_wall.jpg missing; will use color.', error);
+    }
+  );
+
+  return { marbleMat, roofMat, cityWallMat };
 }
 
 export function retargetBuildingMaterials(root, { marbleMat, roofMat } = {}) {

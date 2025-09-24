@@ -44,40 +44,23 @@ const applyWallFallback = (material) => {
   material.needsUpdate = true;
 };
 
-MAT.wall = new THREE.MeshStandardMaterial(WALL_FALLBACK_PROPS);
+const createWallFallbackMaterial = () => new THREE.MeshStandardMaterial({ ...WALL_FALLBACK_PROPS });
 
-try {
-  const texLoader = new THREE.TextureLoader();
-  const wallURL = new URL('../public/assets/textures/wall_city.jpg', import.meta.url).href;
-  texLoader.load(
-    wallURL,
-    (wallTex) => {
-      wallTex.wrapS = THREE.RepeatWrapping;
-      wallTex.wrapT = THREE.RepeatWrapping;
-      wallTex.anisotropy = Math.max(wallTex.anisotropy || 0, 8);
-      if ('SRGBColorSpace' in THREE) {
-        wallTex.colorSpace = THREE.SRGBColorSpace;
-      } else if ('sRGBEncoding' in THREE) {
-        wallTex.encoding = THREE.sRGBEncoding;
-      }
+MAT.wall = createWallFallbackMaterial();
 
-      wallTex.needsUpdate = true;
+export function setCityWallMaterial(material) {
+  if (material && material.isMaterial) {
+    MAT.wall = material;
+    return MAT.wall;
+  }
 
-      MAT.wall.color.set(0xffffff);
-      MAT.wall.roughness = 0.82;
-      MAT.wall.metalness = 0.04;
-      MAT.wall.map = wallTex;
-      MAT.wall.needsUpdate = true;
-    },
-    undefined,
-    (error) => {
-      console.warn('[building-kit] Failed to load wall texture; using fallback wall material.', error);
-      applyWallFallback(MAT.wall);
-    }
-  );
-} catch (error) {
-  console.warn('[building-kit] wall texture loader unavailable; using fallback wall material.', error);
-  applyWallFallback(MAT.wall);
+  if (!MAT.wall || !MAT.wall.isMaterial) {
+    MAT.wall = createWallFallbackMaterial();
+  } else {
+    applyWallFallback(MAT.wall);
+  }
+
+  return MAT.wall;
 }
 
 /** Shared helpers */
@@ -273,8 +256,9 @@ export function makeTholos({ radius = 12, colH = 6, colR = 0.45, cols = 18 } = {
 }
 
 /** Wall modules along a polyline */
-export function makeWallPath(points, { segment = 6, height = 3, width = 2 } = {}) {
+export function makeWallPath(points, { segment = 6, height = 3, width = 2, material } = {}) {
   const g = new THREE.Group();
+  const wallMaterial = material && material.isMaterial ? material : MAT.wall;
   for (let i = 0; i < points.length - 1; i++) {
     const a = points[i], b = points[i + 1];
     const dist = a.distanceTo(b);
@@ -286,13 +270,13 @@ export function makeWallPath(points, { segment = 6, height = 3, width = 2 } = {}
       const t0 = s / nSeg, t1 = (s + 1) / nSeg;
       const p = new THREE.Vector3().lerpVectors(a, b, (t0 + t1) / 2);
       const segLen = (dist / nSeg) * 0.9;
-      const block = new THREE.Mesh(new THREE.BoxGeometry(width, height, segLen), MAT.wall);
+      const block = new THREE.Mesh(new THREE.BoxGeometry(width, height, segLen), wallMaterial);
       block.position.copy(p); block.quaternion.copy(quat);
-      if (MAT.wall && MAT.wall.map) {
+      if (wallMaterial && wallMaterial.map) {
         const repeatX = Math.max(1, Math.round(segLen / 2));
         const repeatY = Math.max(1, Math.round(height / 1));
-        MAT.wall.map.repeat.set(repeatX, repeatY);
-        MAT.wall.map.needsUpdate = true;
+        wallMaterial.map.repeat.set(repeatX, repeatY);
+        wallMaterial.map.needsUpdate = true;
       }
       g.add(block);
     }
