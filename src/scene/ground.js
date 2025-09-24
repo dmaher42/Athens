@@ -46,6 +46,11 @@ function injectOverlayShader(material) {
   const existingCacheKey = material.customProgramCacheKey?.();
 
   material.onBeforeCompile = (shader) => {
+    const hasAlphaMapUv = shader.fragmentShader.includes('vAlphaMapUv');
+    const hasBaseUv = shader.fragmentShader.includes('vUv');
+    const samplerFn = shader.fragmentShader.includes('texture2D( alphaMap') ? 'texture2D' : 'texture';
+    const uvSelector = hasAlphaMapUv ? 'vAlphaMapUv' : hasBaseUv ? 'vUv' : 'vec2( 0.0 )';
+
     shader.uniforms.overlayOpacity = {
       value: material.userData.overlayOpacity ?? OVERLAY_OPACITY
     };
@@ -57,7 +62,7 @@ function injectOverlayShader(material) {
       )
       .replace(
         '#include <alphamap_fragment>',
-        `#ifdef USE_ALPHAMAP\n  vec4 overlayColor = texture2D( alphaMap, vAlphaMapUv );\n  diffuseColor.rgb = mix( diffuseColor.rgb, overlayColor.rgb, overlayOpacity );\n  diffuseColor.a = 1.0;\n#endif`
+        `#ifdef USE_ALPHAMAP\n  vec4 overlayColor = ${samplerFn}( alphaMap, ${uvSelector} );\n  diffuseColor.rgb = mix( diffuseColor.rgb, overlayColor.rgb, overlayOpacity );\n  diffuseColor.a = 1.0;\n#endif`
       );
 
     material.userData.overlayUniforms = shader.uniforms;
