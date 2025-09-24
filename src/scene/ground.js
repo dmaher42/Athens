@@ -8,11 +8,16 @@ export async function loadGround(scene, renderer, options = {}) {
     size = 400,
     repeat = 32,
     showDirt = true,
-    showGrass = false,
+    showGrass = true,
 
     // allow detailed overrides
     dirtOptions = {},
     grassOptions = {},
+    tiles,
+    tileGrid,
+    tileSize = size,
+    tileRepeat = repeat,
+    tileSpacing = 0,
   } = options;
 
   const ground = createGroundLayered({
@@ -20,6 +25,11 @@ export async function loadGround(scene, renderer, options = {}) {
     grassOptions:{ size, repeat, height: 0.02, ...grassOptions },
     showDirt,
     showGrass,
+    tiles,
+    tileGrid,
+    tileSize,
+    tileRepeat,
+    tileSpacing,
   });
 
   if (scene) scene.add(ground.root);
