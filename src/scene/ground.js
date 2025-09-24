@@ -362,7 +362,7 @@ export async function loadGround(scene, renderer, options = {}) {
   if (grassTexture) {
     configureRepeatingTexture(grassTexture, TEXTURE_REPEAT, anisotropy, THREE.SRGBColorSpace);
     material.map = grassTexture;
-    material.color.set(0x4F8A10);
+    material.color.set(0x6DAA2C);
   }
 
   if (dustTexture) {
