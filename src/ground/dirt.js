@@ -3,20 +3,41 @@ import { resolveAssetUrl } from '../utils/asset-paths.js';
 
 const textureLoader = new THREE.TextureLoader();
 let cachedBaseTexture = null;
+const pendingTextureUpdates = new Set();
+
+function ensureColorSpace(texture) {
+  if (!texture) return;
+  if ('SRGBColorSpace' in THREE) texture.colorSpace = THREE.SRGBColorSpace;
+  else if ('sRGBEncoding' in THREE) texture.encoding = THREE.sRGBEncoding;
+}
+
+function flushPendingTextureUpdates() {
+  if (pendingTextureUpdates.size === 0) return;
+  pendingTextureUpdates.forEach((texture) => {
+    texture.needsUpdate = true;
+  });
+  pendingTextureUpdates.clear();
+}
 
 function loadBaseTexture() {
   if (!cachedBaseTexture) {
-    cachedBaseTexture = textureLoader.load(resolveAssetUrl('assets/textures/athens_dust.jpg'));
+    cachedBaseTexture = textureLoader.load(
+      resolveAssetUrl('assets/textures/athens_dust.jpg'),
+      (texture) => {
+        ensureColorSpace(texture);
+        flushPendingTextureUpdates();
+      }
+    );
 
-    if ('SRGBColorSpace' in THREE) cachedBaseTexture.colorSpace = THREE.SRGBColorSpace;
-    else if ('sRGBEncoding' in THREE) cachedBaseTexture.encoding = THREE.sRGBEncoding;
+    ensureColorSpace(cachedBaseTexture);
+  } else if (cachedBaseTexture.image) {
+    flushPendingTextureUpdates();
   }
   return cachedBaseTexture;
 }
 
 function configureTexture(baseTexture, { repeat, anisotropy }) {
   const texture = baseTexture.clone();
-  texture.needsUpdate = true;
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
   if (typeof repeat === 'number') {
@@ -27,8 +48,13 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
     texture.anisotropy = Math.max(texture.anisotropy || 0, anisotropy);
   }
 
-  if ('SRGBColorSpace' in THREE) texture.colorSpace = THREE.SRGBColorSpace;
-  else if ('sRGBEncoding' in THREE) texture.encoding = THREE.sRGBEncoding;
+  ensureColorSpace(texture);
+
+  if (baseTexture.image) {
+    texture.needsUpdate = true;
+  } else {
+    pendingTextureUpdates.add(texture);
+  }
 
   return texture;
 }
