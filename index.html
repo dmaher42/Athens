@@ -1179,11 +1179,11 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         let world;
         let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, ShiftRight: false, Space: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
         const toggleKeyTimestamps = {};
-        const playerWalkSpeed = 8.0;
-        const playerRunSpeed = 14.0;
+        const playerWalkSpeed = 14.0;
+        const playerRunSpeed = 24.0;
         const playerRotationSpeed = 3.0;
-        const flightSpeed = 10.0;
-        const flightVerticalSpeed = 8.0;
+        const flightSpeed = 30.0;
+        const flightVerticalSpeed = 15.0;
         const CITY_SCALE = 2;
         const scaleValue = (value) => value * CITY_SCALE;
         const scaleLocation = ({ x, y = 0, z }) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
@@ -1422,7 +1422,7 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                         baseModel.updateMatrixWorld(true);
                         const bounds = new THREE.Box3().setFromObject(baseModel);
                         const height = Math.max(0.001, bounds.max.y - bounds.min.y);
-                        const targetHeight = 1.8;
+                        const targetHeight = 2.0;
                         const scaleFactor = targetHeight / height;
                         const pivotOffset = -bounds.min.y * scaleFactor;
 
