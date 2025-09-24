@@ -1,8 +1,9 @@
 import * as THREE from 'three';
+import { resolveAssetUrl } from '../utils/asset-paths.js';
 
 const SKY_PATHS = {
-  sunset: 'public/assets/sky/sunset_4k.jpg',
-  night: 'public/assets/sky/night_sky_4k.jpg'
+  sunset: resolveAssetUrl('assets/sky/sunset_4k.jpg'),
+  night: resolveAssetUrl('assets/sky/night_sky_4k.jpg')
 };
 
 const environmentCache = new Map();

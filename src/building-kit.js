@@ -1,4 +1,5 @@
 import THREE from './three.js';
+import { resolveAssetUrl } from './utils/asset-paths.js';
 
 /** Lightweight materials (one-time) */
 const MAT = {
@@ -48,7 +49,7 @@ MAT.wall = new THREE.MeshStandardMaterial(WALL_FALLBACK_PROPS);
 
 try {
   const texLoader = new THREE.TextureLoader();
-  const wallURL = new URL('../public/assets/textures/wall_city.jpg', import.meta.url).href;
+  const wallURL = resolveAssetUrl('assets/textures/wall_city.jpg');
   texLoader.load(
     wallURL,
     (wallTex) => {
