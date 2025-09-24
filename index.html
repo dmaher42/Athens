@@ -721,8 +721,30 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 sources: starlitNightPhotoSources,
                 skydomeOpacity: 1.0,
                 spaceNightAmount: 1.0
-            }
-        };
+            }};
+    // SAFETY: don't assume skyAssetLocations exists; fall back to bundled /src/sky files
+const skyAssetLocationsSafe =
+  (typeof window !== 'undefined' && Array.isArray(window.skyAssetLocations))
+    ? window.skyAssetLocations
+    : [];
+
+// if nothing configured, use local defaults so the app still starts
+const defaultSkyPrefixes = skyAssetLocationsSafe.length
+  ? skyAssetLocationsSafe
+  : [{ prefix: './src/sky/', label: 'bundled' }];
+
+const nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
+  label: `cube map (${label})`,
+  urls: [
+    resolveRelativeUrl(`${prefix}night_sky_right.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_left.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_top.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_bottom.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_front.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_back.jpg`)
+  ],
+  isFallback: index > 0
+}));
 
         let nightSkyTexture = null;
         let nightSkyCubeTexture = null;
