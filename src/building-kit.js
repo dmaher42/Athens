@@ -45,40 +45,62 @@ const applyWallFallback = (material) => {
   material.needsUpdate = true;
 };
 
-MAT.wall = new THREE.MeshStandardMaterial(WALL_FALLBACK_PROPS);
+// Helper from main
+const createWallFallbackMaterial = () =>
+  new THREE.MeshStandardMaterial({ ...WALL_FALLBACK_PROPS });
+
+// Start with a safe fallback
+MAT.wall = createWallFallbackMaterial();
 
 try {
   const texLoader = new THREE.TextureLoader();
   const wallURL = resolveAssetUrl('assets/textures/wall_city.jpg');
+
   texLoader.load(
     wallURL,
     (wallTex) => {
       wallTex.wrapS = THREE.RepeatWrapping;
       wallTex.wrapT = THREE.RepeatWrapping;
       wallTex.anisotropy = Math.max(wallTex.anisotropy || 0, 8);
+
+      // Handle color space across Three.js versions
       if ('SRGBColorSpace' in THREE) {
         wallTex.colorSpace = THREE.SRGBColorSpace;
       } else if ('sRGBEncoding' in THREE) {
         wallTex.encoding = THREE.sRGBEncoding;
       }
 
-      wallTex.needsUpdate = true;
-
-      MAT.wall.color.set(0xffffff);
-      MAT.wall.roughness = 0.82;
-      MAT.wall.metalness = 0.04;
+      // Apply to material
       MAT.wall.map = wallTex;
       MAT.wall.needsUpdate = true;
     },
-    undefined,
+    undefined, // onProgress (optional)
     (error) => {
-      console.warn('[building-kit] Failed to load wall texture; using fallback wall material.', error);
-      applyWallFallback(MAT.wall);
+      console.warn('Wall texture failed to load, using fallback material:', error);
+      MAT.wall = createWallFallbackMaterial();
     }
   );
-} catch (error) {
-  console.warn('[building-kit] wall texture loader unavailable; using fallback wall material.', error);
-  applyWallFallback(MAT.wall);
+} catch (e) {
+  console.warn('Error initializing wall texture loader, using fallback material:', e);
+  MAT.wall = createWallFallbackMaterial();
+}
+
+
+MAT.wall = createWallFallbackMaterial();
+
+export function setCityWallMaterial(material) {
+  if (material && material.isMaterial) {
+    MAT.wall = material;
+    return MAT.wall;
+  }
+
+  if (!MAT.wall || !MAT.wall.isMaterial) {
+    MAT.wall = createWallFallbackMaterial();
+  } else {
+    applyWallFallback(MAT.wall);
+  }
+
+  return MAT.wall;
 }
 
 /** Shared helpers */
@@ -274,8 +296,9 @@ export function makeTholos({ radius = 12, colH = 6, colR = 0.45, cols = 18 } = {
 }
 
 /** Wall modules along a polyline */
-export function makeWallPath(points, { segment = 6, height = 3, width = 2 } = {}) {
+export function makeWallPath(points, { segment = 6, height = 3, width = 2, material } = {}) {
   const g = new THREE.Group();
+  const wallMaterial = material && material.isMaterial ? material : MAT.wall;
   for (let i = 0; i < points.length - 1; i++) {
     const a = points[i], b = points[i + 1];
     const dist = a.distanceTo(b);
@@ -287,13 +310,13 @@ export function makeWallPath(points, { segment = 6, height = 3, width = 2 } = {}
       const t0 = s / nSeg, t1 = (s + 1) / nSeg;
       const p = new THREE.Vector3().lerpVectors(a, b, (t0 + t1) / 2);
       const segLen = (dist / nSeg) * 0.9;
-      const block = new THREE.Mesh(new THREE.BoxGeometry(width, height, segLen), MAT.wall);
+      const block = new THREE.Mesh(new THREE.BoxGeometry(width, height, segLen), wallMaterial);
       block.position.copy(p); block.quaternion.copy(quat);
-      if (MAT.wall && MAT.wall.map) {
+      if (wallMaterial && wallMaterial.map) {
         const repeatX = Math.max(1, Math.round(segLen / 2));
         const repeatY = Math.max(1, Math.round(height / 1));
-        MAT.wall.map.repeat.set(repeatX, repeatY);
-        MAT.wall.map.needsUpdate = true;
+        wallMaterial.map.repeat.set(repeatX, repeatY);
+        wallMaterial.map.needsUpdate = true;
       }
       g.add(block);
     }

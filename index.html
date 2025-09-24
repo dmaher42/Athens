@@ -434,7 +434,7 @@
 </canvas>
 <script type="module">
         import THREE from './src/three.js';
-        import { makeTemple, makeStoa, makeTholos, makeAltar, MAT } from './src/building-kit.js';
+        import { makeTemple, makeStoa, makeTholos, makeAltar, MAT, setCityWallMaterial } from './src/building-kit.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
         import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -446,6 +446,7 @@
 import { setupGround, configureGround, updateTrees } from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
 import { loadBuildingTextures, retargetBuildingMaterials } from './src/scene/materials.js';
+import { createCityWallPerimeter, createCityGatehouse } from './src/scene/city-wall.js';
 import {
   createDistrictsLayer,
   setDistricts,
@@ -1519,9 +1520,10 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
 
         // Declare texture and material variables globally
         let stoneTexture, marbleTexture, redTileTexture, groundTexture, pavedRoadTexture;
-        let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial;
+        let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial, cityWallMaterial;
 
         const buildingMaterialSet = loadBuildingTextures();
+        cityWallMaterial = setCityWallMaterial(buildingMaterialSet?.cityWallMat);
         let groundMesh = null;
         let districtsLayer = null;
         let districtChangeUnsubscribe = null;
@@ -1532,6 +1534,9 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         let districtOutlinesVisible = true;
         let districtDustBiasEnabled = true;
         let currentEnvironmentMode = null;
+        let cityWallGroup = null;
+        let cityGatehouseGroup = null;
+        const cityGatehouseBodies = [];
 
         const applyEnvironmentMode = (mode = 'day') => {
             if (!renderer || !scene) {
@@ -4471,36 +4476,109 @@ function createBasicAgoraFallback() {
         }
         
         function createCityFortifications() {
-            const wallSize = 80;
+// Guard clause from main
+if (!scene || !world) {
+  return;
+}
 
-            // City wall geometry is now generated procedurally from GeoJSON using the
-            // textured asset in assets/textures/wall_city.jpg. Retain the
-            // gatehouse structures to frame the Kerameikos approach.
+const wallSize = 80;
 
-            // Gatehouse
-            const towerWidth = 8;
-            const towerHeight = 15;
-            const gateGap = 10;
+// City wall geometry is now generated procedurally from GeoJSON using the
+// textured asset in assets/textures/wall_city.jpg. Retain the
+// gatehouse structures to frame the Kerameikos approach.
 
-            const tower1 = createEnhancedBuilding(-gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
-            scene.add(tower1);
-            const tower1Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight/2, scaleValue(towerWidth) / 2)) });
-            tower1Body.position.copy(tower1.position);
-            world.addBody(tower1Body);
+// Gatehouse
+const towerWidth = 8;
+const towerHeight = 15;
+const gateGap = 10;
 
-            const tower2 = createEnhancedBuilding(gateGap, -wallSize, towerWidth, towerWidth, towerHeight, stoneMaterial, { includeDetails: false });
-            scene.add(tower2);
-            const tower2Body = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight/2, scaleValue(towerWidth) / 2)) });
-            tower2Body.position.copy(tower2.position);
-            world.addBody(tower2Body);
+const tower1 = createEnhancedBuilding(
+  -gateGap,
+  -wallSize,
+  towerWidth,
+  towerWidth,
+  towerHeight,
+  stoneMaterial,
+  { includeDetails: false }
+);
+scene.add(tower1);
+const tower1Body = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Box(
+    new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight / 2, scaleValue(towerWidth) / 2)
+  )
+});
+tower1Body.position.copy(tower1.position);
+world.addBody(tower1Body);
 
-            const arch = new THREE.Mesh(new THREE.BoxGeometry(scaleValue(gateGap * 2), 4, scaleValue(towerWidth)), stoneMaterial);
-            setScaledPosition(arch, 0, towerHeight - 2, -wallSize);
-            scene.add(arch);
-            const archBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(scaleValue(gateGap), 2, scaleValue(towerWidth) / 2)) });
-            archBody.position.copy(arch.position);
-            world.addBody(archBody);
+const tower2 = createEnhancedBuilding(
+  gateGap,
+  -wallSize,
+  towerWidth,
+  towerWidth,
+  towerHeight,
+  stoneMaterial,
+  { includeDetails: false }
+);
+scene.add(tower2);
+const tower2Body = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Box(
+    new CANNON.Vec3(scaleValue(towerWidth) / 2, towerHeight / 2, scaleValue(towerWidth) / 2)
+  )
+});
+tower2Body.position.copy(tower2.position);
+world.addBody(tower2Body);
 
+const arch = new THREE.Mesh(
+  new THREE.BoxGeometry(scaleValue(gateGap * 2), 4, scaleValue(towerWidth)),
+  stoneMaterial
+);
+setScaledPosition(arch, 0, towerHeight - 2, -wallSize);
+scene.add(arch);
+const archBody = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Box(new CANNON.Vec3(scaleValue(gateGap), 2, scaleValue(towerWidth) / 2))
+});
+archBody.position.copy(arch.position);
+world.addBody(archBody);
+
+
+            if (!cityWallGroup) {
+                cityWallGroup = createCityWallPerimeter({ material: cityWallMaterial });
+            }
+            if (cityWallGroup && !scene.children.includes(cityWallGroup)) {
+                scene.add(cityWallGroup);
+            }
+
+            if (!cityGatehouseGroup) {
+                const { group, colliders } = createCityGatehouse({ material: cityWallMaterial });
+                cityGatehouseGroup = group;
+                if (cityGatehouseGroup) {
+                    scene.add(cityGatehouseGroup);
+                }
+                if (Array.isArray(colliders)) {
+                    colliders.forEach((collider) => {
+                        if (!collider) {
+                            return;
+                        }
+                        const { center, halfExtents, quaternion } = collider;
+                        if (!center || !halfExtents) {
+                            return;
+                        }
+                        const shape = new CANNON.Box(new CANNON.Vec3(halfExtents.x, halfExtents.y, halfExtents.z));
+                        const body = new CANNON.Body({ mass: 0, shape });
+                        body.position.set(center.x, center.y, center.z);
+                        if (quaternion) {
+                            body.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+                        }
+                        world.addBody(body);
+                        cityGatehouseBodies.push(body);
+                    });
+                }
+            } else if (cityGatehouseGroup && !scene.children.includes(cityGatehouseGroup)) {
+                scene.add(cityGatehouseGroup);
+            }
         }
         
         function createMarketStalls() {
