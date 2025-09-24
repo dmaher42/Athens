@@ -19,7 +19,11 @@ export function loadEquirectSky(renderer, scene, path, onDone) {
     path,
     (texture) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
-      texture.colorSpace = THREE.SRGBColorSpace;
+      if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+        texture.colorSpace = THREE.SRGBColorSpace;
+      } else if ('encoding' in texture && THREE.sRGBEncoding) {
+        texture.encoding = THREE.sRGBEncoding;
+      }
 
       const pmrem = new THREE.PMREMGenerator(renderer);
       const envTarget = pmrem.fromEquirectangular(texture);
