@@ -1599,6 +1599,8 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
         };
         const CHICKEN_WORLD_PADDING = scaleValue(10);
         const BARREL_WORLD_PADDING = scaleValue(20);
+        const RUN_ALIGNMENT_AXIS = new THREE.Vector3(0, 1, 0);
+        const RUN_ALIGNMENT_QUATERNION = new THREE.Quaternion();
         
         const infoData = {
             pnyx: {
@@ -5022,7 +5024,137 @@ function createBasicAgoraFallback() {
             player.body.position.set(scaleValue(0), 0.9, scaleValue(30));
             player.body.angularDamping = 0.9;
             world.addBody(player.body);
-            
+
+            player.movementOverride = null;
+
+            const resolveRunDirection = (value) => {
+                if (value instanceof THREE.Vector3) {
+                    return value.clone();
+                }
+
+                if (Array.isArray(value)) {
+                    const [x = 0, y = 0, z = 0] = value;
+                    return new THREE.Vector3(
+                        Number(x) || 0,
+                        Number(y) || 0,
+                        Number(z) || 0
+                    );
+                }
+
+                if (value && typeof value === 'object') {
+                    const { x = 0, y = 0, z = 0 } = value;
+                    return new THREE.Vector3(
+                        Number(x) || 0,
+                        Number(y) || 0,
+                        Number(z) || 0
+                    );
+                }
+
+                if (typeof value === 'string') {
+                    const normalized = value.trim().toLowerCase();
+                    switch (normalized) {
+                        case 'forward':
+                        case 'north':
+                            return new THREE.Vector3(0, 0, 1);
+                        case 'back':
+                        case 'backward':
+                        case 'south':
+                            return new THREE.Vector3(0, 0, -1);
+                        case 'left':
+                        case 'west':
+                            return new THREE.Vector3(-1, 0, 0);
+                        case 'right':
+                        case 'east':
+                            return new THREE.Vector3(1, 0, 0);
+                        default:
+                            break;
+                    }
+                }
+
+                return null;
+            };
+
+            player.run = (options = {}) => {
+                if (!player || !player.body) {
+                    return false;
+                }
+
+                const {
+                    direction,
+                    world = false,
+                    speed,
+                    duration,
+                    faceDirection = true,
+                    cancelOnInput = true
+                } = options || {};
+
+                let directionVector = resolveRunDirection(direction);
+                if (!directionVector) {
+                    directionVector = new THREE.Vector3(0, 0, 1);
+                }
+
+                directionVector.y = 0;
+                if (directionVector.lengthSq() === 0) {
+                    directionVector.set(0, 0, 1);
+                }
+                directionVector.normalize();
+
+                const numericSpeed = Number(speed);
+                const targetSpeed = Number.isFinite(numericSpeed) && numericSpeed > 0
+                    ? numericSpeed
+                    : playerRunSpeed;
+
+                const numericDuration = Number(duration);
+                const runDuration = Number.isFinite(numericDuration) && numericDuration > 0
+                    ? numericDuration
+                    : null;
+
+                const initialInputState = {
+                    KeyW: Boolean(controls.KeyW),
+                    KeyS: Boolean(controls.KeyS),
+                    KeyA: Boolean(controls.KeyA),
+                    KeyD: Boolean(controls.KeyD)
+                };
+
+                const hasClock = clock && typeof clock.getElapsedTime === 'function';
+
+                player.movementOverride = {
+                    type: 'run',
+                    direction: directionVector.clone(),
+                    useWorldSpace: Boolean(world),
+                    speed: targetSpeed,
+                    faceDirection: faceDirection !== false,
+                    cancelOnInput: cancelOnInput !== false,
+                    startedAt: hasClock ? clock.getElapsedTime() : null,
+                    duration: runDuration,
+                    initialInput: initialInputState
+                };
+
+                if (player.actions && player.playAction) {
+                    const actionKeys = Object.keys(player.actions);
+                    if (actionKeys.length) {
+                        const findActionKey = (needle) => actionKeys.find(name => name === needle)
+                            || actionKeys.find(name => name.includes(needle));
+                        const runActionName = findActionKey('run');
+                        if (runActionName) {
+                            player.playAction(runActionName);
+                        }
+                    }
+                }
+
+                return true;
+            };
+
+            player.stopRunning = () => {
+                if (player?.movementOverride?.type === 'run') {
+                    player.movementOverride = null;
+                }
+            };
+
+            if (typeof window !== 'undefined') {
+                window.AthensPlayer = player;
+            }
+
             // Load Animated Player Model
             const playerLoader = new GLTFLoader();
             const CHARACTER_MODEL_URL = './models/character.glb';
@@ -6191,7 +6323,7 @@ function createBasicAgoraFallback() {
         
         function updateControls(delta) {
             if (!player || !player.body) return;
-            
+
             // Handle rotation
             if (controls.KeyA) {
                 player.body.angularVelocity.y = playerRotationSpeed;
@@ -6200,20 +6332,58 @@ function createBasicAgoraFallback() {
             } else {
                  player.body.angularVelocity.y = 0;
             }
-            
+
             // Handle movement
+            let movementOverride = player.movementOverride && player.movementOverride.type === 'run'
+                ? player.movementOverride
+                : null;
+
+            if (movementOverride && movementOverride.duration != null) {
+                const hasClock = clock && typeof clock.getElapsedTime === 'function';
+                if (hasClock && movementOverride.startedAt != null) {
+                    const elapsed = clock.getElapsedTime() - movementOverride.startedAt;
+                    if (elapsed >= movementOverride.duration) {
+                        player.movementOverride = null;
+                        movementOverride = null;
+                    }
+                }
+            }
+
+            if (movementOverride && movementOverride.cancelOnInput) {
+                const initial = movementOverride.initialInput || {};
+                const inputChanged =
+                    Boolean(controls.KeyW) !== initial.KeyW ||
+                    Boolean(controls.KeyS) !== initial.KeyS ||
+                    Boolean(controls.KeyA) !== initial.KeyA ||
+                    Boolean(controls.KeyD) !== initial.KeyD;
+
+                if (inputChanged) {
+                    player.movementOverride = null;
+                    movementOverride = null;
+                }
+            }
+
             const moveDirection = new THREE.Vector3();
-            if (controls.KeyS) moveDirection.z -= 1;
-            if (controls.KeyW) moveDirection.z += 1;
+            if (movementOverride) {
+                moveDirection.copy(movementOverride.direction);
+            } else {
+                if (controls.KeyS) moveDirection.z -= 1;
+                if (controls.KeyW) moveDirection.z += 1;
+            }
 
             const hasHorizontalInput = moveDirection.lengthSq() > 0;
-            const isMoving = Boolean(controls.KeyS || controls.KeyW);
+            const isMovingFromControls = Boolean(controls.KeyS || controls.KeyW);
             const wantsToRun = controls.ShiftLeft || controls.ShiftRight;
-            const isRunning = Boolean(!isFlying && isMoving && wantsToRun);
-            const currentGroundSpeed = isRunning ? playerRunSpeed : playerWalkSpeed;
+            const isMoving = movementOverride ? hasHorizontalInput : isMovingFromControls;
+            const shouldUseRunAnimation = movementOverride
+                ? hasHorizontalInput
+                : Boolean(!isFlying && isMovingFromControls && wantsToRun);
+            const currentGroundSpeed = movementOverride
+                ? (movementOverride.speed ?? playerRunSpeed)
+                : (shouldUseRunAnimation ? playerRunSpeed : playerWalkSpeed);
 
             if (player) {
-                player.isRunning = isRunning;
+                player.isRunning = shouldUseRunAnimation;
             }
 
             if (player && player.actions && player.playAction) {
@@ -6225,7 +6395,7 @@ function createBasicAgoraFallback() {
                     const idleActionName = findActionKey('idle');
                     const fallbackActionName = player.defaultActionName || actionKeys[0];
                     const targetActionName = isMoving
-                        ? (isRunning
+                        ? (shouldUseRunAnimation
                             ? (runActionName || walkActionName || fallbackActionName)
                             : (walkActionName || runActionName || fallbackActionName))
                         : (idleActionName || walkActionName || runActionName || fallbackActionName);
@@ -6236,7 +6406,6 @@ function createBasicAgoraFallback() {
                 }
             }
 
-
             const playerQuaternion = new THREE.Quaternion(
                 player.body.quaternion.x,
                 player.body.quaternion.y,
@@ -6246,9 +6415,27 @@ function createBasicAgoraFallback() {
 
             if (hasHorizontalInput) {
                 moveDirection.normalize();
-                moveDirection.applyQuaternion(playerQuaternion);
+                if (movementOverride) {
+                    if (!movementOverride.useWorldSpace) {
+                        moveDirection.applyQuaternion(playerQuaternion);
+                    }
+                } else {
+                    moveDirection.applyQuaternion(playerQuaternion);
+                }
             } else {
                 moveDirection.set(0, 0, 0);
+            }
+
+            if (movementOverride && movementOverride.faceDirection !== false && hasHorizontalInput) {
+                const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+                RUN_ALIGNMENT_QUATERNION.setFromAxisAngle(RUN_ALIGNMENT_AXIS, targetAngle);
+                playerQuaternion.slerp(RUN_ALIGNMENT_QUATERNION, 0.2);
+                player.body.quaternion.set(
+                    playerQuaternion.x,
+                    playerQuaternion.y,
+                    playerQuaternion.z,
+                    playerQuaternion.w
+                );
             }
 
             if (isFlying) {
@@ -6272,7 +6459,7 @@ function createBasicAgoraFallback() {
             } else {
                 const currentVelocity = new CANNON.Vec3(
                     moveDirection.x * currentGroundSpeed,
-                    player.body.velocity.y, // Preserve vertical velocity
+                    player.body.velocity.y,
                     moveDirection.z * currentGroundSpeed
                 );
 
@@ -6280,7 +6467,7 @@ function createBasicAgoraFallback() {
                     player.body.velocity.copy(currentVelocity);
                 }
 
-                if (!controls.KeyW && !controls.KeyS) {
+                if (!movementOverride && !controls.KeyW && !controls.KeyS) {
                     player.body.velocity.x = 0;
                     player.body.velocity.z = 0;
                 }
@@ -6291,9 +6478,9 @@ function createBasicAgoraFallback() {
             if (controls.ArrowDown) cameraOffset.y -= 2 * delta;
             if (controls.ArrowLeft) cameraOffset.applyAxisAngle(new THREE.Vector3(0,1,0), 2 * delta);
             if (controls.ArrowRight) cameraOffset.applyAxisAngle(new THREE.Vector3(0,1,0), -2 * delta);
-            
+
             cameraOffset.y = Math.max(1, Math.min(5, cameraOffset.y)); // Clamp camera height
-            
+
         }
         
         function updateCamera() {
