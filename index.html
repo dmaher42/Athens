@@ -479,7 +479,53 @@
         // --- Space Night module: Milky Way skybox + dust + nebulas -----------------
         const useCubeMap = false;
 
-        const resolveRelativeUrl = (relativePath) => new URL(relativePath, import.meta.url).href;
+        const computeModuleBaseUrl = () => {
+            const fallbackBase = (typeof document !== 'undefined' && document.baseURI)
+                || (typeof window !== 'undefined' && window.location?.href)
+                || '';
+            const metaUrl = (typeof import.meta !== 'undefined' && typeof import.meta.url === 'string')
+                ? import.meta.url
+                : fallbackBase;
+
+            if (!metaUrl) {
+                return fallbackBase;
+            }
+
+            try {
+                const resolved = new URL(metaUrl, fallbackBase || undefined);
+
+                if (resolved.protocol === 'blob:' || resolved.protocol === 'data:') {
+                    throw new Error('Unsupported base protocol');
+                }
+
+                const path = resolved.pathname || '';
+                const hasTrailingSlash = path.endsWith('/');
+                if (!hasTrailingSlash) {
+                    const lastSegment = path.split('/').pop() || '';
+                    if (lastSegment.includes('.')) {
+                        resolved.pathname = path.replace(/[^/]*$/, '');
+                    } else {
+                        resolved.pathname = `${path.replace(/\/?$/, '')}/`;
+                    }
+                }
+
+                resolved.search = '';
+                resolved.hash = '';
+                return resolved.href;
+            } catch (error) {
+                return fallbackBase || metaUrl;
+            }
+        };
+
+        const moduleBaseUrl = computeModuleBaseUrl();
+        const resolveRelativeUrl = (relativePath) => {
+            try {
+                return new URL(relativePath, moduleBaseUrl).href;
+            } catch (error) {
+                console.warn(`Failed to resolve relative URL "${relativePath}" relative to ${moduleBaseUrl}`, error);
+                return relativePath;
+            }
+        };
         const skyAssetLocations = [
             { prefix: './public/assets/sky/', label: 'public/assets/sky' }
         ];
