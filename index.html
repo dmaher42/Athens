@@ -570,7 +570,7 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
             { prefix: resolveAssetUrl('assets/sky/'), label: 'assets/sky' }
         ];
 
-        const nightSkyTextureSources = skyAssetLocations.map(({ prefix, label }, index) => ({
+        const nightSkyCubeSources = skyAssetLocations.map(({ prefix, label }, index) => ({
             url: resolveRelativeUrl(`${prefix}night_sky.jpg`),
             label: `night_sky.jpg (${label})`,
             isFallback: index > 0
@@ -709,20 +709,27 @@ import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.
                 skydomeOpacity: 1.0,
                 spaceNightAmount: 1.0
             }
-        };
+    // SAFETY: don't assume skyAssetLocations exists; fall back to bundled /src/sky files
+const skyAssetLocationsSafe = Array.isArray(window.skyAssetLocations) ? window.skyAssetLocations : [];
 
-        const nightSkyCubeSources = skyAssetLocations.map(({ prefix, label }, index) => ({
-            label: `cube map (${label})`,
-            urls: [
-                resolveRelativeUrl(`${prefix}night_sky_right.jpg`),
-                resolveRelativeUrl(`${prefix}night_sky_left.jpg`),
-                resolveRelativeUrl(`${prefix}night_sky_top.jpg`),
-                resolveRelativeUrl(`${prefix}night_sky_bottom.jpg`),
-                resolveRelativeUrl(`${prefix}night_sky_front.jpg`),
-                resolveRelativeUrl(`${prefix}night_sky_back.jpg`)
-            ],
-            isFallback: index > 0
-        }));
+// if nothing configured, use local defaults so the app still starts
+const defaultSkyPrefixes = skyAssetLocationsSafe.length
+  ? skyAssetLocationsSafe
+  : [{ prefix: './src/sky/', label: 'bundled' }];
+
+const nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
+  label: `cube map (${label})`,
+  urls: [
+    resolveRelativeUrl(`${prefix}night_sky_right.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_left.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_top.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_bottom.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_front.jpg`),
+    resolveRelativeUrl(`${prefix}night_sky_back.jpg`)
+  ],
+  isFallback: index > 0
+}));
+
 
         let nightSkyTexture = null;
         let nightSkyCubeTexture = null;
@@ -6693,6 +6700,9 @@ world.addBody(archBody);
         };
 </script>
 <script type="module">
+    // SAFETY: turn undefined / single value into an array so .map() never crashes
+const asArray = (v) => (Array.isArray(v) ? v : (v == null ? [] : [v]));
+
         import { loadGeoJson } from './src/geo/geoLoader.js';
         import { LocalEquirectangularProjection } from './src/geo/projection.js';
 
