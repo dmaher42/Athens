@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { applyDoubleSidedGroundSupport } from './double-sided.js';
 
 const textureLoader = new THREE.TextureLoader();
 let cachedBaseTexture = null;
@@ -99,6 +100,7 @@ export function createDirtGround({
   mat.polygonOffsetUnits = 1;
 
   const mesh = new THREE.Mesh(geo, mat);
+  applyDoubleSidedGroundSupport(mesh);
   mesh.receiveShadow = receiveShadow;
 
   group.add(mesh);
