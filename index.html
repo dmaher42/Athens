@@ -921,9 +921,10 @@ const retargetBuildingMaterials =
             'Golden Dawn': {
                 textureKey: 'golden-hour',
                 sources: goldenHourPhotoSources,
-              skydomeOpacity: 0.1,
-                envIntensity: 0.7,
-                exposure: .85,
+ codex/improve-sky-texture-rendering-quality,
+                skydomeOpacity: 1.0,
+                envIntensity: 0.85,
+                exposure: 1.05,
                 spaceNightAmount: 0.15
             },
             'Blue Hour': {
@@ -945,9 +946,11 @@ const retargetBuildingMaterials =
             'Golden Dusk': {
                 textureKey: 'golden-hour',
                 sources: goldenHourPhotoSources,
-                skydomeOpacity: 0.1,
-                envIntensity: 0.7,
-                exposure: .85,
+  codex/improve-sky-texture-rendering-quality,
+                skydomeOpacity: 1.0,
+                envIntensity: 0.85,
+                exposure: 1.1,
+
                 spaceNightAmount: 0.2
             },
             'Starlit Night': {
@@ -5032,9 +5035,8 @@ function createBasicAgoraFallback() {
             desiredEnvironmentIntensity = targetEnvIntensity;
             updateSceneEnvironmentIntensity();
 
-            const timeFactor = featureLineTimeFactors[name] ?? 0.5;
-            if (typeof window !== 'undefined') {
-                window.__fl_t = timeFactor;
+ codex/improve-sky-texture-rendering-quality
+
             }
             const featureLinesGetter = typeof window !== 'undefined' ? window.getFeatureLines : null;
             if (typeof featureLinesGetter === 'function') {
@@ -5042,6 +5044,7 @@ function createBasicAgoraFallback() {
                 featureLines?.setTimeFactor?.(timeFactor);
             }
 
+> main
             const fallbackNightLevel = name === 'Starlit Night' ? 1 : (name === 'Blue Hour' ? 0.4 : 0);
             const targetNightAmount = typeof skydomePreset?.spaceNightAmount === 'number'
                 ? THREE.MathUtils.clamp(skydomePreset.spaceNightAmount, 0, 1)
