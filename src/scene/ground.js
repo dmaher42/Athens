@@ -56,7 +56,7 @@ export async function loadGround(scene, renderer, options = {}) {
   const hasShowDirtOverride = Object.prototype.hasOwnProperty.call(options, 'showDirt');
   const hasShowGrassOverride = Object.prototype.hasOwnProperty.call(options, 'showGrass');
 
-  const initialShowDirt = hasShowDirtOverride ? !!showDirt : true;
+  const initialShowDirt = hasShowDirtOverride ? !!showDirt : false;
   const initialShowGrass = hasShowGrassOverride ? !!showGrass : true;
 
   if (!__groundSingleton) {
