@@ -549,6 +549,7 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
         import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+        import { AmbientZoneManager } from './src/audio/ambient-zones.js';
         import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
@@ -1433,7 +1434,7 @@ const retargetBuildingMaterials =
         async function main() {
 
         // --- GLOBAL VARIABLES ---
-        let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
+        let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player, ambientZoneManager;
         let world;
         let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, ShiftRight: false, Space: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
         const toggleKeyTimestamps = {};
@@ -1450,6 +1451,30 @@ const retargetBuildingMaterials =
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+        const pendingAmbientZones = [];
+        function registerAmbientZone(node, options = {}) {
+            if (!node) {
+                return;
+            }
+
+            if (ambientZoneManager) {
+                ambientZoneManager.registerZone({ node, ...options });
+                return;
+            }
+
+            pendingAmbientZones.push({ node, options });
+        }
+
+        function flushPendingAmbientZones() {
+            if (!ambientZoneManager || pendingAmbientZones.length === 0) {
+                return;
+            }
+
+            const queued = pendingAmbientZones.splice(0, pendingAmbientZones.length);
+            queued.forEach(({ node, options }) => {
+                ambientZoneManager.registerZone({ node, ...options });
+            });
+        }
         // Controls how quickly the photographic sky panorama pans across the horizon.
         const PHOTO_SKYDOME_SCROLL_SPEED_DEG_PER_SECOND = 1.0;
         const GEO_TO_SCENE_MATRIX = Object.freeze({
@@ -2015,6 +2040,10 @@ const retargetBuildingMaterials =
             camera.far = Math.max(camera.far, 60000);
             camera.updateProjectionMatrix();
             window.camera = camera;
+
+            ambientZoneManager = new AmbientZoneManager({ maxActive: 3, fadeTime: 0.75 });
+            ambientZoneManager.setCamera(camera);
+            flushPendingAmbientZones();
             
             // Renderer
             renderer = new THREE.WebGLRenderer({
@@ -2469,6 +2498,7 @@ const retargetBuildingMaterials =
             createPhaleronHarbor();
             createHouses();
             createTrees();
+            createCountrysideAmbienceAnchor();
             createFountain();
             createCityFortifications();
             createMarketStalls();
@@ -3678,6 +3708,14 @@ function createAgoraComplex() {
     const agoraGroup = new THREE.Group();
     agoraGroup.name = 'Agora Precinct';
     scene.add(agoraGroup);
+    registerAmbientZone(agoraGroup, {
+        id: 'agora-market',
+        type: 'market',
+        radius: scaleValue(45),
+        maxDistance: scaleValue(240),
+        volume: 0.58,
+        rolloff: 2.4
+    });
 
     const plazaMaterial = new THREE.MeshStandardMaterial({
         color: 0xb9a880,
@@ -5239,6 +5277,14 @@ world.addBody(archBody);
              setScaledPosition(pnyx, PNYX_POSITION.x, 0, PNYX_POSITION.z);
              pnyx.rotation.y = -Math.PI / 2;
              scene.add(pnyx);
+             registerAmbientZone(pnyx, {
+                id: 'assembly-pnyx',
+                type: 'assembly',
+                radius: scaleValue(35),
+                maxDistance: scaleValue(220),
+                volume: 0.6,
+                rolloff: 2.0
+             });
 
              const dikasteria = createEnhancedBuilding(0, -15, 8, 12, 6, marbleMaterial);
              const colonnade = new THREE.Group();
@@ -5286,6 +5332,22 @@ world.addBody(archBody);
             }
             stoaWay.receiveShadow = true;
             scene.add(stoaWay);
+        }
+
+        function createCountrysideAmbienceAnchor() {
+            const countrysideAnchor = new THREE.Object3D();
+            countrysideAnchor.name = 'Countryside Ambience Anchor';
+            setScaledPosition(countrysideAnchor, -140, 6, 130);
+            scene.add(countrysideAnchor);
+            registerAmbientZone(countrysideAnchor, {
+                id: 'countryside-hills',
+                type: 'countryside',
+                radius: scaleValue(60),
+                maxDistance: scaleValue(280),
+                volume: 0.65,
+                rolloff: 1.6
+            });
+            return countrysideAnchor;
         }
 
         // --- NPC AND INTERACTIVE OBJECTS ---
@@ -6275,6 +6337,10 @@ world.addBody(archBody);
                 updateSoundPositions(delta);
             }
 
+            if (ambientZoneManager) {
+                ambientZoneManager.update(delta, camera.position);
+            }
+
             updatePhotoSkydomeScroll(delta);
             updateNightCycle(delta);
 
@@ -6866,12 +6932,31 @@ world.addBody(archBody);
 
                 audioStartInProgress = true;
                 try {
-                    await createAmbientSounds();
-                    initializeChickenAudio();
-                    audioStarted = true;
-                    console.log("Audio context started.");
+                    const tonePromise = (async () => {
+                        await createAmbientSounds();
+                        initializeChickenAudio();
+                    })();
+                    const zonePromise = ambientZoneManager?.resume?.() ?? Promise.resolve();
+
+                    const [toneResult, zoneResult] = await Promise.allSettled([tonePromise, zonePromise]);
+
+                    if (zoneResult?.status === 'rejected') {
+                        console.warn('Unable to resume ambient zone audio context:', zoneResult.reason);
+                    }
+
+                    if (ambientZoneManager) {
+                        ambientZoneManager.setEnabled(true);
+                        ambientZoneManager.update(0, camera.position);
+                    }
+
+                    if (toneResult.status === 'fulfilled') {
+                        audioStarted = true;
+                        console.log("Audio context started.");
+                    } else if (toneResult.status === 'rejected') {
+                        console.warn('Unable to start audio context:', toneResult.reason);
+                    }
                 } catch (error) {
-                    console.warn('Unable to start audio context:', error);
+                    console.warn('Unable to start audio systems:', error);
                 } finally {
                     audioStartInProgress = false;
                 }
