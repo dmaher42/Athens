@@ -3,6 +3,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createProceduralTree } from './procTree.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
 
+const WORLD_COMPRESSION = 0.5; // 50% closer
+
 const TREE_MODEL_FILES = {
   olive: 'olive.glb',
   cypress: 'cypress.glb',
@@ -361,9 +363,17 @@ function applyTransform(object, options = {}) {
   const { position, rotation, scale } = options;
 
   if (position) {
-    object.position.set(position.x ?? 0, position.y ?? 0, position.z ?? 0);
+    object.position.set(
+      (position.x ?? 0) * WORLD_COMPRESSION,
+      position.y ?? 0,
+      (position.z ?? 0) * WORLD_COMPRESSION
+    );
   } else {
-    object.position.set(options.x ?? 0, options.y ?? 0, options.z ?? 0);
+    object.position.set(
+      (options.x ?? 0) * WORLD_COMPRESSION,
+      options.y ?? 0,
+      (options.z ?? 0) * WORLD_COMPRESSION
+    );
   }
 
   if (rotation) {
@@ -513,7 +523,11 @@ function createInstancedGrove(definition, placements) {
 
   const dummy = new THREE.Object3D();
   placements.forEach((placement, index) => {
-    dummy.position.set(placement.x, placement.y, placement.z);
+    dummy.position.set(
+      placement.x * WORLD_COMPRESSION,
+      placement.y,
+      placement.z * WORLD_COMPRESSION
+    );
     dummy.rotation.set(0, placement.rotation, 0);
     dummy.scale.setScalar(placement.scale);
     dummy.updateMatrix();

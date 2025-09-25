@@ -1,6 +1,21 @@
 import THREE from './three.js';
 import { applyFeatureOffset } from './geo/featureOffsets.js';
 
+const WORLD_COMPRESSION = 0.5; // 50% closer
+
+function applyWorldCompression(vector) {
+  if (!vector) {
+    return vector;
+  }
+  if (typeof vector.x === 'number') {
+    vector.x *= WORLD_COMPRESSION;
+  }
+  if (typeof vector.z === 'number') {
+    vector.z *= WORLD_COMPRESSION;
+  }
+  return vector;
+}
+
 /**
  * Load every feature from a GeoJSON file and add to the scene.
  * - projector(lon, lat) -> THREE.Vector3: optional; if missing we use a local Athens projection.
@@ -44,6 +59,7 @@ export async function loadLandmarks({
         fallbackName: name
       });
       const pos = projector ? projector(lon, lat) : lonLatToLocal(lon, lat);
+      applyWorldCompression(pos);
 
       const pin = makePinMesh(cat);
       pin.position.copy(pos);
@@ -161,14 +177,20 @@ function makeLabelSprite(text) {
 }
 
 function makeLine(coords, projector) {
-  const pts = coords.map(([lon, lat]) => projector ? projector(lon, lat) : lonLatToLocal(lon, lat));
+  const pts = coords.map(([lon, lat]) => {
+    const v = projector ? projector(lon, lat) : lonLatToLocal(lon, lat);
+    return applyWorldCompression(v);
+  });
   const geom = new THREE.BufferGeometry().setFromPoints(pts);
   const mat = new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.95 });
   return new THREE.Line(geom, mat);
 }
 
 function makePolygonOutline(coords, projector) {
-  const pts = coords.map(([lon, lat]) => projector ? projector(lon, lat) : lonLatToLocal(lon, lat));
+  const pts = coords.map(([lon, lat]) => {
+    const v = projector ? projector(lon, lat) : lonLatToLocal(lon, lat);
+    return applyWorldCompression(v);
+  });
   const geom = new THREE.BufferGeometry().setFromPoints(pts);
   const mat = new THREE.LineDashedMaterial({ color: 0xa8a29e, dashSize: 6, gapSize: 3, transparent: true, opacity: 0.85 });
   const loop = new THREE.LineLoop(geom, mat);
