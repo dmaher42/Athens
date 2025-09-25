@@ -1,32 +1,68 @@
+/**
+ * Feature line rendering utilities.
+ *
+ * Lines (roads, Sacred Way, walls, districts) now react to a time-of-day factor via
+ * {@link setTimeFactor}. Daytime keeps the lines subtle with normal blending, while
+ * nighttime gradually increases opacity, switches to additive blending, and gives a
+ * slight emissive-style boost to key routes such as the Sacred Way and Long Walls.
+ *
+ * Tweak the per-category day/night opacity maps or night color multipliers below to
+ * adjust the balance between day readability and nighttime glow.
+ */
+
 import THREE from '../three.js';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 const DEFAULT_STYLE_MAP = {
-  road: { color: 0xC8B68A, width: 2.0, dashed: false, opacity: 0.85 },
-  sacred_way: { color: 0xFFD166, width: 3.0, dashed: false, opacity: 0.95 },
+  road: { color: 0xC8B68A, width: 2.0, dashed: false, opacity: 0.25 },
+  sacred_way: { color: 0xFFD166, width: 3.0, dashed: false, opacity: 0.28 },
   long_walls: {
     color: 0x7DD3FC,
     width: 2.5,
     dashed: true,
     dashSize: 0.15,
     gapSize: 0.08,
-    opacity: 0.9
+    opacity: 0.22
   },
-  city_wall: { color: 0x94A3B8, width: 3.2, dashed: false, opacity: 0.9 },
+  city_wall: { color: 0x94A3B8, width: 3.2, dashed: false, opacity: 0.3 },
   district: {
     color: 0xA8A29E,
     width: 1.8,
     dashed: true,
     dashSize: 0.12,
     gapSize: 0.08,
-    opacity: 0.7
+    opacity: 0.18
   }
 };
 
 const PATCHED_CAMERA_FLAG = '__featureLinesProjectionPatched';
 const tempSize = new THREE.Vector2(1, 1);
+
+const BASE_NIGHT_OPACITY = {
+  road: 0.75,
+  sacred_way: 0.9,
+  long_walls: 0.7,
+  city_wall: 0.8,
+  district: 0.55
+};
+
+const NIGHT_COLOR_MULTIPLIER = {
+  sacred_way: 1.15,
+  long_walls: 1.1
+};
+
+const CATEGORY_FALLBACK = 'road';
+
+function clampLinearColor(color) {
+  if (!color) {
+    return;
+  }
+  color.r = THREE.MathUtils.clamp(color.r, 0, 1);
+  color.g = THREE.MathUtils.clamp(color.g, 0, 1);
+  color.b = THREE.MathUtils.clamp(color.b, 0, 1);
+}
 
 function cloneStyle(style) {
   return style ? { ...style } : {};
@@ -87,6 +123,9 @@ function updateMaterialStyle(material, style) {
   if (typeof material.color.convertSRGBToLinear === 'function') {
     material.color.convertSRGBToLinear();
   }
+
+  material.userData = material.userData || {};
+  material.userData.baseColor = material.color.clone();
 
   const dashed = Boolean(style.dashed);
   material.dashed = dashed;
@@ -219,18 +258,74 @@ export function createFeatureLines({ features = [], projector, worldCompressionF
 
   let lastWidth = 0;
   let lastHeight = 0;
-  const updateResolution = () => {
-    const { width, height } = getRendererSize();
-    if (width === lastWidth && height === lastHeight) {
+  let lastTimeFactor = null;
+
+  const setResolution = (width, height) => {
+    const w = Math.max(1, Number.isFinite(width) ? width : 1);
+    const h = Math.max(1, Number.isFinite(height) ? height : 1);
+    if (w === lastWidth && h === lastHeight) {
       return;
     }
-    lastWidth = width;
-    lastHeight = height;
+    lastWidth = w;
+    lastHeight = h;
     materials.forEach((material) => {
       if (material?.resolution) {
-        material.resolution.set(width, height);
+        material.resolution.set(w, h);
       }
     });
+  };
+
+  const updateResolution = () => {
+    const { width, height } = getRendererSize();
+    setResolution(width, height);
+  };
+
+  const applyTimeFactor = (timeFactor) => {
+    const t = Number.isFinite(timeFactor) ? timeFactor : 0.5;
+    let normalized = t % 1;
+    if (normalized < 0) {
+      normalized += 1;
+    }
+
+    const nightFromLate = THREE.MathUtils.smoothstep(normalized, 0.8, 1.0);
+    const nightFromEarly = THREE.MathUtils.smoothstep(normalized, 0.0, 0.2);
+    const nightStrength = Math.max(nightFromLate, nightFromEarly);
+
+    materials.forEach((material) => {
+      if (!material) {
+        return;
+      }
+      const category = material.userData?.category || CATEGORY_FALLBACK;
+      const baseDay = styleMap[category]?.opacity ?? styleMap[CATEGORY_FALLBACK].opacity;
+      const baseNight = BASE_NIGHT_OPACITY[category] ?? BASE_NIGHT_OPACITY[CATEGORY_FALLBACK];
+      const targetOpacity = THREE.MathUtils.lerp(baseDay, baseNight, nightStrength);
+      material.opacity = targetOpacity;
+      material.transparent = true;
+      material.depthWrite = false;
+
+      const targetBlending = nightStrength > 0.2 ? THREE.AdditiveBlending : THREE.NormalBlending;
+      if (material.blending !== targetBlending) {
+        material.blending = targetBlending;
+        material.needsUpdate = true;
+      }
+
+      const baseColor = material.userData?.baseColor;
+      if (baseColor && material.color) {
+        material.color.copy(baseColor);
+        const boostTarget = NIGHT_COLOR_MULTIPLIER[category] ?? 1;
+        if (boostTarget !== 1 && nightStrength > 0) {
+          const boost = THREE.MathUtils.lerp(1, boostTarget, nightStrength);
+          material.color.multiplyScalar(boost);
+          clampLinearColor(material.color);
+        }
+      }
+    });
+
+    lastTimeFactor = normalized;
+  };
+
+  const setTimeFactor = (timeFactor) => {
+    applyTimeFactor(timeFactor);
   };
 
   const getMaterialForCategory = (category) => {
@@ -248,10 +343,21 @@ export function createFeatureLines({ features = [], projector, worldCompressionF
       dashed: Boolean(style.dashed)
     });
 
-    material.resolution = new THREE.Vector2(1, 1);
+    material.userData = material.userData || {};
+    material.userData.category = category;
+
+    if (!lastWidth || !lastHeight) {
+      const { width, height } = getRendererSize();
+      lastWidth = width;
+      lastHeight = height;
+    }
+
+    material.resolution = new THREE.Vector2(lastWidth || 1, lastHeight || 1);
     materials.set(category, material);
     updateMaterialStyle(material, style);
+    material.blending = THREE.NormalBlending;
     updateResolution();
+    applyTimeFactor(lastTimeFactor ?? 0.5);
 
     return material;
   };
@@ -372,6 +478,9 @@ export function createFeatureLines({ features = [], projector, worldCompressionF
           }
         });
       }
+      if (lastTimeFactor !== null) {
+        applyTimeFactor(lastTimeFactor);
+      }
     });
   };
 
@@ -379,7 +488,9 @@ export function createFeatureLines({ features = [], projector, worldCompressionF
     root,
     setVisible,
     setStyle,
-    updateResolution
+    updateResolution,
+    setTimeFactor,
+    setResolution
   };
 }
 
