@@ -83,6 +83,7 @@ export async function createPhotoSkydome({
   sources = null,
   radius = 15000,         // farther away: feels less "close"
   initialYawDeg = 0,
+  initialOpacity = 1,
   loader = null
 }) {
   const textureLoader = loader instanceof THREE.Loader ? loader : sharedTextureLoader;
@@ -100,11 +101,13 @@ export async function createPhotoSkydome({
   // Higher segments for smoother silhouette/gradients
   const geometry = new THREE.SphereGeometry(radius, 96, 64);
 
+  const startingOpacity = THREE.MathUtils.clamp(initialOpacity, 0, 1);
+
   const material = new THREE.MeshBasicMaterial({
     map: initialTexture,
     side: THREE.BackSide,
     transparent: true,
-    opacity: 0.0,
+    opacity: startingOpacity,
     depthWrite: false,
     depthTest: false,      // always render behind scene
     dithering: true        // reduce color banding
@@ -121,7 +124,7 @@ export async function createPhotoSkydome({
   let defaultSources = initialSources;
   let currentTexture = initialTexture;
   let currentSource = initialSource;
-  let currentOpacity = 0;
+  let currentOpacity = startingOpacity;
   let envRenderTarget = null;
   let envTexture = null;
   let loadToken = 0;
@@ -191,7 +194,7 @@ export async function createPhotoSkydome({
   };
 
   applyTexture(initialTexture, initialSource);
-  setOpacity(0);
+  setOpacity(startingOpacity);
 
   return {
     mesh: dome,
