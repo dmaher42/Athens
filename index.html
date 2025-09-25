@@ -924,30 +924,40 @@ const retargetBuildingMaterials =
                 textureKey: 'golden-hour',
                 sources: goldenHourPhotoSources,
                 skydomeOpacity: 1.0,
-                spaceNightAmount: 0.1
+                envIntensity: 0.85,
+                exposure: 1.05,
+                spaceNightAmount: 0.15
             },
             'Blue Hour': {
                 textureKey: 'blue-hour',
                 sources: blueHourPhotoSources,
-                skydomeOpacity: 1.2,
-                spaceNightAmount: 0.1
+                skydomeOpacity: 1.0,
+                envIntensity: 0.9,
+                exposure: 0.95,
+                spaceNightAmount: 0.25
             },
             'High Noon': {
                 textureKey: 'high-noon',
                 sources: highNoonPhotoSources,
                 skydomeOpacity: 1.0,   // show the blue sky fully
+                envIntensity: 1.0,
+                exposure: 1.0,
                 spaceNightAmount: 0.0  // no stars at noon
             },
             'Golden Dusk': {
                 textureKey: 'golden-hour',
                 sources: goldenHourPhotoSources,
                 skydomeOpacity: 1.0,
+                envIntensity: 0.85,
+                exposure: 1.1,
                 spaceNightAmount: 0.2
             },
             'Starlit Night': {
                 textureKey: 'starlit-night',
                 sources: starlitNightPhotoSources,
                 skydomeOpacity: 1.0,
+                envIntensity: 0.7,
+                exposure: 0.9,
                 spaceNightAmount: 1.0
             }};
         const nightSkyCubeSources = defaultSkyPrefixes.map(({ prefix, label }, index) => ({
@@ -993,6 +1003,13 @@ const retargetBuildingMaterials =
                         } else if ('encoding' in texture) {
                             texture.encoding = THREE.sRGBEncoding;
                         }
+
+                        texture.encoding = THREE.sRGBEncoding;
+                        texture.minFilter = THREE.LinearMipmapLinearFilter;
+                        texture.magFilter = THREE.LinearFilter;
+                        const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 8;
+                        texture.anisotropy = maxAnisotropy;
+                        texture.needsUpdate = true;
 
                         nightSkyTexture = texture;
                         scene.background = texture;
@@ -1783,6 +1800,16 @@ const retargetBuildingMaterials =
         let skyVisible = true;
         let desiredSkydomeOpacity = 0;
         let desiredSpaceNightAmount = 0;
+        let desiredEnvironmentIntensity = 1.0;
+
+        const updateSceneEnvironmentIntensity = () => {
+            if (!scene) {
+                return;
+            }
+            if (Number.isFinite(desiredEnvironmentIntensity)) {
+                scene.environmentIntensity = desiredEnvironmentIntensity;
+            }
+        };
         let cityWallGroup = null;
         let cityGatehouseGroup = null;
         const cityGatehouseBodies = [];
@@ -1806,6 +1833,7 @@ const retargetBuildingMaterials =
                 normalized === 'sunset' || normalized === 'night' || normalized === 'day'
             );
             setEnvironment(renderer, scene, normalized, { preserveBackground: shouldPreserveBackground });
+            updateSceneEnvironmentIntensity();
         };
 
         function setSkyVisibility(visible) {
@@ -1849,6 +1877,7 @@ const retargetBuildingMaterials =
                     }
                 });
                 applyEnvironmentMode(currentEnvironmentMode || 'day');
+                updateSceneEnvironmentIntensity();
             } else {
                 if (controller?.mesh) {
                     controller.mesh.visible = false;
@@ -4696,9 +4725,15 @@ function createBasicAgoraFallback() {
                 bloomPass.strength = settings.bloomStrength;
             }
 
+            const overrideExposure = typeof skydomePreset?.exposure === 'number'
+                ? THREE.MathUtils.clamp(skydomePreset.exposure, 0.5, 2.0)
+                : undefined;
+            const targetExposure = Number.isFinite(overrideExposure) ? overrideExposure : settings.exposure;
+
             if (renderer) {
-                const targetExposure = Math.min(settings.exposure, 0.9);
-                renderer.toneMappingExposure = targetExposure;
+                if (Number.isFinite(targetExposure)) {
+                    renderer.toneMappingExposure = targetExposure;
+                }
                 const fogCol = new THREE.Color(settings.fogColor);
                 const fogNear = Number.isFinite(settings.fogNear) ? settings.fogNear : 600;
                 const fogFar = Number.isFinite(settings.fogFar) ? settings.fogFar : 6000;
@@ -4714,6 +4749,15 @@ function createBasicAgoraFallback() {
                     scene.fog = null;
                 }
             }
+
+            const fallbackEnvIntensity = name === 'Starlit Night'
+                ? 0.7
+                : (name === 'Blue Hour' ? 0.9 : 1.0);
+            const targetEnvIntensity = typeof skydomePreset?.envIntensity === 'number'
+                ? THREE.MathUtils.clamp(skydomePreset.envIntensity, 0, 5)
+                : fallbackEnvIntensity;
+            desiredEnvironmentIntensity = targetEnvIntensity;
+            updateSceneEnvironmentIntensity();
 
             const fallbackNightLevel = name === 'Starlit Night' ? 1 : (name === 'Blue Hour' ? 0.4 : 0);
             const targetNightAmount = typeof skydomePreset?.spaceNightAmount === 'number'
