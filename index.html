@@ -20,7 +20,8 @@
             "three/examples/jsm/utils/SkeletonUtils.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/utils/SkeletonUtils.js",
             "three/examples/jsm/lines/Line2.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/lines/Line2.js",
             "three/examples/jsm/lines/LineGeometry.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/lines/LineGeometry.js",
-            "three/examples/jsm/lines/LineMaterial.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/lines/LineMaterial.js"
+            "three/examples/jsm/lines/LineMaterial.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/lines/LineMaterial.js",
+            "three/examples/jsm/libs/stats.module.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/libs/stats.module.js"
         }
     }
     </script>
@@ -558,7 +559,14 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { createMoon } from './src/sky/moon.js';
         import { createMountainRim } from './src/sky/mountainRim.js';
         import { resolveAssetUrl } from './src/utils/asset-paths.js';
-import { setupGround, configureGround, updateTrees } from './src/main.js';
+import {
+    setupGround,
+    configureGround,
+    updateTrees,
+    initPerformanceStats,
+    updatePerformanceStats,
+    toggleStatsVisibility
+} from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
 import * as buildingMaterials from './src/scene/materials.js';
 import { createCityWallPerimeter, createCityGatehouse } from './src/scene/city-wall.js';
@@ -2244,6 +2252,7 @@ const retargetBuildingMaterials =
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
+            initPerformanceStats();
             window.renderer = renderer;
 
             districtsLayer = createDistrictsLayer({ scene });
@@ -6565,6 +6574,7 @@ world.addBody(archBody);
 
             const dt = clock.getDelta();
             const delta = dt;
+            updatePerformanceStats();
             if (spaceNight) {
                 spaceNight.update(dt, camera);
             }
@@ -7225,6 +7235,14 @@ world.addBody(archBody);
             document.addEventListener('keydown', (e) => {
                 if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
                     e.preventDefault();
+                }
+                if (e.shiftKey && e.code === 'KeyP') {
+                    if (e.repeat) {
+                        return;
+                    }
+                    e.preventDefault();
+                    toggleStatsVisibility();
+                    return;
                 }
                 controls[e.code] = true;
                 if (e.code === 'KeyD' || e.code === 'KeyN') {
