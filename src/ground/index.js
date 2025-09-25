@@ -69,7 +69,7 @@ function createGridTiles({
         size,
         repeat,
         position: new THREE.Vector3(x, 0, z),
-        enableDirt: false,
+        enableDirt: true,
         enableGrass: true,
       });
     }
@@ -84,7 +84,7 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
       size: defaultSize,
       repeat: defaultRepeat,
       position: new THREE.Vector3(),
-      enableDirt: false,
+      enableDirt: true,
       enableGrass: true,
     };
   }
@@ -113,7 +113,7 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     size,
     repeat,
     position: vectorPosition,
-    enableDirt: enableDirt ?? (dirt === true),
+    enableDirt: enableDirt ?? (dirt !== false),
     enableGrass: enableGrass ?? (grass !== false),
     dirtOptions: dirtOptions && typeof dirtOptions === 'object' ? { ...dirtOptions } : undefined,
     grassOptions: grassOptions && typeof grassOptions === 'object' ? { ...grassOptions } : undefined,
