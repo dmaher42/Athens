@@ -71,7 +71,7 @@ const envBase =
 const moduleBase = computeModuleBase();
 const locationBase = computeLocationBase();
 
-const inferredBase = envBase ?? moduleBase ?? locationBase ?? '/';
+const inferredBase = envBase ?? locationBase ?? moduleBase ?? '/';
 
 const ASSET_BASE = ensureTrailingSlash(inferredBase);
 

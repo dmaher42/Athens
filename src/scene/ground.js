@@ -25,9 +25,13 @@ function hideLegacyGroundPlanes(scene, layeredGroundRoot) {
   });
 }
 
-function ensureWindowGroundAccessor() {
+function ensureWindowGroundAccessor(groundLayers) {
   if (typeof window === 'undefined') return;
-  window.getGround = () => __groundSingleton;
+  window.getGround = () => groundLayers;
+  window.showGround = () => {
+    if (groundLayers?.dirt) groundLayers.dirt.visible = true;
+    if (groundLayers?.grass) groundLayers.grass.visible = true;
+  };
 }
 
 // Signature stays the same as your current code expects.
@@ -86,7 +90,7 @@ export async function loadGround(scene, renderer, options = {}) {
   }
 
   hideLegacyGroundPlanes(scene, __groundSingleton?.root);
-  ensureWindowGroundAccessor();
+  ensureWindowGroundAccessor(__groundSingleton);
 
   return __groundSingleton;
 }
