@@ -1704,6 +1704,9 @@ const retargetBuildingMaterials =
         let stoneMaterial, marbleMaterial, goldMaterial, redTileMaterial, groundMaterial, columnMaterial, waterMaterial, pavedRoadMaterial, cityWallMaterial;
 
         const buildingMaterialSet = loadBuildingTextures();
+        if (typeof window !== 'undefined') {
+            window.buildingMaterialSet = buildingMaterialSet;
+        }
         cityWallMaterial = setCityWallMaterial(buildingMaterialSet?.cityWallMat);
         let groundMesh = null;
         let districtsLayer = null;
@@ -7201,6 +7204,7 @@ const asArray = (v) => (Array.isArray(v) ? v : (v == null ? [] : [v]));
         import THREE from './src/three.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
+        import { retargetBuildingMaterials } from './src/scene/materials.js';
         import { resolveAssetUrl } from './src/utils/asset-paths.js';
 
         const waitForWorld = () => {
@@ -7250,6 +7254,9 @@ const asArray = (v) => (Array.isArray(v) ? v : (v == null ? [] : [v]));
                 object.position.set(x, y, z);
             }
         };
+
+        const getBuildingMaterialSet = () =>
+            typeof window !== 'undefined' ? window.buildingMaterialSet || null : null;
 
         const resolveParthenonAnchor = (scene) => {
             const fallbackCenter = (() => {
@@ -7534,7 +7541,10 @@ const asArray = (v) => (Array.isArray(v) ? v : (v == null ? [] : [v]));
                     const temple = gltf.scene || new THREE.Group();
                     temple.scale.set(3, 3, 3);
                     templeGroup.add(temple);
-                    retargetBuildingMaterials(templeGroup, buildingMaterialSet);
+                    const buildingMaterialSet = getBuildingMaterialSet();
+                    if (typeof retargetBuildingMaterials === 'function') {
+                        retargetBuildingMaterials(templeGroup, buildingMaterialSet || undefined);
+                    }
                     applyMeshEnhancements(templeGroup, renderer);
                     placeObject(templeGroup, 90, 0, 35);
                     scene.add(templeGroup);
