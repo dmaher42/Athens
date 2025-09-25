@@ -980,6 +980,10 @@ const retargetBuildingMaterials =
         let spaceGroup = null;
         let savedDayBackground = null;
         let savedDayEnvironment = null;
+        let starFieldController = null;
+        let moonController = null;
+        let starsEnabled = true;
+        let moonEnabled = true;
 
         function loadNightSkyEquirectangular(scene, renderer) {
             const loader = new THREE.TextureLoader();
@@ -1903,10 +1907,10 @@ const retargetBuildingMaterials =
         let bloomPass;
         let fogEnabled = true;
         let spaceNight = null;
-        let starFieldController = null;
-        let moonController = null;
-        let starsEnabled = true;
-        let moonEnabled = true;
+        starFieldController = null;
+        moonController = null;
+        starsEnabled = true;
+        moonEnabled = true;
         let mountainRimMesh = null;
         let rimEnabled = HORIZON_ENABLE;
         let photoSkydome = null;
