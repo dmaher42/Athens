@@ -4394,6 +4394,13 @@ function createBasicAgoraFallback() {
             }
 
             sky = new SkyClass();
+
+            if (sky?.material) {
+                sky.material.depthWrite = false;
+                sky.material.side = THREE.BackSide;
+            }
+
+            sky.renderOrder = -1;
             sky.scale.setScalar(450000);
             scene.add(sky);
 
