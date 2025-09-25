@@ -554,10 +554,12 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
+        import { createStarField } from './src/sky/starField.js';
+        import { createMoon } from './src/sky/moon.js';
+        import { createMountainRim } from './src/sky/mountainRim.js';
         import { resolveAssetUrl } from './src/utils/asset-paths.js';
 import { setupGround, configureGround, updateTrees } from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
-import { createMountainRim } from './src/horizon/mountainRim.js';
 import * as buildingMaterials from './src/scene/materials.js';
 import { createCityWallPerimeter, createCityGatehouse } from './src/scene/city-wall.js';
 import { createRoadSegment, scatterPropsAlongRoad } from './src/roads/hybridRoads.js';
@@ -586,6 +588,8 @@ const retargetBuildingMaterials =
             'https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js'
         ];
         let toneLoadingPromise = null;
+
+        const HORIZON_ENABLE = true;
 
         function loadToneFromUrl(url) {
             return new Promise((resolve, reject) => {
@@ -821,12 +825,6 @@ const retargetBuildingMaterials =
             });
         });
 
-        pushNightSkyTextureSource({
-            url: './src/sky/night_sky.jpg',
-            label: 'Bundled night sky fallback',
-            isFallback: true
-        });
-
         if (typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0) {
             pushNightSkyTextureSource({
                 url: nightSkyDataUrl,
@@ -914,12 +912,9 @@ const retargetBuildingMaterials =
             'starlit-night',
             'night_sky.jpg',
             'Night sky panorama',
-            [
-                { url: './src/sky/night_sky.jpg', label: 'Bundled night sky fallback' },
-                ...(typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0
-                    ? [{ url: nightSkyDataUrl, label: 'embedded fallback night sky', resolve: false }]
-                    : [])
-            ]
+            typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0
+                ? [{ url: nightSkyDataUrl, label: 'embedded fallback night sky', resolve: false }]
+                : []
         );
 
         const photoSkyTimeConfig = {
@@ -1226,19 +1221,77 @@ const retargetBuildingMaterials =
             spaceGroup.visible = false;
             scene.add(spaceGroup);
 
+            if (starFieldController?.points && starFieldController.points.parent) {
+                starFieldController.points.parent.remove(starFieldController.points);
+            }
+            if (moonController?.group && moonController.group.parent) {
+                moonController.group.parent.remove(moonController.group);
+            }
+
+            try {
+                const devicePixelRatio = window?.devicePixelRatio ?? 1;
+                const starTarget = Math.round(9500 / Math.max(1, devicePixelRatio * 0.85));
+                starFieldController = createStarField({
+                    count: THREE.MathUtils.clamp(starTarget, 5000, 10000),
+                    innerRadius: 2000,
+                    outerRadius: 2400,
+                    opacity: 0.9
+                });
+                starFieldController.setEnabled(starsEnabled);
+                starFieldController.setVisibilityFactor(0);
+                if (starFieldController.points) {
+                    starFieldController.points.visible = false;
+                    scene.add(starFieldController.points);
+                }
+                window.getStarField = () => starFieldController?.points ?? null;
+            } catch (error) {
+                console.warn('[sky] Failed to build procedural star field.', error);
+                starFieldController = null;
+                window.getStarField = () => null;
+            }
+
+            try {
+                moonController = createMoon({
+                    textureLoader,
+                    textureUrl: resolveAssetUrl('assets/sky/moon.jpg'),
+                    radius: 2200,
+                    sphereRadius: 52,
+                    glowSize: 420
+                });
+                moonController.setEnabled(moonEnabled);
+                moonController.setVisibilityFactor(0);
+                if (moonController.group) {
+                    scene.add(moonController.group);
+                }
+                window.getMoon = () => moonController?.mesh ?? null;
+            } catch (error) {
+                console.warn('[sky] Failed to initialize procedural moon.', error);
+                moonController = null;
+                window.getMoon = () => null;
+            }
+
             captureDayState({ force: true });
 
             ensureNightSkyBackground(scene, renderer);
 
+            let elapsedTime = 0;
+
             return {
                 update(dt, camera) {
                     if (!spaceGroup) return;
+                    elapsedTime += dt;
                     spaceGroup.children.forEach((o, i) => {
                         if (o.isPoints) o.rotation.y += dt * 0.002;
                         if (o.isSprite) o.material.rotation += (i % 2 ? 1 : -1) * dt * 0.05;
                     });
                     if (camera) {
                         spaceGroup.position.lerp(camera.position, 0.05);
+                    }
+                    if (starFieldController) {
+                        starFieldController.update(dt, elapsedTime, camera ?? null);
+                    }
+                    if (moonController) {
+                        moonController.update(dt, camera ?? null);
                     }
                 },
                 setAmount(nightAmount) {
@@ -1253,6 +1306,14 @@ const retargetBuildingMaterials =
                         }
                     });
                     currentNightAmount = clamped;
+                    if (starFieldController) {
+                        const starVisibility = starsEnabled ? clamped : 0;
+                        starFieldController.setVisibilityFactor(starVisibility);
+                    }
+                    if (moonController) {
+                        const moonVisibility = moonEnabled ? Math.pow(clamped, 0.8) : 0;
+                        moonController.setVisibilityFactor(moonVisibility);
+                    }
                     if (clamped > 0.6) {
                         ensureNightSkyBackground(scene, renderer);
                     } else {
@@ -1839,11 +1900,43 @@ const retargetBuildingMaterials =
         let bloomPass;
         let fogEnabled = true;
         let spaceNight = null;
+        let starFieldController = null;
+        let moonController = null;
+        let starsEnabled = true;
+        let moonEnabled = true;
+        let mountainRimMesh = null;
+        let rimEnabled = HORIZON_ENABLE;
         let photoSkydome = null;
         let photoSkydomeYawDeg = 0;
         let currentPhotoSkyKey = null;
         let canChickenCluck = true;
         let lastCluckTime = 0;
+
+        window.getStarField = () => starFieldController?.points ?? null;
+        window.getMoon = () => moonController?.mesh ?? null;
+        window.toggleStars = () => {
+            starsEnabled = !starsEnabled;
+            if (starFieldController) {
+                starFieldController.setEnabled(starsEnabled);
+                starFieldController.setVisibilityFactor(starsEnabled ? (spaceNight?.amount ?? 0) : 0);
+            }
+            return starsEnabled;
+        };
+        window.toggleMoon = () => {
+            moonEnabled = !moonEnabled;
+            if (moonController) {
+                moonController.setEnabled(moonEnabled);
+                moonController.setVisibilityFactor(moonEnabled ? Math.pow(spaceNight?.amount ?? 0, 0.8) : 0);
+            }
+            return moonEnabled;
+        };
+        window.toggleRim = () => {
+            rimEnabled = !rimEnabled;
+            if (mountainRimMesh) {
+                mountainRimMesh.visible = rimEnabled;
+            }
+            return rimEnabled;
+        };
         
         let fps = 0;
         let frameCount = 0;
@@ -2177,6 +2270,25 @@ const retargetBuildingMaterials =
 
             const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 8;
             const textureLoader = new THREE.TextureLoader();
+
+            if (!mountainRimMesh && HORIZON_ENABLE) {
+                try {
+                    mountainRimMesh = createMountainRim({
+                        radius: 1600,
+                        height: 120,
+                        radialSegments: 192,
+                        noise: 0.45,
+                        color: 0x0e1b2b
+                    });
+                    if (mountainRimMesh) {
+                        mountainRimMesh.visible = rimEnabled;
+                        scene.add(mountainRimMesh);
+                    }
+                } catch (error) {
+                    console.warn('[sky] Failed to initialize mountain rim mesh.', error);
+                    mountainRimMesh = null;
+                }
+            }
 
             if (buildingMaterialSet?.marbleMat?.map) {
                 buildingMaterialSet.marbleMat.map.anisotropy = Math.max(
