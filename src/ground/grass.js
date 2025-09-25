@@ -88,7 +88,12 @@ export function createGrassGround({
     map: color,
     roughness: 0.9,
     side: THREE.DoubleSide,
+    transparent: false,
   });
+
+  mat.opacity = 1;
+  mat.depthWrite = true;
+  mat.colorWrite = true;
 
   if (!mat.map) {
     mat.color.set(0x4a7f39);

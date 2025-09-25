@@ -404,8 +404,9 @@
             <span class="control-key">E</span> Interact |
             <span class="control-key">X</span> Toggle Flight |
             <span class="control-key">Space</span>/<span class="control-key">Shift</span> Fly Up/Down (Hold Shift to Run) |
-            <span class="control-key">M</span> Sound |
-            <span class="control-key">P</span> FPS
+<span class="control-key">M</span> Sound |
+            <span class="control-key">P</span> FPS |
+            <span class="control-key">K</span> Toggle Sky
         </div>
 <div class="elegant-text" id="hud-right">
 <div class="golden-text" style="font-weight: 600;">🌅 Time:</div>
@@ -616,19 +617,23 @@ const retargetBuildingMaterials =
 
         let __level = 0; // updated whenever setTimeOfDay applies a new preset
         window.addEventListener('keydown', (e) => {
-            if (!window.__AthensSky__) return;
+            const athensSky = window.__AthensSky__;
+            if (!athensSky) return;
             if (e.key.toLowerCase() === 'n') {
                 __level = __level === 0 ? 0.4 : (__level === 0.4 ? 1 : 0);
-                window.__AthensSky__.setAmount(__level);
+                desiredSkydomeOpacity = __level;
+                if (typeof athensSky.setAmount === 'function') {
+                    athensSky.setAmount(skyVisible ? __level : 0);
+                }
                 console.log('Night level:', __level);
             }
             if (e.key === '[') {
-                const deg = window.__AthensSky__.mesh.rotation.y * 180 / Math.PI;
-                window.__AthensSky__.setYaw(deg - 5);
+                const deg = athensSky.mesh.rotation.y * 180 / Math.PI;
+                athensSky.setYaw(deg - 5);
             }
             if (e.key === ']') {
-                const deg = window.__AthensSky__.mesh.rotation.y * 180 / Math.PI;
-                window.__AthensSky__.setYaw(deg + 5);
+                const deg = athensSky.mesh.rotation.y * 180 / Math.PI;
+                athensSky.setYaw(deg + 5);
             }
         });
 
@@ -1720,6 +1725,9 @@ const retargetBuildingMaterials =
         let districtOutlinesVisible = true;
         let districtDustBiasEnabled = true;
         let currentEnvironmentMode = null;
+        let skyVisible = true;
+        let desiredSkydomeOpacity = 0;
+        let desiredSpaceNightAmount = 0;
         let cityWallGroup = null;
         let cityGatehouseGroup = null;
         const cityGatehouseBodies = [];
@@ -1733,12 +1741,99 @@ const retargetBuildingMaterials =
                 return;
             }
             currentEnvironmentMode = normalized;
+            if (!skyVisible) {
+                scene.background = null;
+                scene.environment = null;
+                return;
+            }
             const hasPhotoSky = Boolean(photoSkydome || window.__AthensSky__);
             const shouldPreserveBackground = hasPhotoSky && (
                 normalized === 'sunset' || normalized === 'night' || normalized === 'day'
             );
             setEnvironment(renderer, scene, normalized, { preserveBackground: shouldPreserveBackground });
         };
+
+        function setSkyVisibility(visible) {
+            const nextVisible = Boolean(visible);
+            if (skyVisible === nextVisible) {
+                return;
+            }
+
+            skyVisible = nextVisible;
+
+            const controller = photoSkydome || window.__AthensSky__;
+
+            if (skyVisible) {
+                if (controller?.mesh) {
+                    controller.mesh.visible = true;
+                }
+                if (typeof controller?.setAmount === 'function') {
+                    controller.setAmount(desiredSkydomeOpacity);
+                }
+                if (spaceNight) {
+                    spaceNight.setAmount(desiredSpaceNightAmount);
+                }
+                if (sky) {
+                    sky.visible = true;
+                }
+                if (starLayerInner) {
+                    starLayerInner.visible = desiredSpaceNightAmount > 0;
+                }
+                if (starLayerOuter) {
+                    starLayerOuter.visible = desiredSpaceNightAmount > 0;
+                }
+                if (milkyWayMesh) {
+                    milkyWayMesh.visible = desiredSpaceNightAmount > 0;
+                    if (milkyWayMesh.material && typeof milkyWayMesh.material.opacity === 'number' && desiredSpaceNightAmount <= 0) {
+                        milkyWayMesh.material.opacity = 0;
+                    }
+                }
+                starMaterials.forEach((mat) => {
+                    if (mat && typeof mat.opacity === 'number' && desiredSpaceNightAmount <= 0) {
+                        mat.opacity = 0;
+                    }
+                });
+                applyEnvironmentMode(currentEnvironmentMode || 'day');
+            } else {
+                if (controller?.mesh) {
+                    controller.mesh.visible = false;
+                }
+                if (typeof controller?.setAmount === 'function') {
+                    controller.setAmount(0);
+                }
+                if (sky) {
+                    sky.visible = false;
+                }
+                if (starLayerInner) {
+                    starLayerInner.visible = false;
+                }
+                if (starLayerOuter) {
+                    starLayerOuter.visible = false;
+                }
+                if (milkyWayMesh) {
+                    milkyWayMesh.visible = false;
+                    if (milkyWayMesh.material && typeof milkyWayMesh.material.opacity === 'number') {
+                        milkyWayMesh.material.opacity = 0;
+                    }
+                }
+                starMaterials.forEach((mat) => {
+                    if (mat && typeof mat.opacity === 'number') {
+                        mat.opacity = 0;
+                    }
+                });
+                if (spaceNight) {
+                    spaceNight.setAmount(0);
+                }
+                if (scene) {
+                    scene.background = null;
+                    scene.environment = null;
+                }
+            }
+        }
+
+        function toggleSkyVisibility() {
+            setSkyVisibility(!skyVisible);
+        }
         
         const baseMapBounds = { xMin: -80, xMax: 80, zMin: -80, zMax: 80 };
         const mapBounds = scaleBounds(baseMapBounds);
@@ -1899,6 +1994,9 @@ const retargetBuildingMaterials =
 
             applyEnvironmentMode('day');
             window.setEnvironment = applyEnvironmentMode;
+            window.setSkyVisible = setSkyVisibility;
+            window.toggleSkyVisibility = toggleSkyVisibility;
+            window.isSkyVisible = () => skyVisible;
             window.addEventListener('keydown', (event) => {
                 if (event.key === '1') applyEnvironmentMode('day');
                 if (event.key === '2') applyEnvironmentMode('sunset');
@@ -1928,6 +2026,17 @@ const retargetBuildingMaterials =
                 window.__AthensSky__ = photoSkydome;
                 currentPhotoSkyKey = 'high-noon';
                 __level = 0;
+
+                if (!skyVisible && photoSkydome) {
+                    if (photoSkydome.mesh) {
+                        photoSkydome.mesh.visible = false;
+                    }
+                    if (typeof photoSkydome.setAmount === 'function') {
+                        photoSkydome.setAmount(0);
+                    }
+                    scene.background = null;
+                    scene.environment = null;
+                }
 
                 photoSkyTexturesByKey.forEach((sources, key) => {
                     if (!photoSkydome || key === currentPhotoSkyKey) {
@@ -1975,6 +2084,12 @@ const retargetBuildingMaterials =
                     return result;
                 }
             });
+
+            if (!skyVisible && spaceNight) {
+                spaceNight.setAmount(0);
+                scene.background = null;
+                scene.environment = null;
+            }
 
             // Lighting
             ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Reduced intensity
@@ -4546,8 +4661,21 @@ function createBasicAgoraFallback() {
             const targetNightAmount = typeof skydomePreset?.spaceNightAmount === 'number'
                 ? THREE.MathUtils.clamp(skydomePreset.spaceNightAmount, 0, 1)
                 : fallbackNightLevel;
+            desiredSpaceNightAmount = targetNightAmount;
             if (spaceNight) {
-                spaceNight.setAmount(targetNightAmount);
+                spaceNight.setAmount(skyVisible ? targetNightAmount : 0);
+            }
+            if (starLayerInner) {
+                starLayerInner.visible = skyVisible && targetNightAmount > 0;
+            }
+            if (starLayerOuter) {
+                starLayerOuter.visible = skyVisible && targetNightAmount > 0;
+            }
+            if (milkyWayMesh) {
+                milkyWayMesh.visible = skyVisible && targetNightAmount > 0;
+                if (!milkyWayMesh.visible && milkyWayMesh.material && typeof milkyWayMesh.material.opacity === 'number') {
+                    milkyWayMesh.material.opacity = 0;
+                }
             }
 
             const targetOpacity = typeof skydomePreset?.skydomeOpacity === 'number'
@@ -4557,19 +4685,24 @@ function createBasicAgoraFallback() {
                 photoSkydome && skydomePreset?.textureKey && currentPhotoSkyKey !== skydomePreset.textureKey
             );
             const activeSkyController = photoSkydome || window.__AthensSky__;
+            const currentControllerOpacity = skyVisible
+                ? (typeof activeSkyController?.opacity === 'number' ? activeSkyController.opacity : 0)
+                : desiredSkydomeOpacity;
             if (activeSkyController) {
-                const currentOpacityValue = typeof activeSkyController.opacity === 'number'
-                    ? activeSkyController.opacity
-                    : 0;
                 const nextOpacity = shouldDelaySkydome
-                    ? Math.min(currentOpacityValue, targetOpacity)
+                    ? Math.min(currentControllerOpacity, targetOpacity)
                     : targetOpacity;
-                activeSkyController.setAmount(nextOpacity);
+                desiredSkydomeOpacity = nextOpacity;
+                if (skyVisible) {
+                    activeSkyController.setAmount(nextOpacity);
+                } else if (typeof activeSkyController.setAmount === 'function') {
+                    activeSkyController.setAmount(0);
+                }
                 if (typeof skydomePreset?.yawDeg === 'number') {
                     activeSkyController.setYaw(skydomePreset.yawDeg);
                     photoSkydomeYawDeg = THREE.MathUtils.euclideanModulo(skydomePreset.yawDeg, 360);
                 }
-                if (scene && nextOpacity > 0) {
+                if (scene && nextOpacity > 0 && skyVisible) {
                     scene.background = null;
                 }
             }
@@ -4589,8 +4722,15 @@ function createBasicAgoraFallback() {
                                 return;
                             }
                             currentPhotoSkyKey = targetKey;
+                            desiredSkydomeOpacity = targetOpacity;
                             const controller = photoSkydome || window.__AthensSky__;
-                            controller?.setAmount(targetOpacity);
+                            if (controller && typeof controller.setAmount === 'function') {
+                                if (skyVisible) {
+                                    controller.setAmount(targetOpacity);
+                                } else {
+                                    controller.setAmount(0);
+                                }
+                            }
                             const refreshedEnv = typeof photoSkydome.refreshEnvironment === 'function'
                                 ? photoSkydome.refreshEnvironment()
                                 : undefined;
@@ -4599,6 +4739,10 @@ function createBasicAgoraFallback() {
                                     environment: refreshedEnv,
                                     force: true
                                 });
+                            }
+                            if (!skyVisible && scene) {
+                                scene.background = null;
+                                scene.environment = null;
                             }
                             if (result.source) {
                                 const { label, url, isFallback } = result.source;
@@ -4619,6 +4763,10 @@ function createBasicAgoraFallback() {
                             environment: refreshedEnv,
                             force: true
                         });
+                    }
+                    if (!skyVisible && scene) {
+                        scene.background = null;
+                        scene.environment = null;
                     }
                 }
             }
@@ -4666,6 +4814,12 @@ function createBasicAgoraFallback() {
         }
 
         function updateNightCycle(dt = 0.016) {
+            if (!skyVisible) {
+                if (renderer) {
+                    renderer.setClearColor(0x000000, 1);
+                }
+                return;
+            }
             if (!renderer || !sky || !sky.material || !sky.material.uniforms) {
                 return;
             }
@@ -6722,12 +6876,21 @@ world.addBody(archBody);
                     }
                     return;
                 }
+                if (e.key === 'k' || e.key === 'K') {
+                    e.preventDefault();
+                    toggleSkyVisibility();
+                    console.info(`Sky visibility ${skyVisible ? 'enabled' : 'disabled'}.`);
+                    return;
+                }
                 const sky = window.__AthensSky__;
-                if (!sky) return;
                 if (e.key === '[' || e.key === ']') {
+                    if (!sky) return;
                     const delta = e.key === '[' ? -5 : 5;
                     const currentYawDeg = THREE.MathUtils.radToDeg(sky.mesh.rotation.y);
                     sky.setYaw(currentYawDeg + delta);
+                    return;
+                }
+                if (!sky || !skyVisible) {
                     return;
                 }
                 if (e.key && e.key.toLowerCase() === 'n' && !e.shiftKey && !e.altKey && !e.metaKey) {

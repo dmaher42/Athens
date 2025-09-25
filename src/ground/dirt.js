@@ -87,7 +87,12 @@ export function createDirtGround({
     map: color,
     roughness: 1.0,
     side: THREE.DoubleSide,
+    transparent: false,
   });
+
+  mat.opacity = 1;
+  mat.depthWrite = true;
+  mat.colorWrite = true;
 
   if (!mat.map) {
     mat.color.set(0x6b5a45);
