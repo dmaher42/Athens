@@ -109,7 +109,7 @@ export async function createPhotoSkydome({
     transparent: true,
     opacity: startingOpacity,
     depthWrite: false,
-    depthTest: false,      // always render behind scene
+    depthTest: true,       // allow scene geometry to occlude the dome
     dithering: true        // reduce color banding
   });
 
