@@ -327,17 +327,69 @@
             background: rgba(0,0,0,0.8);
         }
 
-        #mini-map-container {
-            position: absolute;
-            bottom: 20px;
+        #mini-map-wrapper {
+            position: fixed;
+            bottom: 140px;
             left: 20px;
-            width: 200px;
-            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            z-index: 101;
+        }
+
+        #mini-map-container {
+            width: 180px;
+            height: 180px;
             background: rgba(0, 0, 0, 0.5);
             border: 2px solid #FFD700;
             border-radius: 50%;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-            z-index: 101;
+            position: relative;
+            overflow: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        #mini-map-wrapper.collapsed #mini-map-container {
+            opacity: 0;
+            transform: scale(0.85);
+            pointer-events: none;
+        }
+
+        #mini-map-toggle {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 215, 0, 0.6);
+            color: #fcefb4;
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        #mini-map-toggle:hover,
+        #mini-map-toggle:focus-visible {
+            background: rgba(0, 0, 0, 0.75);
+            outline: none;
+        }
+
+        #mini-map-wrapper.collapsed #mini-map-toggle {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            #mini-map-wrapper {
+                bottom: 110px;
+                left: 10px;
+            }
+
+            #mini-map-container {
+                width: 140px;
+                height: 140px;
+            }
         }
         #map-player {
             position: absolute;
@@ -392,10 +444,13 @@
 <div id="fps-counter">FPS: <span id="fps-value">60</span></div>
 <div id="hud">
 <div id="hud-left">
+<div id="mini-map-wrapper">
 <div id="mini-map-container">
 <div id="map-player"></div>
 </div>
-<h3 class="golden-text" style="margin: 0; font-size: 20px; margin-left: 220px;">⚱️ Ancient Athens</h3>
+<button id="mini-map-toggle" type="button" aria-controls="mini-map-container" aria-expanded="true" aria-pressed="true">Hide Map</button>
+</div>
+<h3 class="golden-text" style="margin: 0; font-size: 20px;">⚱️ Ancient Athens</h3>
 <div id="current-location"></div>
 </div>
 <div class="elegant-text" id="hud-center">
@@ -6930,7 +6985,7 @@ world.addBody(archBody);
                 });
             });
 
-             document.getElementById('toggle-hud').addEventListener('click', () => {
+            document.getElementById('toggle-hud').addEventListener('click', () => {
                 const hud = document.getElementById('hud');
                 const button = document.getElementById('toggle-hud');
                 hud.classList.toggle('hidden');
@@ -6940,6 +6995,17 @@ world.addBody(archBody);
                     button.textContent = 'Hide UI';
                 }
             });
+
+            const miniMapToggle = document.getElementById('mini-map-toggle');
+            const miniMapWrapper = document.getElementById('mini-map-wrapper');
+            if (miniMapToggle && miniMapWrapper) {
+                miniMapToggle.addEventListener('click', () => {
+                    const isCollapsed = miniMapWrapper.classList.toggle('collapsed');
+                    miniMapToggle.textContent = isCollapsed ? 'Show Map' : 'Hide Map';
+                    miniMapToggle.setAttribute('aria-expanded', String(!isCollapsed));
+                    miniMapToggle.setAttribute('aria-pressed', String(!isCollapsed));
+                });
+            }
         }
         
         function updateControls(delta) {
