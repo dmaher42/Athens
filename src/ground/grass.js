@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { applyDoubleSidedGroundSupport } from './double-sided.js';
 
 const textureLoader = new THREE.TextureLoader();
 let cachedBaseTexture = null;
@@ -94,6 +95,7 @@ export function createGrassGround({
   }
 
   const mesh = new THREE.Mesh(geo, mat);
+  applyDoubleSidedGroundSupport(mesh);
   mesh.receiveShadow = receiveShadow;
   mesh.renderOrder = 1;
 
