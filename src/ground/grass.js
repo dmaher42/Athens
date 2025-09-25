@@ -86,6 +86,7 @@ export function createGrassGround({
   const mat = new THREE.MeshStandardMaterial({
     map: color,
     roughness: 0.9,
+    side: THREE.DoubleSide,
   });
 
   if (!mat.map) {
