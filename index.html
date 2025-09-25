@@ -1506,6 +1506,15 @@ const retargetBuildingMaterials =
             }
         }
 
+        const CITY_SCALE = 2;
+        const scaleValue = (value) => value * CITY_SCALE;
+        const scaleLocation = ({ x, y = 0, z }) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
+        const scaleXZ = (x, z) => ({ x: scaleValue(x), z: scaleValue(z) });
+        const scaledVector3 = (x, y, z) => scaleLocation({ x, y, z });
+        const setScaledPosition = (object, x, y, z) => {
+            object.position.set(scaleValue(x), y, scaleValue(z));
+        };
+
         async function main() {
 
         // --- GLOBAL VARIABLES ---
@@ -1518,14 +1527,6 @@ const retargetBuildingMaterials =
         const playerRotationSpeed = 3.0;
         const flightSpeed = 30.0;
         const flightVerticalSpeed = 15.0;
-        const CITY_SCALE = 2;
-        const scaleValue = (value) => value * CITY_SCALE;
-        const scaleLocation = ({ x, y = 0, z }) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
-        const scaleXZ = (x, z) => ({ x: scaleValue(x), z: scaleValue(z) });
-        const scaledVector3 = (x, y, z) => scaleLocation({ x, y, z });
-        const setScaledPosition = (object, x, y, z) => {
-            object.position.set(scaleValue(x), y, scaleValue(z));
-        };
         let scatterDemoGroup = null;
         let scatterDemoPromise = null;
 
