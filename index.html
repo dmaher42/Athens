@@ -1872,6 +1872,13 @@ const retargetBuildingMaterials =
         
         let enhancedLighting = true;
         const timeNames = ["Golden Dawn", "Blue Hour", "High Noon", "Golden Dusk", "Starlit Night"];
+        const featureLineTimeFactors = {
+            "Golden Dawn": 0.25,
+            "Blue Hour": 0.85,
+            "High Noon": 0.5,
+            "Golden Dusk": 0.75,
+            "Starlit Night": 0.0
+        };
         let currentTimeOfDay = timeNames.indexOf("Starlit Night");
         if (currentTimeOfDay === -1) {
             currentTimeOfDay = 0;
@@ -4914,6 +4921,16 @@ function createBasicAgoraFallback() {
             desiredEnvironmentIntensity = targetEnvIntensity;
             updateSceneEnvironmentIntensity();
 
+            const timeFactor = featureLineTimeFactors[name] ?? 0.5;
+            if (typeof window !== 'undefined') {
+                window.__fl_t = timeFactor;
+            }
+            const featureLinesGetter = typeof window !== 'undefined' ? window.getFeatureLines : null;
+            if (typeof featureLinesGetter === 'function') {
+                const featureLines = featureLinesGetter();
+                featureLines?.setTimeFactor?.(timeFactor);
+            }
+
             const fallbackNightLevel = name === 'Starlit Night' ? 1 : (name === 'Blue Hour' ? 0.4 : 0);
             const targetNightAmount = typeof skydomePreset?.spaceNightAmount === 'number'
                 ? THREE.MathUtils.clamp(skydomePreset.spaceNightAmount, 0, 1)
@@ -7084,6 +7101,14 @@ world.addBody(archBody);
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 composer.setSize(window.innerWidth, window.innerHeight);
+                const linesGetter = typeof window !== 'undefined' ? window.getFeatureLines : null;
+                if (typeof linesGetter === 'function') {
+                    const lines = linesGetter();
+                    const canvas = renderer?.domElement;
+                    const width = canvas?.width ?? window.innerWidth;
+                    const height = canvas?.height ?? window.innerHeight;
+                    lines?.setResolution?.(width, height);
+                }
             });
 
             document.addEventListener('keydown', (e) => {
@@ -7096,6 +7121,18 @@ world.addBody(archBody);
                 }
                 if ((e.key || '').toLowerCase() === 'l') {
                     const getter = typeof window !== 'undefined' ? window.getFeatureLines : null;
+                    if (e.shiftKey) {
+                        let nextFactor = 0;
+                        if (typeof window !== 'undefined') {
+                            window.__fl_t = (window.__fl_t ?? 0);
+                            window.__fl_t = (window.__fl_t + 0.25) % 1;
+                            nextFactor = window.__fl_t;
+                        }
+                        const featureLines = typeof getter === 'function' ? getter() : null;
+                        featureLines?.setTimeFactor?.(nextFactor);
+                        console.log('FeatureLines timeFactor =', nextFactor);
+                        return;
+                    }
                     if (typeof getter === 'function') {
                         const featureLines = getter();
                         const root = featureLines?.root;
