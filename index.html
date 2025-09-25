@@ -560,6 +560,7 @@ import { setEnvironment } from './src/scene/sky.js';
 import { createMountainRim } from './src/horizon/mountainRim.js';
 import * as buildingMaterials from './src/scene/materials.js';
 import { createCityWallPerimeter, createCityGatehouse } from './src/scene/city-wall.js';
+import { createRoadSegment, scatterPropsAlongRoad } from './src/roads/hybridRoads.js';
 import {
   createDistrictsLayer,
   setDistricts,
@@ -1452,6 +1453,85 @@ const retargetBuildingMaterials =
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+        let scatterDemoGroup = null;
+        let scatterDemoPromise = null;
+
+        function disposeHybridRoadGroup(group) {
+            if (!group) {
+                return;
+            }
+
+            group.traverse((child) => {
+                if (child.isMesh || child.isInstancedMesh) {
+                    if (child.geometry && typeof child.geometry.dispose === 'function') {
+                        child.geometry.dispose();
+                    }
+
+                    const { material } = child;
+                    if (Array.isArray(material)) {
+                        material.forEach((mat) => mat?.dispose?.());
+                    } else if (material && typeof material.dispose === 'function') {
+                        material.dispose();
+                    }
+                }
+            });
+
+            if (group.parent) {
+                group.parent.remove(group);
+            }
+        }
+
+        async function buildScatterDemo() {
+            if (!scene) {
+                console.warn('[roads] scatterTest called before the scene is ready.');
+                return null;
+            }
+
+            if (scatterDemoPromise) {
+                return scatterDemoPromise;
+            }
+
+            scatterDemoPromise = (async () => {
+                if (scatterDemoGroup) {
+                    disposeHybridRoadGroup(scatterDemoGroup);
+                    scatterDemoGroup = null;
+                }
+
+                const group = new THREE.Group();
+                group.name = 'debug:hybrid-road-demo';
+                scene.add(group);
+
+                const start = new THREE.Vector3(-24, 0.12, -14);
+                const mid = new THREE.Vector3(0, 0.1, -2);
+                const end = new THREE.Vector3(22, 0.12, 14);
+
+                const roadSegment = await createRoadSegment('assets/textures/athens_dust.jpg', start, end, 6);
+                group.add(roadSegment);
+
+                const propsGroup = await scatterPropsAlongRoad(group, [start, mid, end], {
+                    roadWidth: 6,
+                    torch: { spacing: 12, startOffset: 4, offset: 1.8, maxCount: 16 },
+                    rock: { maxCount: 48 },
+                    grass: { maxCount: 96 }
+                });
+
+                group.userData.hybridRoadProps = propsGroup;
+
+                scatterDemoGroup = group;
+                return group;
+            })();
+
+            try {
+                return await scatterDemoPromise;
+            } catch (error) {
+                console.warn('[roads] scatterTest failed:', error);
+                throw error;
+            } finally {
+                scatterDemoPromise = null;
+            }
+        }
+
+        window.scatterTest = () => buildScatterDemo();
         const pendingAmbientZones = [];
         function registerAmbientZone(node, options = {}) {
             if (!node) {
@@ -2247,6 +2327,12 @@ const retargetBuildingMaterials =
             } else {
                 groundMaterial = null;
                 groundTexture = null;
+            }
+
+            try {
+                await buildScatterDemo();
+            } catch (error) {
+                console.warn('[roads] Unable to create hybrid road demo segment.', error);
             }
 
             scene.fog = null;
