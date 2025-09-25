@@ -94,6 +94,7 @@ export function createGrassGround({
     mat.needsUpdate = true;
   }
 
+  mat.shadowSide = THREE.DoubleSide;
   const mesh = new THREE.Mesh(geo, mat);
   mesh.receiveShadow = receiveShadow;
   mesh.renderOrder = 1;
