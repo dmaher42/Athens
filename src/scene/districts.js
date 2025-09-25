@@ -218,13 +218,21 @@ export function setDistricts(districtDefs = []) {
 
     const shape = new THREE.Shape(polygon.map(([vx, vz]) => new THREE.Vector2(vx, vz)));
     const shapeGeometry = new THREE.ShapeGeometry(shape);
-    const fillColor = baseColor.clone().lerp(new THREE.Color(0xffffff), 0.7);
+    const baseHsl = { h: 0, s: 0, l: 0 };
+    baseColor.getHSL(baseHsl);
+    const fillColor = baseColor.clone();
+    fillColor.setHSL(
+      baseHsl.h,
+      THREE.MathUtils.clamp(baseHsl.s + 0.15, 0, 1),
+      THREE.MathUtils.clamp(baseHsl.l + 0.08, 0, 1)
+    );
+
     const fillMaterial = new THREE.MeshBasicMaterial({
       color: fillColor,
       transparent: true,
-      opacity: 0.08,
+      opacity: 0.06,
       side: THREE.DoubleSide,
-      depthWrite: true
+      depthWrite: false,
     });
 
     const fillMesh = new THREE.Mesh(shapeGeometry, fillMaterial);
