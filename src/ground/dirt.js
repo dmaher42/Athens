@@ -85,6 +85,7 @@ export function createDirtGround({
   const mat = new THREE.MeshStandardMaterial({
     map: color,
     roughness: 1.0,
+    side: THREE.DoubleSide,
   });
 
   if (!mat.map) {
@@ -92,6 +93,7 @@ export function createDirtGround({
     mat.needsUpdate = true;
   }
 
+  mat.shadowSide = THREE.DoubleSide;
   mat.polygonOffset = true;
   mat.polygonOffsetFactor = 1;
   mat.polygonOffsetUnits = 1;
