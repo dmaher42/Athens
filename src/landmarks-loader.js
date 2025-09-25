@@ -1,21 +1,7 @@
 import THREE from './three.js';
 import { applyFeatureOffset } from './geo/featureOffsets.js';
 import { createFeatureLines } from './scene/feature-lines.js';
-
-const WORLD_COMPRESSION = 0.5; // 50% closer
-
-function applyWorldCompression(vector) {
-  if (!vector) {
-    return vector;
-  }
-  if (typeof vector.x === 'number') {
-    vector.x *= WORLD_COMPRESSION;
-  }
-  if (typeof vector.z === 'number') {
-    vector.z *= WORLD_COMPRESSION;
-  }
-  return vector;
-}
+import { applyCompressionToVector3 } from './world/scale.js';
 
 /**
  * Load every feature from a GeoJSON file and add to the scene.
@@ -63,7 +49,7 @@ export async function loadLandmarks({
         fallbackName: name
       });
       const pos = projectLonLat(lon, lat);
-      applyWorldCompression(pos);
+      applyCompressionToVector3(pos);
 
       const pin = makePinMesh(cat);
       pin.position.copy(pos);
@@ -93,7 +79,7 @@ export async function loadLandmarks({
     featureLines = createFeatureLines({
       features: lineFeatures,
       projector: projectLonLat,
-      worldCompressionFn: applyWorldCompression
+      worldCompressionFn: applyCompressionToVector3
     });
 
     if (featureLines?.root) {
