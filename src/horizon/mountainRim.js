@@ -86,8 +86,7 @@ export function createMountainRim({
   }
 
   rimGeometry.computeVertexNormals();
-  
- codex/add-performant-low-poly-mountain-rim-mesh-tiiu10
+
   const material = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
 
   material.depthWrite = true;
