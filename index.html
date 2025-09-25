@@ -549,15 +549,20 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
         import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+        import { AmbientZoneManager } from './src/audio/ambient-zones.js';
         import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
+        import { createStarField } from './src/sky/starField.js';
+        import { createMoon } from './src/sky/moon.js';
+        import { createMountainRim } from './src/sky/mountainRim.js';
         import { resolveAssetUrl } from './src/utils/asset-paths.js';
 import { setupGround, configureGround, updateTrees } from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
 import * as buildingMaterials from './src/scene/materials.js';
 import { createCityWallPerimeter, createCityGatehouse } from './src/scene/city-wall.js';
+import { createRoadSegment, scatterPropsAlongRoad } from './src/roads/hybridRoads.js';
 import {
   createDistrictsLayer,
   setDistricts,
@@ -583,6 +588,8 @@ const retargetBuildingMaterials =
             'https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js'
         ];
         let toneLoadingPromise = null;
+
+        const HORIZON_ENABLE = true;
 
         function loadToneFromUrl(url) {
             return new Promise((resolve, reject) => {
@@ -818,12 +825,6 @@ const retargetBuildingMaterials =
             });
         });
 
-        pushNightSkyTextureSource({
-            url: './src/sky/night_sky.jpg',
-            label: 'Bundled night sky fallback',
-            isFallback: true
-        });
-
         if (typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0) {
             pushNightSkyTextureSource({
                 url: nightSkyDataUrl,
@@ -911,18 +912,16 @@ const retargetBuildingMaterials =
             'starlit-night',
             'night_sky.jpg',
             'Night sky panorama',
-            [
-                { url: './src/sky/night_sky.jpg', label: 'Bundled night sky fallback' },
-                ...(typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0
-                    ? [{ url: nightSkyDataUrl, label: 'embedded fallback night sky', resolve: false }]
-                    : [])
-            ]
+            typeof nightSkyDataUrl === 'string' && nightSkyDataUrl.length > 0
+                ? [{ url: nightSkyDataUrl, label: 'embedded fallback night sky', resolve: false }]
+                : []
         );
 
         const photoSkyTimeConfig = {
             'Golden Dawn': {
                 textureKey: 'golden-hour',
                 sources: goldenHourPhotoSources,
+ codex/improve-sky-texture-rendering-quality,
                 skydomeOpacity: 1.0,
                 envIntensity: 0.85,
                 exposure: 1.05,
@@ -947,9 +946,11 @@ const retargetBuildingMaterials =
             'Golden Dusk': {
                 textureKey: 'golden-hour',
                 sources: goldenHourPhotoSources,
+  codex/improve-sky-texture-rendering-quality,
                 skydomeOpacity: 1.0,
                 envIntensity: 0.85,
                 exposure: 1.1,
+
                 spaceNightAmount: 0.2
             },
             'Starlit Night': {
@@ -1223,19 +1224,77 @@ const retargetBuildingMaterials =
             spaceGroup.visible = false;
             scene.add(spaceGroup);
 
+            if (starFieldController?.points && starFieldController.points.parent) {
+                starFieldController.points.parent.remove(starFieldController.points);
+            }
+            if (moonController?.group && moonController.group.parent) {
+                moonController.group.parent.remove(moonController.group);
+            }
+
+            try {
+                const devicePixelRatio = window?.devicePixelRatio ?? 1;
+                const starTarget = Math.round(9500 / Math.max(1, devicePixelRatio * 0.85));
+                starFieldController = createStarField({
+                    count: THREE.MathUtils.clamp(starTarget, 5000, 10000),
+                    innerRadius: 2000,
+                    outerRadius: 2400,
+                    opacity: 0.9
+                });
+                starFieldController.setEnabled(starsEnabled);
+                starFieldController.setVisibilityFactor(0);
+                if (starFieldController.points) {
+                    starFieldController.points.visible = false;
+                    scene.add(starFieldController.points);
+                }
+                window.getStarField = () => starFieldController?.points ?? null;
+            } catch (error) {
+                console.warn('[sky] Failed to build procedural star field.', error);
+                starFieldController = null;
+                window.getStarField = () => null;
+            }
+
+            try {
+                moonController = createMoon({
+                    textureLoader,
+                    textureUrl: resolveAssetUrl('assets/sky/moon.jpg'),
+                    radius: 2200,
+                    sphereRadius: 52,
+                    glowSize: 420
+                });
+                moonController.setEnabled(moonEnabled);
+                moonController.setVisibilityFactor(0);
+                if (moonController.group) {
+                    scene.add(moonController.group);
+                }
+                window.getMoon = () => moonController?.mesh ?? null;
+            } catch (error) {
+                console.warn('[sky] Failed to initialize procedural moon.', error);
+                moonController = null;
+                window.getMoon = () => null;
+            }
+
             captureDayState({ force: true });
 
             ensureNightSkyBackground(scene, renderer);
 
+            let elapsedTime = 0;
+
             return {
                 update(dt, camera) {
                     if (!spaceGroup) return;
+                    elapsedTime += dt;
                     spaceGroup.children.forEach((o, i) => {
                         if (o.isPoints) o.rotation.y += dt * 0.002;
                         if (o.isSprite) o.material.rotation += (i % 2 ? 1 : -1) * dt * 0.05;
                     });
                     if (camera) {
                         spaceGroup.position.lerp(camera.position, 0.05);
+                    }
+                    if (starFieldController) {
+                        starFieldController.update(dt, elapsedTime, camera ?? null);
+                    }
+                    if (moonController) {
+                        moonController.update(dt, camera ?? null);
                     }
                 },
                 setAmount(nightAmount) {
@@ -1250,6 +1309,14 @@ const retargetBuildingMaterials =
                         }
                     });
                     currentNightAmount = clamped;
+                    if (starFieldController) {
+                        const starVisibility = starsEnabled ? clamped : 0;
+                        starFieldController.setVisibilityFactor(starVisibility);
+                    }
+                    if (moonController) {
+                        const moonVisibility = moonEnabled ? Math.pow(clamped, 0.8) : 0;
+                        moonController.setVisibilityFactor(moonVisibility);
+                    }
                     if (clamped > 0.6) {
                         ensureNightSkyBackground(scene, renderer);
                     } else {
@@ -1433,7 +1500,7 @@ const retargetBuildingMaterials =
         async function main() {
 
         // --- GLOBAL VARIABLES ---
-        let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player;
+        let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player, ambientZoneManager;
         let world;
         let controls = { W: false, A: false, S: false, D: false, E: false, ShiftLeft: false, ShiftRight: false, Space: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
         const toggleKeyTimestamps = {};
@@ -1450,6 +1517,109 @@ const retargetBuildingMaterials =
         const setScaledPosition = (object, x, y, z) => {
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
+        let scatterDemoGroup = null;
+        let scatterDemoPromise = null;
+
+        function disposeHybridRoadGroup(group) {
+            if (!group) {
+                return;
+            }
+
+            group.traverse((child) => {
+                if (child.isMesh || child.isInstancedMesh) {
+                    if (child.geometry && typeof child.geometry.dispose === 'function') {
+                        child.geometry.dispose();
+                    }
+
+                    const { material } = child;
+                    if (Array.isArray(material)) {
+                        material.forEach((mat) => mat?.dispose?.());
+                    } else if (material && typeof material.dispose === 'function') {
+                        material.dispose();
+                    }
+                }
+            });
+
+            if (group.parent) {
+                group.parent.remove(group);
+            }
+        }
+
+        async function buildScatterDemo() {
+            if (!scene) {
+                console.warn('[roads] scatterTest called before the scene is ready.');
+                return null;
+            }
+
+            if (scatterDemoPromise) {
+                return scatterDemoPromise;
+            }
+
+            scatterDemoPromise = (async () => {
+                if (scatterDemoGroup) {
+                    disposeHybridRoadGroup(scatterDemoGroup);
+                    scatterDemoGroup = null;
+                }
+
+                const group = new THREE.Group();
+                group.name = 'debug:hybrid-road-demo';
+                scene.add(group);
+
+                const start = new THREE.Vector3(-24, 0.12, -14);
+                const mid = new THREE.Vector3(0, 0.1, -2);
+                const end = new THREE.Vector3(22, 0.12, 14);
+
+                const roadSegment = await createRoadSegment('assets/textures/athens_dust.jpg', start, end, 6);
+                group.add(roadSegment);
+
+                const propsGroup = await scatterPropsAlongRoad(group, [start, mid, end], {
+                    roadWidth: 6,
+                    torch: { spacing: 12, startOffset: 4, offset: 1.8, maxCount: 16 },
+                    rock: { maxCount: 48 },
+                    grass: { maxCount: 96 }
+                });
+
+                group.userData.hybridRoadProps = propsGroup;
+
+                scatterDemoGroup = group;
+                return group;
+            })();
+
+            try {
+                return await scatterDemoPromise;
+            } catch (error) {
+                console.warn('[roads] scatterTest failed:', error);
+                throw error;
+            } finally {
+                scatterDemoPromise = null;
+            }
+        }
+
+        window.scatterTest = () => buildScatterDemo();
+        const pendingAmbientZones = [];
+        function registerAmbientZone(node, options = {}) {
+            if (!node) {
+                return;
+            }
+
+            if (ambientZoneManager) {
+                ambientZoneManager.registerZone({ node, ...options });
+                return;
+            }
+
+            pendingAmbientZones.push({ node, options });
+        }
+
+        function flushPendingAmbientZones() {
+            if (!ambientZoneManager || pendingAmbientZones.length === 0) {
+                return;
+            }
+
+            const queued = pendingAmbientZones.splice(0, pendingAmbientZones.length);
+            queued.forEach(({ node, options }) => {
+                ambientZoneManager.registerZone({ node, ...options });
+            });
+        }
         // Controls how quickly the photographic sky panorama pans across the horizon.
         const PHOTO_SKYDOME_SCROLL_SPEED_DEG_PER_SECOND = 1.0;
         const GEO_TO_SCENE_MATRIX = Object.freeze({
@@ -1733,11 +1903,43 @@ const retargetBuildingMaterials =
         let bloomPass;
         let fogEnabled = true;
         let spaceNight = null;
+        let starFieldController = null;
+        let moonController = null;
+        let starsEnabled = true;
+        let moonEnabled = true;
+        let mountainRimMesh = null;
+        let rimEnabled = HORIZON_ENABLE;
         let photoSkydome = null;
         let photoSkydomeYawDeg = 0;
         let currentPhotoSkyKey = null;
         let canChickenCluck = true;
         let lastCluckTime = 0;
+
+        window.getStarField = () => starFieldController?.points ?? null;
+        window.getMoon = () => moonController?.mesh ?? null;
+        window.toggleStars = () => {
+            starsEnabled = !starsEnabled;
+            if (starFieldController) {
+                starFieldController.setEnabled(starsEnabled);
+                starFieldController.setVisibilityFactor(starsEnabled ? (spaceNight?.amount ?? 0) : 0);
+            }
+            return starsEnabled;
+        };
+        window.toggleMoon = () => {
+            moonEnabled = !moonEnabled;
+            if (moonController) {
+                moonController.setEnabled(moonEnabled);
+                moonController.setVisibilityFactor(moonEnabled ? Math.pow(spaceNight?.amount ?? 0, 0.8) : 0);
+            }
+            return moonEnabled;
+        };
+        window.toggleRim = () => {
+            rimEnabled = !rimEnabled;
+            if (mountainRimMesh) {
+                mountainRimMesh.visible = rimEnabled;
+            }
+            return rimEnabled;
+        };
         
         let fps = 0;
         let frameCount = 0;
@@ -1766,6 +1968,13 @@ const retargetBuildingMaterials =
         
         let enhancedLighting = true;
         const timeNames = ["Golden Dawn", "Blue Hour", "High Noon", "Golden Dusk", "Starlit Night"];
+        const featureLineTimeFactors = {
+            "Golden Dawn": 0.25,
+            "Blue Hour": 0.85,
+            "High Noon": 0.5,
+            "Golden Dusk": 0.75,
+            "Starlit Night": 0.0
+        };
         let currentTimeOfDay = timeNames.indexOf("Starlit Night");
         if (currentTimeOfDay === -1) {
             currentTimeOfDay = 0;
@@ -2015,6 +2224,10 @@ const retargetBuildingMaterials =
             camera.far = Math.max(camera.far, 60000);
             camera.updateProjectionMatrix();
             window.camera = camera;
+
+            ambientZoneManager = new AmbientZoneManager({ maxActive: 3, fadeTime: 0.75 });
+            ambientZoneManager.setCamera(camera);
+            flushPendingAmbientZones();
             
             // Renderer
             renderer = new THREE.WebGLRenderer({
@@ -2060,6 +2273,25 @@ const retargetBuildingMaterials =
 
             const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 8;
             const textureLoader = new THREE.TextureLoader();
+
+            if (!mountainRimMesh && HORIZON_ENABLE) {
+                try {
+                    mountainRimMesh = createMountainRim({
+                        radius: 1600,
+                        height: 120,
+                        radialSegments: 192,
+                        noise: 0.45,
+                        color: 0x0e1b2b
+                    });
+                    if (mountainRimMesh) {
+                        mountainRimMesh.visible = rimEnabled;
+                        scene.add(mountainRimMesh);
+                    }
+                } catch (error) {
+                    console.warn('[sky] Failed to initialize mountain rim mesh.', error);
+                    mountainRimMesh = null;
+                }
+            }
 
             if (buildingMaterialSet?.marbleMat?.map) {
                 buildingMaterialSet.marbleMat.map.anisotropy = Math.max(
@@ -2219,10 +2451,45 @@ const retargetBuildingMaterials =
                 groundTexture = null;
             }
 
+            try {
+                await buildScatterDemo();
+            } catch (error) {
+                console.warn('[roads] Unable to create hybrid road demo segment.', error);
+            }
+
             scene.fog = null;
 
             // Sky, stars, and post-processing
             initSkyAndStars();
+
+            const devicePixelRatio = window.devicePixelRatio || 1;
+            let horizonSegments = 128;
+            if (renderer?.capabilities?.isWebGL2 === false) {
+                horizonSegments = 96;
+            }
+            if (devicePixelRatio < 1.25) {
+                horizonSegments = Math.min(horizonSegments, 96);
+            }
+            if (devicePixelRatio < 1.0) {
+                horizonSegments = Math.min(horizonSegments, 64);
+            }
+
+            const HORIZON_RADIUS = 900;
+            const HORIZON_HEIGHT = 70;
+            window.getMountainRim = () => null;
+            if (HORIZON_ENABLE) {
+                const mountainRim = createMountainRim({
+                    radius: HORIZON_RADIUS,
+                    height: HORIZON_HEIGHT,
+                    radialSegments: horizonSegments,
+                    noise: 0.38,
+                    seed: 2025,
+                    color: 0x0e1b2b
+                });
+                scene.add(mountainRim);
+                window.getMountainRim = () => mountainRim;
+            }
+
             setupPostFX();
 
             // Initialize textures and materials now that renderer exists
@@ -2469,6 +2736,7 @@ const retargetBuildingMaterials =
             createPhaleronHarbor();
             createHouses();
             createTrees();
+            createCountrysideAmbienceAnchor();
             createFountain();
             createCityFortifications();
             createMarketStalls();
@@ -3678,6 +3946,14 @@ function createAgoraComplex() {
     const agoraGroup = new THREE.Group();
     agoraGroup.name = 'Agora Precinct';
     scene.add(agoraGroup);
+    registerAmbientZone(agoraGroup, {
+        id: 'agora-market',
+        type: 'market',
+        radius: scaleValue(45),
+        maxDistance: scaleValue(240),
+        volume: 0.58,
+        rolloff: 2.4
+    });
 
     const plazaMaterial = new THREE.MeshStandardMaterial({
         color: 0xb9a880,
@@ -4759,6 +5035,16 @@ function createBasicAgoraFallback() {
             desiredEnvironmentIntensity = targetEnvIntensity;
             updateSceneEnvironmentIntensity();
 
+ codex/improve-sky-texture-rendering-quality
+
+            }
+            const featureLinesGetter = typeof window !== 'undefined' ? window.getFeatureLines : null;
+            if (typeof featureLinesGetter === 'function') {
+                const featureLines = featureLinesGetter();
+                featureLines?.setTimeFactor?.(timeFactor);
+            }
+
+> main
             const fallbackNightLevel = name === 'Starlit Night' ? 1 : (name === 'Blue Hour' ? 0.4 : 0);
             const targetNightAmount = typeof skydomePreset?.spaceNightAmount === 'number'
                 ? THREE.MathUtils.clamp(skydomePreset.spaceNightAmount, 0, 1)
@@ -5239,6 +5525,14 @@ world.addBody(archBody);
              setScaledPosition(pnyx, PNYX_POSITION.x, 0, PNYX_POSITION.z);
              pnyx.rotation.y = -Math.PI / 2;
              scene.add(pnyx);
+             registerAmbientZone(pnyx, {
+                id: 'assembly-pnyx',
+                type: 'assembly',
+                radius: scaleValue(35),
+                maxDistance: scaleValue(220),
+                volume: 0.6,
+                rolloff: 2.0
+             });
 
              const dikasteria = createEnhancedBuilding(0, -15, 8, 12, 6, marbleMaterial);
              const colonnade = new THREE.Group();
@@ -5286,6 +5580,22 @@ world.addBody(archBody);
             }
             stoaWay.receiveShadow = true;
             scene.add(stoaWay);
+        }
+
+        function createCountrysideAmbienceAnchor() {
+            const countrysideAnchor = new THREE.Object3D();
+            countrysideAnchor.name = 'Countryside Ambience Anchor';
+            setScaledPosition(countrysideAnchor, -140, 6, 130);
+            scene.add(countrysideAnchor);
+            registerAmbientZone(countrysideAnchor, {
+                id: 'countryside-hills',
+                type: 'countryside',
+                radius: scaleValue(60),
+                maxDistance: scaleValue(280),
+                volume: 0.65,
+                rolloff: 1.6
+            });
+            return countrysideAnchor;
         }
 
         // --- NPC AND INTERACTIVE OBJECTS ---
@@ -6275,6 +6585,10 @@ world.addBody(archBody);
                 updateSoundPositions(delta);
             }
 
+            if (ambientZoneManager) {
+                ambientZoneManager.update(delta, camera.position);
+            }
+
             updatePhotoSkydomeScroll(delta);
             updateNightCycle(delta);
 
@@ -6866,12 +7180,31 @@ world.addBody(archBody);
 
                 audioStartInProgress = true;
                 try {
-                    await createAmbientSounds();
-                    initializeChickenAudio();
-                    audioStarted = true;
-                    console.log("Audio context started.");
+                    const tonePromise = (async () => {
+                        await createAmbientSounds();
+                        initializeChickenAudio();
+                    })();
+                    const zonePromise = ambientZoneManager?.resume?.() ?? Promise.resolve();
+
+                    const [toneResult, zoneResult] = await Promise.allSettled([tonePromise, zonePromise]);
+
+                    if (zoneResult?.status === 'rejected') {
+                        console.warn('Unable to resume ambient zone audio context:', zoneResult.reason);
+                    }
+
+                    if (ambientZoneManager) {
+                        ambientZoneManager.setEnabled(true);
+                        ambientZoneManager.update(0, camera.position);
+                    }
+
+                    if (toneResult.status === 'fulfilled') {
+                        audioStarted = true;
+                        console.log("Audio context started.");
+                    } else if (toneResult.status === 'rejected') {
+                        console.warn('Unable to start audio context:', toneResult.reason);
+                    }
                 } catch (error) {
-                    console.warn('Unable to start audio context:', error);
+                    console.warn('Unable to start audio systems:', error);
                 } finally {
                     audioStartInProgress = false;
                 }
@@ -6882,6 +7215,14 @@ world.addBody(archBody);
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 composer.setSize(window.innerWidth, window.innerHeight);
+                const linesGetter = typeof window !== 'undefined' ? window.getFeatureLines : null;
+                if (typeof linesGetter === 'function') {
+                    const lines = linesGetter();
+                    const canvas = renderer?.domElement;
+                    const width = canvas?.width ?? window.innerWidth;
+                    const height = canvas?.height ?? window.innerHeight;
+                    lines?.setResolution?.(width, height);
+                }
             });
 
             document.addEventListener('keydown', (e) => {
@@ -6891,6 +7232,28 @@ world.addBody(archBody);
                 controls[e.code] = true;
                 if (e.code === 'KeyD' || e.code === 'KeyN') {
                     toggleKeyTimestamps[e.code] = performance.now();
+                }
+                if ((e.key || '').toLowerCase() === 'l') {
+                    const getter = typeof window !== 'undefined' ? window.getFeatureLines : null;
+                    if (e.shiftKey) {
+                        let nextFactor = 0;
+                        if (typeof window !== 'undefined') {
+                            window.__fl_t = (window.__fl_t ?? 0);
+                            window.__fl_t = (window.__fl_t + 0.25) % 1;
+                            nextFactor = window.__fl_t;
+                        }
+                        const featureLines = typeof getter === 'function' ? getter() : null;
+                        featureLines?.setTimeFactor?.(nextFactor);
+                        console.log('FeatureLines timeFactor =', nextFactor);
+                        return;
+                    }
+                    if (typeof getter === 'function') {
+                        const featureLines = getter();
+                        const root = featureLines?.root;
+                        if (root && typeof featureLines.setVisible === 'function') {
+                            featureLines.setVisible(!root.visible);
+                        }
+                    }
                 }
             });
             document.addEventListener('keyup', (e) => {

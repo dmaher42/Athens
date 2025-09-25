@@ -7,6 +7,7 @@ import { applyFeatureOffset } from './geo/featureOffsets.js';
 import { getDistrictAt, getDistricts } from './scene/districts.js';
 import { defaultPlacementOptions } from './scene/placement-options.js';
 import { estimateAABB, GridIndex } from './scene/placement-grid.js';
+import { applyCompressionToVector3 } from './world/scale.js';
 
 const deg = (d)=> THREE.MathUtils.degToRad(d);
 
@@ -515,11 +516,13 @@ function prioritizeCandidates(candidates) {
 }
 
 function buildPlacement(candidate, position, rotationDeg) {
+  const compressedPosition = position.clone();
+  applyCompressionToVector3(compressedPosition);
   return {
     name: candidate.rawName || candidate.name,
     meshKind: candidate.kind,
     dims: candidate.dims,
-    position,
+    position: compressedPosition,
     rotationY: deg(rotationDeg)
   };
 }
@@ -812,7 +815,11 @@ export function instantiateMeshes(placements, scene) {
     if (!Array.isArray(points) || points.length < 2) {
       continue;
     }
-    const wall = makeWallPath(points, { segment: 10, height: 4, width: 2.5 });
+    const compressedPoints = points.map((point) => {
+      const vector = point.clone ? point.clone() : new THREE.Vector3(point.x, point.y ?? 0, point.z);
+      return applyCompressionToVector3(vector);
+    });
+    const wall = makeWallPath(compressedPoints, { segment: 10, height: 4, width: 2.5 });
     root.add(wall);
   }
 

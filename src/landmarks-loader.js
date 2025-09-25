@@ -1,5 +1,7 @@
 import THREE from './three.js';
 import { applyFeatureOffset } from './geo/featureOffsets.js';
+import { createFeatureLines } from './scene/feature-lines.js';
+import { applyCompressionToVector3 } from './world/scale.js';
 
 /**
  * Load every feature from a GeoJSON file and add to the scene.
@@ -19,9 +21,7 @@ export async function loadLandmarks({
   const groups = {
     democracy: new THREE.Group(),
     cultural: new THREE.Group(),
-    natural: new THREE.Group(),
-    lines: new THREE.Group(),
-    polygons: new THREE.Group()
+    natural: new THREE.Group()
   };
   Object.entries(groups).forEach(([k, g]) => { g.name = `Landmarks_${k}`; root.add(g); });
 
@@ -31,6 +31,11 @@ export async function loadLandmarks({
 
   const markers = [];
   const labels = [];
+  const lineFeatures = [];
+
+  const projectLonLat = (lon, lat) => (
+    projector ? projector(lon, lat) : lonLatToLocal(lon, lat)
+  );
 
   for (const f of geo.features || []) {
     const props = f.properties || {};
@@ -43,7 +48,8 @@ export async function loadLandmarks({
         properties: props,
         fallbackName: name
       });
-      const pos = projector ? projector(lon, lat) : lonLatToLocal(lon, lat);
+      const pos = projectLonLat(lon, lat);
+      applyCompressionToVector3(pos);
 
       const pin = makePinMesh(cat);
       pin.position.copy(pos);
@@ -58,38 +64,42 @@ export async function loadLandmarks({
 
       onPoint?.(f, pin, pos.clone());
 
-    } else if (f.geometry?.type === 'LineString') {
-      const line = makeLine(f.geometry.coordinates, projector);
-      line.userData = { name, props };
-      groups.lines.add(line);
-
-    } else if (f.geometry?.type === 'Polygon') {
-      // Outline only (outer ring)
-      const poly = makePolygonOutline(f.geometry.coordinates[0], projector);
-      poly.userData = { name, props };
-      groups.polygons.add(poly);
-
-    } else if (f.geometry?.type === 'MultiLineString') {
-      for (const seg of f.geometry.coordinates) {
-        const line = makeLine(seg, projector);
-        line.userData = { name, props };
-        groups.lines.add(line);
-      }
-    } else if (f.geometry?.type === 'MultiPolygon') {
-      for (const polyCoords of f.geometry.coordinates) {
-        const poly = makePolygonOutline(polyCoords[0], projector);
-        poly.userData = { name, props };
-        groups.polygons.add(poly);
-      }
+    } else if (
+      f.geometry?.type === 'LineString'
+      || f.geometry?.type === 'MultiLineString'
+      || f.geometry?.type === 'Polygon'
+      || f.geometry?.type === 'MultiPolygon'
+    ) {
+      lineFeatures.push(f);
     }
+  }
+
+  let featureLines = null;
+  if (lineFeatures.length) {
+    featureLines = createFeatureLines({
+      features: lineFeatures,
+      projector: projectLonLat,
+      worldCompressionFn: applyCompressionToVector3
+    });
+
+    if (featureLines?.root) {
+      featureLines.root.name = 'Landmarks_FeatureLines';
+      root.add(featureLines.root);
+      featureLines.updateResolution?.();
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.getFeatureLines = () => featureLines;
   }
 
   // keep labels facing the camera (utility; call this each frame)
   const update = (camera) => {
     for (const s of labels) s.quaternion.copy(camera.quaternion);
+    featureLines?.updateResolution?.();
   };
 
-  return { root, groups, markers, labels, update };
+  return { root, groups, markers, labels, update, featureLines };
 }
 
 /* ---------- helpers ---------- */
@@ -158,20 +168,4 @@ function makeLabelSprite(text) {
   s.scale.set(canvas.width / 6, canvas.height / 6, 1);
   s.renderOrder = 10;
   return s;
-}
-
-function makeLine(coords, projector) {
-  const pts = coords.map(([lon, lat]) => projector ? projector(lon, lat) : lonLatToLocal(lon, lat));
-  const geom = new THREE.BufferGeometry().setFromPoints(pts);
-  const mat = new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.95 });
-  return new THREE.Line(geom, mat);
-}
-
-function makePolygonOutline(coords, projector) {
-  const pts = coords.map(([lon, lat]) => projector ? projector(lon, lat) : lonLatToLocal(lon, lat));
-  const geom = new THREE.BufferGeometry().setFromPoints(pts);
-  const mat = new THREE.LineDashedMaterial({ color: 0xa8a29e, dashSize: 6, gapSize: 3, transparent: true, opacity: 0.85 });
-  const loop = new THREE.LineLoop(geom, mat);
-  loop.computeLineDistances();
-  return loop;
 }
