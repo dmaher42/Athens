@@ -88,6 +88,11 @@ export function createGrassGround({
     roughness: 0.9,
   });
 
+  if (!mat.map) {
+    mat.color.set(0x4a7f39);
+    mat.needsUpdate = true;
+  }
+
   const mesh = new THREE.Mesh(geo, mat);
   mesh.receiveShadow = receiveShadow;
   mesh.renderOrder = 1;

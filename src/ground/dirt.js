@@ -87,6 +87,11 @@ export function createDirtGround({
     roughness: 1.0,
   });
 
+  if (!mat.map) {
+    mat.color.set(0x6b5a45);
+    mat.needsUpdate = true;
+  }
+
   mat.polygonOffset = true;
   mat.polygonOffsetFactor = 1;
   mat.polygonOffsetUnits = 1;
