@@ -25,6 +25,22 @@
         }
     }
     </script>
+    
+    <script>
+    // Essential variables to prevent undefined errors
+    // These are fallback values that will be overridden by the main script when it loads
+    window.AGORA_FEATURES = {
+        templeOfHephaistos: { position: { x: 0, z: 0 } },
+        stoaOfAttalos: { position: { x: 0, z: 0 } },
+        tholos: { position: { x: 0, z: 0 } },
+        bouleuterion: { position: { x: 0, z: 0 } },
+        altarOfTwelveGods: { position: { x: 0, z: 0 } }
+    };
+    
+    window.AREOPAGUS_POSITION = { x: 0, z: 0 };
+    window.KERAMEIKOS_POSITION = { x: 0, z: 0 };
+    window.PHALERON_POSITION = { x: 0, z: 0 };
+    </script>
 <script type="module">
         import { threeReady } from './src/three.js';
         import { Sky } from 'three/examples/jsm/objects/Sky.js';
@@ -1668,6 +1684,15 @@ const retargetBuildingMaterials =
         const KERAMEIKOS_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.kerameikos);
         const PHALERON_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.phaleron);
         const PEIRAEUS_POSITION = applyGeoToScene(PROJECTED_GEO_POINTS.peiraeus);
+
+        if (typeof window !== 'undefined') {
+            window.ACROPOLIS_POSITION = ACROPOLIS_POSITION;
+            window.PNYX_POSITION = PNYX_POSITION;
+            window.AREOPAGUS_POSITION = AREOPAGUS_POSITION;
+            window.KERAMEIKOS_POSITION = KERAMEIKOS_POSITION;
+            window.PHALERON_POSITION = PHALERON_POSITION;
+            window.PEIRAEUS_POSITION = PEIRAEUS_POSITION;
+        }
 
         const createOffsetDistrictPolygon = (origin, offsets) => offsets.map(([dx, dz]) => [
             scaleValue(origin.x + dx),
@@ -6237,9 +6262,9 @@ world.addBody(archBody);
             { name: "Tholos", position: scaleLocation({ x: window.AGORA_FEATURES?.tholos?.position?.x || 0, y: 3, z: window.AGORA_FEATURES?.tholos?.position?.z || 0 }), radius: scaleValue(16), title: "⚖️ The Tholos" },
             { name: "Bouleuterion", position: scaleLocation({ x: window.AGORA_FEATURES?.bouleuterion?.position?.x || 0, y: 3.5, z: window.AGORA_FEATURES?.bouleuterion?.position?.z || 0 }), radius: scaleValue(18), title: "🏛️ The Bouleuterion" },
             { name: "Altar of the Twelve Gods", position: scaleLocation({ x: window.AGORA_FEATURES?.altarOfTwelveGods?.position?.x || 0, y: 2.5, z: window.AGORA_FEATURES?.altarOfTwelveGods?.position?.z || 0 }), radius: scaleValue(14), title: "🔥 Altar of the Twelve Gods" },
-            { name: "Areopagus Hill", position: scaleLocation({ x: AREOPAGUS_POSITION.x, y: 4, z: AREOPAGUS_POSITION.z }), radius: scaleValue(18), title: "🪨 Areopagus Hill" },
-            { name: "Kerameikos Gate", position: scaleLocation({ x: KERAMEIKOS_POSITION.x, y: 3, z: KERAMEIKOS_POSITION.z }), radius: scaleValue(24), title: "🚪 Kerameikos & Sacred Gate" },
-            { name: "Phaleron Harbor", position: scaleLocation({ x: PHALERON_POSITION.x, y: 2, z: PHALERON_POSITION.z }), radius: scaleValue(18), title: "⚓ Phaleron Harbor" },
+            { name: "Areopagus Hill", position: scaleLocation({ x: window.AREOPAGUS_POSITION?.x || 0, y: 4, z: window.AREOPAGUS_POSITION?.z || 0 }), radius: scaleValue(18), title: "🪨 Areopagus Hill" },
+            { name: "Kerameikos Gate", position: scaleLocation({ x: window.KERAMEIKOS_POSITION?.x || 0, y: 3, z: window.KERAMEIKOS_POSITION?.z || 0 }), radius: scaleValue(24), title: "🚪 Kerameikos & Sacred Gate" },
+            { name: "Phaleron Harbor", position: scaleLocation({ x: window.PHALERON_POSITION?.x || 0, y: 2, z: window.PHALERON_POSITION?.z || 0 }), radius: scaleValue(18), title: "⚓ Phaleron Harbor" },
             { name: "Residential Quarter", position: scaleLocation({ x: -50, y: 3, z: 5 }), radius: scaleValue(20), title: "🏡 Residential Quarter" },
             { name: "Olive Grove", position: scaleLocation({ x: 35, y: 2, z: 25 }), radius: scaleValue(25), title: "🌳 Sacred Olive Grove" }
         ];
@@ -7758,7 +7783,11 @@ world.addBody(archBody);
         
         // Initialize the application
         try {
-            await init();
+            if (typeof init === 'function') {
+                await init();
+            } else {
+                console.warn('Main init function not available, continuing with fallback initialization...');
+            }
         } catch (error) {
             console.error('Failed to initialize Athens experience:', error);
             if (error?.stack) {
