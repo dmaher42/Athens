@@ -7094,6 +7094,16 @@ world.addBody(archBody);
                 if (e.code === 'KeyD' || e.code === 'KeyN') {
                     toggleKeyTimestamps[e.code] = performance.now();
                 }
+                if ((e.key || '').toLowerCase() === 'l') {
+                    const getter = typeof window !== 'undefined' ? window.getFeatureLines : null;
+                    if (typeof getter === 'function') {
+                        const featureLines = getter();
+                        const root = featureLines?.root;
+                        if (root && typeof featureLines.setVisible === 'function') {
+                            featureLines.setVisible(!root.visible);
+                        }
+                    }
+                }
             });
             document.addEventListener('keyup', (e) => {
                 controls[e.code] = false;
