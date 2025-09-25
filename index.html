@@ -4512,7 +4512,7 @@ function createBasicAgoraFallback() {
             composer.addPass(renderPass);
             bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.25, 0.4, 0.85);
             bloomPass.threshold = 0.2;
-            bloomPass.strength = 0.25;
+            bloomPass.strength = 0.0;
             bloomPass.radius = 0.2;
             composer.addPass(bloomPass);
             composer.setSize(window.innerWidth, window.innerHeight);
@@ -4556,7 +4556,7 @@ function createBasicAgoraFallback() {
                 hemiSkyColor: 0x87ceeb,
                 hemiGroundColor: 0x8b4513,
                 exposure: 1.0,
-                bloomStrength: 0.22,
+                bloomStrength: 0.0,
                 fogColor: 0xcfe8ff,
                 fogNear: 600,
                 fogFar: 6000,
@@ -4581,7 +4581,6 @@ function createBasicAgoraFallback() {
                     settings.hemiSkyColor = 0xffd8a3;
                     settings.hemiGroundColor = 0xb48666;
                     settings.exposure = 0.94;
-                    settings.bloomStrength = 0.28;
                     settings.fogColor = 0xffe6cc;
                     settings.skyTurbidity = 8.0;
                     settings.skyRayleigh = 2.2;
@@ -4598,7 +4597,6 @@ function createBasicAgoraFallback() {
                     settings.hemiSkyColor = 0x3f5a7a;
                     settings.hemiGroundColor = 0x1c2432;
                     settings.exposure = 0.82;
-                    settings.bloomStrength = 0.4;
                     settings.fogColor = 0x4a5c78;
                     settings.starOpacity = 0.25;
                     settings.skyTurbidity = 2.5;
@@ -4639,7 +4637,6 @@ function createBasicAgoraFallback() {
                     settings.hemiSkyColor = 0xffb482;
                     settings.hemiGroundColor = 0x947e73;
                     settings.exposure = 0.9;
-                    settings.bloomStrength = 0.3;
                     settings.fogColor = 0xffdbc2;
                     settings.skyTurbidity = 9.0;
                     settings.skyRayleigh = 2.0;
@@ -4657,7 +4654,6 @@ function createBasicAgoraFallback() {
                     settings.hemiSkyColor = 0x0a1330;
                     settings.hemiGroundColor = 0x020205;
                     settings.exposure = 0.85;
-                    settings.bloomStrength = 0.55;
                     settings.fogColor = 0x0a101b;
                     settings.starOpacity = 1.0;
                     settings.skyTurbidity = 1.2;
