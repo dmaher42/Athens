@@ -557,6 +557,7 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { resolveAssetUrl } from './src/utils/asset-paths.js';
 import { setupGround, configureGround, updateTrees } from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
+import { createMountainRim } from './src/horizon/mountainRim.js';
 import * as buildingMaterials from './src/scene/materials.js';
 import { createCityWallPerimeter, createCityGatehouse } from './src/scene/city-wall.js';
 import {
@@ -2252,6 +2253,36 @@ const retargetBuildingMaterials =
 
             // Sky, stars, and post-processing
             initSkyAndStars();
+
+            const devicePixelRatio = window.devicePixelRatio || 1;
+            let horizonSegments = 128;
+            if (renderer?.capabilities?.isWebGL2 === false) {
+                horizonSegments = 96;
+            }
+            if (devicePixelRatio < 1.25) {
+                horizonSegments = Math.min(horizonSegments, 96);
+            }
+            if (devicePixelRatio < 1.0) {
+                horizonSegments = Math.min(horizonSegments, 64);
+            }
+
+            const HORIZON_ENABLE = true;
+            const HORIZON_RADIUS = 900;
+            const HORIZON_HEIGHT = 70;
+            window.getMountainRim = () => null;
+            if (HORIZON_ENABLE) {
+                const mountainRim = createMountainRim({
+                    radius: HORIZON_RADIUS,
+                    height: HORIZON_HEIGHT,
+                    radialSegments: horizonSegments,
+                    noise: 0.38,
+                    seed: 2025,
+                    color: 0x0e1b2b
+                });
+                scene.add(mountainRim);
+                window.getMountainRim = () => mountainRim;
+            }
+
             setupPostFX();
 
             // Initialize textures and materials now that renderer exists
