@@ -1574,6 +1574,7 @@ const retargetBuildingMaterials =
         let cameraOffset = new THREE.Vector3(0, 3, 7);
 
         let audioStarted = false;
+        let audioStartInProgress = false;
         const chickens = [];
         const citizens = [];
         const HOPLITE_PATROL_SCRATCH = {
@@ -6047,355 +6048,374 @@ world.addBody(archBody);
         }
 
         // --- CONTROLS ---
-        function createAmbientSounds() {
+        async function createAmbientSounds() {
             if (crowdChatter) {
                 return;
             }
 
-            if (!masterBus) {
-                masterBus = new Tone.Volume(-8).toDestination();
-            }
-            if (!environmentReverb) {
-                environmentReverb = new Tone.Reverb({
-                    decay: 3.8,
-                    preDelay: 0.4,
-                    wet: 0.35
-                }).toDestination();
-            }
+            try {
+                const Tone = await loadToneLibrary();
+                if (!Tone) {
+                    throw new Error('Tone.js is unavailable after loading.');
+                }
 
-            Tone.Transport.bpm.value = 66;
+                await Tone.start();
 
-            // Marketplace crowd bed
-            crowdChatter = new Tone.Noise("pink").start();
-            crowdPanner = new Tone.Panner3D({
-                positionX: marketAmbiencePosition.x,
-                positionY: marketAmbiencePosition.y,
-                positionZ: marketAmbiencePosition.z,
-            });
-            const crowdFilter = new Tone.AutoFilter({
-                frequency: "4m",
-                baseFrequency: 180,
-                octaves: 2.5,
-                depth: 0.6
-            }).start();
-            const crowdEQ = new Tone.EQ3(-10, 1, -12);
-            marketVolume = new Tone.Volume(-20);
-            crowdChatter.chain(crowdFilter, crowdEQ, marketVolume, crowdPanner);
-            crowdPanner.connect(masterBus);
-            crowdPanner.connect(environmentReverb);
+                if (typeof Tone.getContext === 'function') {
+                    const rawContext = Tone.getContext().rawContext;
+                    if (rawContext && typeof rawContext.resume === 'function' && rawContext.state === 'suspended') {
+                        await rawContext.resume();
+                    }
+                }
 
-            merchantSynth = new Tone.Synth({
-                oscillator: { type: "triangle" },
-                envelope: { attack: 0.02, decay: 0.3, sustain: 0.15, release: 0.6 }
-            });
-            const merchantVibrato = new Tone.Vibrato(5, 0.2).start();
-            merchantVolume = new Tone.Volume(-26);
-            const merchantPanner = new Tone.Panner3D({
-                positionX: marketAmbiencePosition.x + scaleValue(4),
-                positionY: marketAmbiencePosition.y,
-                positionZ: marketAmbiencePosition.z - scaleValue(2),
-            });
-            merchantSynth.chain(merchantVibrato, merchantVolume, merchantPanner);
-            merchantPanner.connect(masterBus);
-            merchantPanner.connect(environmentReverb);
+                if (!masterBus) {
+                    masterBus = new Tone.Volume(-8).toDestination();
+                }
+                if (!environmentReverb) {
+                    environmentReverb = new Tone.Reverb({
+                        decay: 3.8,
+                        preDelay: 0.4,
+                        wet: 0.35
+                    }).toDestination();
+                }
 
-            merchantLoop = new Tone.Loop((time) => {
-                const baseNotes = ["C4", "D4", "E4", "G4"];
-                const baseNote = baseNotes[Math.floor(Math.random() * baseNotes.length)];
-                merchantSynth.triggerAttackRelease(baseNote, "8n", time, 0.35);
+                Tone.Transport.bpm.value = 66;
 
-                const replyDelay = Tone.Time("8n").toSeconds() * 0.75;
-                const followNote = Tone.Frequency(baseNote).transpose(5).toNote();
-                Tone.Transport.scheduleOnce((callTime) => {
-                    merchantSynth.triggerAttackRelease(followNote, "8n", callTime, 0.25);
-                }, time + replyDelay);
-            }, "4m").start("+1m");
-            merchantLoop.probability = 0.55;
-
-            // Fountain and water movement
-            fountainNoise = new Tone.Noise("white").start();
-            fountainPanner = new Tone.Panner3D({
-                positionX: fountainPosition.x,
-                positionY: fountainPosition.y,
-                positionZ: fountainPosition.z,
-            });
-            const fountainFilter = new Tone.Filter({
-                type: "bandpass",
-                frequency: 1200,
-                Q: 1.2
-            });
-            const fountainAuto = new Tone.AutoFilter({
-                frequency: 0.3,
-                baseFrequency: 900,
-                octaves: 1
-            }).start();
-            fountainVolume = new Tone.Volume(-28);
-            fountainNoise.chain(fountainFilter, fountainAuto, fountainVolume, fountainPanner);
-            fountainPanner.connect(masterBus);
-            fountainPanner.connect(environmentReverb);
-
-            // Hillside wind and trees
-            windNoise = new Tone.Noise("brown").start();
-            windPanner = new Tone.Panner3D({
-                positionX: hillsideWindPosition.x,
-                positionY: hillsideWindPosition.y,
-                positionZ: hillsideWindPosition.z,
-            });
-            const windFilter = new Tone.Filter({
-                type: "lowpass",
-                frequency: 500,
-                Q: 0.8
-            });
-            const windAuto = new Tone.AutoFilter({
-                frequency: 0.05,
-                baseFrequency: 200,
-                octaves: 1.5,
-                depth: 0.7
-            }).start();
-            const windLFO = new Tone.LFO({
-                frequency: 0.015,
-                min: 200,
-                max: 600
-            }).start();
-            windLFO.connect(windFilter.frequency);
-            windVolume = new Tone.Volume(-32);
-            windNoise.chain(windAuto, windFilter, windVolume, windPanner);
-            windPanner.connect(masterBus);
-            windPanner.connect(environmentReverb);
-
-            // Temple chanting ambience
-            templeChantSynth = new Tone.PolySynth(Tone.Synth, {
-                oscillator: { type: "sine" },
-                envelope: { attack: 1.5, decay: 0.5, sustain: 0.4, release: 4 }
-            });
-            const templeFilter = new Tone.Filter({
-                type: "lowpass",
-                frequency: 800,
-                Q: 0.7
-            });
-            templeVolume = new Tone.Volume(-30);
-            templeChantPanner = new Tone.Panner3D({
-                positionX: templeChantPosition.x,
-                positionY: templeChantPosition.y,
-                positionZ: templeChantPosition.z,
-            });
-            templeChantSynth.chain(templeFilter, templeVolume, templeChantPanner);
-            templeChantPanner.connect(masterBus);
-            templeChantPanner.connect(environmentReverb);
-
-            let chantIndex = 0;
-            const chantChords = [
-                ["C4", "G3", "E4"],
-                ["D4", "A3", "F4"],
-                ["E4", "B3", "G4"],
-                ["G3", "D4", "B3"],
-            ];
-            templeChantLoop = new Tone.Loop((time) => {
-                const chord = chantChords[chantIndex % chantChords.length];
-                chantIndex++;
-                templeChantSynth.triggerAttackRelease(chord, "2m", time, 0.25);
-            }, "4m").start("+0.5m");
-            templeChantLoop.probability = 0.85;
-
-            // Harbor birds
-            seagullSynth = new Tone.Synth({
-                oscillator: { type: "sine" },
-                envelope: { attack: 0.05, decay: 0.2, sustain: 0.05, release: 1.5 }
-            });
-            const seagullVibrato = new Tone.Vibrato(7, 0.4).start();
-            seagullPanner = new Tone.Panner3D({
-                positionX: harbourBirdsPosition.x,
-                positionY: harbourBirdsPosition.y,
-                positionZ: harbourBirdsPosition.z,
-            });
-            seagullVolume = new Tone.Volume(-32);
-            seagullSynth.chain(seagullVibrato, seagullVolume, seagullPanner);
-            seagullPanner.connect(masterBus);
-            seagullPanner.connect(environmentReverb);
-
-            const seagullDelay = Tone.Time("8n").toSeconds();
-            seagullLoop = new Tone.Loop((time) => {
-                const baseCalls = ["A5", "B5", "C6", "D6"];
-                const base = baseCalls[Math.floor(Math.random() * baseCalls.length)];
-                seagullSynth.triggerAttackRelease(base, "8n", time, 0.35);
-
-                const responseNote = Tone.Frequency(base).transpose(-3).toNote();
-                Tone.Transport.scheduleOnce((callTime) => {
-                    seagullSynth.triggerAttackRelease(responseNote, "4n", callTime, 0.25);
-                }, time + seagullDelay * (0.5 + Math.random() * 0.5));
-            }, "6m").start("+1m");
-            seagullLoop.probability = 0.4;
-
-            // Blacksmith forge rhythm
-            const blacksmithPanner = new Tone.Panner3D({
-                positionX: blacksmithPosition.x,
-                positionY: blacksmithPosition.y,
-                positionZ: blacksmithPosition.z,
-            });
-            const blacksmithVolume = new Tone.Volume(-20);
-            blacksmithSound = new Tone.MetalSynth({
-                frequency: 150,
-                envelope: { attack: 0.001, decay: 0.35, release: 0.2 },
-                harmonicity: 8.1,
-                modulationIndex: 24,
-                resonance: 4000,
-                octaves: 1.5
-            });
-            blacksmithSound.chain(blacksmithVolume, blacksmithPanner);
-            blacksmithPanner.connect(masterBus);
-            blacksmithPanner.connect(environmentReverb);
-
-            blacksmithLoop = new Tone.Loop((time) => {
-                const hitVelocity = 0.7 + Math.random() * 0.2;
-                blacksmithSound.triggerAttackRelease("C3", "16n", time, hitVelocity);
-                const eighth = Tone.Time("8n").toSeconds();
-
-                Tone.Transport.scheduleOnce((accentTime) => {
-                    blacksmithSound.triggerAttackRelease("G3", "32n", accentTime, hitVelocity * 0.7);
-                }, time + eighth * (0.45 + Math.random() * 0.1));
-
-                Tone.Transport.scheduleOnce((finishingTime) => {
-                    blacksmithSound.triggerAttackRelease("C3", "16n", finishingTime, hitVelocity * 0.9);
-                }, time + eighth * (0.95 + Math.random() * 0.1));
-            }, "1m").start("+0.5m");
-            blacksmithLoop.probability = 0.9;
-
-            // Animal life around the Agora without bundling binary samples
-            const createAnimalAmbience = ({ position, initialVolume, createSource, onLoop, interval, startOffset, probability }) => {
-                const { source, chain = [] } = createSource();
-                const volumeNode = new Tone.Volume(initialVolume);
-                const pannerNode = new Tone.Panner3D({
-                    positionX: position.x,
-                    positionY: position.y,
-                    positionZ: position.z,
+                // Marketplace crowd bed
+                crowdChatter = new Tone.Noise("pink").start();
+                crowdPanner = new Tone.Panner3D({
+                    positionX: marketAmbiencePosition.x,
+                    positionY: marketAmbiencePosition.y,
+                    positionZ: marketAmbiencePosition.z,
                 });
+                const crowdFilter = new Tone.AutoFilter({
+                    frequency: "4m",
+                    baseFrequency: 180,
+                    octaves: 2.5,
+                    depth: 0.6
+                }).start();
+                const crowdEQ = new Tone.EQ3(-10, 1, -12);
+                marketVolume = new Tone.Volume(-20);
+                crowdChatter.chain(crowdFilter, crowdEQ, marketVolume, crowdPanner);
+                crowdPanner.connect(masterBus);
+                crowdPanner.connect(environmentReverb);
 
-                source.chain(...chain, volumeNode, pannerNode);
-                pannerNode.connect(masterBus);
-                pannerNode.connect(environmentReverb);
+                merchantSynth = new Tone.Synth({
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.02, decay: 0.3, sustain: 0.15, release: 0.6 }
+                });
+                const merchantVibrato = new Tone.Vibrato(5, 0.2).start();
+                merchantVolume = new Tone.Volume(-26);
+                const merchantPanner = new Tone.Panner3D({
+                    positionX: marketAmbiencePosition.x + scaleValue(4),
+                    positionY: marketAmbiencePosition.y,
+                    positionZ: marketAmbiencePosition.z - scaleValue(2),
+                });
+                merchantSynth.chain(merchantVibrato, merchantVolume, merchantPanner);
+                merchantPanner.connect(masterBus);
+                merchantPanner.connect(environmentReverb);
 
-                const loop = new Tone.Loop((time) => onLoop(time, source), interval).start(startOffset);
-                loop.probability = probability;
+                merchantLoop = new Tone.Loop((time) => {
+                    const baseNotes = ["C4", "D4", "E4", "G4"];
+                    const baseNote = baseNotes[Math.floor(Math.random() * baseNotes.length)];
+                    merchantSynth.triggerAttackRelease(baseNote, "8n", time, 0.35);
 
-                return {
-                    source,
-                    volume: volumeNode,
-                    panner: pannerNode,
-                    loop,
+                    const replyDelay = Tone.Time("8n").toSeconds() * 0.75;
+                    const followNote = Tone.Frequency(baseNote).transpose(5).toNote();
+                    Tone.Transport.scheduleOnce((callTime) => {
+                        merchantSynth.triggerAttackRelease(followNote, "8n", callTime, 0.25);
+                    }, time + replyDelay);
+                }, "4m").start("+1m");
+                merchantLoop.probability = 0.55;
+
+                // Fountain and water movement
+                fountainNoise = new Tone.Noise("white").start();
+                fountainPanner = new Tone.Panner3D({
+                    positionX: fountainPosition.x,
+                    positionY: fountainPosition.y,
+                    positionZ: fountainPosition.z,
+                });
+                const fountainFilter = new Tone.Filter({
+                    type: "bandpass",
+                    frequency: 1200,
+                    Q: 1.2
+                });
+                const fountainAuto = new Tone.AutoFilter({
+                    frequency: 0.3,
+                    baseFrequency: 900,
+                    octaves: 1
+                }).start();
+                fountainVolume = new Tone.Volume(-28);
+                fountainNoise.chain(fountainFilter, fountainAuto, fountainVolume, fountainPanner);
+                fountainPanner.connect(masterBus);
+                fountainPanner.connect(environmentReverb);
+
+                // Hillside wind and trees
+                windNoise = new Tone.Noise("brown").start();
+                windPanner = new Tone.Panner3D({
+                    positionX: hillsideWindPosition.x,
+                    positionY: hillsideWindPosition.y,
+                    positionZ: hillsideWindPosition.z,
+                });
+                const windFilter = new Tone.Filter({
+                    type: "lowpass",
+                    frequency: 500,
+                    Q: 0.8
+                });
+                const windAuto = new Tone.AutoFilter({
+                    frequency: 0.05,
+                    baseFrequency: 200,
+                    octaves: 1.5,
+                    depth: 0.7
+                }).start();
+                const windLFO = new Tone.LFO({
+                    frequency: 0.015,
+                    min: 200,
+                    max: 600
+                }).start();
+                windLFO.connect(windFilter.frequency);
+                windVolume = new Tone.Volume(-32);
+                windNoise.chain(windAuto, windFilter, windVolume, windPanner);
+                windPanner.connect(masterBus);
+                windPanner.connect(environmentReverb);
+
+                // Temple chanting ambience
+                templeChantSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 1.5, decay: 0.5, sustain: 0.4, release: 4 }
+                });
+                const templeFilter = new Tone.Filter({
+                    type: "lowpass",
+                    frequency: 800,
+                    Q: 0.7
+                });
+                templeVolume = new Tone.Volume(-30);
+                templeChantPanner = new Tone.Panner3D({
+                    positionX: templeChantPosition.x,
+                    positionY: templeChantPosition.y,
+                    positionZ: templeChantPosition.z,
+                });
+                templeChantSynth.chain(templeFilter, templeVolume, templeChantPanner);
+                templeChantPanner.connect(masterBus);
+                templeChantPanner.connect(environmentReverb);
+
+                let chantIndex = 0;
+                const chantChords = [
+                    ["C4", "G3", "E4"],
+                    ["D4", "A3", "F4"],
+                    ["E4", "B3", "G4"],
+                    ["G3", "D4", "B3"],
+                ];
+                templeChantLoop = new Tone.Loop((time) => {
+                    const chord = chantChords[chantIndex % chantChords.length];
+                    chantIndex++;
+                    templeChantSynth.triggerAttackRelease(chord, "2m", time, 0.25);
+                }, "4m").start("+0.5m");
+                templeChantLoop.probability = 0.85;
+
+                // Harbor birds
+                seagullSynth = new Tone.Synth({
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.05, decay: 0.2, sustain: 0.05, release: 1.5 }
+                });
+                const seagullVibrato = new Tone.Vibrato(7, 0.4).start();
+                seagullPanner = new Tone.Panner3D({
+                    positionX: harbourBirdsPosition.x,
+                    positionY: harbourBirdsPosition.y,
+                    positionZ: harbourBirdsPosition.z,
+                });
+                seagullVolume = new Tone.Volume(-32);
+                seagullSynth.chain(seagullVibrato, seagullVolume, seagullPanner);
+                seagullPanner.connect(masterBus);
+                seagullPanner.connect(environmentReverb);
+
+                const seagullDelay = Tone.Time("8n").toSeconds();
+                seagullLoop = new Tone.Loop((time) => {
+                    const baseCalls = ["A5", "B5", "C6", "D6"];
+                    const base = baseCalls[Math.floor(Math.random() * baseCalls.length)];
+                    seagullSynth.triggerAttackRelease(base, "8n", time, 0.35);
+
+                    const responseNote = Tone.Frequency(base).transpose(-3).toNote();
+                    Tone.Transport.scheduleOnce((callTime) => {
+                        seagullSynth.triggerAttackRelease(responseNote, "4n", callTime, 0.25);
+                    }, time + seagullDelay * (0.5 + Math.random() * 0.5));
+                }, "6m").start("+1m");
+                seagullLoop.probability = 0.4;
+
+                // Blacksmith forge rhythm
+                const blacksmithPanner = new Tone.Panner3D({
+                    positionX: blacksmithPosition.x,
+                    positionY: blacksmithPosition.y,
+                    positionZ: blacksmithPosition.z,
+                });
+                const blacksmithVolume = new Tone.Volume(-20);
+                blacksmithSound = new Tone.MetalSynth({
+                    frequency: 150,
+                    envelope: { attack: 0.001, decay: 0.35, release: 0.2 },
+                    harmonicity: 8.1,
+                    modulationIndex: 24,
+                    resonance: 4000,
+                    octaves: 1.5
+                });
+                blacksmithSound.chain(blacksmithVolume, blacksmithPanner);
+                blacksmithPanner.connect(masterBus);
+                blacksmithPanner.connect(environmentReverb);
+
+                blacksmithLoop = new Tone.Loop((time) => {
+                    const hitVelocity = 0.7 + Math.random() * 0.2;
+                    blacksmithSound.triggerAttackRelease("C3", "16n", time, hitVelocity);
+                    const eighth = Tone.Time("8n").toSeconds();
+
+                    Tone.Transport.scheduleOnce((accentTime) => {
+                        blacksmithSound.triggerAttackRelease("G3", "32n", accentTime, hitVelocity * 0.7);
+                    }, time + eighth * (0.45 + Math.random() * 0.1));
+
+                    Tone.Transport.scheduleOnce((finishingTime) => {
+                        blacksmithSound.triggerAttackRelease("C3", "16n", finishingTime, hitVelocity * 0.9);
+                    }, time + eighth * (0.95 + Math.random() * 0.1));
+                }, "1m").start("+0.5m");
+                blacksmithLoop.probability = 0.9;
+
+                // Animal life around the Agora without bundling binary samples
+                const createAnimalAmbience = ({ position, initialVolume, createSource, onLoop, interval, startOffset, probability }) => {
+                    const { source, chain = [] } = createSource();
+                    const volumeNode = new Tone.Volume(initialVolume);
+                    const pannerNode = new Tone.Panner3D({
+                        positionX: position.x,
+                        positionY: position.y,
+                        positionZ: position.z,
+                    });
+
+                    source.chain(...chain, volumeNode, pannerNode);
+                    pannerNode.connect(masterBus);
+                    pannerNode.connect(environmentReverb);
+
+                    const loop = new Tone.Loop((time) => onLoop(time, source), interval).start(startOffset);
+                    loop.probability = probability;
+
+                    return {
+                        source,
+                        volume: volumeNode,
+                        panner: pannerNode,
+                        loop,
+                    };
                 };
-            };
 
-            animalAmbiences = {
-                dog: createAnimalAmbience({
-                    position: kennelPosition,
-                    initialVolume: -28,
-                    interval: "4m",
-                    startOffset: "+1.5m",
-                    probability: 0.35,
-                    createSource: () => {
-                        const synth = new Tone.MembraneSynth({
-                            pitchDecay: 0.05,
-                            octaves: 4,
-                            oscillator: { type: "square" },
-                            envelope: { attack: 0.001, decay: 0.45, sustain: 0, release: 0.3 },
-                        });
-                        const filter = new Tone.Filter({
-                            type: "bandpass",
-                            frequency: 380,
-                            Q: 1.5,
-                        });
-                        return { source: synth, chain: [filter] };
-                    },
-                    onLoop: (time, synth) => {
-                        const barkNote = Math.random() > 0.5 ? "G2" : "A2";
-                        const barkVelocity = 0.4 + Math.random() * 0.25;
-                        synth.triggerAttackRelease(barkNote, "16n", time, barkVelocity);
-                        Tone.Transport.scheduleOnce((secondBarkTime) => {
-                            synth.triggerAttackRelease(barkNote, "16n", secondBarkTime, barkVelocity * 0.8);
-                        }, time + Tone.Time("16n").toSeconds() * (0.35 + Math.random() * 0.25));
-                    },
-                }),
-                cat: createAnimalAmbience({
-                    position: catAlleyPosition,
-                    initialVolume: -30,
-                    interval: "5m",
-                    startOffset: "+2.2m",
-                    probability: 0.3,
-                    createSource: () => {
-                        const synth = new Tone.Synth({
-                            oscillator: { type: "triangle" },
-                            envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.9 },
-                        });
-                        synth.portamento = 0.15;
-                        const filter = new Tone.Filter({
-                            type: "bandpass",
-                            frequency: 900,
-                            Q: 1.2,
-                        });
-                        const vibrato = new Tone.Vibrato(5, 0.12).start();
-                        return { source: synth, chain: [filter, vibrato] };
-                    },
-                    onLoop: (time, synth) => {
-                        const startNote = ["E4", "F4", "G4"][Math.floor(Math.random() * 3)];
-                        const peakFrequency = Tone.Frequency(startNote).transpose(3).toFrequency();
-                        const releaseDelay = 1.0 + Math.random() * 0.4;
+                animalAmbiences = {
+                    dog: createAnimalAmbience({
+                        position: kennelPosition,
+                        initialVolume: -28,
+                        interval: "4m",
+                        startOffset: "+1.5m",
+                        probability: 0.35,
+                        createSource: () => {
+                            const synth = new Tone.MembraneSynth({
+                                pitchDecay: 0.05,
+                                octaves: 4,
+                                oscillator: { type: "square" },
+                                envelope: { attack: 0.001, decay: 0.45, sustain: 0, release: 0.3 },
+                            });
+                            const filter = new Tone.Filter({
+                                type: "bandpass",
+                                frequency: 380,
+                                Q: 1.5,
+                            });
+                            return { source: synth, chain: [filter] };
+                        },
+                        onLoop: (time, synth) => {
+                            const barkNote = Math.random() > 0.5 ? "G2" : "A2";
+                            const barkVelocity = 0.4 + Math.random() * 0.25;
+                            synth.triggerAttackRelease(barkNote, "16n", time, barkVelocity);
+                            Tone.Transport.scheduleOnce((secondBarkTime) => {
+                                synth.triggerAttackRelease(barkNote, "16n", secondBarkTime, barkVelocity * 0.8);
+                            }, time + Tone.Time("16n").toSeconds() * (0.35 + Math.random() * 0.25));
+                        },
+                    }),
+                    cat: createAnimalAmbience({
+                        position: catAlleyPosition,
+                        initialVolume: -30,
+                        interval: "5m",
+                        startOffset: "+2.2m",
+                        probability: 0.3,
+                        createSource: () => {
+                            const synth = new Tone.Synth({
+                                oscillator: { type: "triangle" },
+                                envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 0.9 },
+                            });
+                            synth.portamento = 0.15;
+                            const filter = new Tone.Filter({
+                                type: "bandpass",
+                                frequency: 900,
+                                Q: 1.2,
+                            });
+                            const vibrato = new Tone.Vibrato(5, 0.12).start();
+                            return { source: synth, chain: [filter, vibrato] };
+                        },
+                        onLoop: (time, synth) => {
+                            const startNote = ["E4", "F4", "G4"][Math.floor(Math.random() * 3)];
+                            const peakFrequency = Tone.Frequency(startNote).transpose(3).toFrequency();
+                            const releaseDelay = 1.0 + Math.random() * 0.4;
 
-                        synth.triggerAttack(startNote, time, 0.25);
+                            synth.triggerAttack(startNote, time, 0.25);
 
-                        Tone.Transport.scheduleOnce((glideTime) => {
-                            synth.frequency.rampTo(peakFrequency, 0.4, glideTime);
-                        }, time + 0.25);
+                            Tone.Transport.scheduleOnce((glideTime) => {
+                                synth.frequency.rampTo(peakFrequency, 0.4, glideTime);
+                            }, time + 0.25);
 
-                        Tone.Transport.scheduleOnce((releaseTime) => {
-                            synth.triggerRelease(releaseTime);
-                        }, time + releaseDelay);
-                    },
-                }),
-                cow: createAnimalAmbience({
-                    position: cowPasturePosition,
-                    initialVolume: -28,
-                    interval: "8m",
-                    startOffset: "+2.8m",
-                    probability: 0.45,
-                    createSource: () => {
-                        const synth = new Tone.AMSynth({
-                            harmonicity: 0.6,
-                            oscillator: { type: "sine" },
-                            envelope: { attack: 0.3, decay: 0.6, sustain: 0.8, release: 2.4 },
-                            modulation: { type: "triangle" },
-                            modulationEnvelope: { attack: 0.2, decay: 0.4, sustain: 0.7, release: 1.6 },
-                        });
-                        const filter = new Tone.Filter({
-                            type: "lowpass",
-                            frequency: 280,
-                            Q: 0.9,
-                        });
-                        const vibrato = new Tone.Vibrato(1.5, 0.25).start();
-                        return { source: synth, chain: [filter, vibrato] };
-                    },
-                    onLoop: (time, synth) => {
-                        const baseNote = ["C2", "D2", "A1"][Math.floor(Math.random() * 3)];
-                        const dropTarget = Tone.Frequency(baseNote).transpose(-3).toFrequency();
-                        const sustain = 1.8 + Math.random() * 0.9;
+                            Tone.Transport.scheduleOnce((releaseTime) => {
+                                synth.triggerRelease(releaseTime);
+                            }, time + releaseDelay);
+                        },
+                    }),
+                    cow: createAnimalAmbience({
+                        position: cowPasturePosition,
+                        initialVolume: -28,
+                        interval: "8m",
+                        startOffset: "+2.8m",
+                        probability: 0.45,
+                        createSource: () => {
+                            const synth = new Tone.AMSynth({
+                                harmonicity: 0.6,
+                                oscillator: { type: "sine" },
+                                envelope: { attack: 0.3, decay: 0.6, sustain: 0.8, release: 2.4 },
+                                modulation: { type: "triangle" },
+                                modulationEnvelope: { attack: 0.2, decay: 0.4, sustain: 0.7, release: 1.6 },
+                            });
+                            const filter = new Tone.Filter({
+                                type: "lowpass",
+                                frequency: 280,
+                                Q: 0.9,
+                            });
+                            const vibrato = new Tone.Vibrato(1.5, 0.25).start();
+                            return { source: synth, chain: [filter, vibrato] };
+                        },
+                        onLoop: (time, synth) => {
+                            const baseNote = ["C2", "D2", "A1"][Math.floor(Math.random() * 3)];
+                            const dropTarget = Tone.Frequency(baseNote).transpose(-3).toFrequency();
+                            const sustain = 1.8 + Math.random() * 0.9;
 
-                        synth.triggerAttack(baseNote, time, 0.35);
+                            synth.triggerAttack(baseNote, time, 0.35);
 
-                        Tone.Transport.scheduleOnce((glideTime) => {
-                            synth.frequency.rampTo(dropTarget, 0.9, glideTime);
-                        }, time + 0.5);
+                            Tone.Transport.scheduleOnce((glideTime) => {
+                                synth.frequency.rampTo(dropTarget, 0.9, glideTime);
+                            }, time + 0.5);
 
-                        Tone.Transport.scheduleOnce((releaseTime) => {
-                            synth.triggerRelease(releaseTime);
-                        }, time + sustain);
-                    },
-                }),
-            };
+                            Tone.Transport.scheduleOnce((releaseTime) => {
+                                synth.triggerRelease(releaseTime);
+                            }, time + sustain);
+                        },
+                    }),
+                };
 
-            if (Tone.Transport.state !== "started") {
-                Tone.Transport.start();
+                if (Tone.Transport.state !== "started") {
+                    Tone.Transport.start();
+                }
+
+                updateAmbientSoundscape();
+            } catch (error) {
+                console.error('Failed to create ambient sounds:', error);
+                throw error;
             }
-
-            updateAmbientSoundscape();
         }
 
         function updateAmbientSoundscape() {
@@ -6582,20 +6602,21 @@ world.addBody(archBody);
             });
             startButton.addEventListener('click', async () => {
                 startOverlay.classList.add('fade-out');
-                if (!audioStarted) {
-                    try {
-                        const tone = await loadToneLibrary();
-                        if (!tone || typeof tone.start !== 'function') {
-                            throw new Error('Tone.js is unavailable after loading.');
-                        }
-                        await tone.start();
-                        console.log("Audio context started.");
-                        createAmbientSounds();
-                        initializeChickenAudio();
-                        audioStarted = true;
-                    } catch (error) {
-                        console.warn('Unable to start audio context:', error);
-                    }
+
+                if (audioStarted || audioStartInProgress) {
+                    return;
+                }
+
+                audioStartInProgress = true;
+                try {
+                    await createAmbientSounds();
+                    initializeChickenAudio();
+                    audioStarted = true;
+                    console.log("Audio context started.");
+                } catch (error) {
+                    console.warn('Unable to start audio context:', error);
+                } finally {
+                    audioStartInProgress = false;
                 }
             });
 
