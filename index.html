@@ -499,7 +499,7 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { resolveAssetUrl } from './src/utils/asset-paths.js';
 import { setupGround, configureGround, updateTrees } from './src/main.js';
 import { setEnvironment } from './src/scene/sky.js';
-import { loadBuildingTextures, retargetBuildingMaterials } from './src/scene/materials.js';
+import * as buildingMaterials from './src/scene/materials.js';
 import { createCityWallPerimeter, createCityGatehouse } from './src/scene/city-wall.js';
 import {
   createDistrictsLayer,
@@ -511,6 +511,16 @@ import {
 } from './src/scene/districts.js';
 
 import { initDistrictHUD, watchPlayerPosition } from './src/scene/districts-hud.js';
+
+const loadBuildingTextures =
+  typeof buildingMaterials.loadBuildingTextures === 'function'
+    ? buildingMaterials.loadBuildingTextures
+    : () => ({});
+
+const retargetBuildingMaterials =
+  typeof buildingMaterials.retargetBuildingMaterials === 'function'
+    ? buildingMaterials.retargetBuildingMaterials
+    : () => {};
 
         const TONE_JS_SOURCES = [
             'https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js'
