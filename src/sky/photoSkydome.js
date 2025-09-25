@@ -19,22 +19,36 @@ function normalizeSources(list) {
   return normalized;
 }
 
-async function loadTextureWithCache(url, loader = sharedTextureLoader) {
+async function loadTextureWithCache(url, loader = sharedTextureLoader, options = {}) {
   if (!url) throw new Error('PhotoSkydome: invalid texture URL.');
   if (!textureCache.has(url)) {
     const promise = loader
       .loadAsync(url)
       .then((texture) => {
-        // Correct color space for photographs
-        if ('SRGBColorSpace' in THREE) {
-          texture.colorSpace = THREE.SRGBColorSpace;
-        } else if ('sRGBEncoding' in THREE) {
-          texture.encoding = THREE.sRGBEncoding;
-        }
-        // Smoother gradients & sampling
+        // Correct color space for photographs & improve sampling
         texture.generateMipmaps = true;
         texture.minFilter = THREE.LinearMipmapLinearFilter;
         texture.magFilter = THREE.LinearFilter;
+        const renderer = options?.renderer;
+        let maxAnisotropy = options?.maxAnisotropy;
+        if (!Number.isFinite(maxAnisotropy) && renderer?.capabilities?.getMaxAnisotropy) {
+          try {
+            maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+          } catch (error) {
+            console.debug('PhotoSkydome: failed to query renderer anisotropy capability.', error);
+          }
+        }
+        if (!Number.isFinite(maxAnisotropy) || maxAnisotropy <= 0) {
+          maxAnisotropy = 8;
+        }
+        if ('encoding' in texture && THREE.sRGBEncoding) {
+          texture.encoding = THREE.sRGBEncoding;
+        }
+        if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+          texture.colorSpace = THREE.SRGBColorSpace;
+        }
+        texture.anisotropy = maxAnisotropy;
+        texture.needsUpdate = true;
         return texture;
       })
       .catch((error) => {
@@ -46,12 +60,12 @@ async function loadTextureWithCache(url, loader = sharedTextureLoader) {
   return textureCache.get(url);
 }
 
-async function loadTextureSequence(sources, loader) {
+async function loadTextureSequence(sources, loader, options = {}) {
   let lastError = null;
   for (const source of sources) {
     if (!source?.url) continue;
     try {
-      const texture = await loadTextureWithCache(source.url, loader);
+      const texture = await loadTextureWithCache(source.url, loader, options);
       return { texture, source };
     } catch (error) {
       lastError = error;
@@ -62,12 +76,12 @@ async function loadTextureSequence(sources, loader) {
   throw lastError || new Error('Unable to load any photo skydome texture.');
 }
 
-async function prefetchTextureSources(sources, loader) {
+async function prefetchTextureSources(sources, loader, options = {}) {
   const normalized = normalizeSources(sources);
   await Promise.all(
     normalized.map(async (source) => {
       try {
-        await loadTextureWithCache(source.url, loader);
+        await loadTextureWithCache(source.url, loader, options);
       } catch (error) {
         const label = source.label ? ` ("${source.label}")` : '';
         console.debug(`PhotoSkydome: prefetch skipped for${label} ${source.url}`, error);
@@ -96,7 +110,7 @@ export async function createPhotoSkydome({
   }
 
   const { texture: initialTexture, source: initialSource } =
-    await loadTextureSequence(initialSources, textureLoader);
+    await loadTextureSequence(initialSources, textureLoader, { renderer });
 
   // Higher segments for smoother silhouette/gradients
   const geometry = new THREE.SphereGeometry(radius, 96, 64);
@@ -224,7 +238,7 @@ export async function createPhotoSkydome({
       }
 
       const requestId = ++loadToken;
-      const { texture, source } = await loadTextureSequence(candidateSources, textureLoader);
+      const { texture, source } = await loadTextureSequence(candidateSources, textureLoader, { renderer });
       if (requestId !== loadToken) return null;
 
       defaultSources = candidateSources;
@@ -232,7 +246,7 @@ export async function createPhotoSkydome({
       return { texture, source };
     },
     async prefetchSources(list = []) {
-      await prefetchTextureSources(list, textureLoader);
+      await prefetchTextureSources(list, textureLoader, { renderer });
     },
     refreshEnvironmentMap() {
       return refreshEnvironment();
