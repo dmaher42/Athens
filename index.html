@@ -7909,10 +7909,37 @@ world.addBody(archBody);
                 document.getElementById('info-scroll-overlay').classList.add('show');
             }
         }
-        
+
+        function notifyInitializerReady(initializer) {
+            if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
+                return;
+            }
+
+            const detail = { initializer };
+
+            try {
+                window.dispatchEvent(new CustomEvent('athens:initializer-ready', { detail }));
+                return;
+            } catch (error) {
+                if (typeof document !== 'undefined' && typeof document.createEvent === 'function') {
+                    try {
+                        const event = document.createEvent('CustomEvent');
+                        event.initCustomEvent('athens:initializer-ready', false, false, detail);
+                        window.dispatchEvent(event);
+                        return;
+                    } catch (innerError) {
+                        console.debug('[Athens] Unable to dispatch initializer-ready event (fallback).', innerError);
+                    }
+                } else {
+                    console.debug('[Athens] Unable to dispatch initializer-ready event.', error);
+                }
+            }
+        }
+
         if (typeof window !== 'undefined') {
             window.initializeAthens = initializeAthens;
             window.runAthens = runAthens;
+            notifyInitializerReady(initializeAthens);
         }
 
         }
