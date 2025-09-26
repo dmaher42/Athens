@@ -47,17 +47,58 @@ async function handleRequest(request) {
     // FetchEvent promise. This prevents the "Failed to convert value to
     // Response" error that previously surfaced when network failures
     // bubbled up unhandled.
-    const body = JSON.stringify({
+    const message = extractErrorMessage(error);
+    const body = safeStringify({
       error: 'network-failure',
-      message: error?.message ?? 'Unknown network error'
+      message
     });
 
-    return new Response(body, {
-      status: NETWORK_ERROR_STATUS,
-      statusText: 'Network request failed',
-      headers: {
-        'content-type': 'application/json'
-      }
-    });
+    try {
+      return new Response(body, {
+        status: NETWORK_ERROR_STATUS,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (responseError) {
+      // If constructing the JSON response fails for any reason (for example,
+      // due to an unexpected body type restriction in the runtime) fall back
+      // to a minimal empty response so the promise still resolves with a
+      // Response instance.
+      console.warn('service-worker: falling back to empty response', responseError);
+
+      return new Response('', {
+        status: NETWORK_ERROR_STATUS
+      });
+    }
+  }
+}
+
+function extractErrorMessage(error) {
+  if (typeof error === 'string' && error.trim()) {
+    return error;
+  }
+
+  if (error && typeof error === 'object') {
+    const message = error.message;
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+
+    const name = error.name;
+    if (typeof name === 'string' && name.trim()) {
+      return name;
+    }
+  }
+
+  return 'Unknown network error';
+}
+
+function safeStringify(value) {
+  try {
+    return JSON.stringify(value);
+  } catch (stringifyError) {
+    console.warn('service-worker: failed to serialise error payload', stringifyError);
+    return '{"error":"network-failure","message":"Unknown network error"}';
   }
 }
