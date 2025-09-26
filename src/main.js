@@ -1,6 +1,9 @@
 import { loadGround } from './scene/ground.js';
 import { loadTreeLibrary, scatterTrees, updateTrees as updateTreeAnimations } from './vegetation/trees.js';
 
+const ATHENS_MAIN_SENTINEL = Symbol.for('athens.main.entrypoint');
+const isAthensMainEntrypoint = (fn) => typeof fn === 'function' && fn[ATHENS_MAIN_SENTINEL];
+
 const STATS_MODULE_ID = 'three/examples/jsm/libs/stats.module.js';
 const DEV_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '']);
 
@@ -215,12 +218,22 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
       : 50;
 
   const resolveInitializer = () => {
+    const candidates = [];
+
     if (typeof window.initializeAthens === 'function') {
-      return window.initializeAthens;
+      candidates.push(window.initializeAthens);
     }
+
     if (typeof window.runAthens === 'function') {
-      return window.runAthens;
+      candidates.push(window.runAthens);
     }
+
+    for (const candidate of candidates) {
+      if (candidate && !isAthensMainEntrypoint(candidate)) {
+        return candidate;
+      }
+    }
+
     return null;
   };
 
@@ -269,7 +282,10 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
     if (typeof window.addEventListener === 'function') {
       listener = (event) => {
         const { detail } = event || {};
-        const candidateFromEvent = detail && typeof detail.initializer === 'function' ? detail.initializer : null;
+        const candidateFromEvent =
+          detail && typeof detail.initializer === 'function' && !isAthensMainEntrypoint(detail.initializer)
+            ? detail.initializer
+            : null;
         const candidate = candidateFromEvent || resolveInitializer();
 
         if (candidate) {
@@ -283,14 +299,14 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
   });
 }
 
-export async function main(options = {}) {
+export async function main(opts = {}) {
   if (typeof window === 'undefined') {
     throw new Error('Athens main entry point is not available.');
   }
 
   const { waitForInitializerMs, waitForInitializerIntervalMs, ...forwardedOptions } =
-    options && typeof options === 'object'
-      ? options
+    opts && typeof opts === 'object'
+      ? opts
       : {};
 
   const initializer = await waitForAthensInitializer({
@@ -306,4 +322,10 @@ export async function main(options = {}) {
   }
 
   return initializer(forwardedOptions);
+}
+
+main[ATHENS_MAIN_SENTINEL] = true;
+
+if (typeof window !== 'undefined') {
+  window.initializeAthens = main;
 }
