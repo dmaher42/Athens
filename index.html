@@ -570,8 +570,8 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
-        import { KNOWN_PRESETS, resolvePreset } from './src/sky/presets.js';
-        import { resolveName } from './src/core/nameResolver.js';
+        import { KNOWN_PRESETS } from './src/sky/presets.js';
+        import { resolvePreset } from './src/core/presetResolver.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
         import { createStarField } from './src/sky/starField.js';
         import { createMoon } from './src/sky/moon.js';
@@ -1516,10 +1516,10 @@ const retargetBuildingMaterials =
                 ? window.__AthensEnv?.preset ?? window.__AthensEnv?.skydomePreset ?? null
                 : null;
             const rawName = fromOptions ?? fromURL ?? fromEnv ?? null;
-            const safeName = resolveName(rawName);
+            const safeName = resolvePreset(rawName);
 
             if (!rawName) {
-                console.error('[Athens] initializeAthens(): No preset provided. Falling back to default:', safeName);
+                console.warn('[Athens] initializeAthens(): No preset provided. Falling back to default:', safeName);
             }
 
             return safeName;
@@ -1562,9 +1562,15 @@ const retargetBuildingMaterials =
                     window.__AthensOptions = mainOptions;
                     window.__AthensSkyPreset = presetName;
                     window.__AthensResolvedName = presetName;
+                    window.__AthensPreset = presetName;
                 }
 
-                await runAthens(mainOptions);
+                try {
+                    await runAthens(mainOptions);
+                } catch (error) {
+                    console.error('🏛️ Athens Initialization Error - initializeAthens()', error);
+                    throw error;
+                }
             } catch (error) {
                 if (!error?.__athensLogged) {
                     console.error('Athens experience failed to initialize:', error);
@@ -1590,17 +1596,22 @@ const retargetBuildingMaterials =
 
         async function runAthens(options = {}) {
 
-            const providedPreset = options?.preset ?? options?.skydomePreset ?? (typeof window !== 'undefined'
-                ? window.__AthensResolvedName ?? window.__AthensSkyPreset ?? null
-                : null);
-            const initialResolvedPreset = resolveName(providedPreset);
+            const fallbackPreset = typeof window !== 'undefined'
+                ? window.__AthensPreset ?? window.__AthensResolvedName ?? window.__AthensSkyPreset ?? null
+                : null;
+            const providedPreset = options?.preset ?? options?.skydomePreset ?? fallbackPreset;
+            const safePreset = resolvePreset(providedPreset);
 
             if (!providedPreset) {
-                console.error('[Athens] runAthens(): No preset provided. Falling back to default:', initialResolvedPreset);
+                console.warn('[Athens] runAthens(): No preset passed, using default:', safePreset);
             }
 
+            options = { ...options, preset: safePreset, skydomePreset: safePreset };
+
             if (typeof window !== 'undefined') {
-                window.__AthensResolvedName = initialResolvedPreset;
+                window.__AthensPreset = safePreset;
+                window.__AthensResolvedName = safePreset;
+                window.__AthensSkyPreset = safePreset;
             }
 
         // --- GLOBAL VARIABLES ---
@@ -2056,7 +2067,7 @@ const retargetBuildingMaterials =
         let lastTime = performance.now();
         
         let soundEnabled = true;
-        const initialSkyPreset = initialResolvedPreset;
+        const initialSkyPreset = safePreset;
         const initialSkyConfig = photoSkyTimeConfig?.[initialSkyPreset] || null;
         if (typeof window !== 'undefined') {
             window.__AthensSkyPreset = initialSkyPreset;
