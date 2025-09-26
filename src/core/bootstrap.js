@@ -1,3 +1,5 @@
+import { main } from '../main.js';
+
 let startedAt = null;
 let lastError = null;
 
@@ -38,51 +40,22 @@ function logPhase(label, data) {
   }
 }
 
-async function fallbackInit() {
-  logPhase('Fallback init engaged (no main/init available)');
-  showErrorOverlay(
-    'Main init function not available. Check that your build exports a `main()` or defines `window.initializeAthens`.'
-  );
-}
-
 export default async function boot(opts = {}) {
   startedAt = Date.now();
   lastError = null;
   logPhase('Boot start');
 
   try {
-    let candidate = null;
-    if (typeof opts.main === 'function') {
-      candidate = opts.main;
-      logPhase('Using opts.main()');
-    } else {
-      try {
-        const mod = await import('../main.js');
-        if (typeof mod.main === 'function') {
-          candidate = mod.main;
-          logPhase('Using module main() from src/main.js');
-        }
-      } catch (e) {
-        logPhase('Module main() not found (import failed). Will try globals next.');
-      }
-    }
+    const rawOptions = opts && typeof opts === 'object' ? { ...opts } : {};
+    const { main: overrideMain, ...candidateOptions } = rawOptions;
 
-    if (!candidate && typeof window !== 'undefined' && typeof window.initializeAthens === 'function') {
-      candidate = window.initializeAthens;
-      logPhase('Using global initializeAthens()');
-    }
+    const entryPoint = typeof overrideMain === 'function' ? overrideMain : main;
 
-    if (!candidate) {
-      await fallbackInit();
-      return;
-    }
-
-    const candidateOptions = (opts && typeof opts === 'object') ? { ...opts } : {};
     if (!candidateOptions?.preset && !candidateOptions?.skydomePreset) {
       candidateOptions.preset = 'High Noon';
     }
 
-    await candidate(candidateOptions);
+    await entryPoint(candidateOptions);
     logPhase('Boot complete', { elapsedMs: Date.now() - startedAt });
   } catch (err) {
     lastError = err;
