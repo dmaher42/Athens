@@ -202,15 +202,68 @@ export function getTreeLibrary() {
   return treeLibraryState;
 }
 
-export async function main(options = {}) {
-  if (typeof window !== 'undefined') {
-    if (typeof window.initializeAthens === 'function') {
-      return window.initializeAthens(options);
-    }
-    if (typeof window.runAthens === 'function') {
-      return window.runAthens(options);
-    }
+async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 } = {}) {
+  if (typeof window === 'undefined') {
+    return null;
   }
 
-  throw new Error('Athens main entry point is not available.');
+  const resolveInitializer = () => {
+    if (typeof window.initializeAthens === 'function') {
+      return window.initializeAthens;
+    }
+    if (typeof window.runAthens === 'function') {
+      return window.runAthens;
+    }
+    return null;
+  };
+
+  let initializer = resolveInitializer();
+  if (initializer) {
+    return initializer;
+  }
+
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const tick = () => {
+      initializer = resolveInitializer();
+      if (initializer) {
+        resolve(initializer);
+        return;
+      }
+
+      if (Date.now() - start >= timeoutMs) {
+        resolve(null);
+        return;
+      }
+
+      setTimeout(tick, pollIntervalMs);
+    };
+
+    setTimeout(tick, pollIntervalMs);
+  });
+}
+
+export async function main(options = {}) {
+  if (typeof window === 'undefined') {
+    throw new Error('Athens main entry point is not available.');
+  }
+
+  const { waitForInitializerMs, waitForInitializerIntervalMs, ...forwardedOptions } =
+    options && typeof options === 'object'
+      ? options
+      : {};
+
+  const initializer = await waitForAthensInitializer({
+    timeoutMs: typeof waitForInitializerMs === 'number' ? waitForInitializerMs : undefined,
+    pollIntervalMs:
+      typeof waitForInitializerIntervalMs === 'number'
+        ? waitForInitializerIntervalMs
+        : undefined
+  });
+
+  if (typeof initializer !== 'function') {
+    throw new Error('Athens main entry point is not available.');
+  }
+
+  return initializer(forwardedOptions);
 }
