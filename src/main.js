@@ -326,6 +326,6 @@ export async function main(opts = {}) {
 
 main[ATHENS_MAIN_SENTINEL] = true;
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && typeof window.initializeAthens !== 'function') {
   window.initializeAthens = main;
 }

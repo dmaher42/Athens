@@ -51,6 +51,10 @@ export default async function boot(opts = {}) {
 
     const entryPoint = typeof overrideMain === 'function' ? overrideMain : main;
 
+    if (typeof entryPoint !== 'function') {
+      throw new Error('Athens main entry point is not available.');
+    }
+
     if (!candidateOptions?.preset && !candidateOptions?.skydomePreset) {
       candidateOptions.preset = 'High Noon';
     }
