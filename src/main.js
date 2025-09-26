@@ -224,22 +224,55 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
 
   return new Promise((resolve) => {
     const start = Date.now();
+    const hasTimeout = typeof timeoutMs === 'number' && timeoutMs >= 0 && Number.isFinite(timeoutMs);
+
+    let timeoutId = null;
+    let listener = null;
+
+    const cleanup = () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      if (listener && typeof window.removeEventListener === 'function') {
+        window.removeEventListener('athens:initializer-ready', listener);
+        listener = null;
+      }
+    };
+
     const tick = () => {
-      initializer = resolveInitializer();
-      if (initializer) {
-        resolve(initializer);
+      const candidate = resolveInitializer();
+      if (candidate) {
+        cleanup();
+        resolve(candidate);
         return;
       }
 
-      if (Date.now() - start >= timeoutMs) {
+      if (hasTimeout && Date.now() - start >= timeoutMs) {
+        cleanup();
         resolve(null);
         return;
       }
 
-      setTimeout(tick, pollIntervalMs);
+      timeoutId = setTimeout(tick, pollIntervalMs);
     };
 
-    setTimeout(tick, pollIntervalMs);
+    timeoutId = setTimeout(tick, pollIntervalMs);
+
+    if (typeof window.addEventListener === 'function') {
+      listener = (event) => {
+        const { detail } = event || {};
+        const candidateFromEvent = detail && typeof detail.initializer === 'function' ? detail.initializer : null;
+        const candidate = candidateFromEvent || resolveInitializer();
+
+        if (candidate) {
+          cleanup();
+          resolve(candidate);
+        }
+      };
+
+      window.addEventListener('athens:initializer-ready', listener);
+    }
   });
 }
 
