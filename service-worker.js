@@ -45,24 +45,41 @@ self.addEventListener('fetch', (event) => {
 });
 
 async function handleRequest(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cachedResponse = await cache.match(request);
+  let cache;
+  let cachedResponse;
+  let cacheAvailable = true;
+
+  try {
+    cache = await caches.open(CACHE_NAME);
+    cachedResponse = await cache.match(request);
+  } catch (cacheError) {
+    cacheAvailable = false;
+    console.error('Service Worker cache access failed, falling back to network only.', cacheError);
+  }
 
   try {
     const networkResponse = await fetch(request);
-    if (isCacheable(networkResponse)) {
-      cache.put(request, networkResponse.clone());
+    if (cacheAvailable && cache && isCacheable(networkResponse)) {
+      cache.put(request, networkResponse.clone()).catch((putError) => {
+        console.error('Service Worker failed to update cache entry.', putError);
+      });
     }
     return networkResponse;
   } catch (error) {
-    if (cachedResponse) {
+    console.error('Service Worker fetch failed, attempting to serve from cache.', error);
+
+    if (cacheAvailable && cachedResponse) {
       return cachedResponse;
     }
 
-    if (request.mode === 'navigate') {
-      const offlineShell = await cache.match(INDEX_URL);
-      if (offlineShell) {
-        return offlineShell;
+    if (cacheAvailable && cache && request.mode === 'navigate') {
+      try {
+        const offlineShell = await cache.match(INDEX_URL);
+        if (offlineShell) {
+          return offlineShell;
+        }
+      } catch (shellError) {
+        console.error('Service Worker failed to retrieve offline shell.', shellError);
       }
     }
 
