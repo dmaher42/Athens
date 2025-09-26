@@ -59,6 +59,14 @@ export default async function boot(opts = {}) {
 
 if (typeof window !== 'undefined') {
   window.Athens = window.Athens || {};
-  window.Athens.boot = (o) => boot(o);
+  window.Athens.boot = (o) => {
+    const startBoot = () => boot(o);
+
+    if (typeof document !== 'undefined' && document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', startBoot, { once: true });
+    } else {
+      startBoot();
+    }
+  };
   window.Athens.getBootInfo = () => ({ startedAt, lastError });
 }
