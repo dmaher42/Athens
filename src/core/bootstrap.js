@@ -31,40 +31,29 @@ function showErrorOverlay(msg, err) {
   }
 }
 
-function logPhase(label, data) {
-  const t = new Date().toISOString();
-  if (data !== undefined) {
-    console.info(`[Athens][${t}] ${label}`, data);
-  } else {
-    console.info(`[Athens][${t}] ${label}`);
-  }
-}
-
 export default async function boot(opts = {}) {
   startedAt = Date.now();
   lastError = null;
-  logPhase('Boot start');
+
+  const options = opts && typeof opts === 'object' ? { ...opts } : {};
+
+  if (!options?.preset && !options?.skydomePreset) {
+    options.preset = 'High Noon';
+  }
+
+  const entryPointLabel = '[Athens][Bootstrap] Booting with main()';
+  console.info(entryPointLabel, { options });
 
   try {
-    const rawOptions = opts && typeof opts === 'object' ? { ...opts } : {};
-    const { main: overrideMain, ...candidateOptions } = rawOptions;
-
-    const entryPoint = typeof overrideMain === 'function' ? overrideMain : main;
-
-    if (typeof entryPoint !== 'function') {
-      throw new Error('Athens main entry point is not available.');
-    }
-
-    if (!candidateOptions?.preset && !candidateOptions?.skydomePreset) {
-      candidateOptions.preset = 'High Noon';
-    }
-
-    await entryPoint(candidateOptions);
-    logPhase('Boot complete', { elapsedMs: Date.now() - startedAt });
+    await main(options);
+    console.info('[Athens][Bootstrap] Boot complete', {
+      elapsedMs: Date.now() - startedAt
+    });
   } catch (err) {
     lastError = err;
     console.error('🏛️ Athens Initialization Error - Boot Wrapper', err);
     showErrorOverlay('Error during initialization', err);
+    throw err;
   }
 }
 
