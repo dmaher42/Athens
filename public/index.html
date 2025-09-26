@@ -15,7 +15,9 @@
 
       html,
       body {
+        width: 100%;
         height: 100%;
+        min-height: 100vh;
         margin: 0;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         background: #0f172a;
@@ -25,13 +27,15 @@
       body {
         display: flex;
         flex-direction: column;
+        min-height: 100vh;
       }
 
       #app {
         position: relative;
-        flex: 1;
-        min-height: 100vh;
+        flex: 1 1 auto;
         width: 100%;
+        min-width: 0;
+        min-height: 100vh;
         overflow: hidden;
         display: flex;
         align-items: stretch;
@@ -41,12 +45,31 @@
           linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
       }
 
-      canvas {
+      #app > canvas,
+      #app > .athens-display {
+        flex: 1 1 auto;
         display: block;
         width: 100%;
         height: 100%;
         min-width: 1px;
         min-height: 1px;
+      }
+
+      canvas[data-overlay],
+      canvas[data-role='overlay'],
+      canvas.overlay-layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      canvas[data-overlay][data-interactive='true'],
+      canvas[data-role='overlay'][data-interactive='true'],
+      canvas.overlay-layer[data-interactive='true'] {
+        pointer-events: auto;
       }
 
       #dev-log {
