@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Cue</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css" />
+</head>
+<body class="bg-base-200 min-h-screen">
+  <div class="container mx-auto max-w-3xl p-4">
+    <div role="tablist" class="tabs tabs-boxed w-full">
+      <button type="button" role="tab" class="tab tab-active" id="tab-cues" data-tab-target="cues-view">Cues</button>
+      <button type="button" role="tab" class="tab" id="tab-daily" data-tab-target="daily-list-view">Today's List</button>
+    </div>
+
+    <div id="cues-view" class="mt-6 space-y-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 class="text-3xl font-semibold">Memory Cue</h1>
+        <button id="show-add-cue-modal" class="btn btn-primary w-full sm:w-auto">Add New Cue</button>
+      </div>
+      <div id="cues-list" class="mt-2"></div>
+    </div>
+
+    <div id="daily-list-view" class="hidden mt-6 space-y-4">
+      <h2 id="daily-list-header" class="text-2xl font-semibold"></h2>
+      <form id="quick-add-form" class="form-control">
+        <div class="join">
+          <input
+            id="quick-add-input"
+            type="text"
+            placeholder="Add a quick task..."
+            class="input input-bordered join-item w-full"
+            autocomplete="off"
+            required
+          />
+          <button type="submit" class="btn btn-primary join-item">Add</button>
+        </div>
+      </form>
+      <div id="daily-tasks-container" class="space-y-2"></div>
+      <button id="clear-completed-btn" class="btn btn-sm btn-outline mt-4 w-full sm:w-auto">Clear Completed Tasks</button>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
