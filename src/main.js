@@ -201,3 +201,16 @@ export function updateTrees(delta) {
 export function getTreeLibrary() {
   return treeLibraryState;
 }
+
+export async function main(options = {}) {
+  if (typeof window !== 'undefined') {
+    if (typeof window.initializeAthens === 'function') {
+      return window.initializeAthens(options);
+    }
+    if (typeof window.runAthens === 'function') {
+      return window.runAthens(options);
+    }
+  }
+
+  throw new Error('Athens main entry point is not available.');
+}
