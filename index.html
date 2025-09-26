@@ -6042,15 +6042,15 @@ world.addBody(archBody);
                                 }
                             });
 
-                            clone.scale.setScalar(scaleFactor);
-                            clone.position.y = pivotOffset;
-                            citizenRoot.add(clone);
+                            clonedModel.scale.setScalar(scaleFactor);
+                            clonedModel.position.y = pivotOffset;
+                            citizenRoot.add(clonedModel);
 
                             const spawnPosition = getRandomPointInZone(zone);
                             const npc = registerCitizen(citizenRoot, zone, spawnPosition);
 
                             if (Array.isArray(animations) && animations.length) {
-                                const mixer = new THREE.AnimationMixer(clone);
+                                const mixer = new THREE.AnimationMixer(clonedModel);
                                 animations.forEach((clip) => {
                                     const action = mixer.clipAction(clip);
                                     action.play();
