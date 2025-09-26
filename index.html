@@ -1585,6 +1585,30 @@ const retargetBuildingMaterials =
             }
         }
 
+        if (typeof window !== 'undefined') {
+            console.info('[Athens][Inline] Preparing initializer exposure');
+            window.initializeAthens = initializeAthens;
+            window.runAthens = runAthens;
+            if (typeof window.dispatchEvent === 'function') {
+                queueMicrotask(() => {
+                    const detail = { initializer: initializeAthens };
+                    try {
+                        window.dispatchEvent(new CustomEvent('athens:initializer-ready', { detail }));
+                    } catch (error) {
+                        try {
+                            if (typeof document !== 'undefined' && typeof document.createEvent === 'function') {
+                                const event = document.createEvent('CustomEvent');
+                                event.initCustomEvent('athens:initializer-ready', false, false, detail);
+                                window.dispatchEvent(event);
+                            }
+                        } catch (innerError) {
+                            console.debug('[Athens] Unable to dispatch initializer-ready event immediately.', innerError);
+                        }
+                    }
+                });
+            }
+        }
+
         const CITY_SCALE = 2;
         const scaleValue = (value) => value * CITY_SCALE;
         const scaleLocation = ({ x, y = 0, z }) => new THREE.Vector3(scaleValue(x), y, scaleValue(z));
@@ -7934,12 +7958,6 @@ world.addBody(archBody);
                     console.debug('[Athens] Unable to dispatch initializer-ready event.', error);
                 }
             }
-        }
-
-        if (typeof window !== 'undefined') {
-            window.initializeAthens = initializeAthens;
-            window.runAthens = runAthens;
-            notifyInitializerReady(initializeAthens);
         }
 
         }
