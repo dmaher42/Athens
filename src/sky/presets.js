@@ -1,3 +1,5 @@
+import { resolvePreset as resolvePresetSafe, getDefaultPreset as getDefaultPresetSafe } from '../core/presetResolver.js';
+
 export const KNOWN_PRESETS = [
   'Golden Dawn',
   'Blue Hour',
@@ -17,6 +19,9 @@ export function normalizePresetName(name) {
     return null;
   }
   const normalized = name.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
   const alias = PRESET_ALIASES.get(normalized);
   if (alias) {
     return alias;
@@ -25,25 +30,16 @@ export function normalizePresetName(name) {
 }
 
 export function getDefaultPreset() {
-  if (KNOWN_PRESETS.includes('Starlit Night')) {
-    return 'Starlit Night';
-  }
-  if (KNOWN_PRESETS.includes('Night Sky')) {
-    return 'Night Sky';
-  }
-  if (KNOWN_PRESETS.includes('High Noon')) {
-    return 'High Noon';
-  }
-  return KNOWN_PRESETS[0] || 'High Noon';
+  return getDefaultPresetSafe();
 }
 
 let warnedUnknownPreset = false;
 export function resolvePreset(inputName) {
   const normalized = normalizePresetName(inputName);
   if (normalized) {
-    return normalized;
+    return resolvePresetSafe(normalized);
   }
-  const fallback = getDefaultPreset();
+  const fallback = getDefaultPresetSafe();
   if (inputName && !warnedUnknownPreset) {
     console.warn('[Athens] Unknown sky preset:', inputName, '→ using', fallback);
     warnedUnknownPreset = true;

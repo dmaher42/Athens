@@ -77,7 +77,12 @@ export default async function boot(opts = {}) {
       return;
     }
 
-    await candidate(opts);
+    const candidateOptions = (opts && typeof opts === 'object') ? { ...opts } : {};
+    if (!candidateOptions?.preset && !candidateOptions?.skydomePreset) {
+      candidateOptions.preset = 'High Noon';
+    }
+
+    await candidate(candidateOptions);
     logPhase('Boot complete', { elapsedMs: Date.now() - startedAt });
   } catch (err) {
     lastError = err;
