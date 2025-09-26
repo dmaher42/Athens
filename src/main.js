@@ -307,6 +307,15 @@ async function waitForAthensInitializer({ timeoutMs, pollIntervalMs = 50, warnAf
   });
 }
 
+const describeInitializer = (initializer) => {
+  if (typeof initializer !== 'function') {
+    return 'unavailable';
+  }
+
+  const name = initializer.name || 'anonymous';
+  return `${name}${initializer[ATHENS_MAIN_SENTINEL] ? ' [module]' : ''}`;
+};
+
 export async function main(opts = {}) {
   if (typeof window === 'undefined') {
     throw new Error('Athens main entry point is not available.');
@@ -316,6 +325,10 @@ export async function main(opts = {}) {
     opts && typeof opts === 'object'
       ? opts
       : {};
+
+  console.info('[Athens][Main] Resolving entry point', {
+    options: forwardedOptions
+  });
 
   const initializer = await waitForAthensInitializer({
     timeoutMs: typeof waitForInitializerMs === 'number' ? waitForInitializerMs : undefined,
@@ -328,8 +341,13 @@ export async function main(opts = {}) {
   });
 
   if (typeof initializer !== 'function') {
+    console.error('[Athens][Main] No initializer function available.');
     throw new Error('Athens main entry point is not available.');
   }
+
+  console.info('[Athens][Main] Invoking initializer', {
+    initializer: describeInitializer(initializer)
+  });
 
   return initializer(forwardedOptions);
 }
@@ -337,9 +355,10 @@ export async function main(opts = {}) {
 main[ATHENS_MAIN_SENTINEL] = true;
 
 if (typeof window !== 'undefined') {
-  const existingInitializer = window.initializeAthens;
-
-  if (typeof existingInitializer !== 'function' || isAthensMainEntrypoint(existingInitializer)) {
+  try {
     window.initializeAthens = main;
+    console.info('[Athens][Main] Exposed module main() as window.initializeAthens');
+  } catch (error) {
+    console.warn('[Athens][Main] Unable to expose main() on window.initializeAthens', error);
   }
 }
