@@ -5174,9 +5174,6 @@ function createBasicAgoraFallback() {
                 : fallbackEnvIntensity;
             desiredEnvironmentIntensity = targetEnvIntensity;
             updateSceneEnvironmentIntensity();
-
- 
-            }
             const featureLinesGetter = typeof window !== 'undefined' ? window.getFeatureLines : null;
             if (typeof featureLinesGetter === 'function') {
                 const featureLines = featureLinesGetter();
