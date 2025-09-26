@@ -7945,31 +7945,26 @@ world.addBody(archBody);
         }
 </script>
 <script type="module">
-    import boot from './src/core/bootstrap.js';
+  // Step 1: Run the bootstrap script.
+  // This import doesn't assign a variable, it just executes the file,
+  // which creates the safe `window.Athens.boot` function for us.
+  import './src/core/bootstrap.js';
 
-    const triggerBoot = () => {
-        const baseOptions = window.__AthensOptions || {};
-        boot({ preset: 'High Noon', ...baseOptions });
-    };
+  // Step 2: Call the safe, public function.
+  // It has its own built-in logic to wait for the page to load.
+  const baseOptions = window.__AthensOptions || {};
+  window.Athens.boot({ preset: 'High Noon', ...baseOptions });
 
-    if (typeof document !== 'undefined') {
-        if (document.readyState === 'loading') {
-            window.addEventListener('DOMContentLoaded', triggerBoot, { once: true });
-        } else {
-            triggerBoot();
-        }
-
-        document.addEventListener('keydown', (event) => {
-            if (event.shiftKey && (event.key === 'B' || event.key === 'b')) {
-                console.clear();
-                console.log('Rebooting Athens…');
-                const baseOptions = window.__AthensOptions || {};
-                window.Athens?.boot?.({ preset: 'High Noon', ...baseOptions });
-            }
-        });
-    } else {
-        triggerBoot();
+  // Your excellent reboot hotkey can stay exactly as it is!
+  document.addEventListener('keydown', (event) => {
+    if (event.shiftKey && (event.key === 'B' || event.key === 'b')) {
+      console.clear();
+      console.log('Rebooting Athens…');
+      const baseOptions = window.__AthensOptions || {};
+      // This call was already correct!
+      window.Athens?.boot?.({ preset: 'High Noon', ...baseOptions });
     }
+  });
 </script>
 <script type="module">
     // SAFETY: turn undefined / single value into an array so .map() never crashes
