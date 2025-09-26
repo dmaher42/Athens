@@ -1517,11 +1517,26 @@ const retargetBuildingMaterials =
             return resolvePreset(fromOptions ?? fromURL ?? fromEnv ?? null);
         }
 
-        async function initializeAthens() {
+        let initialSetupPromise = null;
+
+        async function initializeAthens(options = {}) {
             try {
                 if (window.threeJSReady) {
                     await window.threeJSReady;
                 }
+
+                if (!initialSetupPromise) {
+                    initialSetupPromise = (async () => {
+                        if (typeof init === 'function') {
+                            await init();
+                        }
+                    })().catch((error) => {
+                        initialSetupPromise = null;
+                        throw error;
+                    });
+                }
+
+                await initialSetupPromise;
 
                 if (typeof THREE === 'undefined') {
                     console.error('THREE.js is not available. Please ensure external resources can be loaded.');
@@ -1531,15 +1546,16 @@ const retargetBuildingMaterials =
 
                 console.log('THREE.js is ready, initializing Athens...');
 
-                const baseOptions = typeof window !== 'undefined' ? window.__AthensOptions : null;
-                const presetName = determineSkydomePreset(baseOptions || undefined);
-                const mainOptions = { ...(baseOptions || {}), skydomePreset: presetName };
+                const envOptions = typeof window !== 'undefined' ? window.__AthensOptions : null;
+                const mergedOptions = { ...(envOptions || {}), ...(options || {}) };
+                const presetName = determineSkydomePreset(mergedOptions || undefined);
+                const mainOptions = { ...mergedOptions, skydomePreset: presetName };
                 if (typeof window !== 'undefined') {
                     window.__AthensOptions = mainOptions;
                     window.__AthensSkyPreset = presetName;
                 }
 
-                await main(mainOptions);
+                await runAthens(mainOptions);
             } catch (error) {
                 if (!error?.__athensLogged) {
                     console.error('Athens experience failed to initialize:', error);
@@ -1563,7 +1579,7 @@ const retargetBuildingMaterials =
             object.position.set(scaleValue(x), y, scaleValue(z));
         };
 
-        async function main(options = {}) {
+        async function runAthens(options = {}) {
 
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player, ambientZoneManager;
@@ -7866,28 +7882,35 @@ world.addBody(archBody);
             }
         }
         
-        // Initialize the application
-        try {
-            if (typeof init === 'function') {
-                await init();
-            } else {
-                console.warn('Main init function not available, continuing with fallback initialization...');
-            }
-        } catch (error) {
-            console.error('Failed to initialize Athens experience:', error);
-            if (error?.stack) {
-                console.error(error.stack);
-            }
-            logDetailedError('Async Initialization', error);
-            showErrorOverlay('Async Initialization', error, false);
-            error.__athensLogged = true;
-            throw error;
+        if (typeof window !== 'undefined') {
+            window.initializeAthens = initializeAthens;
+            window.runAthens = runAthens;
+        }
+</script>
+<script type="module">
+    import boot from './src/core/bootstrap.js';
+
+    const triggerBoot = () => {
+        boot(window.__AthensOptions || {});
+    };
+
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', triggerBoot, { once: true });
+        } else {
+            triggerBoot();
         }
 
-        // --- START
-        window.onload = function() {
-            initializeAthens();
-        };
+        document.addEventListener('keydown', (event) => {
+            if (event.shiftKey && (event.key === 'B' || event.key === 'b')) {
+                console.clear();
+                console.log('Rebooting Athens…');
+                window.Athens?.boot?.(window.__AthensOptions || {});
+            }
+        });
+    } else {
+        triggerBoot();
+    }
 </script>
 <script type="module">
     // SAFETY: turn undefined / single value into an array so .map() never crashes
