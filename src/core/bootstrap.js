@@ -1,5 +1,16 @@
 import { main } from '../main.js';
 
+const describeBootstrapEntrypoint = (entrypoint) => {
+  if (typeof entrypoint !== 'function') {
+    return 'unavailable';
+  }
+
+  const name = entrypoint.name || 'anonymous';
+  const source = entrypoint?.[Symbol.for('athens.initializer.source')] || 'module:unknown';
+
+  return `${name} (${source})`;
+};
+
 let startedAt = null;
 let lastError = null;
 
@@ -41,7 +52,8 @@ export default async function boot(opts = {}) {
     options.preset = 'High Noon';
   }
 
-  console.info('[Athens][Bootstrap] Booting with module main()', {
+  console.info('[Athens][Bootstrap] Booting', {
+    entrypoint: describeBootstrapEntrypoint(main),
     options
   });
 

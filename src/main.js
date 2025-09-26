@@ -205,6 +205,8 @@ export function getTreeLibrary() {
   return treeLibraryState;
 }
 
+const ATHENS_INITIALIZER_SOURCE = Symbol.for('athens.initializer.source');
+
 async function waitForAthensInitializer({ timeoutMs, pollIntervalMs = 50, warnAfterMs = 5000 } = {}) {
   if (typeof window === 'undefined') {
     return null;
@@ -223,15 +225,15 @@ async function waitForAthensInitializer({ timeoutMs, pollIntervalMs = 50, warnAf
     const candidates = [];
 
     if (typeof window.initializeAthens === 'function') {
-      candidates.push(window.initializeAthens);
+      candidates.push({ fn: window.initializeAthens, source: 'window.initializeAthens' });
     }
 
     if (typeof window.runAthens === 'function') {
-      candidates.push(window.runAthens);
+      candidates.push({ fn: window.runAthens, source: 'window.runAthens' });
     }
 
     for (const candidate of candidates) {
-      if (candidate && !isAthensMainEntrypoint(candidate)) {
+      if (candidate?.fn && !isAthensMainEntrypoint(candidate.fn)) {
         return candidate;
       }
     }
@@ -292,7 +294,7 @@ async function waitForAthensInitializer({ timeoutMs, pollIntervalMs = 50, warnAf
         const { detail } = event || {};
         const candidateFromEvent =
           detail && typeof detail.initializer === 'function' && !isAthensMainEntrypoint(detail.initializer)
-            ? detail.initializer
+            ? { fn: detail.initializer, source: detail.source || 'event:athens:initializer-ready' }
             : null;
         const candidate = candidateFromEvent || resolveInitializer();
 
@@ -330,7 +332,7 @@ export async function main(opts = {}) {
     options: forwardedOptions
   });
 
-  const initializer = await waitForAthensInitializer({
+  const initializerResult = await waitForAthensInitializer({
     timeoutMs: typeof waitForInitializerMs === 'number' ? waitForInitializerMs : undefined,
     pollIntervalMs:
       typeof waitForInitializerIntervalMs === 'number'
@@ -340,19 +342,45 @@ export async function main(opts = {}) {
       typeof waitForInitializerWarnAfterMs === 'number' ? waitForInitializerWarnAfterMs : undefined
   });
 
+  const initializer =
+    typeof initializerResult === 'function'
+      ? initializerResult
+      : initializerResult && typeof initializerResult.fn === 'function'
+        ? initializerResult.fn
+        : null;
+
+  const initializerSource =
+    (initializerResult && typeof initializerResult === 'object' && initializerResult.source) ||
+    initializer?.[ATHENS_INITIALIZER_SOURCE] ||
+    'unknown';
+
   if (typeof initializer !== 'function') {
     console.error('[Athens][Main] No initializer function available.');
     throw new Error('Athens main entry point is not available.');
   }
 
+  if (!initializer[ATHENS_INITIALIZER_SOURCE]) {
+    try {
+      initializer[ATHENS_INITIALIZER_SOURCE] = initializerSource;
+    } catch (_) {
+      // Non-writable target; ignore.
+    }
+  }
+
   console.info('[Athens][Main] Invoking initializer', {
-    initializer: describeInitializer(initializer)
+    initializer: describeInitializer(initializer),
+    source: initializerSource
   });
 
   return initializer(forwardedOptions);
 }
 
 main[ATHENS_MAIN_SENTINEL] = true;
+try {
+  main[ATHENS_INITIALIZER_SOURCE] = 'module:main';
+} catch (_) {
+  // Ignore non-writable assignment failures.
+}
 
 if (typeof window !== 'undefined') {
   try {
