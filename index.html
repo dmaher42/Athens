@@ -7350,49 +7350,83 @@ world.addBody(archBody);
         function addEventListeners() {
             const startButton = document.getElementById('start-button');
             const startOverlay = document.getElementById('start-overlay');
-            startButton.addEventListener('pointerdown', () => {
-                loadToneLibrary().catch(() => {
-                    // Preloading can fail if the user releases the pointer early; retry on click.
-                });
-            });
-            startButton.addEventListener('click', async () => {
-                startOverlay.classList.add('fade-out');
 
-                if (audioStarted || audioStartInProgress) {
+            const hideStartOverlay = () => {
+                if (!startOverlay) {
                     return;
                 }
 
-                audioStartInProgress = true;
-                try {
-                    const tonePromise = (async () => {
-                        await createAmbientSounds();
-                        initializeChickenAudio();
-                    })();
-                    const zonePromise = ambientZoneManager?.resume?.() ?? Promise.resolve();
-
-                    const [toneResult, zoneResult] = await Promise.allSettled([tonePromise, zonePromise]);
-
-                    if (zoneResult?.status === 'rejected') {
-                        console.warn('Unable to resume ambient zone audio context:', zoneResult.reason);
-                    }
-
-                    if (ambientZoneManager) {
-                        ambientZoneManager.setEnabled(true);
-                        ambientZoneManager.update(0, camera.position);
-                    }
-
-                    if (toneResult.status === 'fulfilled') {
-                        audioStarted = true;
-                        console.log("Audio context started.");
-                    } else if (toneResult.status === 'rejected') {
-                        console.warn('Unable to start audio context:', toneResult.reason);
-                    }
-                } catch (error) {
-                    console.warn('Unable to start audio systems:', error);
-                } finally {
-                    audioStartInProgress = false;
+                if (!startOverlay.classList.contains('fade-out')) {
+                    startOverlay.classList.add('fade-out');
                 }
-            });
+
+                const finalize = () => {
+                    if (startOverlay.style.display !== 'none') {
+                        startOverlay.style.display = 'none';
+                    }
+                };
+
+                const onTransitionEnd = (event) => {
+                    if (event?.target === startOverlay) {
+                        finalize();
+                    }
+                };
+
+                startOverlay.addEventListener('transitionend', onTransitionEnd, { once: true });
+
+                window.setTimeout(() => {
+                    finalize();
+                    startOverlay.removeEventListener('transitionend', onTransitionEnd);
+                }, 1200);
+            };
+
+            if (startButton && startOverlay) {
+                startButton.addEventListener('pointerdown', () => {
+                    loadToneLibrary().catch(() => {
+                        // Preloading can fail if the user releases the pointer early; retry on click.
+                    });
+                });
+                startButton.addEventListener('click', async () => {
+                    hideStartOverlay();
+
+                    if (audioStarted || audioStartInProgress) {
+                        return;
+                    }
+
+                    audioStartInProgress = true;
+                    try {
+                        const tonePromise = (async () => {
+                            await createAmbientSounds();
+                            initializeChickenAudio();
+                        })();
+                        const zonePromise = ambientZoneManager?.resume?.() ?? Promise.resolve();
+
+                        const [toneResult, zoneResult] = await Promise.allSettled([tonePromise, zonePromise]);
+
+                        if (zoneResult?.status === 'rejected') {
+                            console.warn('Unable to resume ambient zone audio context:', zoneResult.reason);
+                        }
+
+                        if (ambientZoneManager) {
+                            ambientZoneManager.setEnabled(true);
+                            ambientZoneManager.update(0, camera.position);
+                        }
+
+                        if (toneResult.status === 'fulfilled') {
+                            audioStarted = true;
+                            console.log("Audio context started.");
+                        } else if (toneResult.status === 'rejected') {
+                            console.warn('Unable to start audio context:', toneResult.reason);
+                        }
+                    } catch (error) {
+                        console.warn('Unable to start audio systems:', error);
+                    } finally {
+                        audioStartInProgress = false;
+                    }
+                });
+            } else {
+                console.warn('Start overlay elements are missing; skipping overlay binding.');
+            }
 
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
