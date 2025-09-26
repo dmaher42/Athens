@@ -7945,24 +7945,25 @@ world.addBody(archBody);
         }
 </script>
 <script type="module">
-  // Step 1: Run the bootstrap script.
-  // This import doesn't assign a variable, it just executes the file,
-  // which creates the safe `window.Athens.boot` function for us.
+  // Step 1: Import the file to run it. This creates the safe 
+  // `window.Athens.boot` function that we can use.
   import './src/core/bootstrap.js';
 
-  // Step 2: Call the safe, public function.
-  // It has its own built-in logic to wait for the page to load.
+  // Step 2: Prepare your custom options, just like you did.
   const baseOptions = window.__AthensOptions || {};
-  window.Athens.boot({ preset: 'High Noon', ...baseOptions });
+  const startupOptions = { preset: 'High Noon', ...baseOptions };
 
-  // Your excellent reboot hotkey can stay exactly as it is!
+  // Step 3: Call the SAFE, public function with your custom options.
+  window.Athens.boot(startupOptions);
+
+  // Step 4: Re-add your reboot hotkey.
+  // This part of your code was already perfect!
   document.addEventListener('keydown', (event) => {
     if (event.shiftKey && (event.key === 'B' || event.key === 'b')) {
       console.clear();
       console.log('Rebooting Athens…');
-      const baseOptions = window.__AthensOptions || {};
-      // This call was already correct!
-      window.Athens?.boot?.({ preset: 'High Noon', ...baseOptions });
+      const rebootOptions = window.__AthensOptions || {};
+      window.Athens?.boot?.({ preset: 'High Noon', ...rebootOptions });
     }
   });
 </script>
