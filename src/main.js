@@ -207,6 +207,13 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
     return null;
   }
 
+  const normalizedTimeout =
+    typeof timeoutMs === 'number' && Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : null;
+  const normalizedPollInterval =
+    typeof pollIntervalMs === 'number' && Number.isFinite(pollIntervalMs) && pollIntervalMs > 0
+      ? pollIntervalMs
+      : 50;
+
   const resolveInitializer = () => {
     if (typeof window.initializeAthens === 'function') {
       return window.initializeAthens;
@@ -224,7 +231,7 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
 
   return new Promise((resolve) => {
     const start = Date.now();
-    const hasTimeout = typeof timeoutMs === 'number' && timeoutMs >= 0 && Number.isFinite(timeoutMs);
+    const hasTimeout = normalizedTimeout !== null;
 
     let timeoutId = null;
     let listener = null;
@@ -248,16 +255,16 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
         return;
       }
 
-      if (hasTimeout && Date.now() - start >= timeoutMs) {
+      if (hasTimeout && Date.now() - start >= normalizedTimeout) {
         cleanup();
         resolve(null);
         return;
       }
 
-      timeoutId = setTimeout(tick, pollIntervalMs);
+      timeoutId = setTimeout(tick, normalizedPollInterval);
     };
 
-    timeoutId = setTimeout(tick, pollIntervalMs);
+    timeoutId = setTimeout(tick, normalizedPollInterval);
 
     if (typeof window.addEventListener === 'function') {
       listener = (event) => {
