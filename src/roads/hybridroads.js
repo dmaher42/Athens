@@ -1,9 +1,26 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { resolveAssetUrl } from '../utils/asset-paths.js';
+import {
+  loadTextureWithFallback,
+  loadGltfWithFallback
+} from '../utils/fail-soft-loaders.js';
 
 // Load a texture and create a road mesh
 export function createRoadSegment(texturePath, start, end, width = 6) {
-  const texture = new THREE.TextureLoader().load(texturePath);
+  const loader = new THREE.TextureLoader();
+  const resolvedTexture = resolveAssetUrl(texturePath);
+  const texture = loadTextureWithFallback(resolvedTexture, {
+    loader,
+    label: 'road segment texture',
+    fallbackColor: 0x6b5a45,
+    onLoad: (tex) => {
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(10, 1);
+      tex.anisotropy = Math.max(tex.anisotropy || 0, 8);
+    }
+  });
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(10, 1);
@@ -36,7 +53,11 @@ export async function scatterPropsAlongRoad(scene, start, end, config) {
 
   for (const key of Object.keys(config)) {
     const prop = config[key];
-    const model = await loader.loadAsync(prop.model);
+    const modelUrl = resolveAssetUrl(prop.model);
+    const model = await loadGltfWithFallback(loader, modelUrl, {
+      label: `${key} prop`
+    });
+    const template = model.scene || (Array.isArray(model.scenes) ? model.scenes[0] : null) || new THREE.Group();
 
     const interval = prop.interval || 10;
     for (let d = 0; d < distance; d += interval) {
@@ -48,7 +69,7 @@ export async function scatterPropsAlongRoad(scene, start, end, config) {
         .normalize()
         .multiplyScalar(sideOffset);
 
-      const instance = model.scene.clone();
+      const instance = template.clone(true);
       instance.position.copy(pos.clone().add(offset));
 
       // Random rotation & scaling

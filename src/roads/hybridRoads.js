@@ -1,5 +1,6 @@
 import THREE from '../three.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { loadTextureAsyncWithFallback } from '../utils/fail-soft-loaders.js';
 
 const textureLoader = new THREE.TextureLoader();
 const textureCache = new Map();
@@ -369,7 +370,10 @@ async function loadRoadTexture(texturePath) {
     return textureCache.get(resolvedTexturePath);
   }
 
-  const texture = await textureLoader.loadAsync(resolvedTexturePath);
+  const texture = await loadTextureAsyncWithFallback(resolvedTexturePath, {
+    loader: textureLoader,
+    label: 'road texture'
+  });
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.anisotropy = Math.max(texture.anisotropy || 1, 8);

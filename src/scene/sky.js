@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { loadTextureWithFallback } from '../utils/fail-soft-loaders.js';
 
 const SKY_PATHS = {
   sunset: resolveAssetUrl('assets/sky/sunset_4k.jpg'),
@@ -21,9 +22,22 @@ export function loadEquirectSky(renderer, scene, path, onDone, options = {}) {
   } = options;
 
   const loader = new THREE.TextureLoader();
-  loader.load(
-    path,
-    (texture) => {
+  loadTextureWithFallback(path, {
+    loader,
+    label: 'sky texture',
+    fallbackColor: DAY_COLOR.getHex(),
+    onLoad: (texture, { fallback }) => {
+      if (fallback) {
+        if (applyBackground) {
+          scene.background = DAY_COLOR.clone();
+        }
+        if (applyEnvironment) {
+          scene.environment = null;
+        }
+        onDone?.(null);
+        return;
+      }
+
       texture.mapping = THREE.EquirectangularReflectionMapping;
       if ('colorSpace' in texture && THREE.SRGBColorSpace) {
         texture.colorSpace = THREE.SRGBColorSpace;
@@ -47,12 +61,12 @@ export function loadEquirectSky(renderer, scene, path, onDone, options = {}) {
 
       onDone?.({ background: texture, environment: environmentTexture });
     },
-    undefined,
-    (error) => {
-      console.warn(`[sky] Failed to load sky texture: ${path}`, error);
-      onDone?.(null);
+    onFallback: (error) => {
+      if (error) {
+        console.warn(`[sky] Failed to load sky texture: ${path}`, error);
+      }
     }
-  );
+  });
 }
 
 export function setEnvironment(renderer, scene, mode = 'day', options = {}) {
