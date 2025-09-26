@@ -205,7 +205,7 @@ export function getTreeLibrary() {
   return treeLibraryState;
 }
 
-async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 } = {}) {
+async function waitForAthensInitializer({ timeoutMs, pollIntervalMs = 50, warnAfterMs = 5000 } = {}) {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -216,6 +216,8 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
     typeof pollIntervalMs === 'number' && Number.isFinite(pollIntervalMs) && pollIntervalMs > 0
       ? pollIntervalMs
       : 50;
+  const normalizedWarnAfter =
+    typeof warnAfterMs === 'number' && Number.isFinite(warnAfterMs) && warnAfterMs > 0 ? warnAfterMs : null;
 
   const resolveInitializer = () => {
     const candidates = [];
@@ -245,6 +247,7 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
   return new Promise((resolve) => {
     const start = Date.now();
     const hasTimeout = normalizedTimeout !== null;
+    let hasWarned = false;
 
     let timeoutId = null;
     let listener = null;
@@ -266,6 +269,11 @@ async function waitForAthensInitializer({ timeoutMs = 5000, pollIntervalMs = 50 
         cleanup();
         resolve(candidate);
         return;
+      }
+
+      if (!hasWarned && normalizedWarnAfter !== null && Date.now() - start >= normalizedWarnAfter) {
+        hasWarned = true;
+        console.warn('[Athens] Waiting for initializer to become available…');
       }
 
       if (hasTimeout && Date.now() - start >= normalizedTimeout) {
@@ -304,7 +312,7 @@ export async function main(opts = {}) {
     throw new Error('Athens main entry point is not available.');
   }
 
-  const { waitForInitializerMs, waitForInitializerIntervalMs, ...forwardedOptions } =
+  const { waitForInitializerMs, waitForInitializerIntervalMs, waitForInitializerWarnAfterMs, ...forwardedOptions } =
     opts && typeof opts === 'object'
       ? opts
       : {};
@@ -314,7 +322,9 @@ export async function main(opts = {}) {
     pollIntervalMs:
       typeof waitForInitializerIntervalMs === 'number'
         ? waitForInitializerIntervalMs
-        : undefined
+        : undefined,
+    warnAfterMs:
+      typeof waitForInitializerWarnAfterMs === 'number' ? waitForInitializerWarnAfterMs : undefined
   });
 
   if (typeof initializer !== 'function') {
