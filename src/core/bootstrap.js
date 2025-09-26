@@ -41,8 +41,9 @@ export default async function boot(opts = {}) {
     options.preset = 'High Noon';
   }
 
-  const entryPointLabel = '[Athens][Bootstrap] Booting with main()';
-  console.info(entryPointLabel, { options });
+  console.info('[Athens][Bootstrap] Booting with module main()', {
+    options
+  });
 
   try {
     await main(options);
