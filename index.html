@@ -571,6 +571,7 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
         import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
         import { createPhotoSkydome } from './src/sky/photoSkydome.js';
         import { KNOWN_PRESETS, resolvePreset } from './src/sky/presets.js';
+        import { resolveName } from './src/core/nameResolver.js';
         import { nightSkyDataUrl } from './src/sky/nightSkyTextureData.js';
         import { createStarField } from './src/sky/starField.js';
         import { createMoon } from './src/sky/moon.js';
@@ -1509,12 +1510,19 @@ const retargetBuildingMaterials =
         }
 
         function determineSkydomePreset(opts) {
-            const fromOptions = opts?.skydomePreset ?? null;
+            const fromOptions = opts?.preset ?? opts?.skydomePreset ?? null;
             const fromURL = readSkyFromURL();
             const fromEnv = typeof window !== 'undefined'
-                ? window.__AthensEnv?.skydomePreset ?? null
+                ? window.__AthensEnv?.preset ?? window.__AthensEnv?.skydomePreset ?? null
                 : null;
-            return resolvePreset(fromOptions ?? fromURL ?? fromEnv ?? null);
+            const rawName = fromOptions ?? fromURL ?? fromEnv ?? null;
+            const safeName = resolveName(rawName);
+
+            if (!rawName) {
+                console.error('[Athens] initializeAthens(): No preset provided. Falling back to default:', safeName);
+            }
+
+            return safeName;
         }
 
         let initialSetupPromise = null;
@@ -1549,10 +1557,11 @@ const retargetBuildingMaterials =
                 const envOptions = typeof window !== 'undefined' ? window.__AthensOptions : null;
                 const mergedOptions = { ...(envOptions || {}), ...(options || {}) };
                 const presetName = determineSkydomePreset(mergedOptions || undefined);
-                const mainOptions = { ...mergedOptions, skydomePreset: presetName };
+                const mainOptions = { ...mergedOptions, preset: presetName, skydomePreset: presetName };
                 if (typeof window !== 'undefined') {
                     window.__AthensOptions = mainOptions;
                     window.__AthensSkyPreset = presetName;
+                    window.__AthensResolvedName = presetName;
                 }
 
                 await runAthens(mainOptions);
@@ -1580,6 +1589,19 @@ const retargetBuildingMaterials =
         };
 
         async function runAthens(options = {}) {
+
+            const providedPreset = options?.preset ?? options?.skydomePreset ?? (typeof window !== 'undefined'
+                ? window.__AthensResolvedName ?? window.__AthensSkyPreset ?? null
+                : null);
+            const initialResolvedPreset = resolveName(providedPreset);
+
+            if (!providedPreset) {
+                console.error('[Athens] runAthens(): No preset provided. Falling back to default:', initialResolvedPreset);
+            }
+
+            if (typeof window !== 'undefined') {
+                window.__AthensResolvedName = initialResolvedPreset;
+            }
 
         // --- GLOBAL VARIABLES ---
         let scene, camera, renderer, composer, ambientLight, directionalLight, hemisphereLight, player, ambientZoneManager;
@@ -2034,9 +2056,7 @@ const retargetBuildingMaterials =
         let lastTime = performance.now();
         
         let soundEnabled = true;
-        const initialSkyPreset = resolvePreset(
-            options?.skydomePreset ?? (typeof window !== 'undefined' ? window.__AthensSkyPreset : null)
-        );
+        const initialSkyPreset = initialResolvedPreset;
         const initialSkyConfig = photoSkyTimeConfig?.[initialSkyPreset] || null;
         if (typeof window !== 'undefined') {
             window.__AthensSkyPreset = initialSkyPreset;
@@ -4950,13 +4970,13 @@ function createBasicAgoraFallback() {
         }
 
         function setTimeOfDay(name) {
-            const resolvedName = resolvePreset(name);
+            const presetName = resolvePreset(name);
             if (typeof window !== 'undefined') {
-                window.__AthensSkyPreset = resolvedName;
+                window.__AthensSkyPreset = presetName;
             }
             const timeInfo = document.getElementById('current-time');
             if (timeInfo) {
-                timeInfo.textContent = resolvedName;
+                timeInfo.textContent = presetName;
             }
 
             const settings = {
@@ -4981,9 +5001,9 @@ function createBasicAgoraFallback() {
                 skyMieDirectional: 0.8
             };
 
-            const skydomePreset = photoSkyTimeConfig[resolvedName];
+            const skydomePreset = photoSkyTimeConfig[presetName];
 
-            switch (resolvedName) {
+            switch (presetName) {
                 case 'Golden Dawn':
                     settings.elevation = 6;
                     settings.azimuth = 95;
@@ -5135,9 +5155,9 @@ function createBasicAgoraFallback() {
                 }
             }
 
-            const fallbackEnvIntensity = resolvedName === 'Starlit Night'
+            const fallbackEnvIntensity = presetName === 'Starlit Night'
                 ? 0.7
-                : (resolvedName === 'Blue Hour' ? 0.9 : 1.0);
+                : (presetName === 'Blue Hour' ? 0.9 : 1.0);
             const targetEnvIntensity = typeof skydomePreset?.envIntensity === 'number'
                 ? THREE.MathUtils.clamp(skydomePreset.envIntensity, 0, 5)
                 : fallbackEnvIntensity;
@@ -5152,7 +5172,7 @@ function createBasicAgoraFallback() {
                 featureLines?.setTimeFactor?.(timeFactor);
             }
 
-            const fallbackNightLevel = resolvedName === 'Starlit Night' ? 1 : (resolvedName === 'Blue Hour' ? 0.4 : 0);
+            const fallbackNightLevel = presetName === 'Starlit Night' ? 1 : (presetName === 'Blue Hour' ? 0.4 : 0);
             const targetNightAmount = typeof skydomePreset?.spaceNightAmount === 'number'
                 ? THREE.MathUtils.clamp(skydomePreset.spaceNightAmount, 0, 1)
                 : fallbackNightLevel;
@@ -5206,7 +5226,7 @@ function createBasicAgoraFallback() {
             if (photoSkydome && skydomePreset?.textureKey && Array.isArray(skydomePreset.sources)) {
                 if (currentPhotoSkyKey !== skydomePreset.textureKey) {
                     const targetKey = skydomePreset.textureKey;
-                    const targetName = resolvedName;
+                    const targetName = presetName;
                     photoSkydome.swapTexture({ sources: skydomePreset.sources })
                         .then((result) => {
                             if (!result) {
@@ -5267,9 +5287,9 @@ function createBasicAgoraFallback() {
             }
 
             let environmentMode = 'day';
-            if (resolvedName === 'Starlit Night' || resolvedName === 'Blue Hour') {
+            if (presetName === 'Starlit Night' || presetName === 'Blue Hour') {
                 environmentMode = 'night';
-            } else if (resolvedName === 'Golden Dawn' || resolvedName === 'Golden Dusk') {
+            } else if (presetName === 'Golden Dawn' || presetName === 'Golden Dusk') {
                 environmentMode = 'sunset';
             }
             applyEnvironmentMode(environmentMode);
@@ -7891,7 +7911,8 @@ world.addBody(archBody);
     import boot from './src/core/bootstrap.js';
 
     const triggerBoot = () => {
-        boot(window.__AthensOptions || {});
+        const baseOptions = window.__AthensOptions || {};
+        boot({ preset: 'High Noon', ...baseOptions });
     };
 
     if (typeof document !== 'undefined') {
@@ -7905,7 +7926,8 @@ world.addBody(archBody);
             if (event.shiftKey && (event.key === 'B' || event.key === 'b')) {
                 console.clear();
                 console.log('Rebooting Athens…');
-                window.Athens?.boot?.(window.__AthensOptions || {});
+                const baseOptions = window.__AthensOptions || {};
+                window.Athens?.boot?.({ preset: 'High Noon', ...baseOptions });
             }
         });
     } else {
