@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Athens – Development Boot</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #app {
+        position: relative;
+        flex: 1;
+        min-height: 100vh;
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        background: radial-gradient(circle at 20% 20%, rgba(148, 163, 184, 0.15), transparent 55%),
+          radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.2), transparent 60%),
+          linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1));
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-width: 1px;
+        min-height: 1px;
+      }
+
+      #dev-log {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        max-width: min(440px, 90vw);
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        line-height: 1.5;
+        background: rgba(15, 23, 42, 0.72);
+        color: #e2e8f0;
+        box-shadow: 0 8px 32px rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(10px);
+        pointer-events: auto;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        white-space: pre-line;
+      }
+
+      #dev-log[data-level='error'] {
+        color: #fecaca;
+        border-color: rgba(248, 113, 113, 0.6);
+        background: rgba(127, 29, 29, 0.6);
+      }
+
+      #dev-log[data-level='warn'] {
+        color: #fcd34d;
+        border-color: rgba(234, 179, 8, 0.6);
+        background: rgba(202, 138, 4, 0.5);
+      }
+
+      #dev-log strong {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="dev-log" role="status" aria-live="polite">Waiting for Athens bootstrap…</div>
+    </div>
+    <script type="module">
+      import * as THREE from '../node_modules/three/build/three.module.js';
+      import { setupGround, updateTrees } from '../src/main.js';
+      import { setEnvironment } from '../src/scene/sky.js';
+      import boot from '../src/core/bootstrap.js';
+
+      const INITIALIZER_SOURCE = 'page:public/index.html';
+      const logElement = document.getElementById('dev-log');
+      const container = document.getElementById('app');
+
+      const baseUpdateCallbacks = [];
+      const logHistory = [];
+
+      const sanitizeMessage = (input) => {
+        if (input == null) {
+          return '';
+        }
+        if (typeof input === 'string') {
+          return input;
+        }
+        if (input instanceof Error) {
+          return input.message || input.name || 'Unknown error';
+        }
+        try {
+          return JSON.stringify(input);
+        } catch (_) {
+          return String(input);
+        }
+      };
+
+      const updateLog = (message, level = 'info') => {
+        const normalizedLevel = level === 'error' || level === 'warn' ? level : 'info';
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = `[${timestamp}] ${sanitizeMessage(message)}`;
+        logHistory.push(entry);
+        while (logHistory.length > 4) {
+          logHistory.shift();
+        }
+        logElement.dataset.level = normalizedLevel;
+        logElement.textContent = logHistory.join('\n');
+      };
+
+      const callMaybeAsync = async (label, fn, ...args) => {
+        if (typeof fn !== 'function') {
+          return null;
+        }
+        try {
+          const result = fn(...args);
+          return await Promise.resolve(result);
+        } catch (error) {
+          console.warn(`[Athens][Dev] ${label} failed`, error);
+          updateLog(`${label} failed. Check console for details.`, 'warn');
+          return null;
+        }
+      };
+
+      if (typeof updateTrees === 'function') {
+        baseUpdateCallbacks.push((delta) => {
+          try {
+            updateTrees(delta);
+          } catch (error) {
+            console.warn('[Athens][Dev] updateTrees failed', error);
+          }
+        });
+      }
+
+      const ensureLogVisible = () => {
+        if (container && logElement && logElement.parentElement !== container) {
+          container.appendChild(logElement);
+        }
+      };
+
+      ensureLogVisible();
+
+      const cleanupExisting = () => {
+        const existing = window.__athensDevContext;
+        if (existing && typeof existing.dispose === 'function') {
+          try {
+            existing.dispose();
+          } catch (error) {
+            console.warn('[Athens][Dev] Failed to dispose previous context', error);
+          }
+        }
+      };
+
+      const computeContainerSize = () => {
+        const { clientWidth = window.innerWidth, clientHeight = window.innerHeight } = container || {};
+        const width = Math.max(1, clientWidth || window.innerWidth || 1);
+        const height = Math.max(1, clientHeight || window.innerHeight || 1);
+        return { width, height };
+      };
+
+      const createFallbackGround = () => {
+        const geometry = new THREE.PlaneGeometry(800, 800, 1, 1);
+        const material = new THREE.MeshStandardMaterial({
+          color: '#b1977a',
+          roughness: 0.85,
+          metalness: 0.05
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.receiveShadow = true;
+        mesh.name = 'DevFallbackGround';
+        return mesh;
+      };
+
+      window.runAthens = async function runAthens(options = {}) {
+        cleanupExisting();
+        ensureLogVisible();
+        updateLog('Starting Athens renderer…');
+
+        if (!container) {
+          const error = new Error('Container #app missing');
+          updateLog('Missing #app container', 'error');
+          throw error;
+        }
+
+        while (container.firstChild) {
+          if (container.firstChild === logElement) {
+            break;
+          }
+          container.removeChild(container.firstChild);
+        }
+
+        const cleanupCallbacks = [];
+
+        const updateCallbacks = new Set(baseUpdateCallbacks);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.shadowMap.enabled = true;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        const { width, height } = computeContainerSize();
+        renderer.setSize(width, height, false);
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
+        container.insertBefore(renderer.domElement, logElement);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#8fbcd4');
+
+        const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 2000);
+        camera.position.set(90, 110, 180);
+        camera.lookAt(0, 0, 0);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        directionalLight.position.set(120, 220, 150);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 600;
+        scene.add(ambientLight);
+        scene.add(directionalLight);
+
+        await callMaybeAsync('setupEnvironment()', window.setupEnvironment, {
+          scene,
+          renderer,
+          camera,
+          options
+        });
+
+        if (typeof setEnvironment === 'function') {
+          try {
+            const mode = options?.skyMode || 'day';
+            setEnvironment(renderer, scene, mode, { preserveBackground: Boolean(options?.preserveBackground) });
+          } catch (error) {
+            console.warn('[Athens][Dev] setEnvironment failed', error);
+          }
+        }
+
+        const fallbackGround = createFallbackGround();
+        scene.add(fallbackGround);
+
+        updateLog('Loading Athens ground…');
+        let groundResult = null;
+        if (typeof setupGround === 'function') {
+          try {
+            groundResult = await setupGround(scene, renderer);
+          } catch (error) {
+            console.warn('[Athens][Dev] setupGround failed', error);
+            updateLog('Ground assets unavailable. Using fallback terrain.', 'warn');
+          }
+        }
+
+        if (groundResult && groundResult !== fallbackGround) {
+          scene.remove(fallbackGround);
+        }
+
+        const customUpdaters = Array.isArray(options?.update)
+          ? options.update.filter((fn) => typeof fn === 'function')
+          : [];
+        customUpdaters.forEach((fn) => updateCallbacks.add(fn));
+
+        await callMaybeAsync('setupSky()', window.setupSky, {
+          scene,
+          renderer,
+          camera,
+          options
+        });
+
+        await callMaybeAsync('setupEnvironmentExtras()', window.setupEnvironmentExtras, {
+          scene,
+          renderer,
+          camera,
+          options
+        });
+
+        const resize = () => {
+          const size = computeContainerSize();
+          camera.aspect = size.width / size.height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(size.width, size.height, false);
+        };
+
+        window.addEventListener('resize', resize);
+        cleanupCallbacks.push(() => window.removeEventListener('resize', resize));
+
+        const clock = new THREE.Clock();
+        let rafId = null;
+        let disposed = false;
+
+        const frame = () => {
+          if (disposed) {
+            return;
+          }
+          rafId = window.requestAnimationFrame(frame);
+          const delta = clock.getDelta();
+          updateCallbacks.forEach((fn) => {
+            try {
+              fn(delta, { scene, camera, renderer });
+            } catch (error) {
+              console.warn('[Athens][Dev] updater callback failed', error);
+            }
+          });
+          renderer.render(scene, camera);
+        };
+
+        rafId = window.requestAnimationFrame(frame);
+
+        const dispose = () => {
+          disposed = true;
+          if (rafId !== null) {
+            window.cancelAnimationFrame(rafId);
+          }
+          cleanupCallbacks.forEach((fn) => {
+            try {
+              fn();
+            } catch (_) {
+              /* noop */
+            }
+          });
+          cleanupCallbacks.length = 0;
+          updateCallbacks.clear();
+          if (renderer) {
+            renderer.dispose();
+            const canvas = renderer.domElement;
+            if (canvas?.parentNode === container) {
+              container.removeChild(canvas);
+            }
+          }
+          if (window.__athensDevContext === context) {
+            window.__athensDevContext = null;
+          }
+        };
+
+        const context = {
+          renderer,
+          scene,
+          camera,
+          dispose,
+          fallbackGround,
+          ground: groundResult ?? fallbackGround
+        };
+
+        window.__athensDevContext = context;
+        updateLog('Athens running. Enjoy your stroll!');
+
+        return context;
+      };
+
+      try {
+        const initializerSymbol = Symbol.for('athens.initializer.source');
+        window.runAthens[initializerSymbol] = INITIALIZER_SOURCE;
+      } catch (_) {
+        /* ignore */
+      }
+
+      try {
+        const event = new CustomEvent('athens:initializer-ready', {
+          detail: { initializer: window.runAthens, source: INITIALIZER_SOURCE }
+        });
+        window.dispatchEvent(event);
+      } catch (error) {
+        console.warn('[Athens][Dev] Unable to dispatch initializer-ready event', error);
+      }
+
+      const startBootstrap = () => {
+        updateLog('Bootstrapping Athens…');
+        boot()
+          .then(() => {
+            updateLog('Bootstrap complete. Renderer ready.');
+          })
+          .catch((error) => {
+            console.error('[Athens][Dev] Bootstrap failed', error);
+            updateLog('Bootstrap failed. See console for details.', 'error');
+          });
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startBootstrap, { once: true });
+      } else {
+        startBootstrap();
+      }
+    </script>
+  </body>
+</html>
