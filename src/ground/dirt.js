@@ -1,16 +1,14 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import {
+  loadTextureWithFallback,
+  ensureColorSpace as ensureTextureColorSpace
+} from '../utils/fail-soft-loaders.js';
 import { applyDoubleSidedGroundSupport } from './double-sided.js';
 
 const textureLoader = new THREE.TextureLoader();
 let cachedBaseTexture = null;
 const pendingTextureUpdates = new Set();
-
-function ensureColorSpace(texture) {
-  if (!texture) return;
-  if ('SRGBColorSpace' in THREE) texture.colorSpace = THREE.SRGBColorSpace;
-  else if ('sRGBEncoding' in THREE) texture.encoding = THREE.sRGBEncoding;
-}
 
 function flushPendingTextureUpdates(baseTexture) {
   if (pendingTextureUpdates.size === 0) return;
@@ -24,17 +22,32 @@ function flushPendingTextureUpdates(baseTexture) {
   pendingTextureUpdates.clear();
 }
 
+function applySharedSettings(texture) {
+  if (!texture) return;
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  ensureTextureColorSpace(texture);
+}
+
 function loadBaseTexture() {
   if (!cachedBaseTexture) {
-    cachedBaseTexture = textureLoader.load(
-      resolveAssetUrl('assets/textures/athens_dust.jpg'),
-      (texture) => {
-        ensureColorSpace(texture);
+    const url = resolveAssetUrl('assets/textures/athens_dust.jpg');
+    cachedBaseTexture = loadTextureWithFallback(url, {
+      loader: textureLoader,
+      label: 'ground dirt texture',
+      fallbackColor: 0x6b5a45,
+      onLoad: (texture, { fallback }) => {
+        applySharedSettings(texture);
+        if (!fallback) {
+          flushPendingTextureUpdates(texture);
+        }
+      },
+      onFallback: (texture) => {
+        applySharedSettings(texture);
         flushPendingTextureUpdates(texture);
       }
-    );
+    });
 
-    ensureColorSpace(cachedBaseTexture);
+    applySharedSettings(cachedBaseTexture);
   } else if (cachedBaseTexture.image) {
     flushPendingTextureUpdates(cachedBaseTexture);
   }
@@ -56,7 +69,7 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
     texture.anisotropy = Math.max(texture.anisotropy || 0, anisotropy);
   }
 
-  ensureColorSpace(texture);
+  ensureTextureColorSpace(texture);
 
   if (baseTexture.image) {
     texture.needsUpdate = true;

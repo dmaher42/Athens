@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { loadTextureWithFallback } from '../utils/fail-soft-loaders.js';
 
 const fallbackMaterial = new THREE.MeshStandardMaterial({
   color: 0xbfbfbf,
@@ -15,74 +16,89 @@ export function loadBuildingTextures() {
     roughness: 0.75,
     metalness: 0.0
   });
-
-  loader.load(
-    resolveAssetUrl('assets/textures/marble.jpg'),
-    (texture) => {
+  const applyMarbleFallback = () => {
+    marbleMat.map = null;
+    marbleMat.color.set(0xdedede);
+    marbleMat.needsUpdate = true;
+  };
+  loadTextureWithFallback(resolveAssetUrl('assets/textures/marble.jpg'), {
+    loader,
+    label: 'marble texture',
+    fallbackColor: 0xdedede,
+    onLoad: (texture, { fallback }) => {
+      if (fallback) {
+        applyMarbleFallback();
+        return;
+      }
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(2, 2);
       texture.anisotropy = Math.max(texture.anisotropy || 0, 8);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.needsUpdate = true;
       marbleMat.map = texture;
       marbleMat.color.set(0xffffff);
       marbleMat.needsUpdate = true;
     },
-    undefined,
-    (error) => {
-      console.warn('[materials] marble.jpg missing; will use color.', error);
-    }
-  );
+    onFallback: applyMarbleFallback
+  });
 
   const roofMat = new THREE.MeshStandardMaterial({
     color: 0x8b3a2f,
     roughness: 0.9,
     metalness: 0.0
   });
-
-  loader.load(
-    resolveAssetUrl('assets/textures/roof_tiles.jpg'),
-    (texture) => {
+  const applyRoofFallback = () => {
+    roofMat.map = null;
+    roofMat.color.set(0x8b3a2f);
+    roofMat.needsUpdate = true;
+  };
+  loadTextureWithFallback(resolveAssetUrl('assets/textures/roof_tiles.jpg'), {
+    loader,
+    label: 'roof texture',
+    fallbackColor: 0x8b3a2f,
+    onLoad: (texture, { fallback }) => {
+      if (fallback) {
+        applyRoofFallback();
+        return;
+      }
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(2, 2);
       texture.anisotropy = Math.max(texture.anisotropy || 0, 8);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.needsUpdate = true;
       roofMat.map = texture;
       roofMat.color.set(0xffffff);
       roofMat.needsUpdate = true;
     },
-    undefined,
-    (error) => {
-      console.warn('[materials] roof_tiles.jpg missing; will use color.', error);
-    }
-  );
+    onFallback: applyRoofFallback
+  });
 
   const cityWallMat = new THREE.MeshStandardMaterial({
     color: 0xb8a27c,
     roughness: 0.82,
     metalness: 0.04
   });
-
-  loader.load(
-    new URL('../../public/assets/textures/city_wall.jpg', import.meta.url).href,
-    (texture) => {
+  const applyCityWallFallback = () => {
+    cityWallMat.map = null;
+    cityWallMat.color.set(0xb8a27c);
+    cityWallMat.needsUpdate = true;
+  };
+  loadTextureWithFallback(resolveAssetUrl('assets/textures/city_wall.jpg'), {
+    loader,
+    label: 'city wall texture',
+    fallbackColor: 0xb8a27c,
+    onLoad: (texture, { fallback }) => {
+      if (fallback) {
+        applyCityWallFallback();
+        return;
+      }
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
       texture.anisotropy = Math.max(texture.anisotropy || 0, 8);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.needsUpdate = true;
       cityWallMat.map = texture;
       cityWallMat.color.set(0xffffff);
       cityWallMat.needsUpdate = true;
     },
-    undefined,
-    (error) => {
-      console.warn('[materials] city_wall.jpg missing; will use color.', error);
-    }
-  );
+    onFallback: applyCityWallFallback
+  });
 
   return { marbleMat, roofMat, cityWallMat };
 }

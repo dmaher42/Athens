@@ -1,5 +1,6 @@
 // src/sky/photoSkydome.js
 import THREE from '../three.js';
+import { loadTextureAsyncWithFallback } from '../utils/fail-soft-loaders.js';
 
 const sharedTextureLoader = new THREE.TextureLoader();
 const textureCache = new Map();
@@ -22,8 +23,11 @@ function normalizeSources(list) {
 async function loadTextureWithCache(url, loader = sharedTextureLoader, options = {}) {
   if (!url) throw new Error('PhotoSkydome: invalid texture URL.');
   if (!textureCache.has(url)) {
-    const promise = loader
-      .loadAsync(url)
+    const label = options?.label ?? 'photo skydome texture';
+    const promise = loadTextureAsyncWithFallback(url, {
+      loader,
+      label
+    })
       .then((texture) => {
         // Correct color space for photographs & improve sampling
         texture.generateMipmaps = true;
@@ -62,17 +66,36 @@ async function loadTextureWithCache(url, loader = sharedTextureLoader, options =
 
 async function loadTextureSequence(sources, loader, options = {}) {
   let lastError = null;
+  let fallbackResult = null;
+
   for (const source of sources) {
     if (!source?.url) continue;
+    const label = source.label ? `sky texture "${source.label}"` : 'sky texture';
     try {
-      const texture = await loadTextureWithCache(source.url, loader, options);
+      const texture = await loadTextureWithCache(source.url, loader, {
+        ...options,
+        label
+      });
+
+      if (texture?.userData?.isFallbackTexture) {
+        fallbackResult = fallbackResult ?? { texture, source };
+        console.warn(
+          `PhotoSkydome: ${label} unavailable at ${source.url}; using fallback placeholder.`
+        );
+        continue;
+      }
+
       return { texture, source };
     } catch (error) {
       lastError = error;
-      const label = source.label ? ` ("${source.label}")` : '';
-      console.warn(`PhotoSkydome: failed to load texture${label} from ${source.url}`, error);
+      console.warn(`PhotoSkydome: failed to load ${label} from ${source.url}`, error);
     }
   }
+
+  if (fallbackResult) {
+    return fallbackResult;
+  }
+
   throw lastError || new Error('Unable to load any photo skydome texture.');
 }
 

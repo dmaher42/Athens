@@ -6,21 +6,55 @@ function ensureTrailingSlash(value) {
   return value.endsWith('/') ? value : `${value}/`;
 }
 
-function computeModuleBase() {
-  if (typeof import.meta === 'undefined' || !import.meta?.url) {
+function normalizeBaseCandidate(candidate) {
+  if (typeof candidate !== 'string') {
     return null;
   }
 
-  try {
-    const moduleUrl = new URL(import.meta.url);
-    return new URL('../../', moduleUrl).href;
-  } catch (error) {
-    console.warn('[asset-paths] Unable to infer base from module URL.', error);
+  const trimmed = candidate.trim();
+  if (!trimmed) {
     return null;
   }
+
+  // Allow fully-qualified URLs
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const absolute = new URL(trimmed);
+      return ensureTrailingSlash(absolute.pathname || '/');
+    } catch (error) {
+      console.warn('[asset-paths] Invalid absolute BASE_URL candidate.', error);
+      return null;
+    }
+  }
+
+  // Treat relative references (./ or ../) as rooted at the current location if possible
+  if (/^(\.\/?)+/.test(trimmed)) {
+    if (typeof location !== 'undefined' && typeof location.href === 'string') {
+      try {
+        const relative = new URL(trimmed, location.href);
+        return ensureTrailingSlash(relative.pathname || '/');
+      } catch (error) {
+        console.warn('[asset-paths] Unable to resolve relative BASE_URL candidate.', error);
+      }
+    }
+    const sanitized = trimmed.replace(/^\.\//, '/');
+    return ensureTrailingSlash(sanitized.startsWith('/') ? sanitized : `/${sanitized}`);
+  }
+
+  const prefixed = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return ensureTrailingSlash(prefixed);
 }
 
-function computeLocationBase() {
+function computeFromEnv() {
+  if (typeof import.meta === 'undefined') {
+    return null;
+  }
+  const env = import.meta.env ?? null;
+  const base = env && typeof env.BASE_URL === 'string' ? env.BASE_URL : null;
+  return normalizeBaseCandidate(base);
+}
+
+function computeFromLocation() {
   if (typeof location === 'undefined' || typeof location.pathname !== 'string') {
     return null;
   }
@@ -31,49 +65,58 @@ function computeLocationBase() {
   }
 
   if (pathname.endsWith('/')) {
-    return pathname;
+    return ensureTrailingSlash(pathname);
   }
 
-  const segments = pathname.split('/').filter(Boolean);
-  if (!segments.length) {
+  const lastSlash = pathname.lastIndexOf('/');
+  if (lastSlash < 0) {
     return '/';
   }
 
-  const lastSegment = segments[segments.length - 1];
-  const isFile = lastSegment.includes('.');
-  if (isFile) {
-    const lastSlash = pathname.lastIndexOf('/');
-    return lastSlash >= 0 ? pathname.slice(0, lastSlash + 1) || '/' : '/';
-  }
-
-  const hostname = typeof location.hostname === 'string' ? location.hostname : '';
-  const isGitHubPages = /\.github\.io$/i.test(hostname);
-
-  if (isGitHubPages) {
-    return `/${segments[0]}/`;
-  }
-
-  if (segments.length === 1) {
-    return `/${segments[0]}/`;
-  }
-
-  return `/${segments.slice(0, -1).join('/')}/`;
+  const basePath = pathname.slice(0, lastSlash + 1) || '/';
+  return ensureTrailingSlash(basePath);
 }
 
-const envBase =
-  typeof import.meta !== 'undefined' &&
-  import.meta.env &&
-  typeof import.meta.env.BASE_URL === 'string' &&
-  import.meta.env.BASE_URL.length > 0
-    ? import.meta.env.BASE_URL
-    : null;
+function computeFromModuleUrl() {
+  if (typeof import.meta === 'undefined' || typeof import.meta.url !== 'string') {
+    return null;
+  }
 
-const moduleBase = computeModuleBase();
-const locationBase = computeLocationBase();
+  try {
+    const moduleUrl = new URL(import.meta.url);
+    const pathname = moduleUrl.pathname || '/';
 
-const inferredBase = envBase ?? locationBase ?? moduleBase ?? '/';
+    if (pathname.includes('/public/')) {
+      const index = pathname.indexOf('/public/');
+      return ensureTrailingSlash(pathname.slice(0, index + 1));
+    }
 
-const ASSET_BASE = ensureTrailingSlash(inferredBase);
+    if (pathname.includes('/src/')) {
+      const index = pathname.indexOf('/src/');
+      return ensureTrailingSlash(pathname.slice(0, index + 1));
+    }
+
+    const lastSlash = pathname.lastIndexOf('/');
+    if (lastSlash >= 0) {
+      return ensureTrailingSlash(pathname.slice(0, lastSlash + 1) || '/');
+    }
+  } catch (error) {
+    console.warn('[asset-paths] Unable to infer base from module URL.', error);
+  }
+
+  return null;
+}
+
+function computeAssetBaseUrl() {
+  return (
+    computeFromEnv() ??
+    computeFromLocation() ??
+    computeFromModuleUrl() ??
+    '/'
+  );
+}
+
+const ASSET_BASE = computeAssetBaseUrl();
 
 export function getAssetBase() {
   return ASSET_BASE;
@@ -106,4 +149,4 @@ export function resolveAssetUrl(path = '') {
   return `${ASSET_BASE}${sanitized}`;
 }
 
-export { ASSET_BASE };
+export { ASSET_BASE, computeAssetBaseUrl };
