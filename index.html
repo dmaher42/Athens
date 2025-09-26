@@ -7350,6 +7350,7 @@ world.addBody(archBody);
         function addEventListeners() {
             const startButton = document.getElementById('start-button');
             const startOverlay = document.getElementById('start-overlay');
+            let startSequenceInProgress = false;
 
             const hideStartOverlay = () => {
                 if (!startOverlay) {
@@ -7380,59 +7381,97 @@ world.addBody(archBody);
                 }, 1200);
             };
 
+            const startExperience = async () => {
+                if (startSequenceInProgress) {
+                    return;
+                }
+
+                startSequenceInProgress = true;
+
+                hideStartOverlay();
+
+                try {
+                    await loadToneLibrary();
+                } catch (error) {
+                    console.warn('Unable to preload Tone.js before starting the experience:', error);
+                }
+
+                // Start the main Athens experience
+                try {
+                    console.log('Starting Athens experience...');
+                    await initializeAthens();
+                } catch (error) {
+                    console.error('Failed to start Athens experience:', error);
+                    // Don't return here - still try to initialize audio
+                }
+
+                if (audioStarted || audioStartInProgress) {
+                    startSequenceInProgress = false;
+                    return;
+                }
+
+                audioStartInProgress = true;
+                try {
+                    const tonePromise = (async () => {
+                        await createAmbientSounds();
+                        initializeChickenAudio();
+                    })();
+                    const zonePromise = ambientZoneManager?.resume?.() ?? Promise.resolve();
+
+                    const [toneResult, zoneResult] = await Promise.allSettled([tonePromise, zonePromise]);
+
+                    if (zoneResult?.status === 'rejected') {
+                        console.warn('Unable to resume ambient zone audio context:', zoneResult.reason);
+                    }
+
+                    if (ambientZoneManager) {
+                        ambientZoneManager.setEnabled(true);
+                        ambientZoneManager.update(0, camera.position);
+                    }
+
+                    if (toneResult.status === 'fulfilled') {
+                        audioStarted = true;
+                        console.log("Audio context started.");
+                    } else if (toneResult.status === 'rejected') {
+                        console.warn('Unable to start audio context:', toneResult.reason);
+                    }
+                } catch (error) {
+                    console.warn('Unable to start audio systems:', error);
+                } finally {
+                    audioStartInProgress = false;
+                    startSequenceInProgress = false;
+                }
+            };
+
+            const triggerStartExperience = () => {
+                startExperience().catch((error) => {
+                    console.error('Unexpected error while starting the experience:', error);
+                });
+            };
+
+            const isStartOverlayVisible = () => {
+                if (!startOverlay) {
+                    return false;
+                }
+
+                if (startOverlay.style.display === 'none') {
+                    return false;
+                }
+
+                if (startOverlay.classList?.contains?.('fade-out')) {
+                    return false;
+                }
+
+                return true;
+            };
+
             if (startButton && startOverlay) {
                 startButton.addEventListener('pointerdown', () => {
                     loadToneLibrary().catch(() => {
                         // Preloading can fail if the user releases the pointer early; retry on click.
                     });
                 });
-                startButton.addEventListener('click', async () => {
-                    hideStartOverlay();
-
-                    // Start the main Athens experience
-                    try {
-                        console.log('Starting Athens experience...');
-                        await initializeAthens();
-                    } catch (error) {
-                        console.error('Failed to start Athens experience:', error);
-                        // Don't return here - still try to initialize audio
-                    }
-
-                    if (audioStarted || audioStartInProgress) {
-                        return;
-                    }
-
-                    audioStartInProgress = true;
-                    try {
-                        const tonePromise = (async () => {
-                            await createAmbientSounds();
-                            initializeChickenAudio();
-                        })();
-                        const zonePromise = ambientZoneManager?.resume?.() ?? Promise.resolve();
-
-                        const [toneResult, zoneResult] = await Promise.allSettled([tonePromise, zonePromise]);
-
-                        if (zoneResult?.status === 'rejected') {
-                            console.warn('Unable to resume ambient zone audio context:', zoneResult.reason);
-                        }
-
-                        if (ambientZoneManager) {
-                            ambientZoneManager.setEnabled(true);
-                            ambientZoneManager.update(0, camera.position);
-                        }
-
-                        if (toneResult.status === 'fulfilled') {
-                            audioStarted = true;
-                            console.log("Audio context started.");
-                        } else if (toneResult.status === 'rejected') {
-                            console.warn('Unable to start audio context:', toneResult.reason);
-                        }
-                    } catch (error) {
-                        console.warn('Unable to start audio systems:', error);
-                    } finally {
-                        audioStartInProgress = false;
-                    }
-                });
+                startButton.addEventListener('click', triggerStartExperience);
             } else {
                 console.warn('Start overlay elements are missing; skipping overlay binding.');
             }
@@ -7453,6 +7492,21 @@ world.addBody(archBody);
             });
 
             document.addEventListener('keydown', (e) => {
+                if (!startSequenceInProgress && isStartOverlayVisible()) {
+                    const key = e.key || e.code;
+                    const normalizedKey = key === ' ' ? 'Space' : key;
+                    if (normalizedKey === 'Enter' || normalizedKey === 'Space' || e.code === 'Space') {
+                        if (e.repeat) {
+                            e.preventDefault();
+                            return;
+                        }
+
+                        e.preventDefault();
+                        triggerStartExperience();
+                        return;
+                    }
+                }
+
                 if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
                     e.preventDefault();
                 }
