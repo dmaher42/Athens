@@ -356,9 +356,13 @@ main[ATHENS_MAIN_SENTINEL] = true;
 
 if (typeof window !== 'undefined') {
   try {
-    window.initializeAthens = main;
-    console.info('[Athens][Main] Exposed module main() as window.initializeAthens');
+    if (typeof window.initializeAthens !== 'function') {
+      window.initializeAthens = main;
+      console.info('[Athens][Main] Exposed module main() as window.initializeAthens');
+    } else {
+      console.info('[Athens][Main] Detected existing window.initializeAthens');
+    }
   } catch (error) {
-    console.warn('[Athens][Main] Unable to expose main() on window.initializeAthens', error);
+    console.warn('[Athens][Main] Unable to coordinate window.initializeAthens', error);
   }
 }
