@@ -3,10 +3,15 @@ import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const base = env.VITE_BASE ?? env.BASE ?? '/';
+  const rawBase = env.VITE_BASE ?? env.BASE ?? '/';
+  const normalizedBase = (() => {
+    if (!rawBase) return '/';
+    const withLeading = rawBase.startsWith('/') ? rawBase : `/${rawBase}`;
+    return withLeading.endsWith('/') ? withLeading : `${withLeading}/`;
+  })();
 
   return {
-    base,
+    base: normalizedBase,
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
