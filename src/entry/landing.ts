@@ -1,17 +1,18 @@
 import * as THREE from 'three';
 import { setupGround, updateTrees, initPerformanceStats } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
+import boot, { whenBootReady } from '../core/bootstrap.js';
 
 type StatsLike = {
   update?: () => void;
   dom?: HTMLElement;
 } | null;
 
-type RunAthensHandle = () => {
+type RunAthensHandle = () => Promise<{
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   camera: THREE.PerspectiveCamera;
-};
+}>;
 
 let container: HTMLElement | null = null;
 let renderer: THREE.WebGLRenderer | null = null;
@@ -20,72 +21,20 @@ let camera: THREE.PerspectiveCamera | null = null;
 let stats: StatsLike = null;
 let previousTime = performance.now();
 
-const runAthens: RunAthensHandle = () => {
-  if (!scene || !renderer || !camera) {
-    throw new Error('Athens has not finished initializing.');
-  }
-  return { scene, renderer, camera };
-};
-
 declare global {
   interface Window {
     runAthens?: RunAthensHandle;
   }
 }
 
-window.runAthens = runAthens;
+console.log('[Athens] boot starting');
+await boot?.();
+await whenBootReady();
 
-function resizeRenderer() {
-  if (!container || !renderer || !camera) {
-    return;
+const runAthens: RunAthensHandle = async () => {
+  if (scene && renderer && camera) {
+    return { scene, renderer, camera };
   }
-
-  const { clientWidth, clientHeight } = container;
-  const width = clientWidth || window.innerWidth || 1;
-  const height = clientHeight || window.innerHeight || 1;
-
-  renderer.setSize(width, height, false);
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-}
-
-function frame(now: number) {
-  if (!renderer || !scene || !camera) {
-    previousTime = now;
-    requestAnimationFrame(frame);
-    return;
-  }
-
-  const deltaSeconds = (now - previousTime) / 1000;
-  previousTime = now;
-
-  try {
-    updateTrees(deltaSeconds);
-  } catch (error) {
-    console.warn('[Athens] Tree update failed.', error);
-  }
-
-  stats?.update?.();
-  renderer.render(scene, camera);
-
-  requestAnimationFrame(frame);
-}
-
-async function initializeAthens() {
-  let bootModule: { boot?: () => unknown; default?: () => unknown } | null = null;
-  try {
-    bootModule = await import('../core/bootstrap.js');
-  } catch (error) {
-    console.warn('[Athens] Optional bootstrap module failed to load.', error);
-  }
-
-  const boot = typeof bootModule?.boot === 'function'
-    ? bootModule.boot
-    : typeof bootModule?.default === 'function'
-      ? bootModule.default
-      : undefined;
-
-  await boot?.();
 
   container = document.getElementById('app') as HTMLElement | null;
   if (!container) {
@@ -148,14 +97,62 @@ async function initializeAthens() {
 
   previousTime = performance.now();
   requestAnimationFrame(frame);
+  console.log('[Athens] render loop running');
 
-  window.dispatchEvent(
-    new CustomEvent('athens:initializer-ready', {
-      detail: { initializer: runAthens, source: 'entry/landing.ts' }
-    })
-  );
+  return {
+    scene: scene as THREE.Scene,
+    renderer: renderer as THREE.WebGLRenderer,
+    camera: camera as THREE.PerspectiveCamera
+  };
+};
+
+(window as any).runAthens = runAthens;
+window.dispatchEvent(
+  new CustomEvent('athens:initializer-ready', {
+    detail: { initializer: (window as any).runAthens, source: 'index.html' }
+  })
+);
+console.log('[Athens] initializer ready');
+
+try {
+  await runAthens();
+} catch (error) {
+  console.error('[Athens] Failed to initialize.', error);
 }
 
-initializeAthens().catch((error) => {
-  console.error('[Athens] Failed to initialize.', error);
-});
+function resizeRenderer() {
+  if (!container || !renderer || !camera) {
+    return;
+  }
+
+  const { clientWidth, clientHeight } = container;
+  const width = clientWidth || window.innerWidth || 1;
+  const height = clientHeight || window.innerHeight || 1;
+
+  renderer.setSize(width, height, false);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+function frame(now: number) {
+  if (!renderer || !scene || !camera) {
+    previousTime = now;
+    requestAnimationFrame(frame);
+    return;
+  }
+
+  const deltaSeconds = (now - previousTime) / 1000;
+  previousTime = now;
+
+  try {
+    updateTrees(deltaSeconds);
+  } catch (error) {
+    console.warn('[Athens] Tree update failed.', error);
+  }
+
+  stats?.update?.();
+  renderer.render(scene, camera);
+
+  requestAnimationFrame(frame);
+}
+

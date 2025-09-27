@@ -1,5 +1,24 @@
 import { main } from '../main.js';
 
+let bootReadyResolve;
+let bootReadyReject;
+const bootReady = new Promise((resolve, reject) => {
+  bootReadyResolve = resolve;
+  bootReadyReject = reject;
+});
+
+if (typeof window !== 'undefined') {
+  window.__AthensBootReady = bootReady;
+}
+
+export function whenBootReady() {
+  if (typeof window !== 'undefined' && window.__AthensBootReady) {
+    return window.__AthensBootReady;
+  }
+
+  return bootReady;
+}
+
 const describeBootstrapEntrypoint = (entrypoint) => {
   if (typeof entrypoint !== 'function') {
     return 'unavailable';
@@ -62,10 +81,16 @@ export default async function boot(opts = {}) {
     console.info('[Athens][Bootstrap] Boot complete', {
       elapsedMs: Date.now() - startedAt
     });
+    bootReadyResolve?.(true);
+    bootReadyResolve = undefined;
+    bootReadyReject = undefined;
   } catch (err) {
     lastError = err;
     console.error('🏛️ Athens Initialization Error - Boot Wrapper', err);
     showErrorOverlay('Error during initialization', err);
+    bootReadyReject?.(err);
+    bootReadyResolve = undefined;
+    bootReadyReject = undefined;
     throw err;
   }
 }
