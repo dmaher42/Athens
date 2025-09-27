@@ -48,7 +48,7 @@ function createSolidColorTexture({ color = DEFAULT_TEXTURE_FALLBACK_COLOR, name 
  * fallback map with the real texture instead of mutating the DataTexture.
  * This avoids writing to read-only fields when the loader resolves.
  */
-function applyLoadedTexture(
+export function applyLoadedTexture(
   material,
   mapKey,
   loadedTex,
@@ -312,7 +312,6 @@ export {
   DEFAULT_MODEL_FALLBACK_COLOR,
   createSolidColorTexture,
   ensureColorSpace,
-  applyLoadedTexture,
   loadTextureWithFallback,
   loadTextureAsyncWithFallback,
   loadGltfWithFallback
