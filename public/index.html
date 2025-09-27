@@ -114,7 +114,7 @@
     </div>
     <script type="module">
       import * as THREE from '../node_modules/three/build/three.module.js';
-      import { setupGround, updateTrees } from '../src/main.js';
+      import { setupGround, updateTrees, initPerformanceStats } from '../src/main.js';
       import { setEnvironment } from '../src/scene/sky.js';
       import boot from '../src/core/bootstrap.js';
 
@@ -154,6 +154,15 @@
         logElement.textContent = logHistory.join('\n');
       };
 
+      const installDevLogBridge = () => {
+        window.__AthensDevLog = {
+          push(message, level) {
+            updateLog(message, level);
+          }
+        };
+        window.updateAthensDevLog = updateLog;
+      };
+
       const callMaybeAsync = async (label, fn, ...args) => {
         if (typeof fn !== 'function') {
           return null;
@@ -185,6 +194,7 @@
       };
 
       ensureLogVisible();
+      installDevLogBridge();
 
       const cleanupExisting = () => {
         const existing = window.__athensDevContext;
@@ -248,6 +258,14 @@
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
         container.insertBefore(renderer.domElement, logElement);
+
+        console.info(`[Athens][Dev] Renderer sized: ${Math.round(width)}x${Math.round(height)}`);
+        updateLog(`Renderer sized: ${Math.round(width)}×${Math.round(height)}`);
+
+        const stats = initPerformanceStats();
+        if (stats?.dom) {
+          stats.dom.style.position = 'absolute';
+        }
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color('#8fbcd4');
@@ -325,6 +343,7 @@
           camera.aspect = size.width / size.height;
           camera.updateProjectionMatrix();
           renderer.setSize(size.width, size.height, false);
+          console.info(`[Athens][Dev] Renderer sized: ${Math.round(size.width)}x${Math.round(size.height)}`);
         };
 
         window.addEventListener('resize', resize);
@@ -350,6 +369,90 @@
           renderer.render(scene, camera);
         };
 
+        const buildSanityGeometry = () => {
+          const group = new THREE.Group();
+          group.name = 'DevSanityGeometry';
+
+          const box = new THREE.Mesh(
+            new THREE.BoxGeometry(60, 60, 60),
+            new THREE.MeshStandardMaterial({
+              color: '#f87171',
+              transparent: true,
+              opacity: 0.4,
+              metalness: 0.1,
+              roughness: 0.6
+            })
+          );
+          box.position.set(0, 30, 0);
+          box.castShadow = true;
+          group.add(box);
+
+          const boxEdges = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.BoxGeometry(60, 60, 60)),
+            new THREE.LineBasicMaterial({ color: '#f8fafc' })
+          );
+          boxEdges.position.copy(box.position);
+          group.add(boxEdges);
+
+          const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(260, 260, 10, 10),
+            new THREE.MeshBasicMaterial({ color: '#38bdf8', wireframe: true })
+          );
+          plane.rotation.x = -Math.PI / 2;
+          plane.position.y = 0.02;
+          group.add(plane);
+
+          return group;
+        };
+
+        let sanityGeometry = null;
+
+        const detachSanityGeometry = () => {
+          if (!sanityGeometry) {
+            return;
+          }
+
+          scene.remove(sanityGeometry);
+          sanityGeometry.traverse((child) => {
+            if (child.isMesh || child.isLineSegments) {
+              child.geometry?.dispose?.();
+              if (Array.isArray(child.material)) {
+                child.material.forEach((mat) => mat?.dispose?.());
+              } else {
+                child.material?.dispose?.();
+              }
+            }
+          });
+          sanityGeometry = null;
+        };
+
+        const attachSanityGeometry = () => {
+          if (sanityGeometry) {
+            return;
+          }
+          sanityGeometry = buildSanityGeometry();
+          scene.add(sanityGeometry);
+          updateLog('Sanity geometry visible (press “S” to hide).');
+        };
+
+        const toggleSanityGeometry = () => {
+          if (sanityGeometry) {
+            detachSanityGeometry();
+            updateLog('Sanity geometry hidden. Press “S” to show again.');
+          } else {
+            attachSanityGeometry();
+          }
+        };
+
+        const handleSanityToggle = (event) => {
+          if (event.key === 's' || event.key === 'S') {
+            toggleSanityGeometry();
+          }
+        };
+
+        window.addEventListener('keydown', handleSanityToggle);
+        cleanupCallbacks.push(() => window.removeEventListener('keydown', handleSanityToggle));
+
         rafId = window.requestAnimationFrame(frame);
 
         const dispose = () => {
@@ -357,6 +460,7 @@
           if (rafId !== null) {
             window.cancelAnimationFrame(rafId);
           }
+          detachSanityGeometry();
           cleanupCallbacks.forEach((fn) => {
             try {
               fn();
