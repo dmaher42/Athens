@@ -1,5 +1,5 @@
 import THREE from './three.js';
-import { resolveAssetUrl } from './utils/asset-paths.js';
+import { getAssetBase, resolveAssetUrl } from './utils/asset-paths.js';
 import { loadTextureWithFallback } from './utils/fail-soft-loaders.js';
 
 /** Lightweight materials (one-time) */
@@ -54,7 +54,21 @@ const createWallFallbackMaterial = () =>
 MAT.wall = createWallFallbackMaterial();
 
 const texLoader = new THREE.TextureLoader();
-const wallURL = resolveAssetUrl('assets/textures/wall_city.jpg');
+const WALL_TEXTURE_PATH = 'assets/textures/city_wall.jpg';
+const wallURL = resolveAssetUrl(WALL_TEXTURE_PATH);
+
+const isDevBuild =
+  typeof import.meta !== 'undefined' &&
+  import.meta &&
+  import.meta.env &&
+  import.meta.env.DEV;
+
+if (isDevBuild) {
+  console.log('[Athens][assets]', {
+    base: getAssetBase(),
+    cityWallTexture: wallURL
+  });
+}
 
 const applyWallTextureFallback = () => {
   MAT.wall = createWallFallbackMaterial();
