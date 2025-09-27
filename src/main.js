@@ -1,5 +1,6 @@
 import { loadGround } from './scene/ground.js';
 import { loadTreeLibrary, scatterTrees, updateTrees as updateTreeAnimations } from './vegetation/trees.js';
+import { getAssetBase } from './utils/asset-paths.js';
 
 const ATHENS_MAIN_SENTINEL = Symbol.for('athens.main.entrypoint');
 const isAthensMainEntrypoint = (fn) => typeof fn === 'function' && fn[ATHENS_MAIN_SENTINEL];
@@ -22,6 +23,32 @@ if (typeof document !== 'undefined') {
 let statsInstance = null;
 let statsVisible = false;
 let statsWarned = false;
+
+const DEV_LOG_GLOBAL_KEY = '__AthensDevLog';
+
+const reportDevLog = (message, level = 'info') => {
+  try {
+    const globalObject = typeof window !== 'undefined' ? window : typeof globalThis !== 'undefined' ? globalThis : null;
+    if (!globalObject) {
+      return false;
+    }
+
+    const devLog = globalObject[DEV_LOG_GLOBAL_KEY];
+    if (devLog && typeof devLog.push === 'function') {
+      devLog.push(message, level);
+      return true;
+    }
+
+    if (typeof globalObject.updateAthensDevLog === 'function') {
+      globalObject.updateAthensDevLog(message, level);
+      return true;
+    }
+  } catch (_) {
+    // noop
+  }
+
+  return false;
+};
 
 const isDomAvailable = () => typeof document !== 'undefined' && !!document.body;
 
@@ -100,6 +127,9 @@ export function initPerformanceStats() {
 
   if (typeof window !== 'undefined') {
     window.getStats = () => statsInstance;
+    if (typeof window.toggleStatsVisibility !== 'function') {
+      window.toggleStatsVisibility = toggleStatsVisibility;
+    }
   }
 
   return statsInstance;
@@ -137,6 +167,10 @@ export function getStats() {
 
 if (typeof window !== 'undefined' && typeof window.getStats !== 'function') {
   window.getStats = () => statsInstance;
+}
+
+if (typeof window !== 'undefined' && typeof window.toggleStatsVisibility !== 'function') {
+  window.toggleStatsVisibility = toggleStatsVisibility;
 }
 // --- Ground options (from codex/add-blended-ground-textures-and-districts-system)
 let groundOptions = {};
@@ -328,9 +362,11 @@ export async function main(opts = {}) {
       ? opts
       : {};
 
-  console.info('[Athens][Main] Resolving entry point', {
-    options: forwardedOptions
-  });
+  console.info('[Athens][Main] Resolving entry point');
+  reportDevLog('Resolving entry point…');
+
+  const assetBase = getAssetBase();
+  console.info(`[Athens][Main] Assets base: ${assetBase}`);
 
   const initializerResult = await waitForAthensInitializer({
     timeoutMs: typeof waitForInitializerMs === 'number' ? waitForInitializerMs : undefined,
@@ -356,6 +392,7 @@ export async function main(opts = {}) {
 
   if (typeof initializer !== 'function') {
     console.error('[Athens][Main] No initializer function available.');
+    reportDevLog('No initializer function available. Is window.initializeAthens defined?', 'error');
     throw new Error('Athens main entry point is not available.');
   }
 
@@ -367,12 +404,21 @@ export async function main(opts = {}) {
     }
   }
 
-  console.info('[Athens][Main] Invoking initializer', {
+  console.info('[Athens][Main] Invoking initializer…', {
     initializer: describeInitializer(initializer),
     source: initializerSource
   });
 
-  return initializer(forwardedOptions);
+  try {
+    return await initializer(forwardedOptions);
+  } catch (error) {
+    console.error('[Athens][Main] Initializer failed', error);
+    const friendlyMessage = error instanceof Error && error.message ? error.message : 'Check console for details.';
+    if (!reportDevLog(`Initializer failed: ${friendlyMessage}`, 'error')) {
+      reportDevLog('Initializer failed. Check console for details.', 'error');
+    }
+    throw error;
+  }
 }
 
 main[ATHENS_MAIN_SENTINEL] = true;
