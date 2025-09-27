@@ -11,6 +11,7 @@ type RunOptions = {
 };
 
 const bootFn = (boot as unknown as (() => void) | null | undefined);
+console.log('[Athens] boot starting');
 bootFn?.();
 
 const DEFAULT_CONTAINER_ID = 'app';
@@ -172,6 +173,7 @@ const globalWindow = typeof window !== 'undefined' ? window : undefined;
 
 if (globalWindow) {
   (globalWindow as any).runAthens = runAthens;
+  console.log('[Athens] initializer ready');
 
   if (typeof globalWindow.dispatchEvent === 'function') {
     globalWindow.dispatchEvent(
@@ -181,10 +183,11 @@ if (globalWindow) {
     );
   }
 
-  await (globalWindow as any)
-    .runAthens()
-    .catch((error: unknown) => {
-      updateStatus('Failed to start Athens. See console for details.', 'error');
-      console.error(error);
-    });
+  try {
+    await (globalWindow as any).runAthens();
+    console.log('[Athens] render loop running');
+  } catch (error: unknown) {
+    updateStatus('Failed to start Athens. See console for details.', 'error');
+    console.error(error);
+  }
 }
