@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '@/three';
 
 function applyDoubleSideToMaterial(material) {
   if (!material || typeof material !== 'object') return;

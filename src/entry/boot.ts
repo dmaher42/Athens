@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '@/three';
 import { setupGround, updateTrees, initPerformanceStats } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
 import boot from '../core/bootstrap.js';

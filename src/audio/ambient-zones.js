@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '@/three';
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));

@@ -1,5 +1,5 @@
 // src/sky/photoSkydome.js
-import THREE from '../three.js';
+import * as THREE from '@/three';
 import { loadTextureAsyncWithFallback } from '../utils/fail-soft-loaders.js';
 
 const sharedTextureLoader = new THREE.TextureLoader();
