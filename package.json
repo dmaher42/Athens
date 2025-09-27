@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:boot": "vite --open dev-boot.html",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test"
