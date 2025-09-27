@@ -3,33 +3,39 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
 import {
   loadTextureWithFallback,
-  loadGltfWithFallback
+  loadGltfWithFallback,
+  applyLoadedTexture
 } from '../utils/fail-soft-loaders.js';
 
 // Load a texture and create a road mesh
 export function createRoadSegment(texturePath, start, end, width = 6) {
   const loader = new THREE.TextureLoader();
   const resolvedTexture = resolveAssetUrl(texturePath);
-  const texture = loadTextureWithFallback(resolvedTexture, {
+  let material = null;
+  const fallbackTexture = loadTextureWithFallback(resolvedTexture, {
     loader,
     label: 'road segment texture',
     fallbackColor: 0x6b5a45,
-    onLoad: (tex) => {
+    onLoad: (tex, { fallback, fallbackTexture }) => {
+      if (fallback) return;
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       tex.repeat.set(10, 1);
       tex.anisotropy = Math.max(tex.anisotropy || 0, 8);
+      if (material) {
+        applyLoadedTexture(material, 'map', tex, fallbackTexture, THREE);
+      }
     }
   });
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(10, 1);
+  fallbackTexture.wrapS = THREE.RepeatWrapping;
+  fallbackTexture.wrapT = THREE.RepeatWrapping;
+  fallbackTexture.repeat.set(10, 1);
 
   const length = start.distanceTo(end);
   const geometry = new THREE.PlaneGeometry(length, width, 1, 1);
 
-  const material = new THREE.MeshStandardMaterial({
-    map: texture,
+  material = new THREE.MeshStandardMaterial({
+    map: fallbackTexture,
     side: THREE.DoubleSide
   });
 

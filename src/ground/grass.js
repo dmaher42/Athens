@@ -35,10 +35,27 @@ function loadBaseTexture() {
       loader: textureLoader,
       label: 'ground grass texture',
       fallbackColor: 0x4a7f39,
-      onLoad: (texture, { fallback }) => {
+      onLoad: (texture, { fallback, fallbackTexture }) => {
         applySharedSettings(texture);
-        if (!fallback) {
+        if (fallback) {
           flushPendingTextureUpdates(texture);
+          return;
+        }
+        const previous = cachedBaseTexture;
+        cachedBaseTexture = texture;
+        flushPendingTextureUpdates(texture);
+        if (fallbackTexture && fallbackTexture !== texture) {
+          try {
+            fallbackTexture.dispose?.();
+          } catch {
+            /* ignore */
+          }
+        } else if (previous && previous !== texture) {
+          try {
+            previous.dispose?.();
+          } catch {
+            /* ignore */
+          }
         }
       },
       onFallback: (texture) => {
@@ -56,6 +73,7 @@ function loadBaseTexture() {
 
 function configureTexture(baseTexture, { repeat, anisotropy }) {
   const texture = baseTexture.clone();
+  const isFallback = Boolean(baseTexture?.userData?.isFallbackTexture);
   if (baseTexture?.image) {
     texture.image = baseTexture.image;
   }
@@ -73,7 +91,8 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
 
   if (baseTexture.image) {
     texture.needsUpdate = true;
-  } else {
+  }
+  if (!baseTexture.image || isFallback) {
     pendingTextureUpdates.add(texture);
   }
 
