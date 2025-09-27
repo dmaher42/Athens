@@ -53,7 +53,15 @@ export async function loadLandmarks({
 
       const pin = makePinMesh(cat);
       pin.position.copy(pos);
-      pin.userData = { name, props };
+      const id = (
+        props?.id
+        ?? props?.gid
+        ?? props?.objectid
+        ?? props?.OBJECTID
+        ?? props?.uid
+        ?? name
+      );
+      pin.userData = { name, props, id, isLandmark: true };
       targetGroup.add(pin);
       markers.push(pin);
 

@@ -2190,6 +2190,7 @@ const retargetBuildingMaterials =
         let masterBus, environmentReverb;
         let landmarkLabelUpdater = null;
         let landmarkGroups = null;
+        let roadNetwork = null;
         const blacksmithPosition = scaleLocation({ x: -12, y: 1, z: 10 });
         const marketAmbiencePosition = scaleLocation({ x: 12, y: 1.5, z: -8 });
         const fountainPosition = scaleLocation({ x: 24, y: 1, z: 14 });
@@ -7701,6 +7702,30 @@ world.addBody(archBody);
                 if(e.code === 'KeyP') {
                     document.getElementById('fps-counter').classList.toggle('show');
                 }
+                if (e.code === 'KeyR') {
+                    const rnGetter = window.getRoadNetwork;
+                    const rn = typeof rnGetter === 'function' ? rnGetter() : null;
+                    if (!rn) {
+                        return;
+                    }
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        const steps = [0, 0.2, 0.35, 0.5];
+                        const current = typeof window.__curv === 'number' ? window.__curv : 0.35;
+                        const normalized = Math.round(current * 100) / 100;
+                        let index = steps.indexOf(normalized);
+                        if (index === -1) {
+                            index = steps.indexOf(0.35);
+                        }
+                        const nextIndex = (index + 1) % steps.length;
+                        window.__curv = steps[nextIndex];
+                        rn.rebuild({ curvature: window.__curv });
+                        console.log('Road curvature =', window.__curv);
+                        return;
+                    }
+                    rn.setVisible(!rn.root.visible);
+                    return;
+                }
             });
 
             window.addEventListener('keydown', (e) => {
@@ -8022,9 +8047,25 @@ world.addBody(archBody);
             });
         }
 
+        if (typeof window !== 'undefined') {
+            window.getRoadNetwork = () => roadNetwork;
+        }
+
         async function setupLandmarks() {
             try {
                 const { loadLandmarks } = await import('./src/landmarks-loader.js');
+                const { buildRoadNetwork } = await import('./src/roads/roadNetwork.js');
+
+                const roadOptions = {
+                    texturePath: 'assets/roads/road_texture.jpg',
+                    width: 6,
+                    connectStrategy: 'mst+knn',
+                    knn: 2,
+                    curvature: 0.35,
+                    yOffset: 0.02,
+                    scatterProps: false,
+                    propsConfigPath: 'assets/roads/propsConfig.json'
+                };
 
                 const projectorInstance = window?.AthensGeo?.projector;
                 const projectorFn = projectorInstance && typeof projectorInstance.project === 'function'
@@ -8034,7 +8075,7 @@ world.addBody(archBody);
                     }
                     : null;
 
-                const { groups, update } = await loadLandmarks({
+                const { root: landmarksRoot, groups, update } = await loadLandmarks({
                     scene,
                     geoJsonUrl: './data/athens_places.geojson',
                     projector: projectorFn,
@@ -8072,11 +8113,53 @@ world.addBody(archBody);
                 landmarkGroups = groups;
                 landmarkLabelUpdater = update;
 
+                if (roadNetwork?.root?.parent) {
+                    roadNetwork.root.parent.remove(roadNetwork.root);
+                }
+                roadNetwork = null;
+
+                if (landmarksRoot) {
+                    const nodes = [];
+                    const seenIds = new Set();
+                    const scratch = new THREE.Vector3();
+                    landmarksRoot.traverse((obj) => {
+                        if (!obj?.userData?.isLandmark || typeof obj.getWorldPosition !== 'function') {
+                            return;
+                        }
+                        const key = obj.userData.id ?? obj.name ?? `landmark-${nodes.length}`;
+                        if (seenIds.has(key)) {
+                            return;
+                        }
+                        seenIds.add(key);
+                        const world = obj.getWorldPosition(scratch);
+                        nodes.push({
+                            id: key,
+                            name: obj.userData.name ?? obj.name ?? String(key),
+                            position: world.clone()
+                        });
+                    });
+
+                    if (nodes.length >= 2) {
+                        roadNetwork = buildRoadNetwork({
+                            scene,
+                            landmarks: nodes,
+                            options: { ...roadOptions }
+                        });
+                        scene.add(roadNetwork.root);
+                        if (typeof window !== 'undefined') {
+                            window.__curv = roadOptions.curvature;
+                        }
+                    }
+                }
+
                 if (landmarkGroups?.democracy) landmarkGroups.democracy.visible = true;
                 if (landmarkGroups?.cultural) landmarkGroups.cultural.visible = true;
                 if (landmarkGroups?.natural) landmarkGroups.natural.visible = true;
 
                 window.AthensLandmarks = { groups, update };
+                if (typeof window !== 'undefined') {
+                    window.getRoadNetwork = () => roadNetwork;
+                }
             } catch (error) {
                 console.error('Failed to load landmarks:', error);
             }
