@@ -14,8 +14,6 @@ function ensureColorSpace(texture) {
   if (!texture) return;
   if ('colorSpace' in texture && THREE.SRGBColorSpace) {
     texture.colorSpace = THREE.SRGBColorSpace;
-  } else if ('encoding' in texture && THREE.sRGBEncoding) {
-    texture.encoding = THREE.sRGBEncoding;
   }
 }
 
