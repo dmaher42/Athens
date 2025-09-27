@@ -510,7 +510,7 @@
 </head>
 <body>
 <div id="start-overlay">
-<button class="overlay-button" id="start-button">Enter Ancient Athens</button>
+<a class="overlay-button" id="enter-btn" href="./boot.html">Enter Ancient Athens</a>
 <p class="debug-tip">Need dev tools? Open <code>/dev-boot.html</code>.</p>
 </div>
 <div id="fps-counter">FPS: <span id="fps-value">60</span></div>
@@ -7433,7 +7433,7 @@ world.addBody(archBody);
         }
 
         function addEventListeners() {
-            const startButton = document.getElementById('start-button');
+            const startButton = document.getElementById('enter-btn');
             const startOverlay = document.getElementById('start-overlay');
             let startSequenceInProgress = false;
 
@@ -7529,9 +7529,7 @@ world.addBody(archBody);
             };
 
             const triggerStartExperience = () => {
-                startExperience().catch((error) => {
-                    console.error('Unexpected error while starting the experience:', error);
-                });
+                window.location.href = './boot.html';
             };
 
             const isStartOverlayVisible = () => {
