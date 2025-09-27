@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     port: 4173,
-    open: true,
+    open: false,
     strictPort: true,
     headers: {
       'Cache-Control': 'no-store',
