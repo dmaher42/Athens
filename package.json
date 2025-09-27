@@ -9,7 +9,8 @@
     "dev:force": "vite --force --open --port 4173",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "html:no-ts": "./scripts/check-html-no-ts.sh"
   },
   "dependencies": {
     "cannon": "^0.6.2",

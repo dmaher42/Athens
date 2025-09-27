@@ -26,7 +26,10 @@ export function createGrassGround({
   });
 
   if ('SRGBColorSpace' in THREE) color.colorSpace = THREE.SRGBColorSpace;
-  else if ('sRGBEncoding' in THREE) color.encoding = THREE.sRGBEncoding;
+  else {
+    const srgbEncoding = Reflect.get(THREE, 'sRGBEncoding');
+    if (srgbEncoding) color.encoding = srgbEncoding;
+  }
 
   const mat = new THREE.MeshStandardMaterial({
     map: color,

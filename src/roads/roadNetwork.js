@@ -90,8 +90,11 @@ function ensureTexture(path = DEFAULT_OPTIONS.texturePath) {
   const texture = textureLoader.load(resolvedPath, (tex) => {
     if ('colorSpace' in tex && THREE.SRGBColorSpace) {
       tex.colorSpace = THREE.SRGBColorSpace;
-    } else if ('encoding' in tex && THREE.sRGBEncoding) {
-      tex.encoding = THREE.sRGBEncoding;
+    } else {
+      const srgbEncoding = Reflect.get(THREE, 'sRGBEncoding');
+      if ('encoding' in tex && srgbEncoding) {
+        tex.encoding = srgbEncoding;
+      }
     }
   });
   texture.wrapS = THREE.RepeatWrapping;
