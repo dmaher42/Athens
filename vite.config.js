@@ -24,7 +24,6 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       input: {
         index: 'index.html',
-        boot: 'boot.html',
       },
     },
   },
