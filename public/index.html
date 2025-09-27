@@ -19,20 +19,21 @@
         display: grid;
         place-items: center;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0))
-            top/100% 50% no-repeat,
+        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0)) top/100% 50% no-repeat,
           linear-gradient(160deg, #0f172a, #1d3557);
         color: #0f172a;
+        text-align: center;
+        padding: 2rem;
       }
 
       main {
-        text-align: center;
         display: grid;
         gap: 1.25rem;
         padding: 2.5rem 2rem;
         border-radius: 1rem;
         background: rgba(248, 250, 252, 0.92);
         box-shadow: 0 1.5rem 3rem -2rem rgba(15, 23, 42, 0.8);
+        max-width: 32rem;
       }
 
       h1 {
@@ -43,8 +44,6 @@
 
       p {
         margin: 0;
-        max-width: 28rem;
-        justify-self: center;
         color: rgba(15, 23, 42, 0.8);
         line-height: 1.6;
       }
@@ -79,9 +78,9 @@
   </head>
   <body>
     <main>
-      <h1>Welcome to Ancient Athens</h1>
-      <p>Launch the interactive experience of the classical city, optimized for every visit.</p>
-      <a class="enter-button" href="./boot.html">Enter Ancient Athens</a>
+      <h1>Ancient Athens is loading…</h1>
+      <p>The immersive experience should start automatically at the site root. If not, use the button below.</p>
+      <a class="enter-button" href="/">Enter Ancient Athens</a>
     </main>
   </body>
 </html>
