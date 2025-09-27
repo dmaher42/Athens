@@ -1,4 +1,4 @@
-import * as THREE from '@/three';
+import * as THREE from 'three';
 
 function createPeakProfile(radialSegments, noise) {
   const peaks = new Float32Array(radialSegments + 1);

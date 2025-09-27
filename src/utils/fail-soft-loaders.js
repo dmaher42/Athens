@@ -1,4 +1,4 @@
-import * as THREE from '@/three';
+import * as THREE from 'three';
 
 const DEFAULT_TEXTURE_FALLBACK_COLOR = 0x999999;
 const DEFAULT_MODEL_FALLBACK_COLOR = 0xff4477;

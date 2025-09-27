@@ -45,11 +45,11 @@
     window.__AthensDevBootstrapPath = '/dev-boot.html';
 </script>
 <script type="module">
-        import { threeReady } from './src/three.js';
+        import * as THREE from 'three';
         import { Sky } from 'three/examples/jsm/objects/Sky.js';
 
         window.Sky = Sky;
-        window.threeJSReady = threeReady;
+        window.threeJSReady = Promise.resolve(THREE);
     </script>
 <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
@@ -614,7 +614,7 @@ const findFirstMaterial = (candidate, visited = new Set()) => {
     return null;
 };
 
-        import THREE from './src/three.js';
+        import * as THREE from 'three';
         import { makeTemple, makeStoa, makeTholos, makeAltar, MAT, setCityWallMaterial } from './src/building-kit.js';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -8354,7 +8354,7 @@ const asArray = (v) => (Array.isArray(v) ? v : (v == null ? [] : [v]));
   }
 </script>
 <script type="module">
-        import THREE from './src/three.js';
+        import * as THREE from 'three';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
         import { retargetBuildingMaterials } from './src/scene/materials.js';
