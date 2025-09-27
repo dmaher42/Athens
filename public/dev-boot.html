@@ -106,6 +106,28 @@
       #dev-log strong {
         font-weight: 600;
       }
+
+      #dev-log code {
+        font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+        background: rgba(15, 23, 42, 0.65);
+        padding: 1px 4px;
+        border-radius: 4px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        color: #bfdbfe;
+      }
+
+      #dev-log a {
+        color: #93c5fd;
+        text-decoration: none;
+      }
+
+      #dev-log a:hover,
+      #dev-log a:focus-visible {
+        text-decoration: underline;
+        outline: none;
+      }
     </style>
   </head>
   <body>
@@ -118,7 +140,7 @@
       import { setEnvironment } from '../src/scene/sky.js';
       import boot from '../src/core/bootstrap.js';
 
-      const INITIALIZER_SOURCE = 'page:public/index.html';
+      const INITIALIZER_SOURCE = 'page:public/dev-boot.html';
       const logElement = document.getElementById('dev-log');
       const container = document.getElementById('app');
 

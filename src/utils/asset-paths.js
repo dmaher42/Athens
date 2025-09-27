@@ -107,19 +107,39 @@ function computeFromModuleUrl() {
   return null;
 }
 
+let assetBaseSource = 'fallback:/';
+
 function computeAssetBaseUrl() {
-  return (
-    computeFromEnv() ??
-    computeFromLocation() ??
-    computeFromModuleUrl() ??
-    '/'
-  );
+  const fromEnv = computeFromEnv();
+  if (fromEnv) {
+    assetBaseSource = 'env:BASE_URL';
+    return fromEnv;
+  }
+
+  const fromLocation = computeFromLocation();
+  if (fromLocation) {
+    assetBaseSource = 'location.pathname';
+    return fromLocation;
+  }
+
+  const fromModuleUrl = computeFromModuleUrl();
+  if (fromModuleUrl) {
+    assetBaseSource = 'import.meta.url';
+    return fromModuleUrl;
+  }
+
+  assetBaseSource = 'fallback:/';
+  return '/';
 }
 
 const ASSET_BASE = computeAssetBaseUrl();
 
 export function getAssetBase() {
   return ASSET_BASE;
+}
+
+export function getAssetBaseSource() {
+  return assetBaseSource;
 }
 
 export function resolveAssetUrl(path = '') {
@@ -150,3 +170,12 @@ export function resolveAssetUrl(path = '') {
 }
 
 export { ASSET_BASE, computeAssetBaseUrl };
+
+try {
+  const scope = typeof globalThis !== 'undefined' ? globalThis : undefined;
+  if (scope) {
+    scope.__AthensAssetBase = { value: ASSET_BASE, source: assetBaseSource };
+  }
+} catch (_) {
+  // ignore write errors on locked globals
+}
