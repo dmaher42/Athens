@@ -1,4 +1,4 @@
-import THREE from './three.js';
+import * as THREE from 'three';
 import { applyFeatureOffset } from './geo/featureOffsets.js';
 import { createFeatureLines } from './scene/feature-lines.js';
 import { applyCompressionToVector3 } from './world/scale.js';

@@ -4,7 +4,7 @@
  * - Disable the rim by switching the HORIZON_ENABLE flag in the scene bootstrap.
  * - Designed to sit behind gameplay objects but in front of the sky for cheap depth layering.
  */
-import THREE from '../three.js';
+import * as THREE from 'three';
 
 export function createSeededRandom(seed = 1) {
   let state = seed >>> 0;

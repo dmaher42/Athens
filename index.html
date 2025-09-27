@@ -45,12 +45,14 @@
     window.__AthensDevBootstrapPath = '/dev-boot.html';
 </script>
 <script type="module">
-        import { threeReady } from './src/three.js';
-        import { Sky } from 'three/examples/jsm/objects/Sky.js';
+    import * as THREE from 'three';
+    import { Sky } from 'three/examples/jsm/objects/Sky.js';
 
-        window.Sky = Sky;
-        window.threeJSReady = threeReady;
-    </script>
+    const threeReady = Promise.resolve(THREE);
+
+    window.Sky = Sky;
+    window.threeJSReady = threeReady;
+</script>
 <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
         

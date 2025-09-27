@@ -1,4 +1,4 @@
-import THREE from './three.js';
+import * as THREE from 'three';
 import { getAssetBase, resolveAssetUrl } from './utils/asset-paths.js';
 import { loadTextureWithFallback } from './utils/fail-soft-loaders.js';
 
