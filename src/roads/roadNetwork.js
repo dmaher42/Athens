@@ -15,7 +15,7 @@
  * - scatterProps: enable prop scattering when hybridRoads integration is available.
  * - propsConfigPath: JSON config for prop scattering.
  */
-import * as THREE from 'three';
+import * as THREE from '@/three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
 
 const DEFAULT_OPTIONS = {
