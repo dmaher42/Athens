@@ -1,4 +1,4 @@
-import * as THREE from '@/three';
+import * as THREE from 'three';
 import { makeWallPath, MAT } from '../building-kit.js';
 
 const WALL_HEIGHT = 10;

@@ -1,4 +1,4 @@
-import * as THREE from '@/three';
+import * as THREE from 'three';
 
 const TRUNK_COLOR = new THREE.Color('#8b5a2b');
 const LEAF_COLOR = new THREE.Color('#4f7c46');

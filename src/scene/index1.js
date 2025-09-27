@@ -1,4 +1,4 @@
-import * as THREE from '@/three';
+import * as THREE from 'three';
 import { createDirtGround } from './dirt.js';
 import { createGrassGround } from './grass.js';
 

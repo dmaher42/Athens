@@ -1,4 +1,4 @@
-import * as THREE from '@/three';
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createProceduralTree } from './procTree.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
