@@ -86,7 +86,7 @@ function formatHex(color) {
   return toColorInstance(color).getHexString();
 }
 
-export function loadTextureWithFallback(url, options = {}) {
+function loadTextureWithFallback(url, options = {}) {
   const {
     loader = new THREE.TextureLoader(),
     fallbackColor = DEFAULT_TEXTURE_FALLBACK_COLOR,
@@ -191,7 +191,7 @@ export function loadTextureWithFallback(url, options = {}) {
   return texture;
 }
 
-export async function loadTextureAsyncWithFallback(url, options = {}) {
+async function loadTextureAsyncWithFallback(url, options = {}) {
   const {
     loader = new THREE.TextureLoader(),
     fallbackColor = DEFAULT_TEXTURE_FALLBACK_COLOR,
@@ -264,7 +264,7 @@ function createFallbackGltf({ color, label } = {}) {
   };
 }
 
-export async function loadGltfWithFallback(loader, url, options = {}) {
+async function loadGltfWithFallback(loader, url, options = {}) {
   const { label = 'model', fallbackColor = DEFAULT_MODEL_FALLBACK_COLOR } = options;
   if (!loader || typeof loader.loadAsync !== 'function') {
     throw new Error('loadGltfWithFallback requires a loader that supports loadAsync.');
@@ -312,5 +312,8 @@ export {
   DEFAULT_MODEL_FALLBACK_COLOR,
   createSolidColorTexture,
   ensureColorSpace,
-  applyLoadedTexture
+  applyLoadedTexture,
+  loadTextureWithFallback,
+  loadTextureAsyncWithFallback,
+  loadGltfWithFallback
 };
