@@ -11,7 +11,11 @@ export default defineConfig(({ mode }) => {
   })();
 
   return {
+    cacheDir: 'node_modules/.vite-athens',
     base: normalizedBase,
+    optimizeDeps: {
+      force: true,
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -19,6 +23,10 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       open: true,
+      strictPort: true,
+      headers: {
+        'Cache-Control': 'no-store',
+      },
     },
   };
 });
