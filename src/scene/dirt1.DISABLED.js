@@ -26,7 +26,7 @@ export function createDirtGround({
   });
 
   if ('SRGBColorSpace' in THREE) color.colorSpace = THREE.SRGBColorSpace;
-  else if ('sRGBEncoding' in THREE) color.encoding = THREE.sRGBEncoding;
+  else if ('sRGBEncoding' in THREE) color.encoding = THREE['sRGBEncoding'];
 
   const mat = new THREE.MeshStandardMaterial({
     map: color,

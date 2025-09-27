@@ -79,7 +79,7 @@ loadTextureWithFallback(wallURL, {
     if ('SRGBColorSpace' in THREE) {
       wallTex.colorSpace = THREE.SRGBColorSpace;
     } else if ('sRGBEncoding' in THREE) {
-      wallTex.encoding = THREE.sRGBEncoding;
+      wallTex.encoding = THREE['sRGBEncoding'];
     }
 
     MAT.wall.map = wallTex;

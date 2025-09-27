@@ -1063,10 +1063,10 @@ const retargetBuildingMaterials =
                         if ('colorSpace' in texture && THREE.SRGBColorSpace) {
                             texture.colorSpace = THREE.SRGBColorSpace;
                         } else if ('encoding' in texture) {
-                            texture.encoding = THREE.sRGBEncoding;
+                            texture.encoding = THREE['sRGBEncoding'];
                         }
 
-                        texture.encoding = THREE.sRGBEncoding;
+                        texture.encoding = THREE['sRGBEncoding'];
                         texture.minFilter = THREE.LinearMipmapLinearFilter;
                         texture.magFilter = THREE.LinearFilter;
                         const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 8;
@@ -2461,7 +2461,7 @@ const retargetBuildingMaterials =
             if ('SRGBColorSpace' in THREE) {
                 renderer.outputColorSpace = THREE.SRGBColorSpace;
             } else if ('sRGBEncoding' in THREE) {
-                renderer.outputEncoding = THREE.sRGBEncoding;
+                renderer.outputEncoding = THREE['sRGBEncoding'];
             }
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = 0.9;

@@ -45,8 +45,8 @@ async function loadTextureWithCache(url, loader = sharedTextureLoader, options =
         if (!Number.isFinite(maxAnisotropy) || maxAnisotropy <= 0) {
           maxAnisotropy = 8;
         }
-        if ('encoding' in texture && THREE.sRGBEncoding) {
-          texture.encoding = THREE.sRGBEncoding;
+        if ('encoding' in texture && THREE['sRGBEncoding']) {
+          texture.encoding = THREE['sRGBEncoding'];
         }
         if ('colorSpace' in texture && THREE.SRGBColorSpace) {
           texture.colorSpace = THREE.SRGBColorSpace;
