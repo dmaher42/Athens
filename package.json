@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:clean": "rimraf node_modules/.vite node_modules/.vite-* .vite || true",
+    "dev:force": "vite --force --open dev-boot.html --port 4173",
     "dev:boot": "vite --open dev-boot.html",
     "build": "vite build",
     "preview": "vite preview",
@@ -16,6 +18,7 @@
     "tone": "^14.7.77"
   },
   "devDependencies": {
+    "rimraf": "^6.0.1",
     "vite": "^5.4.0"
   }
 }
