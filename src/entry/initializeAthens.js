@@ -320,7 +320,7 @@ export async function initializeAthens(options = {}) {
   const mainCharacter = options.enableMainCharacter === false
     ? null
     : createMainCharacter(scene, {
-        initialPosition: { x: 4, y: 0, z: 4 },
+        initialPosition: { x: 72, y: 0, z: -48 },
         ...(mainCharacterOptions || {})
       });
 
@@ -662,7 +662,7 @@ export async function initializeAthens(options = {}) {
   const mainCharacter = options.enableMainCharacter === false
     ? null
     : createMainCharacter(scene, {
-        initialPosition: { x: 4, y: 0, z: 4 },
+        initialPosition: { x: 72, y: 0, z: -48 },
         ...(mainCharacterOptions || {})
       });
 
