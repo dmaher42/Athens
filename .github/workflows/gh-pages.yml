@@ -1,59 +1,63 @@
 name: Deploy to GitHub Pages
 
 on:
+  # Auto-deploy anytime code lands on main
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  # Allow manual runs from the Actions tab
   workflow_dispatch:
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
+# Required for GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Only one deploy at a time
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Setup Node.js
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify HTML does not reference TypeScript sources
-        run: npm run html:no-ts
+      # SAFETY CHECK: fail the build if any HTML tries to load a .ts file directly
+      # (This catches accidental merges that reference src/entry/landing.ts, etc.)
+      - name: Guardrail – no .ts in <script> src
+        run: |
+          set -e
+          # Scan common locations including the repo root
+          grep -RIn --include="*.html" -E '<script[^>]*type=["'\'']module["'\''][^>]*src=["'\''][^"'\''>]+\.ts["'\'']' . && \
+            { echo "::error::Found a <script type='module' src='... .ts'> in HTML. Use built JS instead."; exit 1; } || true
 
       - name: Build site
+        # If your Vite config needs a base for GH Pages, make sure it's set there (likely already done)
         run: npm run build
 
-      - name: Add .nojekyll file
-        run: touch dist/.nojekyll
-
-      - name: Upload artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
-    runs-on: ubuntu-latest
     needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
