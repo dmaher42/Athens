@@ -15,8 +15,8 @@ permissions:
 
 # Only one deploy at a time
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
