@@ -1,4 +1,4 @@
-import { loadGeoJson } from '../geo/geoLoader.js';
+import { loadGeoJson, DEFAULT_GEOJSON_PATH } from '../geo/geoLoader.js';
 import { LocalEquirectangularProjection } from '../geo/projection.js';
 import { applyFeatureOffset } from '../geo/featureOffsets.js';
 import { AgoraLayer } from './agoraLayer.js';
@@ -255,7 +255,8 @@ export class LandmarkOverlay {
         if (this._initialized) {
             return;
         }
-        const geoJson = await loadGeoJson(this.options.geoJsonUrl, this.options.fetchImpl);
+        const url = this.options.geoJsonUrl ?? DEFAULT_GEOJSON_PATH;
+        const geoJson = await loadGeoJson(url, this.options.fetchImpl);
         this._prepareData(geoJson);
         if (this.agoraLayer) {
             try {

@@ -45,14 +45,21 @@ export async function loadLandmarks({
 }) {
   const root = new THREE.Group();
   root.name = 'Landmarks';
-  scene.add(root);
+  if (scene) {
+    scene.add(root);
+  }
 
   const groups = {
     democracy: new THREE.Group(),
     cultural: new THREE.Group(),
     natural: new THREE.Group()
   };
-  Object.entries(groups).forEach(([k, g]) => { g.name = `Landmarks_${k}`; root.add(g); });
+  Object.entries(groups).forEach(([k, g]) => {
+    g.name = `Landmarks_${k}`;
+    root.add(g);
+  });
+
+  const LABEL_Y_OFFSET = 12;
 
   const url = resolveGeoJsonUrl(geoJsonUrl);
   const res = await fetch(url);
@@ -91,12 +98,15 @@ export async function loadLandmarks({
         ?? props?.uid
         ?? name
       );
+      pin.name = `LandmarkPin:${id}`;
       pin.userData = { name, props, id, isLandmark: true };
       targetGroup.add(pin);
       markers.push(pin);
 
       const label = makeLabelSprite(name);
-      label.position.copy(pos).add(new THREE.Vector3(0, 15, 0));
+      label.position.copy(pos).add(new THREE.Vector3(0, LABEL_Y_OFFSET, 0));
+      label.name = `LandmarkLabel:${id}`;
+      label.userData = { name, id, isLandmarkLabel: true, props };
       targetGroup.add(label);
       labels.push(label);
 
@@ -137,7 +147,49 @@ export async function loadLandmarks({
     featureLines?.updateResolution?.();
   };
 
-  return { root, groups, markers, labels, update, featureLines };
+  const dispose = () => {
+    if (featureLines?.root?.userData?.onDisposeFeatureLines) {
+      try {
+        featureLines.root.userData.onDisposeFeatureLines();
+      } catch (error) {
+        console.warn('[landmarks] Failed to dispose feature line listeners.', error);
+      }
+    }
+    if (featureLines?.root) {
+      featureLines.root.traverse((child) => {
+        if (child.isLine2 || child.isLine) {
+          child.geometry?.dispose?.();
+          if (Array.isArray(child.material)) {
+            child.material.forEach((mat) => mat?.dispose?.());
+          } else {
+            child.material?.dispose?.();
+          }
+        }
+      });
+      if (featureLines.root.parent) {
+        featureLines.root.parent.remove(featureLines.root);
+      }
+    }
+    if (root.parent) {
+      root.parent.remove(root);
+    }
+    root.traverse((child) => {
+      if (child.isMesh) {
+        child.geometry?.dispose?.();
+        if (Array.isArray(child.material)) {
+          child.material.forEach((mat) => mat?.dispose?.());
+        } else {
+          child.material?.dispose?.();
+        }
+      }
+      if (child.isSprite) {
+        child.material?.map?.dispose?.();
+        child.material?.dispose?.();
+      }
+    });
+  };
+
+  return { root, groups, markers, labels, update, featureLines, dispose };
 }
 
 /* ---------- helpers ---------- */
@@ -207,3 +259,4 @@ function makeLabelSprite(text) {
   s.renderOrder = 10;
   return s;
 }
+
