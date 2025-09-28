@@ -10,6 +10,7 @@ import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
+import { markGround, collectGround } from '../physics/groundRegistry.js';
 
 const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
@@ -202,6 +203,9 @@ export async function initializeAthens(options = {}) {
 
   await setupGround(scene, renderer);
 
+  markGround(scene);
+  const groundMeshes = collectGround(scene);
+
   const landmarks = await loadLandmarks({
     scene,
     geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
@@ -312,7 +316,7 @@ export async function initializeAthens(options = {}) {
       console.warn('[Athens] Tree animation update failed.', error);
     }
     mainCharacter?.update(delta);
-    npcManager?.update(delta);
+    npcManager?.update(delta, { groundMeshes });
     landmarks.update?.(camera);
     stats?.update?.();
     controller?.update(delta, camera);

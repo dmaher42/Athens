@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
 import { assetUrl } from '../utils/assetUrl.js';
+import { snapToGround } from '../physics/groundSnap.js';
+import { keepUpright } from '../physics/upright.js';
 
 const loader = new GLTFLoader();
 const DEFAULT_SPEED = 1.6; // meters per second
 const DEFAULT_IDLE_SECONDS = 2.5;
 const tempDirection = new THREE.Vector3();
-const tempQuaternion = new THREE.Quaternion();
 
 function toVector3(value) {
   if (!value) {
@@ -90,8 +91,21 @@ export function createNpc({
   const npcState = {
     mixer: null,
     root: null,
-    ready: null
+    ready: null,
+    physics: {
+      vy: 0,
+      lastGoodY: startPosition.y,
+      yaw: 0
+    }
   };
+
+  if (path.length > 1) {
+    tempDirection.subVectors(path[1], startPosition);
+    tempDirection.y = 0;
+    if (tempDirection.lengthSq() > 1e-6) {
+      npcState.physics.yaw = Math.atan2(tempDirection.x, tempDirection.z);
+    }
+  }
 
   const normalizedSpeed = Number.isFinite(speed) && speed > 0 ? speed : DEFAULT_SPEED;
   const normalizedIdle = Number.isFinite(idleSeconds) && idleSeconds >= 0 ? idleSeconds : DEFAULT_IDLE_SECONDS;
@@ -102,6 +116,15 @@ export function createNpc({
     }
     npcState.root = modelGroup;
     object3d.add(modelGroup);
+
+    const euler = new THREE.Euler();
+    euler.setFromQuaternion(modelGroup.quaternion, 'YXZ');
+    const pitch = Math.abs(THREE.MathUtils.radToDeg(euler.x));
+    const roll = Math.abs(THREE.MathUtils.radToDeg(euler.z));
+    if (pitch > 15 || roll > 15) {
+      modelGroup.rotation.x = 0;
+      modelGroup.rotation.z = 0;
+    }
   };
 
   const normalizeModelUrl = (input) => {
@@ -186,7 +209,7 @@ export function createNpc({
 
   npcState.ready = loadModel();
 
-  const update = (deltaSeconds) => {
+  const update = (deltaSeconds, context = {}) => {
     if (disposed) {
       return;
     }
@@ -208,9 +231,11 @@ export function createNpc({
     }
 
     tempDirection.subVectors(target, object3d.position);
+    tempDirection.y = 0;
     const distance = tempDirection.length();
     if (distance < 1e-4) {
-      object3d.position.copy(target);
+      object3d.position.x = target.x;
+      object3d.position.z = target.z;
       nextIndex = (nextIndex + 1) % path.length;
       dwellTime = normalizedIdle;
       return;
@@ -219,19 +244,22 @@ export function createNpc({
     tempDirection.normalize();
     const step = normalizedSpeed * dt;
     if (step >= distance) {
-      object3d.position.copy(target);
+      object3d.position.x = target.x;
+      object3d.position.z = target.z;
       nextIndex = (nextIndex + 1) % path.length;
       dwellTime = normalizedIdle;
     } else {
       object3d.position.addScaledVector(tempDirection, step);
     }
 
-    // Face movement direction smoothly
-    if (tempDirection.lengthSq() > 0) {
-      const yaw = Math.atan2(tempDirection.x, tempDirection.z);
-      tempQuaternion.setFromEuler(new THREE.Euler(0, yaw, 0));
-      object3d.quaternion.slerp(tempQuaternion, Math.min(1, dt * 6));
+    if (tempDirection.lengthSq() > 1e-6) {
+      npcState.physics.yaw = Math.atan2(tempDirection.x, tempDirection.z);
     }
+
+    const groundMeshes = context.groundMeshes;
+    snapToGround(object3d, groundMeshes, npcState.physics, dt);
+
+    keepUpright(object3d, npcState.physics.yaw, 0.18);
   };
 
   const dispose = () => {
@@ -284,12 +312,12 @@ export function createNpcManager(scene) {
       };
       return npc;
     },
-    update(deltaSeconds) {
+    update(deltaSeconds, context = {}) {
       if (disposed) {
         return;
       }
       for (const npc of npcs) {
-        npc.update?.(deltaSeconds);
+        npc.update?.(deltaSeconds, context);
       }
     },
     dispose() {
