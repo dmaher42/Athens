@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+// Expose THREE globally for console-driven debugging
 if (typeof window !== 'undefined') window.THREE = THREE;
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
@@ -316,12 +317,14 @@ export async function initializeAthens(options = {}) {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
-  if (typeof window !== 'undefined') {
-    window.__athensDebug = { scene, camera, renderer };
-  }
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   scene.add(camera);
+
+  // Publish a lightweight debug context for DevTools
+  if (typeof window !== 'undefined') {
+    window.__athensDebug = { scene, camera, renderer };
+  }
 
   ensureLights(scene);
 
