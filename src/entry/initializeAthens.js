@@ -10,6 +10,7 @@ import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
+import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { createCity } from '../buildings/createCity.js';
 
 const DEFAULT_CONTAINER_ID = 'app';
@@ -203,6 +204,10 @@ export async function initializeAthens(options = {}) {
 
   await setupGround(scene, renderer);
 
+  // Combine both branches: ground registry for NPC snapping AND city creation
+  markGround(scene);
+  const groundMeshes = collectGround(scene);
+
   const city = await createCity({ renderer, scene });
 
   const landmarks = await loadLandmarks({
@@ -315,7 +320,7 @@ export async function initializeAthens(options = {}) {
       console.warn('[Athens] Tree animation update failed.', error);
     }
     mainCharacter?.update(delta);
-    npcManager?.update(delta);
+    npcManager?.update(delta, { groundMeshes });
     landmarks.update?.(camera);
     stats?.update?.();
     controller?.update(delta, camera);
@@ -366,6 +371,7 @@ export async function initializeAthens(options = {}) {
       }
       renderer.dispose();
       keyboard?.dispose?.();
+      city?.dispose?.();
     }
   };
 
