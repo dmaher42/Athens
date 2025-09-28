@@ -221,11 +221,13 @@ export async function initializeAthens(options = {}) {
 
   await setupGround(scene, renderer);
 
-  // Combine both branches: ground registry for NPC snapping AND city creation
+  const city = await createCity({ renderer, scene });
+
   markGround(scene);
   const groundMeshes = collectGround(scene);
-
-  const city = await createCity({ renderer, scene });
+  if (!groundMeshes.length) {
+    console.warn('[npc] no ground meshes');
+  }
 
   const landmarks = await loadLandmarks({
     scene,
@@ -248,7 +250,22 @@ export async function initializeAthens(options = {}) {
 
   let npcManager = null;
   if (options.enableNpcs !== false) {
-    npcManager = createNpcManager(scene);
+    npcManager = createNpcManager(scene, groundMeshes);
+
+    const p0 = new THREE.Vector3(5, 0, 5);
+    const p1 = new THREE.Vector3(20, 0, 5);
+    const npcRoot = scene.getObjectByName('NPC_1') || new THREE.Object3D();
+    npcRoot.name = 'NPC_1';
+    if (!npcRoot.parent) {
+      scene.add(npcRoot);
+    }
+    npcManager.spawn({
+      object3d: npcRoot,
+      waypoints: [p0, p1],
+      walkSpeed: 1.6,
+      accel: 5.0,
+      turn: 0.18
+    });
     const defaultNpcConfigs = createDefaultNpcConfigs(
       Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
         ? options.npcModelUrls
@@ -340,8 +357,8 @@ export async function initializeAthens(options = {}) {
     } catch (error) {
       console.warn('[Athens] Tree animation update failed.', error);
     }
-    mainCharacter?.update(delta);
-    npcManager?.update(delta, { groundMeshes });
+    mainCharacter?.update(delta, { groundMeshes });
+    npcManager?.update(delta);
     landmarks.update?.(camera);
     stats?.update?.();
     controller?.update(delta, camera);
