@@ -7,6 +7,43 @@
   </head>
   <body>
     <div id="app"></div>
+    <script>
+      // Early initializer shim
+      (function () {
+        if (window.runAthens) {
+          return;
+        }
+
+        const pendingCalls = [];
+
+        window.runAthens = function (...args) {
+          pendingCalls.push(args);
+        };
+
+        window.dispatchEvent(
+          new CustomEvent('athens:initializer-ready', {
+            detail: { initializer: window.runAthens, source: 'shim' },
+          }),
+        );
+
+        function handleInitializerReady(event) {
+          const detail = event && event.detail;
+          if (!detail || detail.source === 'shim' || typeof detail.initializer !== 'function') {
+            return;
+          }
+
+          window.removeEventListener('athens:initializer-ready', handleInitializerReady);
+
+          window.runAthens = detail.initializer;
+
+          while (pendingCalls.length) {
+            window.runAthens.apply(window, pendingCalls.shift());
+          }
+        }
+
+        window.addEventListener('athens:initializer-ready', handleInitializerReady);
+      })();
+    </script>
     <script type="module" src="./src/entry/landing.ts"></script>
   </body>
 </html>
