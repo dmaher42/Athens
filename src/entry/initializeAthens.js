@@ -13,6 +13,8 @@ import { assetUrl } from '../utils/assetUrl.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
+import { buildNavGrid } from '../nav/navgrid.js';
+import { createScheduler } from '../sim/schedule.js';
 import { createCity } from '../buildings/createCity.js';
 import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
@@ -358,6 +360,13 @@ export async function initializeAthens(options = {}) {
   markColliders(scene);
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
+  const navGrid = buildNavGrid({
+    groundMeshes,
+    colliderAABBs: colliders,
+    bounds: { minX: -300, maxX: 300, minZ: -300, maxZ: 300 },
+    cell: 2.0
+  });
+  let scheduler = null;
 
   const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
   const spawnHint = mainCharacterOptions?.initialPosition ?? DEFAULT_PLAYER_START;
@@ -406,7 +415,9 @@ export async function initializeAthens(options = {}) {
   // NPCs
   let npcManager = null;
   if (options.enableNpcs !== false) {
-    npcManager = createNpcManager(scene, groundMeshes, { colliders });
+    npcManager = createNpcManager(scene, groundMeshes, { colliders, navGrid });
+    scheduler = createScheduler({ now: '08:00', npcManager });
+    scheduler.setNpcManager?.(npcManager);
 
     // Example extra NPC with simple path
     const p0 = new THREE.Vector3(5, 0, 5);
@@ -435,6 +446,10 @@ export async function initializeAthens(options = {}) {
       if (!config || typeof config !== 'object') return;
       npcManager.spawn(config);
     });
+  }
+
+  if (!scheduler) {
+    scheduler = createScheduler({ now: '08:00' });
   }
 
   // Main character
@@ -530,6 +545,7 @@ export async function initializeAthens(options = {}) {
       console.warn('[Athens] Tree animation update failed.', error);
     }
     mainCharacter?.update(delta, { groundMeshes });
+    scheduler.tick?.(delta);
     npcManager?.update(delta);
     landmarks.update?.(camera);
     stats?.update?.();
@@ -557,6 +573,8 @@ export async function initializeAthens(options = {}) {
     landmarks,
     roadNetwork,
     npcManager,
+    navGrid,
+    scheduler,
     mainCharacter,
     environmentController,
     city,

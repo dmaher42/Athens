@@ -7,12 +7,14 @@ import { createPlayerController } from '../player/playerController.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
-import { createNpcManager } from '../npc/simpleNpcManager.js';
+import { createNpcManager } from '../npc/npcSystem.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { AudioManager } from '../audio/AudioManager.js';
 import { initAmbience, setAmbience } from '../audio/ambience.js';
 import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
+import { buildNavGrid } from '../nav/navgrid.js';
+import { createScheduler } from '../sim/schedule.js';
 
 type RunOptions = {
   containerId?: string;
@@ -183,6 +185,12 @@ export async function runAthens(options: RunOptions = {}) {
   markColliders(scene);
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
+  const navGrid = buildNavGrid({
+    groundMeshes,
+    colliderAABBs: colliders,
+    bounds: { minX: -300, maxX: 300, minZ: -300, maxZ: 300 },
+    cell: 2.0
+  });
 
   const playerObject = createPlaceholderPlayer();
   scene.add(playerObject);
@@ -211,18 +219,29 @@ export async function runAthens(options: RunOptions = {}) {
   });
   followCamera.syncImmediate();
 
-  const npcManager = createNpcManager(scene, groundMeshes, { colliders });
-  npcManager.setGroundMeshes(groundMeshes);
-  npcManager.setColliders(colliders);
-  const npcState = npcManager.spawn({
-    waypoints: [
-      new THREE.Vector3(6, 0, 6),
-      new THREE.Vector3(10, 0, 6)
-    ]
+  const npcManager = createNpcManager(scene, groundMeshes, { colliders, navGrid });
+  const agora = new THREE.Vector3(80, 0, -40);
+  const homes = [
+    new THREE.Vector3(40, 0, -100),
+    new THREE.Vector3(120, 0, -100)
+  ];
+  let firstNpcState: any = null;
+  homes.forEach((home, index) => {
+    const npcRoot = new THREE.Object3D();
+    npcRoot.name = `NPC_${index + 1}`;
+    npcRoot.position.copy(home);
+    scene.add(npcRoot);
+    const npcState = npcManager.spawn({ object3d: npcRoot, home, job: agora, walkSpeed: 1.6 });
+    npcManager.goto(npcState, agora);
+    if (!firstNpcState) {
+      firstNpcState = npcState;
+    }
   });
-  if (npcState?.object3d) {
-    attachNpcAudio(audio, npcState.object3d, { clip: 'market_chatter.mp3', volume: 0.3, distance: 20 }).catch(() => {});
+  if (firstNpcState?.object3d) {
+    attachNpcAudio(audio, firstNpcState.object3d, { clip: 'market_chatter.mp3', volume: 0.3, distance: 20 }).catch(() => {});
   }
+  const scheduler = createScheduler({ now: '08:00', npcManager });
+  scheduler.setNpcManager?.(npcManager);
 
   const clock = new THREE.Clock();
   let frameId: number | null = null;
@@ -279,6 +298,8 @@ export async function runAthens(options: RunOptions = {}) {
       footstepTimer = 0;
     }
 
+    scheduler.tick?.(delta);
+
     try {
       npcManager.update(delta);
     } catch (error) {
@@ -303,6 +324,8 @@ export async function runAthens(options: RunOptions = {}) {
     playerController,
     followCamera,
     npcManager,
+    navGrid,
+    scheduler,
     audio,
     footsteps,
     setAmbience(mode: string) {
