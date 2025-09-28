@@ -4,42 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ancient Athens</title>
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        background: radial-gradient(circle at top, rgba(203, 213, 225, 0.7), rgba(30, 64, 175, 0.85)),
-          linear-gradient(160deg, #0f172a, #1d3557);
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      body {
-        display: flex;
-      }
-
-      #app {
-        position: relative;
-        flex: 1;
-        min-height: 100%;
-        min-width: 100%;
-      }
-
-      canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-    </style>
   </head>
   <body>
-    <div id="app" aria-label="Ancient Athens experience"></div>
+    <div id="app"></div>
     <script type="module" src="./src/entry/landing.ts"></script>
   </body>
 </html>
