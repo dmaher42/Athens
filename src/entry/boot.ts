@@ -287,13 +287,11 @@ export async function runAthens(options: RunOptions = {}) {
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
   if (typeof setEnvironment === 'function') {
     try {
+      // Default to environment map + preserved background; photo-sky can be re-enabled per-call.
       await setEnvironment(renderer, scene, environmentMode, {
-        preserveBackground: Boolean(options.preserveBackground)
+        enablePhotoSky: false,
+        preserveBackground: true
       });
-      
-      await setEnvironment(renderer, scene, environmentMode, {
-  enablePhotoSky: false,        // disables JPG dome
-  preserveBackground: true
     } catch (error) {
       console.warn('[Athens][Boot] setEnvironment failed', error);
     }

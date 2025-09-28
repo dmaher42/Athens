@@ -300,7 +300,7 @@ export async function initializeAthens(options = {}) {
 
   const { width: initialWidth, height: initialHeight } = computeContainerSize(container);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(initialWidth, initialHeight, false);
