@@ -4,11 +4,16 @@ import { resolveAssetUrl } from '../utils/asset-paths.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
+import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
 
 const loader = new GLTFLoader();
 const DEFAULT_SPEED = 1.6; // meters per second
 const DEFAULT_IDLE_SECONDS = 2.5;
 const tempDirection = new THREE.Vector3();
+const moveDelta = new THREE.Vector3();
+const actualMove = new THREE.Vector3();
+const separationBuffer = [];
+const separationVector = new THREE.Vector3();
 
 function toVector3(value) {
   if (!value) {
@@ -67,7 +72,8 @@ export function createNpc({
   initialPosition = null,
   waypoints = [],
   speed = DEFAULT_SPEED,
-  idleSeconds = DEFAULT_IDLE_SECONDS
+  idleSeconds = DEFAULT_IDLE_SECONDS,
+  colliders = null
 } = {}) {
   const object3d = new THREE.Group();
   object3d.name = 'NPC';
@@ -96,8 +102,22 @@ export function createNpc({
       vy: 0,
       lastGoodY: startPosition.y,
       yaw: 0
-    }
+    },
+    capsule: new Capsule(0.4, 1.5),
+    colliders: Array.isArray(colliders) ? colliders : null
   };
+  const capsuleOffset = npcState.capsule.height * 0.5 + npcState.capsule.radius;
+  npcState.capsuleOffset = capsuleOffset;
+
+  const syncCapsule = () => {
+    npcState.capsule.setPosition(
+      object3d.position.x,
+      object3d.position.y + capsuleOffset,
+      object3d.position.z
+    );
+  };
+
+  syncCapsule();
 
   if (path.length > 1) {
     tempDirection.subVectors(path[1], startPosition);
@@ -216,6 +236,8 @@ export function createNpc({
     const dt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
     npcState.mixer?.update(dt);
 
+    syncCapsule();
+
     if (path.length < 2) {
       return;
     }
@@ -238,28 +260,64 @@ export function createNpc({
       object3d.position.z = target.z;
       nextIndex = (nextIndex + 1) % path.length;
       dwellTime = normalizedIdle;
+      syncCapsule();
+      const groundMeshes = context.groundMeshes;
+      snapToGround(object3d, groundMeshes, npcState.physics, dt);
+      keepUpright(object3d, npcState.physics.yaw, 0.18);
+      syncCapsule();
       return;
     }
 
     tempDirection.normalize();
+    const dirX = tempDirection.x;
+    const dirZ = tempDirection.z;
     const step = normalizedSpeed * dt;
+
     if (step >= distance) {
-      object3d.position.x = target.x;
-      object3d.position.z = target.z;
-      nextIndex = (nextIndex + 1) % path.length;
-      dwellTime = normalizedIdle;
+      moveDelta.set(target.x - object3d.position.x, 0, target.z - object3d.position.z);
     } else {
-      object3d.position.addScaledVector(tempDirection, step);
+      moveDelta.set(dirX * step, 0, dirZ * step);
     }
 
-    if (tempDirection.lengthSq() > 1e-6) {
-      npcState.physics.yaw = Math.atan2(tempDirection.x, tempDirection.z);
+    const colliderEntries = Array.isArray(context.colliders) ? context.colliders : npcState.colliders;
+    let movedVector = moveDelta;
+    if (colliderEntries && colliderEntries.length) {
+      const result = resolveCapsuleVsAABBs(npcState.capsule, moveDelta, colliderEntries);
+      movedVector = result?.moved ?? moveDelta;
+    }
+
+    object3d.position.add(movedVector);
+
+    actualMove.copy(movedVector);
+    actualMove.y = 0;
+    if (actualMove.lengthSq() > 1e-6) {
+      npcState.physics.yaw = Math.atan2(actualMove.x, actualMove.z);
+    } else if (distance > 1e-6) {
+      npcState.physics.yaw = Math.atan2(dirX, dirZ);
+    }
+
+    let reachedTarget = false;
+    if (step >= distance) {
+      tempDirection.subVectors(target, object3d.position);
+      tempDirection.y = 0;
+      if (tempDirection.lengthSq() <= 0.04) {
+        object3d.position.x = target.x;
+        object3d.position.z = target.z;
+        reachedTarget = true;
+      }
+    }
+
+    if (reachedTarget) {
+      nextIndex = (nextIndex + 1) % path.length;
+      dwellTime = normalizedIdle;
     }
 
     const groundMeshes = context.groundMeshes;
     snapToGround(object3d, groundMeshes, npcState.physics, dt);
 
     keepUpright(object3d, npcState.physics.yaw, 0.18);
+
+    syncCapsule();
   };
 
   const dispose = () => {
@@ -281,11 +339,18 @@ export function createNpc({
     object3d,
     update,
     dispose,
-    ready: npcState.ready
+    ready: npcState.ready,
+    capsule: npcState.capsule,
+    capsuleOffset
   };
 }
 
-export function createNpcManager(scene) {
+const MAX_SEPARATION_NPCS = 20;
+const NPC_SEPARATION_DISTANCE = 0.8;
+const NPC_SEPARATION_DISTANCE_SQ = NPC_SEPARATION_DISTANCE * NPC_SEPARATION_DISTANCE;
+const NPC_SEPARATION_MAX_PUSH = 0.1;
+
+export function createNpcManager(scene, options = {}) {
   const group = new THREE.Group();
   group.name = 'NPCs';
   group.userData.isNpcContainer = true;
@@ -295,6 +360,8 @@ export function createNpcManager(scene) {
 
   const npcs = new Set();
   let disposed = false;
+  const managerColliders = Array.isArray(options?.colliders) ? options.colliders : null;
+  const updateContext = { groundMeshes: null, colliders: null };
 
   return {
     group,
@@ -302,7 +369,7 @@ export function createNpcManager(scene) {
       if (disposed) {
         return null;
       }
-      const npc = createNpc(config);
+      const npc = createNpc({ ...config, colliders: managerColliders });
       group.add(npc.object3d);
       npcs.add(npc);
       const originalDispose = npc.dispose;
@@ -316,8 +383,66 @@ export function createNpcManager(scene) {
       if (disposed) {
         return;
       }
+      const activeColliders = Array.isArray(context.colliders) ? context.colliders : managerColliders;
+      updateContext.groundMeshes = context.groundMeshes;
+      updateContext.colliders = activeColliders;
       for (const npc of npcs) {
-        npc.update?.(deltaSeconds, context);
+        npc.update?.(deltaSeconds, updateContext);
+      }
+
+      separationBuffer.length = 0;
+      let count = 0;
+      for (const npc of npcs) {
+        if (count >= MAX_SEPARATION_NPCS) {
+          break;
+        }
+        separationBuffer[count] = npc;
+        count += 1;
+      }
+      separationBuffer.length = count;
+
+      for (let i = 0; i < count; i += 1) {
+        const npcA = separationBuffer[i];
+        const posA = npcA?.object3d?.position;
+        if (!posA) {
+          continue;
+        }
+        for (let j = i + 1; j < count; j += 1) {
+          const npcB = separationBuffer[j];
+          const posB = npcB?.object3d?.position;
+          if (!posB) {
+            continue;
+          }
+          separationVector.subVectors(posB, posA);
+          separationVector.y = 0;
+          const distSq = separationVector.x * separationVector.x + separationVector.z * separationVector.z;
+          if (distSq <= 0 || distSq >= NPC_SEPARATION_DISTANCE_SQ) {
+            continue;
+          }
+          const dist = Math.sqrt(distSq);
+          if (dist <= 1e-5) {
+            continue;
+          }
+          const push = Math.min((NPC_SEPARATION_DISTANCE - dist) * 0.5, NPC_SEPARATION_MAX_PUSH);
+          if (push <= 0) {
+            continue;
+          }
+          const invDist = 1 / dist;
+          const offsetX = separationVector.x * invDist * push;
+          const offsetZ = separationVector.z * invDist * push;
+          posA.x -= offsetX;
+          posA.z -= offsetZ;
+          posB.x += offsetX;
+          posB.z += offsetZ;
+          const capsuleA = npcA.capsule;
+          if (capsuleA && npcA.capsuleOffset !== undefined) {
+            capsuleA.setPosition(posA.x, posA.y + npcA.capsuleOffset, posA.z);
+          }
+          const capsuleB = npcB.capsule;
+          if (capsuleB && npcB.capsuleOffset !== undefined) {
+            capsuleB.setPosition(posB.x, posB.y + npcB.capsuleOffset, posB.z);
+          }
+        }
       }
     },
     dispose() {

@@ -15,6 +15,7 @@ import { createCity } from '../buildings/createCity.js';
 import { createOriginalUi } from '../ui/originalUi.js';
 import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
+import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
@@ -268,6 +269,10 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  markColliders(scene);
+  const colliderMeshes = collectColliders(scene);
+  const colliders = buildAABBs(colliderMeshes);
+
   markGround(scene);
   const groundMeshes = collectGround(scene);
   if (city?.root && groundMeshes.length) {
@@ -297,7 +302,7 @@ export async function initializeAthens(options = {}) {
 
   let npcManager = null;
   if (options.enableNpcs !== false) {
-    npcManager = createNpcManager(scene);
+    npcManager = createNpcManager(scene, { colliders });
     const defaultNpcConfigs = createDefaultNpcConfigs(
       Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
         ? options.npcModelUrls
@@ -343,7 +348,9 @@ export async function initializeAthens(options = {}) {
     runMultiplier: 2.0,
     flyMultiplier: 1.6,
     turnLerp: 0.18,
-    flightToggleKey: 'KeyX'
+    flightToggleKey: 'KeyX',
+    colliders,
+    collisionOptions: { maxIters: 4, skin: 0.02 }
   });
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
@@ -393,7 +400,7 @@ export async function initializeAthens(options = {}) {
       console.warn('[Athens] Tree animation update failed.', error);
     }
     mainCharacter?.update(delta);
-    npcManager?.update(delta, { groundMeshes });
+    npcManager?.update(delta, { groundMeshes, colliders });
     landmarks.update?.(camera);
     stats?.update?.();
     controller?.update(delta, camera);
