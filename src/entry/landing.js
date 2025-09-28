@@ -3,45 +3,53 @@ import { setupGround, updateTrees, initPerformanceStats } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
 import boot, { whenBootReady } from '../core/bootstrap.js';
 
-type StatsLike = {
-  update?: () => void;
-  dom?: HTMLElement;
-} | null;
+/**
+ * @typedef {{
+ *   update?: () => void;
+ *   dom?: HTMLElement;
+ * } | null} StatsLike
+ */
 
-type RunAthensResult = {
-  scene: THREE.Scene;
-  renderer: THREE.WebGLRenderer;
-  camera: THREE.PerspectiveCamera;
-};
+/**
+ * @typedef {{
+ *   scene: THREE.Scene;
+ *   renderer: THREE.WebGLRenderer;
+ *   camera: THREE.PerspectiveCamera;
+ * }} RunAthensResult
+ */
 
-type RunAthensHandle = () => Promise<RunAthensResult>;
-type GetAthensContextHandle = () => Promise<RunAthensResult | undefined>;
+/** @typedef {() => Promise<RunAthensResult>} RunAthensHandle */
+/** @typedef {() => Promise<RunAthensResult | undefined>} GetAthensContextHandle */
 
-let container: HTMLElement | null = null;
-let renderer: THREE.WebGLRenderer | null = null;
-let scene: THREE.Scene | null = null;
-let camera: THREE.PerspectiveCamera | null = null;
-let stats: StatsLike = null;
+/** @type {HTMLElement | null} */
+let container = null;
+/** @type {THREE.WebGLRenderer | null} */
+let renderer = null;
+/** @type {THREE.Scene | null} */
+let scene = null;
+/** @type {THREE.PerspectiveCamera | null} */
+let camera = null;
+/** @type {StatsLike} */
+let stats = null;
 let previousTime = performance.now();
-let initializationTask: Promise<RunAthensResult> | null = null;
-let initializedContext: RunAthensResult | null = null;
+/** @type {Promise<RunAthensResult> | null} */
+let initializationTask = null;
+/** @type {RunAthensResult | null} */
+let initializedContext = null;
 let resizeListenerAttached = false;
 let loggedRenderLoop = false;
-let bootPromise: Promise<unknown> | null = null;
+/** @type {Promise<any> | null} */
+let bootPromise = null;
 let bootLogEmitted = false;
 
-declare global {
-  interface Window {
-    runAthens?: RunAthensHandle;
-    getAthensContext?: GetAthensContextHandle;
-  }
-}
-
-async function waitForDomReady(): Promise<void> {
+/**
+ * @returns {Promise<void>}
+ */
+async function waitForDomReady() {
   if (typeof document === 'undefined') return;
   if (document.readyState === 'complete' || document.readyState === 'interactive') return;
 
-  await new Promise<void>((resolve) => {
+  await new Promise((resolve) => {
     const handleReady = () => {
       document.removeEventListener('DOMContentLoaded', handleReady);
       resolve();
@@ -50,7 +58,10 @@ async function waitForDomReady(): Promise<void> {
   });
 }
 
-function ensureBootStarted(): { promise: Promise<unknown>; started: boolean } | null {
+/**
+ * @returns {{ promise: Promise<any>; started: boolean } | null}
+ */
+function ensureBootStarted() {
   if (typeof boot !== 'function') return null;
 
   let started = false;
@@ -77,7 +88,10 @@ function ensureBootStarted(): { promise: Promise<unknown>; started: boolean } | 
   return { promise: bootPromise, started };
 }
 
-async function runAthens(): Promise<RunAthensResult> {
+/**
+ * @returns {Promise<RunAthensResult>}
+ */
+async function runAthens() {
   if (initializedContext) return initializedContext;
   if (initializationTask) return initializationTask;
 
@@ -112,7 +126,7 @@ async function runAthens(): Promise<RunAthensResult> {
 
     await waitForDomReady();
 
-    container = document.getElementById('app') as HTMLElement | null;
+    container = document.getElementById('app');
     if (!container) {
       initializationTask = null;
       throw new Error('Missing #app container for Athens renderer.');
@@ -146,7 +160,7 @@ async function runAthens(): Promise<RunAthensResult> {
       light.position.set(120, 180, 60);
       light.castShadow = true;
       light.shadow.mapSize.set(2048, 2048);
-      const shadowCamera = light.shadow.camera as THREE.OrthographicCamera;
+      const shadowCamera = light.shadow.camera;
       shadowCamera.near = 0.5;
       shadowCamera.far = 500;
       shadowCamera.left = -200;
@@ -171,7 +185,7 @@ async function runAthens(): Promise<RunAthensResult> {
     await setupGround(scene, renderer);
 
     try {
-      stats = initPerformanceStats() as StatsLike;
+      stats = /** @type {StatsLike} */ (initPerformanceStats());
       if (stats?.dom) {
         stats.dom.style.position = 'absolute';
         stats.dom.style.left = '0';
@@ -190,10 +204,11 @@ async function runAthens(): Promise<RunAthensResult> {
       loggedRenderLoop = true;
     }
 
-    const context: RunAthensResult = {
-      scene: scene!,
-      renderer: renderer!,
-      camera: camera!
+    /** @type {RunAthensResult} */
+    const context = {
+      scene,
+      renderer,
+      camera,
     };
 
     initializedContext = context;
@@ -207,8 +222,10 @@ async function runAthens(): Promise<RunAthensResult> {
   }
 }
 
-(window as any).runAthens = runAthens;
-(window as any).getAthensContext = async () => {
+const globalWindow = /** @type {Window & { runAthens?: RunAthensHandle; getAthensContext?: GetAthensContextHandle; }} */ (window);
+
+globalWindow.runAthens = runAthens;
+globalWindow.getAthensContext = async () => {
   if (initializedContext) return initializedContext;
 
   if (initializationTask) {
@@ -224,7 +241,7 @@ async function runAthens(): Promise<RunAthensResult> {
 
 window.dispatchEvent(
   new CustomEvent('athens:initializer-ready', {
-    detail: { initializer: runAthens, source: 'index.html' }
+    detail: { initializer: runAthens, source: 'index.html' },
   })
 );
 console.log('[Athens] initializer ready');
@@ -247,7 +264,10 @@ function resizeRenderer() {
   camera.updateProjectionMatrix();
 }
 
-function frame(now: number) {
+/**
+ * @param {number} now
+ */
+function frame(now) {
   if (!renderer || !scene || !camera) {
     previousTime = now;
     requestAnimationFrame(frame);
