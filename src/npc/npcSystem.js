@@ -8,7 +8,6 @@ import { keepUpright } from '../physics/upright.js';
 const loader = new GLTFLoader();
 
 const SNAP_OPTIONS = { gravity: 12, stepMax: 0.6, hover: 0.03 };
-const STEP_EPSILON = 0.05;
 const DEFAULT_WALK_SPEED = 1.5;
 const DEFAULT_RUN_SPEED = 3.0;
 const DEFAULT_ACCEL = 6.0;
@@ -17,6 +16,201 @@ const DEFAULT_TURN = 0.18;
 const STEP_DIRECTION = new THREE.Vector3();
 const INIT_DIRECTION = new THREE.Vector3();
 const TMP_EULER = new THREE.Euler(0, 0, 0, 'YXZ');
+
+const PATH_POINT_EPSILON = 0.4;
+const PATH_POINT_EPSILON_SQ = PATH_POINT_EPSILON * PATH_POINT_EPSILON;
+const BLOCKED_DISTANCE = 0.3;
+const BLOCKED_DISTANCE_SQ = BLOCKED_DISTANCE * BLOCKED_DISTANCE;
+const BLOCKED_TIMEOUT = 2.75;
+
+const AGORA_POSITION = new THREE.Vector3(80, 0, -40);
+const SCHEDULE_TARGET_BY_MODE = {
+  dawn: 'agora',
+  day: 'agora',
+  dusk: 'home',
+  night: 'home'
+};
+const DEFAULT_SCHEDULE_TARGET = 'home';
+
+function mapModeToSchedule(mode) {
+  if (!mode) return DEFAULT_SCHEDULE_TARGET;
+  const key = `${mode}`.trim().toLowerCase();
+  return SCHEDULE_TARGET_BY_MODE[key] || DEFAULT_SCHEDULE_TARGET;
+}
+
+function horizontalDistanceSquared(a, b) {
+  if (!a || !b) return Infinity;
+  const ax = a.x || 0;
+  const az = a.z || 0;
+  const bx = b.x || 0;
+  const bz = b.z || 0;
+  const dx = ax - bx;
+  const dz = az - bz;
+  return dx * dx + dz * dz;
+}
+
+function skipReachedPoints(npc) {
+  if (!npc || !Array.isArray(npc.pathPoints)) return;
+  while (npc.pathIndex < npc.pathPoints.length) {
+    const target = npc.pathPoints[npc.pathIndex];
+    if (!target) break;
+    const distSq = horizontalDistanceSquared(npc.object3d.position, target);
+    if (distSq <= PATH_POINT_EPSILON_SQ) {
+      npc.pathIndex += 1;
+    } else {
+      break;
+    }
+  }
+}
+
+function requestPathTo(npc, target, navContext, { holdPosition = false, loopDestinationIndex = null } = {}) {
+  if (!npc || !target) return false;
+  const nav = navContext || npc.navContext || null;
+  const pathPoints = npc.pathPoints || (npc.pathPoints = []);
+
+  if (nav?.pathfinder?.findPath) {
+    nav.pathfinder.findPath(npc.object3d.position, target, pathPoints);
+  }
+
+  if (!pathPoints.length) {
+    const point = pathPoints[0] || new THREE.Vector3();
+    point.copy(target);
+    pathPoints[0] = point;
+    pathPoints.length = 1;
+  }
+
+  npc.pathPoints = pathPoints;
+  npc.pathIndex = 0;
+  npc.destination = npc.destination || new THREE.Vector3();
+  npc.destination.copy(target);
+  npc.hasDestination = pathPoints.length > 0;
+  npc.holdPosition = Boolean(holdPosition);
+  npc.loopDestinationIndex = typeof loopDestinationIndex === 'number' ? loopDestinationIndex : null;
+  const shouldLoop = typeof loopDestinationIndex === 'number' && !npc.holdPosition && pathPoints.length > 0;
+  npc.looping = shouldLoop;
+  npc.overrideActive = npc.holdPosition && !shouldLoop;
+  npc.lastProgress = npc.lastProgress || npc.object3d.position.clone();
+  npc.lastProgress.copy(npc.object3d.position);
+  npc.blockedTimer = 0;
+  skipReachedPoints(npc);
+  if (!npc.hasDestination) {
+    npc.pathPoints.length = 0;
+  }
+  return npc.hasDestination;
+}
+
+function planLoopSegment(npc, navContext) {
+  if (!npc || !Array.isArray(npc.defaultWaypoints) || npc.defaultWaypoints.length === 0) {
+    return false;
+  }
+  const count = npc.defaultWaypoints.length;
+  if (count === 1) {
+    return requestPathTo(npc, npc.defaultWaypoints[0], navContext, { holdPosition: true });
+  }
+  const index = ((npc.currentLoopIndex ?? 0) % count + count) % count;
+  npc.currentLoopIndex = index;
+  return requestPathTo(npc, npc.defaultWaypoints[index], navContext, { loopDestinationIndex: index });
+}
+
+function handlePathCompletion(npc, navContext) {
+  if (!npc) return;
+  npc.hasDestination = false;
+  npc.blockedTimer = 0;
+  npc.pathIndex = npc.pathPoints.length;
+
+  if (npc.overrideActive) {
+    npc.pathPoints.length = 0;
+    return;
+  }
+
+  if (npc.looping && Array.isArray(npc.defaultWaypoints) && npc.defaultWaypoints.length > 1) {
+    const lastIndex = typeof npc.loopDestinationIndex === 'number' ? npc.loopDestinationIndex : npc.currentLoopIndex || 0;
+    const count = npc.defaultWaypoints.length;
+    npc.currentLoopIndex = (lastIndex + 1) % count;
+    if (planLoopSegment(npc, navContext)) {
+      return;
+    }
+  }
+
+  npc.pathPoints.length = 0;
+}
+
+function checkBlocked(npc, dt, navContext) {
+  if (!npc || dt <= 0) return;
+  if (!npc.hasDestination || npc.pathIndex >= npc.pathPoints.length) {
+    npc.blockedTimer = 0;
+    npc.lastProgress?.copy?.(npc.object3d.position);
+    return;
+  }
+
+  npc.lastProgress = npc.lastProgress || npc.object3d.position.clone();
+  const movedSq = horizontalDistanceSquared(npc.object3d.position, npc.lastProgress);
+  if (movedSq >= BLOCKED_DISTANCE_SQ) {
+    npc.blockedTimer = 0;
+    npc.lastProgress.copy(npc.object3d.position);
+    return;
+  }
+
+  npc.blockedTimer += dt;
+  if (npc.blockedTimer < BLOCKED_TIMEOUT) {
+    return;
+  }
+
+  npc.blockedTimer = 0;
+  npc.lastProgress.copy(npc.object3d.position);
+
+  if (npc.overrideActive) {
+    requestPathTo(npc, npc.destination, navContext, {
+      holdPosition: npc.holdPosition,
+      loopDestinationIndex: npc.loopDestinationIndex
+    });
+    return;
+  }
+
+  if (npc.looping && typeof npc.loopDestinationIndex === 'number' && npc.defaultWaypoints?.[npc.loopDestinationIndex]) {
+    requestPathTo(npc, npc.defaultWaypoints[npc.loopDestinationIndex], navContext, {
+      loopDestinationIndex: npc.loopDestinationIndex
+    });
+    return;
+  }
+
+  if (npc.hasDestination) {
+    requestPathTo(npc, npc.destination, navContext, {
+      holdPosition: npc.holdPosition
+    });
+  }
+}
+
+function applyScheduleTarget(npc, scheduleTarget, navContext) {
+  if (!npc) return;
+  const previous = npc.scheduleTarget;
+  npc.scheduleTarget = scheduleTarget;
+
+  if (scheduleTarget === 'agora') {
+    const distanceSq = horizontalDistanceSquared(npc.object3d.position, AGORA_POSITION);
+    if (previous !== scheduleTarget || (!npc.overrideActive && distanceSq > PATH_POINT_EPSILON_SQ)) {
+      requestPathTo(npc, AGORA_POSITION, navContext, { holdPosition: true });
+    }
+    return;
+  }
+
+  if (Array.isArray(npc.defaultWaypoints) && npc.defaultWaypoints.length > 1) {
+    if (previous !== scheduleTarget || !npc.looping) {
+      npc.overrideActive = false;
+      npc.holdPosition = false;
+      npc.currentLoopIndex = 0;
+      planLoopSegment(npc, navContext);
+    }
+    return;
+  }
+
+  if (npc.homePosition) {
+    const distanceSq = horizontalDistanceSquared(npc.object3d.position, npc.homePosition);
+    if (previous !== scheduleTarget || distanceSq > PATH_POINT_EPSILON_SQ) {
+      requestPathTo(npc, npc.homePosition, navContext, { holdPosition: true });
+    }
+  }
+}
 
 function toVector3(value) {
   if (!value) return null;
@@ -122,16 +316,16 @@ function sanitizeWaypoints(waypoints, fallbackPosition) {
   if (Array.isArray(waypoints)) {
     for (const waypoint of waypoints) {
       const vector = toVector3(waypoint);
-      if (vector) result.push(vector);
+      if (vector) result.push(vector.clone());
     }
   } else if (waypoints) {
     const vector = toVector3(waypoints);
-    if (vector) result.push(vector);
+    if (vector) result.push(vector.clone());
   }
 
   if (!result.length) {
     const fallbackVector = fallbackPosition?.isVector3 ? fallbackPosition.clone() : toVector3(fallbackPosition);
-    result.push(fallbackVector || new THREE.Vector3());
+    result.push((fallbackVector || new THREE.Vector3()).clone());
   }
 
   return result;
@@ -214,7 +408,7 @@ function disposeNpcEntity(npc) {
   disposeObject3D(npc.object3d);
 }
 
-function createNpcEntity(config = {}, { scene = null } = {}) {
+function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) {
   const {
     object3d: providedObject = null,
     modelUrl = null,
@@ -239,10 +433,12 @@ function createNpcEntity(config = {}, { scene = null } = {}) {
   }
 
   const sanitizedWaypoints = sanitizeWaypoints(waypoints, startPosition);
+  const homePosition = sanitizedWaypoints[0]?.clone?.() || startPosition.clone();
 
   const npc = {
     object3d,
     waypoints: sanitizedWaypoints,
+    defaultWaypoints: sanitizedWaypoints,
     walkSpeed: Number.isFinite(walkSpeed) ? walkSpeed : DEFAULT_WALK_SPEED,
     runSpeed: Number.isFinite(runSpeed) ? runSpeed : DEFAULT_RUN_SPEED,
     accel: Number.isFinite(accel) ? accel : DEFAULT_ACCEL,
@@ -253,10 +449,23 @@ function createNpcEntity(config = {}, { scene = null } = {}) {
       lastGoodY: object3d.position.y || 0,
       yaw: object3d.rotation.y || 0
     },
-    targetIdx: 0,
     modelRoot: null,
     mixer: null,
-    disposed: false
+    disposed: false,
+    pathPoints: [],
+    pathIndex: 0,
+    hasDestination: false,
+    destination: startPosition.clone(),
+    loopDestinationIndex: null,
+    looping: false,
+    holdPosition: false,
+    overrideActive: false,
+    currentLoopIndex: sanitizedWaypoints.length > 1 ? 1 : 0,
+    homePosition: homePosition.clone(),
+    scheduleTarget: null,
+    navContext: navContext || null,
+    blockedTimer: 0,
+    lastProgress: object3d.position.clone()
   };
 
   if (sanitizedWaypoints.length > 1) {
@@ -273,7 +482,7 @@ function createNpcEntity(config = {}, { scene = null } = {}) {
   return npc;
 }
 
-function stepNpc(npc, deltaSeconds, groundMeshes) {
+function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
   if (!npc || npc.disposed) return;
 
   const dt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
@@ -282,44 +491,72 @@ function stepNpc(npc, deltaSeconds, groundMeshes) {
   const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
 
   npc.mixer?.update(dt);
+  npc.pathPoints = npc.pathPoints || [];
 
-  if (!Array.isArray(npc.waypoints) || npc.waypoints.length === 0) {
+  const navContext = navContextOverride || npc.navContext || null;
+
+  skipReachedPoints(npc);
+
+  if (npc.pathIndex >= npc.pathPoints.length) {
+    if (npc.hasDestination) {
+      handlePathCompletion(npc, navContext);
+    }
+    const accelFactor = Math.min(1, Math.max(0, npc.accel * dt));
+    npc.speed += (0 - npc.speed) * accelFactor;
     snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
     keepUpright(npc.object3d, npc.state.yaw, npc.turn);
     return;
   }
 
-  const target = npc.waypoints[npc.targetIdx];
-  if (!target) return;
+  const target = npc.pathPoints[npc.pathIndex];
+  if (!target) {
+    npc.pathIndex += 1;
+    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    keepUpright(npc.object3d, npc.state.yaw, npc.turn);
+    return;
+  }
 
   STEP_DIRECTION.subVectors(target, npc.object3d.position);
   STEP_DIRECTION.y = 0;
-  const distance = STEP_DIRECTION.length();
+  const distanceSq = STEP_DIRECTION.lengthSq();
 
+  if (distanceSq <= PATH_POINT_EPSILON_SQ) {
+    npc.pathIndex += 1;
+    skipReachedPoints(npc);
+    if (npc.pathIndex >= npc.pathPoints.length) {
+      handlePathCompletion(npc, navContext);
+    }
+    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    keepUpright(npc.object3d, npc.state.yaw, npc.turn);
+    return;
+  }
+
+  const distance = Math.sqrt(distanceSq);
   const desiredSpeed = npc.walkSpeed;
   const accelFactor = Math.min(1, Math.max(0, npc.accel * dt));
   npc.speed += (desiredSpeed - npc.speed) * accelFactor;
 
-  if (distance > STEP_EPSILON) {
-    STEP_DIRECTION.normalize();
+  if (distance > 1e-6) {
+    STEP_DIRECTION.multiplyScalar(1 / distance);
     const yaw = Math.atan2(STEP_DIRECTION.x, STEP_DIRECTION.z);
     npc.state.yaw = yaw;
     npc.object3d.position.x += STEP_DIRECTION.x * npc.speed * dt;
     npc.object3d.position.z += STEP_DIRECTION.z * npc.speed * dt;
-  } else {
-    npc.targetIdx = (npc.targetIdx + 1) % npc.waypoints.length;
   }
 
   snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
   keepUpright(npc.object3d, npc.state.yaw, npc.turn);
+  checkBlocked(npc, dt, navContext);
 }
 
 export function createNpc(options = {}) {
-  const npc = createNpcEntity(options);
+  const { navContext = null, ...npcOptions } = options || {};
+  const npc = createNpcEntity(npcOptions, { navContext });
   return {
     object3d: npc.object3d,
     update(deltaSeconds, context = {}) {
-      stepNpc(npc, deltaSeconds, context.groundMeshes);
+      const nav = context.navContext || navContext || npc.navContext || null;
+      stepNpc(npc, deltaSeconds, context.groundMeshes, nav);
     },
     dispose() {
       npc.dispose();
@@ -328,13 +565,17 @@ export function createNpc(options = {}) {
   };
 }
 
-export function createNpcManager(scene, groundMeshes) {
+export function createNpcManager(scene, groundMeshes, options = {}) {
   const npcs = [];
   const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
   let warnedGround = false;
+  const { navMesh = null, pathfinder = null, timeSource = null } = options || {};
+  const navContext = { navMesh, pathfinder };
+  let lastTimeMode = typeof timeSource === 'function' ? timeSource() : null;
+  let activeSchedule = mapModeToSchedule(lastTimeMode);
 
   function spawn(config = {}) {
-    const npc = createNpcEntity(config, { scene });
+    const npc = createNpcEntity(config, { scene, navContext });
     npcs.push(npc);
     const originalDispose = npc.dispose;
     npc.dispose = () => {
@@ -343,6 +584,7 @@ export function createNpcManager(scene, groundMeshes) {
       const index = npcs.indexOf(npc);
       if (index !== -1) npcs.splice(index, 1);
     };
+    applyScheduleTarget(npc, activeSchedule, navContext);
     return npc;
   }
 
@@ -359,8 +601,17 @@ export function createNpcManager(scene, groundMeshes) {
       warnedGround = true;
     }
 
+    const mode = typeof timeSource === 'function' ? timeSource() : lastTimeMode;
+    if (mode !== lastTimeMode) {
+      lastTimeMode = mode;
+      activeSchedule = mapModeToSchedule(mode);
+      for (const npc of npcs) {
+        applyScheduleTarget(npc, activeSchedule, navContext);
+      }
+    }
+
     for (const npc of npcs) {
-      stepNpc(npc, dt, surfaces);
+      stepNpc(npc, dt, surfaces, navContext);
     }
   }
 

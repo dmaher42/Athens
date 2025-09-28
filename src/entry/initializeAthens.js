@@ -18,6 +18,8 @@ import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
 import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
+import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
+import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
 
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
@@ -403,10 +405,40 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  // Navmesh
+  let navMesh = null;
+  let navPathfinder = null;
+  if (groundMeshes.length) {
+    const navSources = [...groundMeshes];
+    if (roadNetwork?.traverse) {
+      roadNetwork.traverse((child) => {
+        if (child && (child.isMesh || child instanceof THREE.Mesh)) {
+          navSources.push(child);
+        }
+      });
+    }
+    try {
+      navMesh = buildNavMeshFromMeshes(navSources);
+      if (navMesh) {
+        navPathfinder = createNavMeshPathfinder(navMesh);
+      }
+    } catch (error) {
+      console.warn('[Athens][NavMesh] Failed to build navmesh.', error);
+      navMesh = null;
+      navPathfinder = null;
+    }
+  }
+
   // NPCs
   let npcManager = null;
   if (options.enableNpcs !== false) {
-    npcManager = createNpcManager(scene, groundMeshes, { colliders });
+    // merged: pass both navmesh/timeSource and colliders
+    npcManager = createNpcManager(scene, groundMeshes, {
+      colliders,
+      navMesh,
+      pathfinder: navPathfinder,
+      timeSource: getTimeOfDay
+    });
 
     // Example extra NPC with simple path
     const p0 = new THREE.Vector3(5, 0, 5);
@@ -556,6 +588,8 @@ export async function initializeAthens(options = {}) {
     overlayCanvas,
     landmarks,
     roadNetwork,
+    navMesh,
+    navPathfinder,
     npcManager,
     mainCharacter,
     environmentController,
