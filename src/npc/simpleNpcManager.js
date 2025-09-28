@@ -1,11 +1,15 @@
 import * as THREE from 'three';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
+import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
 
 const tempDirection = new THREE.Vector3();
 const flatDirection = new THREE.Vector3();
 const tempVelocity = new THREE.Vector3();
 const forwardVector = new THREE.Vector3(0, 0, 1);
+const moveDelta = new THREE.Vector3();
+const separationOffset = new THREE.Vector3();
+const orientVector = new THREE.Vector3();
 
 function toVector3(input) {
   if (!input) {
@@ -69,12 +73,17 @@ function normalizeWaypoints(waypoints) {
   return result;
 }
 
-export function createNpcManager(scene, initialGroundMeshes = []) {
+export function createNpcManager(scene, initialGroundMeshes = [], { colliders: initialColliders = [] } = {}) {
   const npcs = [];
   let groundMeshes = Array.isArray(initialGroundMeshes) ? initialGroundMeshes : [];
+  let colliderAabbs = Array.isArray(initialColliders) ? initialColliders : [];
 
   const setGroundMeshes = (meshes) => {
     groundMeshes = Array.isArray(meshes) ? meshes : [];
+  };
+
+  const setColliders = (nextColliders) => {
+    colliderAabbs = Array.isArray(nextColliders) ? nextColliders : [];
   };
 
   const spawn = ({ object3d, waypoints, walkSpeed = 1.6, accel = 5.0, turn = 0.18 } = {}) => {
@@ -98,7 +107,10 @@ export function createNpcManager(scene, initialGroundMeshes = []) {
         vy: 0,
         lastGoodY: npcObject.position?.y ?? 0
       },
-      yaw: deriveYaw(npcObject)
+      yaw: deriveYaw(npcObject),
+      capsule: new Capsule(0.4, 1.5),
+      prevPosition: npcObject.position.clone(),
+      lastMove: new THREE.Vector3()
     };
 
     if (scene && npcObject && !npcObject.parent) {
@@ -107,6 +119,12 @@ export function createNpcManager(scene, initialGroundMeshes = []) {
 
     snapToGround(npcObject, groundMeshes, npcState.physics, 0);
     npcState.yaw = deriveYaw(npcObject);
+    npcState.capsule.setPosition(
+      npcObject.position.x,
+      npcObject.position.y,
+      npcObject.position.z
+    );
+    npcState.prevPosition.copy(npcObject.position);
 
     npcs.push(npcState);
     return npcState;
@@ -118,6 +136,8 @@ export function createNpcManager(scene, initialGroundMeshes = []) {
     }
 
     const { object3d } = npc;
+
+    npc.capsule.setPosition(object3d.position.x, object3d.position.y, object3d.position.z);
 
     let target = npc.waypoints[npc.waypointIndex];
     flatDirection.subVectors(target, object3d.position);
@@ -141,21 +161,82 @@ export function createNpcManager(scene, initialGroundMeshes = []) {
     npc.velocity.lerp(tempVelocity, THREE.MathUtils.clamp(lerpAlpha, 0, 1));
 
     if (dt > 0) {
-      object3d.position.addScaledVector(npc.velocity, dt);
+      moveDelta.set(npc.velocity.x * dt, 0, npc.velocity.z * dt);
+      const moveLenSq = moveDelta.lengthSq();
+      if (moveLenSq > 1e-10) {
+        const result = resolveCapsuleVsAABBs(npc.capsule, moveDelta, colliderAabbs, {
+          maxIters: 3,
+          skin: 0.01
+        });
+        object3d.position.copy(npc.capsule.position);
+      } else if (moveLenSq > 0) {
+        object3d.position.add(moveDelta);
+        npc.capsule.setPosition(object3d.position.x, object3d.position.y, object3d.position.z);
+      }
     }
+  };
 
-    if (npc.velocity.lengthSq() > 1e-6) {
-      npc.yaw = Math.atan2(npc.velocity.x, npc.velocity.z);
+  const separationRadius = 0.8;
+  const separationRadiusSq = separationRadius * separationRadius;
+
+  const applySeparation = () => {
+    const limit = Math.min(npcs.length, 20);
+    for (let i = 0; i < limit; i += 1) {
+      const npcA = npcs[i];
+      if (!npcA?.object3d) continue;
+      const posA = npcA.object3d.position;
+      for (let j = i + 1; j < limit; j += 1) {
+        const npcB = npcs[j];
+        if (!npcB?.object3d) continue;
+        const posB = npcB.object3d.position;
+        separationOffset.subVectors(posA, posB);
+        separationOffset.y = 0;
+        const distSq = separationOffset.lengthSq();
+        if (distSq <= 1e-6 || distSq >= separationRadiusSq) continue;
+        const dist = Math.sqrt(distSq);
+        if (dist <= 1e-6) continue;
+        const push = (separationRadius - dist) * 0.5;
+        if (push <= 0) continue;
+        separationOffset.multiplyScalar(push / dist);
+        posA.add(separationOffset);
+        posB.addScaledVector(separationOffset, -1);
+        npcA.capsule?.setPosition(posA.x, posA.y, posA.z);
+        npcB.capsule?.setPosition(posB.x, posB.y, posB.z);
+      }
     }
-
-    snapToGround(object3d, groundMeshes, npc.physics, dt);
-    keepUpright(object3d, npc.yaw, npc.turn);
   };
 
   const update = (deltaSeconds = 0) => {
     const dt = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
+
     for (let i = 0; i < npcs.length; i += 1) {
-      updateNpc(npcs[i], dt);
+      const npc = npcs[i];
+      if (!npc?.object3d) continue;
+      npc.prevPosition.copy(npc.object3d.position);
+      updateNpc(npc, dt);
+    }
+
+    applySeparation();
+
+    for (let i = 0; i < npcs.length; i += 1) {
+      const npc = npcs[i];
+      if (!npc?.object3d) continue;
+      snapToGround(npc.object3d, groundMeshes, npc.physics, dt);
+      npc.capsule?.setPosition(
+        npc.object3d.position.x,
+        npc.object3d.position.y,
+        npc.object3d.position.z
+      );
+      npc.lastMove.subVectors(npc.object3d.position, npc.prevPosition);
+      orientVector.copy(npc.lastMove);
+      orientVector.y = 0;
+      if (orientVector.lengthSq() > 1e-6) {
+        orientVector.normalize();
+        npc.yaw = Math.atan2(orientVector.x, orientVector.z);
+      } else if (npc.velocity.lengthSq() > 1e-6) {
+        npc.yaw = Math.atan2(npc.velocity.x, npc.velocity.z);
+      }
+      keepUpright(npc.object3d, npc.yaw, npc.turn);
     }
   };
 
@@ -167,7 +248,8 @@ export function createNpcManager(scene, initialGroundMeshes = []) {
     spawn,
     update,
     dispose,
-    setGroundMeshes
+    setGroundMeshes,
+    setColliders
   };
 }
 

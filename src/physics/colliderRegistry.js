@@ -16,99 +16,106 @@ const COLLIDER_KEYWORDS = [
   'gate'
 ];
 
-const keywordMatch = (name) => {
-  if (typeof name !== 'string' || name.length === 0) {
+const keywordCache = COLLIDER_KEYWORDS.map((word) => word.toLowerCase());
+
+function shouldMarkCollider(object) {
+  if (!object || typeof object !== 'object') {
     return false;
   }
-  const normalized = name.toLowerCase();
-  for (let i = 0; i < COLLIDER_KEYWORDS.length; i += 1) {
-    if (normalized.includes(COLLIDER_KEYWORDS[i])) {
+  if (object.userData && object.userData.collider === true) {
+    return true;
+  }
+  if (!object.name || typeof object.name !== 'string') {
+    return false;
+  }
+  const name = object.name.toLowerCase();
+  for (let i = 0; i < keywordCache.length; i += 1) {
+    if (name.includes(keywordCache[i])) {
       return true;
     }
   }
   return false;
-};
+}
 
 export function markColliders(root) {
-  if (!root || typeof root.traverse !== 'function') {
-    return;
+  if (!root) return;
+  const stack = [root];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) continue;
+    if (current.children && current.children.length) {
+      for (let i = 0; i < current.children.length; i += 1) {
+        stack.push(current.children[i]);
+      }
+    }
+    if (current.isMesh && shouldMarkCollider(current)) {
+      current.userData = current.userData || {};
+      current.userData.isCollider = true;
+    }
   }
-  root.traverse((child) => {
-    if (!child || !child.isMesh) {
-      return;
-    }
-    const userData = child.userData || (child.userData = {});
-    if (userData.collider === true) {
-      userData.isCollider = true;
-      return;
-    }
-    if (userData.collider === false) {
-      userData.isCollider = false;
-      return;
-    }
-    if (keywordMatch(child.name)) {
-      userData.isCollider = true;
-    }
-  });
 }
 
 export function collectColliders(root) {
   const colliders = [];
-  if (!root || typeof root.traverse !== 'function') {
-    return colliders;
-  }
-  root.traverse((child) => {
-    if (child && child.isMesh && child.userData?.isCollider === true) {
-      colliders.push(child);
+  if (!root) return colliders;
+  const stack = [root];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) continue;
+    if (current.children && current.children.length) {
+      for (let i = 0; i < current.children.length; i += 1) {
+        stack.push(current.children[i]);
+      }
     }
-  });
+    if (current.isMesh && current.userData && current.userData.isCollider === true) {
+      colliders.push(current);
+    }
+  }
   return colliders;
 }
 
 function computeWorldAABB(mesh, target) {
-  if (!mesh || !mesh.isMesh || !mesh.geometry) {
-    return null;
-  }
+  if (!mesh || !mesh.geometry || !target) return target;
   mesh.updateWorldMatrix(true, false);
   const geometry = mesh.geometry;
   if (!geometry.boundingBox) {
     geometry.computeBoundingBox();
   }
-  if (!geometry.boundingBox) {
-    return null;
+  if (geometry.boundingBox) {
+    target.copy(geometry.boundingBox);
+    target.applyMatrix4(mesh.matrixWorld);
+  } else {
+    target.makeEmpty();
   }
-  target.copy(geometry.boundingBox);
-  target.applyMatrix4(mesh.matrixWorld);
   return target;
 }
 
 export function buildAABBs(meshes) {
-  const result = [];
   const list = Array.isArray(meshes) ? meshes : [];
+  const results = [];
   for (let i = 0; i < list.length; i += 1) {
     const mesh = list[i];
-    const box = computeWorldAABB(mesh, new THREE.Box3());
-    if (box) {
-      result.push({ mesh, box });
-    }
+    if (!mesh || !mesh.isMesh) continue;
+    const box = new THREE.Box3();
+    computeWorldAABB(mesh, box);
+    results.push({ mesh, box });
   }
-  return result;
+  return results;
 }
 
-export function updateAABBs(entries) {
-  if (!Array.isArray(entries)) {
-    return entries;
+export function updateAABBs(aabbs) {
+  if (!Array.isArray(aabbs)) return aabbs;
+  for (let i = 0; i < aabbs.length; i += 1) {
+    const entry = aabbs[i];
+    if (!entry || !entry.mesh || !entry.box) continue;
+    computeWorldAABB(entry.mesh, entry.box);
   }
-  for (let i = 0; i < entries.length; i += 1) {
-    const entry = entries[i];
-    if (!entry || !entry.mesh || !entry.box) {
-      continue;
-    }
-    const box = computeWorldAABB(entry.mesh, entry.box);
-    if (!box) {
-      entry.box.makeEmpty();
-    }
-  }
-  return entries;
+  return aabbs;
 }
 
+export default {
+  markColliders,
+  collectColliders,
+  buildAABBs,
+  updateAABBs
+};

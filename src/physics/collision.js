@@ -1,227 +1,192 @@
 import * as THREE from 'three';
 
-const EPSILON = 1e-6;
+const tempBottom = new THREE.Vector3();
+const tempTop = new THREE.Vector3();
+const tempAttempt = new THREE.Vector3();
+const tempPrevPos = new THREE.Vector3();
+const tempActualMove = new THREE.Vector3();
+const tempRemaining = new THREE.Vector3();
+const tempBox = new THREE.Box3();
+const tempMtv = new THREE.Vector3();
+const tempNormal = new THREE.Vector3();
+
+const BLOCKED_NORMALS = [];
 
 export class Capsule {
   constructor(radius = 0.5, height = 1.6) {
-    this.radius = Number.isFinite(radius) && radius > 0 ? radius : 0.5;
-    this.height = Number.isFinite(height) && height >= 0 ? height : 0;
-    this.center = new THREE.Vector3();
+    this.radius = Number.isFinite(radius) ? Math.max(0, radius) : 0.5;
+    this.height = Number.isFinite(height) ? Math.max(0, height) : 0;
+    this.position = new THREE.Vector3();
   }
 
-  setPosition(x, y, z) {
-    this.center.set(x, y, z);
+  setPosition(x = 0, y = 0, z = 0) {
+    this.position.set(x, y, z);
     return this;
   }
 
-  getPosition(target = new THREE.Vector3()) {
-    target.copy(this.center);
-    return target;
+  getPosition(target) {
+    if (target && target.isVector3) {
+      target.copy(this.position);
+      return target;
+    }
+    return this.position.clone();
   }
 
   clone() {
-    const copy = new Capsule(this.radius, this.height);
-    copy.center.copy(this.center);
-    return copy;
+    const capsule = new Capsule(this.radius, this.height);
+    capsule.position.copy(this.position);
+    return capsule;
   }
 }
 
-const EXPANDED_BOX = new THREE.Box3();
-const CAPSULE_BOTTOM = new THREE.Vector3();
-const CAPSULE_TOP = new THREE.Vector3();
-const CAPSULE_MID = new THREE.Vector3();
-const MTV_MID = new THREE.Vector3();
-const MTV_TOP = new THREE.Vector3();
-const MTV_BOTTOM = new THREE.Vector3();
-const PUSH_VECTOR = new THREE.Vector3();
-const NORMAL = new THREE.Vector3();
-const DELTA_VEC = new THREE.Vector3();
-const START_POS = new THREE.Vector3();
-
-function isPointInsideBox(point, box) {
-  return (
-    point.x >= box.min.x &&
-    point.x <= box.max.x &&
-    point.y >= box.min.y &&
-    point.y <= box.max.y &&
-    point.z >= box.min.z &&
-    point.z <= box.max.z
-  );
-}
-
-function computeMTVForPoint(point, box, target) {
-  if (!isPointInsideBox(point, box)) {
-    return null;
-  }
-
-  let best = Infinity;
-
-  const left = point.x - box.min.x;
-  if (left < best) {
-    best = left;
-    target.set(-left, 0, 0);
-  }
-
-  const right = box.max.x - point.x;
-  if (right < best) {
-    best = right;
-    target.set(right, 0, 0);
-  }
-
-  const down = point.y - box.min.y;
-  if (down < best) {
-    best = down;
-    target.set(0, -down, 0);
-  }
-
-  const up = box.max.y - point.y;
-  if (up < best) {
-    best = up;
-    target.set(0, up, 0);
-  }
-
-  const back = point.z - box.min.z;
-  if (back < best) {
-    best = back;
-    target.set(0, 0, -back);
-  }
-
-  const forward = box.max.z - point.z;
-  if (forward < best) {
-    best = forward;
-    target.set(0, 0, forward);
-  }
-
-  if (best === Infinity) {
-    return null;
-  }
-
+export function expandAABB(box, radius, target = new THREE.Box3()) {
+  target.copy(box);
+  target.min.x -= radius;
+  target.min.y -= radius;
+  target.min.z -= radius;
+  target.max.x += radius;
+  target.max.y += radius;
+  target.max.z += radius;
   return target;
 }
 
-export function expandAABB(box, radius) {
-  EXPANDED_BOX.copy(box);
-  const r = Number.isFinite(radius) ? radius : 0;
-  EXPANDED_BOX.min.x -= r;
-  EXPANDED_BOX.min.y -= r;
-  EXPANDED_BOX.min.z -= r;
-  EXPANDED_BOX.max.x += r;
-  EXPANDED_BOX.max.y += r;
-  EXPANDED_BOX.max.z += r;
-  return EXPANDED_BOX;
+function getSegmentPoints(capsule, bottomTarget, topTarget) {
+  const halfHeight = capsule.height * 0.5;
+  const { x, y, z } = capsule.position;
+  bottomTarget.set(x, y - halfHeight, z);
+  topTarget.set(x, y + halfHeight, z);
+}
+
+function chooseMtv(xDepthMin, xDepthMax, zDepthMin, zDepthMax, yDepthMin, yDepthMax) {
+  let bestDepth = Infinity;
+  tempMtv.set(0, 0, 0);
+
+  if (xDepthMin >= 0 && xDepthMin < bestDepth) {
+    bestDepth = xDepthMin;
+    tempMtv.set(-xDepthMin, 0, 0);
+  }
+  if (xDepthMax >= 0 && xDepthMax < bestDepth) {
+    bestDepth = xDepthMax;
+    tempMtv.set(xDepthMax, 0, 0);
+  }
+  if (zDepthMin >= 0 && zDepthMin < bestDepth) {
+    bestDepth = zDepthMin;
+    tempMtv.set(0, 0, -zDepthMin);
+  }
+  if (zDepthMax >= 0 && zDepthMax < bestDepth) {
+    bestDepth = zDepthMax;
+    tempMtv.set(0, 0, zDepthMax);
+  }
+  if (yDepthMin >= 0 && yDepthMin < bestDepth) {
+    bestDepth = yDepthMin;
+    tempMtv.set(0, -yDepthMin, 0);
+  }
+  if (yDepthMax >= 0 && yDepthMax < bestDepth) {
+    bestDepth = yDepthMax;
+    tempMtv.set(0, yDepthMax, 0);
+  }
+
+  if (!Number.isFinite(bestDepth) || bestDepth === Infinity) {
+    return null;
+  }
+
+  return tempMtv.lengthSq() > 0 ? tempMtv : null;
 }
 
 export function segmentAABBOverlap(p0, p1, box) {
   const x = p0.x;
   const z = p0.z;
-  if (x < box.min.x || x > box.max.x || z < box.min.z || z > box.max.z) {
-    return false;
-  }
+
+  if (x < box.min.x || x > box.max.x) return null;
+  if (z < box.min.z || z > box.max.z) return null;
+
   const segMinY = Math.min(p0.y, p1.y);
   const segMaxY = Math.max(p0.y, p1.y);
-  if (segMaxY < box.min.y || segMinY > box.max.y) {
-    return false;
-  }
-  return true;
-}
 
-function computeCapsuleMTV(capsule, expandedBox, skin) {
-  const halfHeight = Math.max(0, capsule.height) * 0.5;
-  CAPSULE_BOTTOM.set(capsule.center.x, capsule.center.y - halfHeight, capsule.center.z);
-  CAPSULE_TOP.set(capsule.center.x, capsule.center.y + halfHeight, capsule.center.z);
+  if (segMaxY < box.min.y || segMinY > box.max.y) return null;
 
-  if (!segmentAABBOverlap(CAPSULE_BOTTOM, CAPSULE_TOP, expandedBox)) {
-    return null;
-  }
+  const xDepthMin = x - box.min.x;
+  const xDepthMax = box.max.x - x;
+  const zDepthMin = z - box.min.z;
+  const zDepthMax = box.max.z - z;
+  const yDepthMin = segMaxY - box.min.y;
+  const yDepthMax = box.max.y - segMinY;
 
-  const segMinY = Math.min(CAPSULE_BOTTOM.y, CAPSULE_TOP.y);
-  const segMaxY = Math.max(CAPSULE_BOTTOM.y, CAPSULE_TOP.y);
-  const overlapMin = Math.max(segMinY, expandedBox.min.y);
-  const overlapMax = Math.min(segMaxY, expandedBox.max.y);
-  const clampedY = THREE.MathUtils.clamp((overlapMin + overlapMax) * 0.5, segMinY, segMaxY);
-
-  CAPSULE_MID.set(capsule.center.x, clampedY, capsule.center.z);
-
-  let bestVector = null;
-  let bestMagnitude = -Infinity;
-
-  const candidates = [
-    computeMTVForPoint(CAPSULE_MID, expandedBox, MTV_MID),
-    computeMTVForPoint(CAPSULE_TOP, expandedBox, MTV_TOP),
-    computeMTVForPoint(CAPSULE_BOTTOM, expandedBox, MTV_BOTTOM)
-  ];
-
-  for (let i = 0; i < candidates.length; i += 1) {
-    const candidate = candidates[i];
-    if (!candidate) {
-      continue;
-    }
-    const lengthSq = candidate.lengthSq();
-    if (lengthSq > bestMagnitude && lengthSq > EPSILON) {
-      bestMagnitude = lengthSq;
-      bestVector = candidate;
-    }
-  }
-
-  if (!bestVector) {
-    return null;
-  }
-
-  const depth = Math.sqrt(bestMagnitude);
-  if (depth <= EPSILON) {
-    return null;
-  }
-
-  NORMAL.copy(bestVector).multiplyScalar(1 / depth);
-  const correction = Math.max(depth - skin, 0);
-  if (correction <= EPSILON) {
-    return null;
-  }
-
-  PUSH_VECTOR.copy(NORMAL).multiplyScalar(correction);
-  return PUSH_VECTOR;
+  return chooseMtv(xDepthMin, xDepthMax, zDepthMin, zDepthMax, yDepthMin, yDepthMax);
 }
 
 export function resolveCapsuleVsAABBs(capsule, delta, aabbs, { maxIters = 3, skin = 0.01 } = {}) {
-  const moved = new THREE.Vector3();
-  if (!capsule || !delta) {
-    return { moved };
+  const results = { moved: new THREE.Vector3() };
+  if (!capsule || !delta || !aabbs || aabbs.length === 0) {
+    if (capsule && delta) {
+      capsule.position.add(delta);
+      results.moved.copy(delta);
+    }
+    return results;
   }
 
-  const colliders = Array.isArray(aabbs) ? aabbs : [];
+  const iterationCount = Math.max(1, Math.floor(maxIters));
+  const skinWidth = Number.isFinite(skin) ? Math.max(0, skin) : 0.01;
 
-  DELTA_VEC.copy(delta);
-  if (DELTA_VEC.lengthSq() <= EPSILON) {
-    return { moved };
-  }
+  tempRemaining.copy(delta);
+  results.moved.set(0, 0, 0);
 
-  START_POS.copy(capsule.center);
-  capsule.center.add(DELTA_VEC);
+  for (let iter = 0; iter < iterationCount; iter += 1) {
+    if (tempRemaining.lengthSq() <= 1e-10) {
+      break;
+    }
 
-  if (colliders.length > 0) {
-    const iterations = Math.max(1, Math.floor(maxIters));
-    for (let iter = 0; iter < iterations; iter += 1) {
-      let collided = false;
-      for (let i = 0; i < colliders.length; i += 1) {
-        const entry = colliders[i];
-        if (!entry || !entry.box) {
-          continue;
+    tempAttempt.copy(tempRemaining);
+    tempPrevPos.copy(capsule.position);
+    capsule.position.add(tempAttempt);
+
+    let collided = false;
+    BLOCKED_NORMALS.length = 0;
+
+    getSegmentPoints(capsule, tempBottom, tempTop);
+
+    for (let i = 0; i < aabbs.length; i += 1) {
+      const entry = aabbs[i];
+      if (!entry || !entry.box) continue;
+      const expanded = expandAABB(entry.box, capsule.radius + skinWidth, tempBox);
+      const mtv = segmentAABBOverlap(tempBottom, tempTop, expanded);
+      if (!mtv) continue;
+
+      collided = true;
+      capsule.position.add(mtv);
+      const lengthSq = mtv.lengthSq();
+      if (lengthSq > 1e-12) {
+        tempNormal.copy(mtv).multiplyScalar(-1 / Math.sqrt(lengthSq));
+        const slot = BLOCKED_NORMALS.length;
+        if (!BLOCKED_NORMALS[slot]) {
+          BLOCKED_NORMALS[slot] = new THREE.Vector3();
         }
-        const expanded = expandAABB(entry.box, capsule.radius);
-        const correction = computeCapsuleMTV(capsule, expanded, skin);
-        if (!correction) {
-          continue;
+        BLOCKED_NORMALS[slot].copy(tempNormal);
+      }
+
+      // Update segment points for successive tests
+      getSegmentPoints(capsule, tempBottom, tempTop);
+    }
+
+    tempActualMove.subVectors(capsule.position, tempPrevPos);
+    results.moved.add(tempActualMove);
+
+    tempRemaining.sub(tempActualMove);
+
+    if (BLOCKED_NORMALS.length > 0) {
+      for (let n = 0; n < BLOCKED_NORMALS.length; n += 1) {
+        const normal = BLOCKED_NORMALS[n];
+        const push = tempRemaining.dot(normal);
+        if (push > 0) {
+          tempRemaining.addScaledVector(normal, -push);
         }
-        capsule.center.add(correction);
-        collided = true;
       }
-      if (!collided) {
-        break;
-      }
+    }
+
+    if (!collided) {
+      break;
     }
   }
 
-  moved.copy(capsule.center).sub(START_POS);
-  return { moved };
+  return results;
 }
-
