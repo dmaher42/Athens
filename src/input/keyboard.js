@@ -20,6 +20,46 @@ const EXTRA_KEYS = ['Space', 'KeyX', 'KeyC', 'KeyE', 'KeyQ', 'KeyZ', 'ControlLef
 
 const RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
 
+const KEY_FALLBACK_MAP = new Map([
+  ['w', 'KeyW'],
+  ['a', 'KeyA'],
+  ['s', 'KeyS'],
+  ['d', 'KeyD'],
+  ['arrowup', 'ArrowUp'],
+  ['arrowdown', 'ArrowDown'],
+  ['arrowleft', 'ArrowLeft'],
+  ['arrowright', 'ArrowRight'],
+  [' ', 'Space'],
+  ['space', 'Space'],
+  ['spacebar', 'Space'],
+  ['x', 'KeyX'],
+  ['c', 'KeyC'],
+  ['e', 'KeyE'],
+  ['q', 'KeyQ'],
+  ['z', 'KeyZ'],
+  ['shift', 'ShiftLeft'],
+  ['control', 'ControlLeft']
+]);
+
+const normalizeCode = (event) => {
+  if (!event) {
+    return undefined;
+  }
+
+  const { code, key } = event;
+
+  if (code && code !== '' && code !== 'Unidentified') {
+    return code;
+  }
+
+  if (!key && key !== 0) {
+    return undefined;
+  }
+
+  const fallbackKey = String(key).toLowerCase();
+  return KEY_FALLBACK_MAP.get(fallbackKey);
+};
+
 export function createKeyboard(target = typeof window !== 'undefined' ? window : null) {
   const pressed = new Set();
   const listeners = new Map();
@@ -27,17 +67,21 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const lookVector = { x: 0, y: 0 };
 
   const handleKeyDown = (event) => {
-    if (!RELEVANT_KEYS.has(event.code)) {
+    const code = normalizeCode(event);
+
+    if (!RELEVANT_KEYS.has(code)) {
       return;
     }
-    pressed.add(event.code);
+    pressed.add(code);
   };
 
   const handleKeyUp = (event) => {
-    if (!RELEVANT_KEYS.has(event.code)) {
+    const code = normalizeCode(event);
+
+    if (!RELEVANT_KEYS.has(code)) {
       return;
     }
-    pressed.delete(event.code);
+    pressed.delete(code);
   };
 
   if (target && target.addEventListener) {
