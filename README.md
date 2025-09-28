@@ -14,6 +14,7 @@ Static files under `public/` are served without the `public` segment. Use `${BAS
 
 Development builds now launch straight into the main experience at `/`. For troubleshooting helpers:
 
+- Open `/dev/` while running the dev server to use the standalone bootstrap page without interfering with Vite's module proxy.
 - Press `S` to toggle the "sanity geometry" helper if the scene looks empty.
 - Call `window.toggleStatsVisibility()` in the browser console to show or hide the FPS panel (visible automatically on localhost).
 - Watch the console for boot milestones (asset base detection, renderer sizing) and initialization errors.

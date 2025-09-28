@@ -39,12 +39,12 @@ let pmremGenerator = null;
 let activeRenderer = null;
 let activeScene = null;
 let currentMode = null;
+let currentEntry = null;
+let skyEnabled = true;
 let hotkeyAttached = false;
 
 function ensureColorSpace(texture) {
-  if (!texture) {
-    return;
-  }
+  if (!texture) return;
   if ('colorSpace' in texture) {
     texture.colorSpace = THREE.SRGBColorSpace;
   } else if ('encoding' in texture) {
@@ -61,17 +61,11 @@ function ensurePmrem(renderer) {
 }
 
 function normalizeMode(mode) {
-  if (!mode) {
-    return 'day';
-  }
+  if (!mode) return 'day';
   const key = `${mode}`.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   const alias = MODE_ALIASES.get(key);
-  if (alias) {
-    return alias;
-  }
-  if (MODE_CONFIG[key]) {
-    return key;
-  }
+  if (alias) return alias;
+  if (MODE_CONFIG[key]) return key;
   return 'day';
 }
 
@@ -82,9 +76,7 @@ function fallbackEntry(mode) {
 }
 
 function updateEnvironment(entry) {
-  if (!activeScene || !entry) {
-    return;
-  }
+  if (!activeScene || !entry) return;
   if (entry.envMap && entry.mode === currentMode) {
     activeScene.environment = entry.envMap;
   }
@@ -92,9 +84,7 @@ function updateEnvironment(entry) {
 
 function schedulePmrem(entry, texture) {
   const generator = ensurePmrem(activeRenderer);
-  if (!generator || !entry || !texture) {
-    return;
-  }
+  if (!generator || !entry || !texture) return;
   runIdle(() => {
     try {
       const target = generator.fromEquirectangular(texture);
@@ -107,10 +97,18 @@ function schedulePmrem(entry, texture) {
   });
 }
 
+// Unified applySky that respects the skyEnabled toggle and tracks currentEntry/mode
 function applySky(entry) {
-  if (!activeScene || !entry) {
+  if (!activeScene || !entry) return;
+  currentEntry = entry;
+  currentMode = entry.mode;
+
+  if (!skyEnabled) {
+    activeScene.background = null;
+    activeScene.environment = null;
     return;
   }
+
   if (entry.background?.isTexture) {
     activeScene.background = entry.background;
   } else if (entry.background instanceof THREE.Color) {
@@ -118,12 +116,16 @@ function applySky(entry) {
   } else {
     activeScene.background = null;
   }
-  if (entry.envMap) {
-    activeScene.environment = entry.envMap;
-  } else {
-    activeScene.environment = null;
+  activeScene.environment = entry.envMap || null;
+}
+
+function notifySkyEnabledChange() {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  try {
+    window.dispatchEvent(new CustomEvent('athens:sky-enabled-changed', { detail: { enabled: skyEnabled } }));
+  } catch (_) {
+    // ignore
   }
-  currentMode = entry.mode;
 }
 
 function loadImageElement(url) {
@@ -168,12 +170,8 @@ async function loadTexture(url) {
 }
 
 async function loadSky(mode) {
-  if (cache.has(mode)) {
-    return cache.get(mode);
-  }
-  if (loadTasks.has(mode)) {
-    return loadTasks.get(mode);
-  }
+  if (cache.has(mode)) return cache.get(mode);
+  if (loadTasks.has(mode)) return loadTasks.get(mode);
 
   const task = (async () => {
     const config = MODE_CONFIG[mode];
@@ -188,12 +186,7 @@ async function loadSky(mode) {
     try {
       const texture = await loadTexture(url);
       texture.name = `Sky:${mode}`;
-      const entry = {
-        background: texture,
-        envMap: null,
-        envTarget: null,
-        mode
-      };
+      const entry = { background: texture, envMap: null, envTarget: null, mode };
       cache.set(mode, entry);
       schedulePmrem(entry, texture);
       return entry;
@@ -218,11 +211,13 @@ export async function createTimeSky(renderer, scene, initial = 'day') {
   activeRenderer = renderer || activeRenderer;
   activeScene = scene || activeScene;
   ensurePmrem(activeRenderer);
+
   const normalized = normalizeMode(initial);
   const entry = await loadSky(normalized);
   applySky(entry);
   updateEnvironment(entry);
 
+  // Preload other modes in the background
   Object.keys(MODE_CONFIG).forEach((mode) => {
     if (mode !== normalized) {
       loadSky(mode).catch(() => {});
@@ -244,15 +239,50 @@ export function getTimeOfDay() {
   return currentMode;
 }
 
-export function attachTimeHotkeys(win = typeof window !== 'undefined' ? window : null) {
-  if (!win || hotkeyAttached) {
-    return undefined;
+export function isSkyEnabled() {
+  return skyEnabled;
+}
+
+export function setSkyEnabled(enabled) {
+  const normalized = Boolean(enabled);
+  if (normalized === skyEnabled) return skyEnabled;
+  skyEnabled = normalized;
+
+  if (!activeScene) {
+    notifySkyEnabledChange();
+    return skyEnabled;
   }
+
+  if (!skyEnabled) {
+    activeScene.background = null;
+    activeScene.environment = null;
+  } else if (currentEntry) {
+    applySky(currentEntry);
+  } else if (currentMode) {
+    loadSky(currentMode)
+      .then((entry) => {
+        if (skyEnabled) applySky(entry);
+      })
+      .catch(() => {});
+  }
+
+  notifySkyEnabledChange();
+  return skyEnabled;
+}
+
+export function toggleSkyEnabled(force) {
+  if (typeof force === 'boolean') {
+    return setSkyEnabled(force);
+  }
+  return setSkyEnabled(!skyEnabled);
+}
+
+export function attachTimeHotkeys(win = typeof window !== 'undefined' ? window : null) {
+  if (!win || hotkeyAttached) return undefined;
   const handler = (event) => {
-    if (event.defaultPrevented || event.altKey || event.metaKey || event.ctrlKey) {
-      return;
-    }
-    switch (event.key) {
+    if (event.defaultPrevented || event.altKey || event.metaKey || event.ctrlKey) return;
+    const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+    switch (key) {
       case '1':
         setTimeOfDay('dawn');
         break;
@@ -264,6 +294,9 @@ export function attachTimeHotkeys(win = typeof window !== 'undefined' ? window :
         break;
       case '4':
         setTimeOfDay('night');
+        break;
+      case 'k':
+        toggleSkyEnabled();
         break;
       default:
         break;

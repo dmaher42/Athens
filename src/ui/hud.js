@@ -2,7 +2,8 @@ const STORAGE_KEY = 'athens.hud.state';
 const DEFAULT_STATE = {
   timeMode: 'day',
   volume: 1,
-  quality: 'high'
+  quality: 'high',
+  skyEnabled: true
 };
 
 const TIME_OPTIONS = ['dawn', 'day', 'dusk', 'night'];
@@ -34,7 +35,8 @@ function readStoredState() {
     const normalized = {
       timeMode: TIME_OPTIONS.includes(parsed?.timeMode) ? parsed.timeMode : DEFAULT_STATE.timeMode,
       volume: VOLUME_OPTIONS.includes(parsed?.volume) ? parsed.volume : DEFAULT_STATE.volume,
-      quality: QUALITY_OPTIONS.includes(parsed?.quality) ? parsed.quality : DEFAULT_STATE.quality
+      quality: QUALITY_OPTIONS.includes(parsed?.quality) ? parsed.quality : DEFAULT_STATE.quality,
+      skyEnabled: typeof parsed?.skyEnabled === 'boolean' ? parsed.skyEnabled : DEFAULT_STATE.skyEnabled
     };
     return normalized;
   } catch (_) {
@@ -145,7 +147,8 @@ export function createHUD(callbacks = {}) {
   const buttonMaps = {
     time: new Map(),
     volume: new Map(),
-    quality: new Map()
+    quality: new Map(),
+    sky: new Map()
   };
 
   const state = readStoredState();
@@ -164,6 +167,10 @@ export function createHUD(callbacks = {}) {
       delete updates.quality;
     }
 
+    if ('skyEnabled' in updates) {
+      updates.skyEnabled = Boolean(updates.skyEnabled);
+    }
+
     Object.assign(state, updates);
 
     if (persist) {
@@ -179,6 +186,9 @@ export function createHUD(callbacks = {}) {
       }
       if ('quality' in updates) {
         callMaybeAsync(callbacks.setQuality, state.quality);
+      }
+      if ('skyEnabled' in updates) {
+        callMaybeAsync(callbacks.setSkyEnabled, state.skyEnabled);
       }
     }
   };
@@ -204,6 +214,44 @@ export function createHUD(callbacks = {}) {
     timeSection.appendChild(button);
     buttonMaps.time.set(value, button);
   });
+
+  const skySection = createSection(root, 'Sky');
+  [
+    ['On', true],
+    ['Off', false]
+  ].forEach(([label, value]) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (state.skyEnabled === value) {
+        return;
+      }
+      applyState({ skyEnabled: value });
+      updateActiveButtons(buttonMaps.sky, value);
+    });
+    skySection.appendChild(button);
+    buttonMaps.sky.set(value, button);
+  });
+
+  const handleExternalSkyChange = (event) => {
+    const next = Boolean(event?.detail?.enabled);
+    if (state.skyEnabled === next) {
+      return;
+    }
+    applyState({ skyEnabled: next }, { persist: true, callHandlers: false });
+    updateActiveButtons(buttonMaps.sky, state.skyEnabled);
+  };
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    const globalWindow = window;
+    const previousListener = globalWindow.__athensHudSkyListener;
+    if (previousListener) {
+      globalWindow.removeEventListener('athens:sky-enabled-changed', previousListener);
+    }
+    globalWindow.__athensHudSkyListener = handleExternalSkyChange;
+    globalWindow.addEventListener('athens:sky-enabled-changed', handleExternalSkyChange);
+  }
 
   const audioSection = createSection(root, 'Audio');
   [
@@ -252,11 +300,13 @@ export function createHUD(callbacks = {}) {
   updateActiveButtons(buttonMaps.time, state.timeMode);
   updateActiveButtons(buttonMaps.volume, state.volume);
   updateActiveButtons(buttonMaps.quality, state.quality);
+  updateActiveButtons(buttonMaps.sky, state.skyEnabled);
 
   // Ensure handlers run once on initialization with stored values.
   callMaybeAsync(callbacks.setTimeOfDay, state.timeMode);
   callMaybeAsync(callbacks.setVolume, state.volume);
   callMaybeAsync(callbacks.setQuality, state.quality);
+  callMaybeAsync(callbacks.setSkyEnabled, state.skyEnabled);
   persistState(state);
 
   return {
@@ -274,6 +324,9 @@ export function createHUD(callbacks = {}) {
       }
       if (partial?.quality) {
         updateActiveButtons(buttonMaps.quality, state.quality);
+      }
+      if (partial?.skyEnabled != null) {
+        updateActiveButtons(buttonMaps.sky, state.skyEnabled);
       }
     }
   };
