@@ -2,15 +2,44 @@ import * as THREE from 'three';
 import { applyFeatureOffset } from './geo/featureOffsets.js';
 import { createFeatureLines } from './scene/feature-lines.js';
 import { applyCompressionToVector3 } from './world/scale.js';
+import { resolveAssetUrl } from './utils/asset-paths.js';
 
 /**
  * Load every feature from a GeoJSON file and add to the scene.
  * - projector(lon, lat) -> THREE.Vector3: optional; if missing we use a local Athens projection.
  * - onPoint(feature, obj3d, worldPos): optional callback (e.g., add to mini-map).
  */
+function resolveGeoJsonUrl(candidate) {
+  if (!candidate) {
+    return resolveAssetUrl('data/athens_places.geojson');
+  }
+
+  const value = `${candidate}`.trim();
+  if (!value) {
+    return resolveAssetUrl('data/athens_places.geojson');
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  let normalized = value;
+  while (normalized.startsWith('../')) {
+    normalized = normalized.slice(3);
+  }
+  if (normalized.startsWith('./')) {
+    normalized = normalized.slice(2);
+  }
+  if (normalized.startsWith('/')) {
+    normalized = normalized.slice(1);
+  }
+
+  return resolveAssetUrl(normalized);
+}
+
 export async function loadLandmarks({
   scene,
-  geoJsonUrl = './data/athens_places.geojson',
+  geoJsonUrl = 'data/athens_places.geojson',
   projector = null,
   onPoint = null
 }) {
@@ -25,8 +54,9 @@ export async function loadLandmarks({
   };
   Object.entries(groups).forEach(([k, g]) => { g.name = `Landmarks_${k}`; root.add(g); });
 
-  const res = await fetch(geoJsonUrl);
-  if (!res.ok) throw new Error(`Failed to load ${geoJsonUrl}: ${res.status}`);
+  const url = resolveGeoJsonUrl(geoJsonUrl);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
   const geo = await res.json();
 
   const markers = [];

@@ -177,7 +177,7 @@ async function runAthens() {
     }
 
     try {
-      setEnvironment(renderer, scene, 'day');
+      await setEnvironment(renderer, scene, 'day');
     } catch (error) {
       console.warn('[Athens] Failed to configure sky environment.', error);
     }

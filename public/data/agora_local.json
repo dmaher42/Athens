@@ -1,0 +1,96 @@
+{
+  "anchorId": "AGORA_ANCHOR",
+  "description": "Relative offsets in meters from the center of the Agora square (positive x east, positive y north).",
+  "features": [
+    {
+      "id": "temple_of_hephaistos",
+      "name": "Temple of Hephaistos",
+      "offset": { "x": -78.0, "y": 72.0 },
+      "footprint": {
+        "width": 32.0,
+        "height": 13.7,
+        "cornerRadius": 2.2,
+        "rotationDegrees": -17,
+        "segmentsPerCorner": 4
+      },
+      "style": {
+        "fill": "rgba(201, 170, 121, 0.55)",
+        "stroke": "#be9553",
+        "lineWidth": 1.6
+      },
+      "labelOffset": { "x": 0, "y": 20 }
+    },
+    {
+      "id": "stoa_of_attalos",
+      "name": "Stoa of Attalos",
+      "offset": { "x": 64.0, "y": 6.0 },
+      "footprint": {
+        "width": 116.0,
+        "height": 20.5,
+        "cornerRadius": 3.2,
+        "rotationDegrees": 5,
+        "segmentsPerCorner": 4
+      },
+      "style": {
+        "fill": "rgba(209, 184, 133, 0.45)",
+        "stroke": "#caa76a",
+        "lineWidth": 1.4
+      },
+      "labelOffset": { "x": 0, "y": 16 }
+    },
+    {
+      "id": "tholos",
+      "name": "Tholos",
+      "offset": { "x": -32.0, "y": -38.0 },
+      "footprint": {
+        "width": 18.5,
+        "height": 18.5,
+        "cornerRadius": 9.0,
+        "rotationDegrees": 0,
+        "segmentsPerCorner": 8
+      },
+      "style": {
+        "fill": "rgba(190, 158, 115, 0.5)",
+        "stroke": "#b48a4f",
+        "lineWidth": 1.4
+      },
+      "labelOffset": { "x": 0, "y": -20 }
+    },
+    {
+      "id": "bouleuterion",
+      "name": "Bouleuterion",
+      "offset": { "x": -55.0, "y": -24.0 },
+      "footprint": {
+        "width": 26.5,
+        "height": 22.0,
+        "cornerRadius": 3.5,
+        "rotationDegrees": -12,
+        "segmentsPerCorner": 4
+      },
+      "style": {
+        "fill": "rgba(193, 165, 118, 0.48)",
+        "stroke": "#bc9457",
+        "lineWidth": 1.4
+      },
+      "labelOffset": { "x": -2, "y": -18 }
+    },
+    {
+      "id": "altar_of_the_twelve_gods",
+      "name": "Altar of the Twelve Gods",
+      "offset": { "x": 6.0, "y": 52.0 },
+      "footprint": {
+        "width": 17.0,
+        "height": 9.0,
+        "cornerRadius": 1.8,
+        "rotationDegrees": 4,
+        "segmentsPerCorner": 4
+      },
+      "style": {
+        "fill": "rgba(205, 176, 128, 0.48)",
+        "stroke": "#c29657",
+        "lineWidth": 1.2
+      },
+      "labelOffset": { "x": 0, "y": 18 }
+    }
+  ]
+}

@@ -98,7 +98,7 @@ export async function runAthens(options: RunOptions = {}) {
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
   if (typeof setEnvironment === 'function') {
     try {
-      setEnvironment(renderer, scene, environmentMode, {
+      await setEnvironment(renderer, scene, environmentMode, {
         preserveBackground: Boolean(options.preserveBackground)
       });
     } catch (error) {
