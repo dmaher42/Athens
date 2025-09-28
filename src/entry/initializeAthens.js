@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { setupGround, updateTrees, initPerformanceStats } from '../main.js';
-import { createEnvironmentController } from '../scene/sky.js';
 import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
 import { buildRoadNetwork } from '../roads/roadNetwork.js';
@@ -14,13 +13,17 @@ import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
 import { createCity } from '../buildings/createCity.js';
 import { createOriginalUi } from '../ui/originalUi.js';
+import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
+import { loadGrassMaterial } from '../materials/groundGrass.js';
 
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
+  day: 'High Noon',
   golden_hour: 'Golden Hour',
   dawn: 'Golden Dawn',
   dusk: 'Dusk',
-  midnight: 'Midnight'
+  midnight: 'Midnight',
+  night: 'Midnight'
 };
 
 const formatEnvironmentLabel = (mode) => {
@@ -217,12 +220,53 @@ export async function initializeAthens(options = {}) {
     }
   }
 
-  const environmentController = createEnvironmentController(renderer, scene);
-  await environmentController.setMode?.('high_noon');
+  await createTimeSky(renderer, scene, 'day');
+  if (typeof attachTimeHotkeys === 'function') {
+    try {
+      attachTimeHotkeys();
+    } catch (error) {
+      console.warn('[Athens] Failed to attach sky hotkeys.', error);
+    }
+  }
+
+  const environmentController = {
+    mode: getTimeOfDay() || 'day',
+    async setMode(mode) {
+      try {
+        const resolved = await setTimeOfDay(mode);
+        if (resolved) {
+          this.mode = resolved;
+        }
+        return this.mode;
+      } catch (error) {
+        console.warn('[Athens] Failed to set time of day.', error);
+        return this.mode;
+      }
+    },
+    dispose() {
+      // placeholder for compatibility
+    }
+  };
 
   await setupGround(scene, renderer);
 
   const city = await createCity({ renderer, scene });
+
+  const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
+  if (mainGround?.isMesh) {
+    try {
+      const grassMaterial = await loadGrassMaterial(renderer, { repeat: 80 });
+      if (grassMaterial) {
+        const previous = mainGround.material;
+        mainGround.material = grassMaterial;
+        if (previous && previous !== grassMaterial && typeof previous.dispose === 'function') {
+          previous.dispose();
+        }
+      }
+    } catch (error) {
+      console.warn('[Athens] Unable to apply grass material to main ground plane.', error);
+    }
+  }
 
   markGround(scene);
   const groundMeshes = collectGround(scene);
@@ -380,12 +424,13 @@ export async function initializeAthens(options = {}) {
     city,
     container,
     ui,
-    setEnvironmentMode(mode, envOptions = {}) {
-      const label = formatEnvironmentLabel(mode);
+    async setEnvironmentMode(mode, envOptions = {}) {
+      const result = await environmentController?.setMode?.(mode, envOptions);
+      const label = formatEnvironmentLabel(result || mode);
       if (label) {
         ui?.setTimeLabel?.(label);
       }
-      return environmentController?.setMode?.(mode, envOptions);
+      return result;
     },
     dispose() {
       if (disposed) {

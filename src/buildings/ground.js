@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { loadGrassMaterial } from '../materials/groundGrass.js';
 
 function cloneMaterial(source, fallbackColor = 0xffffff) {
   if (source && typeof source.clone === 'function') {
@@ -19,7 +20,7 @@ function setTextureRepeat(material, repeatX = 1, repeatY = 1) {
   }
 }
 
-export function createGround(materials = {}, opts = {}) {
+export async function createGround(materials = {}, opts = {}) {
   const group = new THREE.Group();
   group.name = 'Ground';
 
@@ -29,9 +30,33 @@ export function createGround(materials = {}, opts = {}) {
   const grassMaterial = cloneMaterial(materials.grass, 0x5a8f3a);
   setTextureRepeat(grassMaterial, repeat, repeat);
   const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(size, size, 1, 1), grassMaterial);
+  groundPlane.name = 'Ground:MainGrass';
   groundPlane.rotation.x = -Math.PI / 2;
   groundPlane.receiveShadow = true;
+  groundPlane.userData.applyGrassMaterial = async (renderer, options = {}) => {
+    try {
+      const appliedRepeat = typeof options.repeat === 'number' ? options.repeat : repeat;
+      const material = await loadGrassMaterial(renderer, { repeat: appliedRepeat });
+      if (material) {
+        const previous = groundPlane.material;
+        groundPlane.material = material;
+        if (previous && previous !== material && typeof previous.dispose === 'function') {
+          previous.dispose();
+        }
+      }
+      return groundPlane.material;
+    } catch (error) {
+      console.warn('[Ground] Failed to apply grass material.', error);
+      return groundPlane.material;
+    }
+  };
   group.add(groundPlane);
+
+  if (opts.renderer) {
+    groundPlane.userData.applyGrassMaterial(opts.renderer, { repeat }).catch((error) => {
+      console.warn('[Ground] Grass material application deferred.', error);
+    });
+  }
 
   const plateauRadius = opts.plateauRadius ?? 46;
   const plateauHeight = opts.plateauHeight ?? 2.4;
