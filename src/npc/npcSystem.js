@@ -1,11 +1,10 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
-
-const loader = new GLTFLoader();
+import { loadGLTF } from '../loaders/safeGltf.js';
+import { logOnce } from '../utils/logOnce.js';
 
 const SNAP_OPTIONS = { gravity: 12, stepMax: 0.6, hover: 0.03 };
 const DEFAULT_WALK_SPEED = 1.5;
@@ -360,8 +359,7 @@ function loadNpcModel(npc, modelUrl) {
     return Promise.resolve(placeholder);
   }
 
-  return loader
-    .loadAsync(resolvedUrl)
+  return loadGLTF(resolvedUrl)
     .then((gltf) => {
       const scene = gltf?.scene || gltf?.scenes?.[0] || null;
       if (scene) {
@@ -384,7 +382,12 @@ function loadNpcModel(npc, modelUrl) {
       return npc.modelRoot;
     })
     .catch((error) => {
-      console.warn('[npc] Failed to load NPC model, using placeholder instead.', error);
+      const reason = error instanceof Error ? error.message : String(error);
+      const label = modelUrl || 'unknown';
+      logOnce(
+        `npc_model_${resolvedUrl}`,
+        `[npc] Failed to load model ${label} at ${resolvedUrl}: ${reason} — using placeholder`
+      );
       const placeholder = buildPlaceholderModel();
       attachModelToNpc(npc, placeholder);
       return placeholder;
@@ -555,6 +558,9 @@ export function createNpc(options = {}) {
   return {
     object3d: npc.object3d,
     update(deltaSeconds, context = {}) {
+      if (context.skippedLargeDt) {
+        return;
+      }
       const nav = context.navContext || navContext || npc.navContext || null;
       stepNpc(npc, deltaSeconds, context.groundMeshes, nav);
     },
@@ -588,10 +594,15 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
     return npc;
   }
 
-  function update(deltaSeconds) {
+  function update(deltaSeconds, context = {}) {
+    if (context?.skippedLargeDt) {
+      return;
+    }
     const rawDt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
-    if (rawDt <= 0 || rawDt > 0.2) {
-      console.warn('[npc] bad dt', rawDt);
+    if (rawDt <= 0) {
+      logOnce('dt_zero', '[npc] bad dt', rawDt);
+    } else if (rawDt > 0.2) {
+      logOnce('dt_huge', '[npc] bad dt', rawDt);
     }
     const dt = Math.max(0, Math.min(rawDt, 0.2));
     if (dt === 0) return;

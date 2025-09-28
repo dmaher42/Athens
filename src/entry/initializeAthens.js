@@ -11,6 +11,7 @@ import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
+import { createGameLoop } from '../engine/loop.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
@@ -600,39 +601,63 @@ export async function initializeAthens(options = {}) {
   window.addEventListener('resize', resizeHandler);
 
   // Main loop
-  const clock = new THREE.Clock();
   let disposed = false;
-  let frameId = 0;
+  let statsForFrame = null;
 
-  const frame = () => {
-    if (disposed) return;
-    const activeStats = stats;
-    activeStats?.begin?.();
+  const updateFrame = (delta, { skippedLargeDt }) => {
+    if (disposed) {
+      statsForFrame = stats;
+      statsForFrame?.begin?.();
+      statsForFrame?.end?.();
+      statsForFrame = null;
+      return;
+    }
+
+    statsForFrame = stats;
+    statsForFrame?.begin?.();
+
     try {
-      const delta = clock.getDelta();
       try {
         updateTrees?.(delta);
       } catch (error) {
         console.warn('[Athens] Tree animation update failed.', error);
       }
-      mainCharacter?.update(delta, { groundMeshes });
-      npcManager?.update(delta);
+
+      const npcContext = { groundMeshes, skippedLargeDt: Boolean(skippedLargeDt) };
+      mainCharacter?.update?.(delta, npcContext);
+      npcManager?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
       landmarks.update?.(camera);
-      controller?.update(delta, camera);
+
+      if (!skippedLargeDt) {
+        controller?.update?.(delta, camera);
+      }
+
       ui?.update?.(delta, {
         position: playerObject?.position,
         isFlying: false,
-        isRunning: controller?.isRunning?.()
+        isRunning: controller?.isRunning?.(),
+        skippedLargeDt: Boolean(skippedLargeDt)
       });
-      followCamera?.update();
-      renderer.render(scene, camera);
-    } finally {
-      activeStats?.end?.();
+
+      followCamera?.update?.();
+    } catch (error) {
+      console.warn('[Athens] Frame update failed.', error);
     }
-    frameId = requestAnimationFrame(frame);
   };
 
-  frameId = requestAnimationFrame(frame);
+  const renderFrame = () => {
+    try {
+      if (!disposed) {
+        renderer.render(scene, camera);
+      }
+    } finally {
+      statsForFrame?.end?.();
+      statsForFrame = null;
+    }
+  };
+
+  const gameLoop = createGameLoop(updateFrame, renderFrame);
+  gameLoop.start();
 
   // Context / teardown
   const context = {
@@ -662,7 +687,7 @@ export async function initializeAthens(options = {}) {
     dispose() {
       if (disposed) return;
       disposed = true;
-      if (frameId) cancelAnimationFrame(frameId);
+      gameLoop?.dispose?.();
       window.removeEventListener('resize', resizeHandler);
       overlay?.destroy?.();
       if (overlayCanvas.parentNode) {

@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createProceduralTree } from './procTree.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { applyCompressionToVector3 } from '../world/scale.js';
+import { loadGLTF } from '../loaders/safeGltf.js';
+import { logOnce } from '../utils/logOnce.js';
 
 const TREE_MODEL_FILES = {
   olive: 'olive.glb',
@@ -249,14 +250,15 @@ function buildInstancingData(group, height) {
   };
 }
 
-async function loadTreeDefinition(name, file, loader) {
+async function loadTreeDefinition(name, file) {
   let gltfScene = null;
+  const url = assetUrl(`assets/models/${file}`);
   try {
-    const url = assetUrl(`assets/models/${file}`);
-    const gltf = await loader.loadAsync(url);
+    const gltf = await loadGLTF(url);
     gltfScene = gltf.scene || (gltf.scenes && gltf.scenes[0]) || null;
   } catch (error) {
-    console.warn(`[trees] Missing ${file}, using procedural fallback`);
+    const reason = error instanceof Error ? error.message : String(error);
+    logOnce(`trees_model_${url}`, `[trees] Failed to load model ${name} at ${url}: ${reason} — using procedural fallback`);
   }
 
   const highSource = gltfScene ?? createProceduralTree(name, 'high');
@@ -328,10 +330,9 @@ export async function loadTreeLibrary(renderer) {
   }
 
   if (!libraryPromise) {
-    const loader = new GLTFLoader();
     const entries = Object.entries(TREE_MODEL_FILES);
 
-    libraryPromise = Promise.all(entries.map(([name, file]) => loadTreeDefinition(name, file, loader))).then(() => {
+    libraryPromise = Promise.all(entries.map(([name, file]) => loadTreeDefinition(name, file))).then(() => {
       libraryHandle = {
         getTree(treeName) {
           return treeLibrary.get(treeName) ?? null;
