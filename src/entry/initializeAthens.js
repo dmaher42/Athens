@@ -17,7 +17,6 @@ import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
 import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
-import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
@@ -229,9 +228,8 @@ export async function initializeAthens(options = {}) {
   await setupGround(scene, renderer);
 
   const city = await createCity({ renderer, scene });
-  const extendedCity = await createCityExtended({ renderer, scene });
 
-  // --- Merge: grass material application + ground registry + snapping ---
+  // Grass material application for main ground
   const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
   if (mainGround?.isMesh) {
     try {
@@ -248,29 +246,27 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  // Extended city (provides root + shared materials)
+  const extendedRes = await createCityExtended({ renderer, scene });
+  const extendedCity = extendedRes?.root ?? null;
+  const sharedMaterials = extendedRes?.materials ?? null;
+
+  // Ground registry + snapping
   markGround(scene);
-  let groundMeshes = collectGround(scene);
+  const groundMeshes = collectGround(scene);
   if (!groundMeshes.length) {
     console.warn('[npc] no ground meshes');
   }
   if (city?.root && groundMeshes.length) {
-    snapChildrenToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
-    snapGroupToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
+    const snapOpts = { hover: 0.03, fromY: 300 };
+    snapChildrenToGround(city.root, groundMeshes, snapOpts);
+    snapGroupToGround(city.root, groundMeshes, snapOpts);
   }
-  if (extendedCity?.root && groundMeshes.length) {
-    snapChildrenToGround(extendedCity.root, groundMeshes, { hover: 0.03, fromY: 300 });
-    snapGroupToGround(extendedCity.root, groundMeshes, { hover: 0.03, fromY: 300 });
+  if (extendedCity && groundMeshes.length) {
+    snapGroupToGround(extendedCity, groundMeshes, { hover: 0.03, fromY: 300 });
   }
-  // --- end merge ---
 
-  let colliderMeshes = [];
-  let colliders = [];
-  const refreshColliders = () => {
-    markColliders(scene);
-    colliderMeshes = collectColliders(scene);
-    colliders = buildAABBs(colliderMeshes);
-  };
-
+  // Landmarks & overlay
   const landmarks = await loadLandmarks({
     scene,
     geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
@@ -287,29 +283,27 @@ export async function initializeAthens(options = {}) {
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
 
+  // Roads built from collected points (use extended/shared materials if available)
   let roadNetwork = null;
   if (options.enableRoads !== false) {
     const roadPoints = collectRoadPoints(scene);
-    const roadMaterials = extendedCity?.materials || city?.materials || {};
-    roadNetwork = buildRoadNetwork({
-      scene,
-      points: roadPoints,
-      materials: roadMaterials,
-      options: { width: 3.0, tileScale: 6.0 }
-    });
-    if (roadNetwork) {
-      roadNetwork.name = 'RoadNetwork';
-      if (!scene.children.includes(roadNetwork)) {
-        scene.add(roadNetwork);
-      }
+    if (roadPoints.length >= 2) {
+      const roadGroup = buildRoadNetwork({
+        scene,
+        points: roadPoints,
+        materials: sharedMaterials || city?.materials || {},
+        options: { width: 3.0, tileScale: 6.0 }
+      });
+      roadGroup.name = 'RoadNetwork';
+      scene.add(roadGroup);
+      roadNetwork = roadGroup;
     }
   }
-  refreshColliders();
 
+  // NPCs
   let npcManager = null;
   if (options.enableNpcs !== false) {
-
-    npcManager = createNpcManager(scene, { colliders });
+    npcManager = createNpcManager(scene, groundMeshes);
 
     // Example extra NPC with simple path
     const p0 = new THREE.Vector3(5, 0, 5);
@@ -324,6 +318,7 @@ export async function initializeAthens(options = {}) {
       accel: 5.0,
       turn: 0.18
     });
+
     const defaultNpcConfigs = createDefaultNpcConfigs(
       Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
         ? options.npcModelUrls
@@ -339,6 +334,7 @@ export async function initializeAthens(options = {}) {
     });
   }
 
+  // Main character
   const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
   const mainCharacter = options.enableMainCharacter === false
     ? null
@@ -361,19 +357,15 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  // Controls & camera
   const keyboard = createKeyboard();
   const controller = createPlayerController(playerObject, keyboard, {
     walkSpeed: 5.5,
     runMultiplier: 2.5,
-    flyMultiplier: 3.0,
-    turnLerp: 0.18,
-    flightToggleKey: 'KeyX',
-    colliders,
-    collisionOptions: { maxIters: 4, skin: 0.02 }
+    acceleration: 12,
+    turnLerp: 0.18
   });
-  if (typeof controller?.setGroundMeshes === 'function') {
-    controller.setGroundMeshes(groundMeshes);
-  }
+  controller.setGroundMeshes(groundMeshes);
 
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
@@ -397,6 +389,7 @@ export async function initializeAthens(options = {}) {
 
   followCamera.update();
 
+  // Resize
   const resizeHandler = () => {
     const { width, height } = computeContainerSize(container);
     renderer.setSize(width, height, false);
@@ -405,9 +398,9 @@ export async function initializeAthens(options = {}) {
     overlay.requestRender();
     landmarks.featureLines?.updateResolution?.();
   };
-
   window.addEventListener('resize', resizeHandler);
 
+  // Main loop
   const clock = new THREE.Clock();
   let disposed = false;
   let frameId = 0;
@@ -437,6 +430,7 @@ export async function initializeAthens(options = {}) {
 
   frameId = requestAnimationFrame(frame);
 
+  // Context / teardown
   const context = {
     renderer,
     scene,
@@ -453,7 +447,6 @@ export async function initializeAthens(options = {}) {
     extendedCity,
     container,
     ui,
-    refreshColliders,
     async setEnvironmentMode(mode, envOptions = {}) {
       const result = await environmentController?.setMode?.(mode, envOptions);
       const label = formatEnvironmentLabel(result || mode);
