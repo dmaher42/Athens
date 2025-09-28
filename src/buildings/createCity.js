@@ -16,7 +16,7 @@ export async function createCity({ renderer, scene } = {}) {
     scene.add(root);
   }
 
-  const ground = createGround(materials, { size: 1000, repeat: 80 });
+  const ground = await createGround(materials, { size: 1000, repeat: 80, renderer });
   root.add(ground);
 
   const registryRoot = scene ?? root;
