@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
+import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
 
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 const cameraForward = new THREE.Vector3();
@@ -11,6 +12,8 @@ const targetVelocity = new THREE.Vector3();
 const velocity = new THREE.Vector3();
 const horizontalVector = new THREE.Vector3();
 const FORWARD = new THREE.Vector3(0, 0, 1);
+const moveDelta = new THREE.Vector3();
+const actualMove = new THREE.Vector3();
 
 function deriveYaw(object3d) {
   if (!object3d) return 0;
@@ -28,12 +31,16 @@ export function createPlayerController(
     walkSpeed = 4.0,
     runMultiplier = 1.7,
     acceleration = 10,
-    turnLerp = 0.18
+    turnLerp = 0.18,
+    colliders: initialColliders = []
   } = {}
 ) {
   let controlledObject = object3d || null;
   let currentKeyboard = keyboard || null;
   let groundMeshes = [];
+  let colliderAabbs = Array.isArray(initialColliders) ? initialColliders : [];
+
+  const capsule = new Capsule(0.45, 1.6);
 
   const physicsState = {
     vy: 0,
@@ -43,8 +50,20 @@ export function createPlayerController(
   let desiredYaw = deriveYaw(controlledObject);
   let runningState = false;
 
+  if (controlledObject) {
+    capsule.setPosition(
+      controlledObject.position.x,
+      controlledObject.position.y,
+      controlledObject.position.z
+    );
+  }
+
   const setGroundMeshes = (meshes) => {
     groundMeshes = Array.isArray(meshes) ? meshes : [];
+  };
+
+  const setColliders = (nextColliders) => {
+    colliderAabbs = Array.isArray(nextColliders) ? nextColliders : [];
   };
 
   const setObject = (nextObject) => {
@@ -53,6 +72,11 @@ export function createPlayerController(
     physicsState.vy = 0;
     physicsState.lastGoodY = controlledObject.position?.y ?? 0;
     desiredYaw = deriveYaw(controlledObject);
+    capsule.setPosition(
+      controlledObject.position.x,
+      controlledObject.position.y,
+      controlledObject.position.z
+    );
   };
 
   const setKeyboard = (nextKeyboard) => {
@@ -103,12 +127,28 @@ export function createPlayerController(
     velocity.lerp(targetVelocity, THREE.MathUtils.clamp(lerpAlpha, 0, 1));
 
     // Integrate horizontal motion
+    capsule.setPosition(
+      controlledObject.position.x,
+      controlledObject.position.y,
+      controlledObject.position.z
+    );
+
+    actualMove.set(0, 0, 0);
     if (dt > 0) {
-      controlledObject.position.addScaledVector(velocity, dt);
+      moveDelta.copy(velocity).multiplyScalar(dt);
+      moveDelta.y = 0;
+      if (moveDelta.lengthSq() > 1e-10) {
+        const result = resolveCapsuleVsAABBs(capsule, moveDelta, colliderAabbs, {
+          maxIters: 3,
+          skin: 0.01
+        });
+        controlledObject.position.copy(capsule.position);
+        actualMove.copy(result.moved);
+      }
     }
 
     // Face move direction smoothly
-    horizontalVector.copy(velocity);
+    horizontalVector.copy(actualMove.lengthSq() > 0 ? actualMove : velocity);
     horizontalVector.y = 0;
     if (horizontalVector.lengthSq() > 1e-6) {
       horizontalVector.normalize();
@@ -117,6 +157,11 @@ export function createPlayerController(
 
     // Ground & upright stabilization
     snapToGround(controlledObject, groundMeshes, physicsState, dt);
+    capsule.setPosition(
+      controlledObject.position.x,
+      controlledObject.position.y,
+      controlledObject.position.z
+    );
     keepUpright(controlledObject, desiredYaw, Number.isFinite(turnLerp) ? turnLerp : 0.18);
   };
 
@@ -125,6 +170,7 @@ export function createPlayerController(
     setObject,
     setKeyboard,
     setGroundMeshes,
+    setColliders,
     isRunning() {
       return runningState;
     }
