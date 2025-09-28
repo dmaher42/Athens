@@ -192,6 +192,7 @@ export async function runAthens(options: RunOptions = {}) {
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+  // Optional debug hook for smoke tests / console
   if (typeof window !== 'undefined') {
     (window as any).__athensDebug = { scene, camera, renderer };
   }
@@ -294,10 +295,9 @@ export async function runAthens(options: RunOptions = {}) {
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
   if (typeof setEnvironment === 'function') {
     try {
-      // Default to environment map + preserved background; photo-sky can be re-enabled per-call.
       await setEnvironment(renderer, scene, environmentMode, {
-        enablePhotoSky: false,
-        preserveBackground: true
+        enablePhotoSky: false,   // skip JPG dome while debugging
+        preserveBackground: true // keep blue/env visible, no white flash
       });
     } catch (error) {
       console.warn('[Athens][Boot] setEnvironment failed', error);
