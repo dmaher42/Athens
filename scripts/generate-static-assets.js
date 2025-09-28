@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, readdir } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -321,11 +321,20 @@ async function copyNpcModel(filename) {
   console.log(`Copied ${filename}`);
 }
 
+async function copyNpcModels() {
+  const entries = await readdir(SOURCE_MODELS_DIR, { withFileTypes: true });
+
+  await Promise.all(
+    entries
+      .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.glb'))
+      .map((entry) => copyNpcModel(entry.name))
+  );
+}
+
 async function main() {
   await writeGlb(createCypressDocument(), join(PUBLIC_MODELS_DIR, 'cypress.glb'));
   await writeGlb(createPlaneTreeDocument(), join(PUBLIC_MODELS_DIR, 'plane.glb'));
-  await copyNpcModel('hoplite_npc.glb');
-  await copyNpcModel('npc_athenian.glb');
+  await copyNpcModels();
 
   const noticePath = join(PUBLIC_MODELS_DIR, 'README.txt');
   await writeFile(noticePath, `Generated assets.${GENERATED_NOTE}`);
