@@ -17,7 +17,6 @@ import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
 import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
-import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
@@ -230,7 +229,7 @@ export async function initializeAthens(options = {}) {
 
   const city = await createCity({ renderer, scene });
 
-  // --- Merge: grass material application + ground registry + snapping ---
+  // Grass material application
   const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
   if (mainGround?.isMesh) {
     try {
@@ -247,23 +246,25 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  // Extended city
   const cityExtendedResult = await createCityExtended({ renderer, scene });
   const cityExtended = cityExtendedResult?.root ?? null;
   const sharedMaterials = cityExtendedResult?.materials ?? null;
 
+  // Ground registry + snapping
   markGround(scene);
-  let groundMeshes = collectGround(scene);
+  const groundMeshes = collectGround(scene);
   if (!groundMeshes.length) {
     console.warn('[npc] no ground meshes');
   }
   if (city?.root && groundMeshes.length) {
-    snapChildrenToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
-    snapGroupToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
+    const snapOpts = { hover: 0.03, fromY: 300 };
+    snapChildrenToGround(city.root, groundMeshes, snapOpts);
+    snapGroupToGround(city.root, groundMeshes, snapOpts);
   }
   if (cityExtended && groundMeshes.length) {
     snapGroupToGround(cityExtended, groundMeshes, { hover: 0.03, fromY: 300 });
   }
-  // --- end merge ---
 
   const landmarks = await loadLandmarks({
     scene,
@@ -281,6 +282,7 @@ export async function initializeAthens(options = {}) {
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
 
+  // Roads from collected points (uses extended city materials when available)
   let roadNetwork = null;
   if (options.enableRoads !== false) {
     const roadPoints = collectRoadPoints(scene);
@@ -297,15 +299,9 @@ export async function initializeAthens(options = {}) {
     }
   }
 
-  markColliders(scene);
-  let colliderMeshes = collectColliders(scene);
-  let colliders = buildAABBs(colliderMeshes);
-
+  // NPCs
   let npcManager = null;
   if (options.enableNpcs !== false) {
-
-    npcManager = createNpcManager(scene, { colliders });
-
     npcManager = createNpcManager(scene, groundMeshes);
 
     // Example extra NPC with simple path
@@ -321,6 +317,7 @@ export async function initializeAthens(options = {}) {
       accel: 5.0,
       turn: 0.18
     });
+
     const defaultNpcConfigs = createDefaultNpcConfigs(
       Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
         ? options.npcModelUrls
@@ -336,11 +333,12 @@ export async function initializeAthens(options = {}) {
     });
   }
 
+  // Main character
   const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
   const mainCharacter = options.enableMainCharacter === false
     ? null
     : createMainCharacter(scene, {
-        initialPosition: { x: 4, y: 0, z: 4 },
+        initialPosition: { x: 72, y: 0, z: -48 },
         ...(mainCharacterOptions || {})
       });
 
@@ -358,16 +356,16 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  // Controls & camera
   const keyboard = createKeyboard();
   const controller = createPlayerController(playerObject, keyboard, {
     walkSpeed: 5.5,
     runMultiplier: 2.5,
-    flyMultiplier: 3.0,
-    turnLerp: 0.18,
-    flightToggleKey: 'KeyX',
-    colliders,
-    collisionOptions: { maxIters: 4, skin: 0.02 }
+    acceleration: 12,
+    turnLerp: 0.18
   });
+  controller.setGroundMeshes(groundMeshes);
+
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
     lerp: 0.12,

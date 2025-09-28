@@ -8,6 +8,7 @@ import { createFollowCamera } from '../camera/followCamera.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
 import { createNpcManager } from '../npc/simpleNpcManager.js';
+import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 
 type RunOptions = {
   containerId?: string;
@@ -150,6 +151,9 @@ export async function runAthens(options: RunOptions = {}) {
 
   markGround(scene);
   const groundMeshes = collectGround(scene);
+  markColliders(scene);
+  const colliderMeshes = collectColliders(scene);
+  const colliders = buildAABBs(colliderMeshes);
 
   const playerObject = createPlaceholderPlayer();
   scene.add(playerObject);
@@ -163,9 +167,11 @@ export async function runAthens(options: RunOptions = {}) {
     walkSpeed: 4.0,
     runMultiplier: 1.7,
     acceleration: 10,
-    turnLerp: 0.18
+    turnLerp: 0.18,
+    colliders
   });
   playerController.setGroundMeshes(groundMeshes);
+  playerController.setColliders(colliders);
 
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
@@ -174,8 +180,9 @@ export async function runAthens(options: RunOptions = {}) {
   });
   followCamera.syncImmediate();
 
-  const npcManager = createNpcManager(scene, groundMeshes);
+  const npcManager = createNpcManager(scene, groundMeshes, { colliders });
   npcManager.setGroundMeshes(groundMeshes);
+  npcManager.setColliders(colliders);
   npcManager.spawn({
     waypoints: [
       new THREE.Vector3(6, 0, 6),
