@@ -9,6 +9,10 @@ import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
 import { createNpcManager } from '../npc/simpleNpcManager.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
+import { AudioManager } from '../audio/AudioManager.js';
+import { initAmbience, setAmbience } from '../audio/ambience.js';
+import { createFootsteps } from '../audio/footsteps.js';
+import { attachNpcAudio } from '../audio/npcAudio.js';
 
 type RunOptions = {
   containerId?: string;
@@ -118,6 +122,24 @@ export async function runAthens(options: RunOptions = {}) {
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+  const audio = new AudioManager(camera, { masterVolume: 0.9 });
+
+  const resumeAudioContext = () => {
+    const listener = audio.getListener?.();
+    const ctx = listener?.context || listener?.getContext?.();
+    if (ctx && ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+      ctx.resume().catch(() => {});
+    }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('click', resumeAudioContext);
+      window.removeEventListener('keydown', resumeAudioContext);
+    }
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('click', resumeAudioContext);
+    window.addEventListener('keydown', resumeAudioContext);
+  }
+
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
   directionalLight.position.set(120, 220, 150);
@@ -149,6 +171,13 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
+  const ambienceMode = ['dawn', 'day', 'dusk', 'night'].includes(environmentMode) ? environmentMode : 'day';
+  try {
+    await initAmbience(audio, ambienceMode);
+  } catch (error) {
+    console.warn('[Athens][Boot] initAmbience failed', error);
+  }
+
   markGround(scene);
   const groundMeshes = collectGround(scene);
   markColliders(scene);
@@ -173,6 +202,8 @@ export async function runAthens(options: RunOptions = {}) {
   playerController.setGroundMeshes(groundMeshes);
   playerController.setColliders(colliders);
 
+  const footsteps = createFootsteps(audio);
+
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
     lerp: 0.12,
@@ -183,15 +214,22 @@ export async function runAthens(options: RunOptions = {}) {
   const npcManager = createNpcManager(scene, groundMeshes, { colliders });
   npcManager.setGroundMeshes(groundMeshes);
   npcManager.setColliders(colliders);
-  npcManager.spawn({
+  const npcState = npcManager.spawn({
     waypoints: [
       new THREE.Vector3(6, 0, 6),
       new THREE.Vector3(10, 0, 6)
     ]
   });
+  if (npcState?.object3d) {
+    attachNpcAudio(audio, npcState.object3d, { clip: 'market_chatter.mp3', volume: 0.3, distance: 20 }).catch(() => {});
+  }
 
   const clock = new THREE.Clock();
   let frameId: number | null = null;
+  const previousPlayerPosition = playerObject.position.clone();
+  const playerDelta = new THREE.Vector3();
+  let footstepTimer = 0;
+  let footstepInterval = Infinity;
 
   const handleResize = () => {
     const { width, height } = computeSize(container);
@@ -214,10 +252,31 @@ export async function runAthens(options: RunOptions = {}) {
       }
     }
 
+    previousPlayerPosition.copy(playerObject.position);
     try {
       playerController.update(delta, camera);
     } catch (error) {
       console.warn('[Athens][Boot] player update failed', error);
+    }
+
+    playerDelta.subVectors(playerObject.position, previousPlayerPosition);
+    const moveDistance = playerDelta.length();
+    const currentSpeed = delta > 1e-6 ? moveDistance / Math.max(delta, 1e-6) : 0;
+    footstepInterval = footsteps.setIntervalBySpeed(currentSpeed);
+    if (Number.isFinite(footstepInterval)) {
+      if (currentSpeed < 0.3) {
+        footstepTimer = Math.min(footstepTimer, footstepInterval);
+      } else {
+        footstepTimer += delta;
+        if (footstepTimer >= footstepInterval) {
+          footstepTimer = 0;
+          const { x, z } = playerObject.position;
+          const surface = Math.abs(x) < 55 && Math.abs(z) < 55 ? 'stone' : 'dirt';
+          footsteps.onStep(surface);
+        }
+      }
+    } else {
+      footstepTimer = 0;
     }
 
     try {
@@ -244,6 +303,11 @@ export async function runAthens(options: RunOptions = {}) {
     playerController,
     followCamera,
     npcManager,
+    audio,
+    footsteps,
+    setAmbience(mode: string) {
+      return setAmbience(audio, mode);
+    },
     dispose() {
       if (frameId !== null && typeof cancelAnimationFrame === 'function') {
         cancelAnimationFrame(frameId);
@@ -251,9 +315,13 @@ export async function runAthens(options: RunOptions = {}) {
       }
       if (typeof window !== 'undefined') {
         window.removeEventListener('resize', handleResize);
+        window.removeEventListener('click', resumeAudioContext);
+        window.removeEventListener('keydown', resumeAudioContext);
       }
       npcManager.dispose();
       keyboard.dispose();
+      footsteps.dispose();
+      audio.stopAll();
       renderer.dispose();
     }
   };
