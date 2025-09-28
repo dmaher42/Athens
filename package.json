@@ -7,7 +7,7 @@
     "dev": "vite",
     "dev:clean": "rimraf node_modules/.vite node_modules/.vite-* .vite || true",
     "dev:force": "vite --force --open --port 4173",
-    "build": "vite build",
+    "build": "node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
     "preview": "vite preview",
     "test": "node --test",
     "html:no-ts": "./scripts/check-html-no-ts.sh"
