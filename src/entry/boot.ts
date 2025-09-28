@@ -290,6 +290,10 @@ export async function runAthens(options: RunOptions = {}) {
       await setEnvironment(renderer, scene, environmentMode, {
         preserveBackground: Boolean(options.preserveBackground)
       });
+      
+      await setEnvironment(renderer, scene, environmentMode, {
+  enablePhotoSky: false,        // disables JPG dome
+  preserveBackground: true
     } catch (error) {
       console.warn('[Athens][Boot] setEnvironment failed', error);
     }
