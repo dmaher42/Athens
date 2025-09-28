@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "cannon": "^0.6.2",
-    "stats.js": "^0.17.0",
     "three": "^0.180.0",
     "tone": "^14.7.77"
   },
