@@ -1,3 +1,5 @@
+import { assetUrl } from './assetUrl.js';
+
 function ensureTrailingSlash(value) {
   if (typeof value !== 'string' || value.length === 0) {
     return '/';
@@ -144,12 +146,12 @@ export function getAssetBaseSource() {
 
 export function resolveAssetUrl(path = '') {
   if (!path) {
-    return ASSET_BASE;
+    return assetUrl('');
   }
 
   let sanitized = `${path}`.trim();
   if (!sanitized) {
-    return ASSET_BASE;
+    return assetUrl('');
   }
 
   while (sanitized.startsWith('../')) {
@@ -166,7 +168,7 @@ export function resolveAssetUrl(path = '') {
     sanitized = sanitized.slice('public/'.length);
   }
 
-  return `${ASSET_BASE}${sanitized}`;
+  return assetUrl(sanitized);
 }
 
 export { ASSET_BASE, computeAssetBaseUrl };

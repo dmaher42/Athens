@@ -1,4 +1,8 @@
 node_modules/
-public/favicon.ico
 dist/
 .vite/
+public/assets/models/cypress.glb
+public/assets/models/plane.glb
+public/assets/models/hoplite_npc.glb
+public/assets/models/npc_athenian.glb
+public/favicon.ico

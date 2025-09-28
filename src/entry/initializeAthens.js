@@ -9,6 +9,7 @@ import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
+import { assetUrl } from '../utils/assetUrl.js';
 
 const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
@@ -20,8 +21,8 @@ const DEFAULT_NPC_MODEL_URLS = [
   'models/brokenCHar.glb',
   'models/character2.glb',
   'models/character3.glb',
-  'models/hoplite_npc.glb',
-  'models/npc_athenian.glb'
+  assetUrl('assets/models/hoplite_npc.glb'),
+  assetUrl('assets/models/npc_athenian.glb')
 ];
 
 function buildNpcPatrolPath(radius, angle, height = 0) {
