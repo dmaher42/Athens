@@ -364,7 +364,7 @@ export async function initializeAthens(options = {}) {
     acceleration: 12,
     turnLerp: 0.18
   });
-  controller.setGroundMeshes(groundMeshes);
+  controller.setGroundMeshes(Array.isArray(groundMeshes) ? groundMeshes : []);
 
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
