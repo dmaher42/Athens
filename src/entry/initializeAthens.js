@@ -302,7 +302,7 @@ export async function initializeAthens(options = {}) {
 
   const { width: initialWidth, height: initialHeight } = computeContainerSize(container);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); // avoid page-white if background=null
   renderer.shadowMap.enabled = true;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(initialWidth, initialHeight, false);
@@ -317,6 +317,15 @@ export async function initializeAthens(options = {}) {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
+
+  // Minimal debug hook for smoke tests / console
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('headlessSmoke') === '1') {
+      window.__athensDebug = { scene, camera, renderer };
+    }
+  }
+
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   scene.add(camera);
