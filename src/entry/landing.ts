@@ -38,28 +38,20 @@ declare global {
 }
 
 async function waitForDomReady(): Promise<void> {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    return;
-  }
+  if (typeof document === 'undefined') return;
+  if (document.readyState === 'complete' || document.readyState === 'interactive') return;
 
   await new Promise<void>((resolve) => {
     const handleReady = () => {
       document.removeEventListener('DOMContentLoaded', handleReady);
       resolve();
     };
-
     document.addEventListener('DOMContentLoaded', handleReady, { once: true });
   });
 }
 
 function ensureBootStarted(): { promise: Promise<unknown>; started: boolean } | null {
-  if (typeof boot !== 'function') {
-    return null;
-  }
+  if (typeof boot !== 'function') return null;
 
   let started = false;
 
@@ -81,21 +73,13 @@ function ensureBootStarted(): { promise: Promise<unknown>; started: boolean } | 
     bootPromise = promise;
   }
 
-  if (!bootPromise) {
-    return null;
-  }
-
+  if (!bootPromise) return null;
   return { promise: bootPromise, started };
 }
 
 async function runAthens(): Promise<RunAthensResult> {
-  if (initializedContext) {
-    return initializedContext;
-  }
-
-  if (initializationTask) {
-    return initializationTask;
-  }
+  if (initializedContext) return initializedContext;
+  if (initializationTask) return initializationTask;
 
   initializationTask = (async () => {
     const bootState = ensureBootStarted();
@@ -121,6 +105,7 @@ async function runAthens(): Promise<RunAthensResult> {
           throw error instanceof Error ? error : new Error(String(error));
         }
       } else {
+        // if we started boot here, don't block; just observe readiness
         bootReady.catch(() => {});
       }
     }
@@ -224,9 +209,7 @@ async function runAthens(): Promise<RunAthensResult> {
 
 (window as any).runAthens = runAthens;
 (window as any).getAthensContext = async () => {
-  if (initializedContext) {
-    return initializedContext;
-  }
+  if (initializedContext) return initializedContext;
 
   if (initializationTask) {
     try {
@@ -238,6 +221,7 @@ async function runAthens(): Promise<RunAthensResult> {
 
   return undefined;
 };
+
 window.dispatchEvent(
   new CustomEvent('athens:initializer-ready', {
     detail: { initializer: runAthens, source: 'index.html' }
@@ -252,9 +236,7 @@ try {
 }
 
 function resizeRenderer() {
-  if (!container || !renderer || !camera) {
-    return;
-  }
+  if (!container || !renderer || !camera) return;
 
   const { clientWidth, clientHeight } = container;
   const width = clientWidth || window.innerWidth || 1;
