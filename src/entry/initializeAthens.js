@@ -87,10 +87,8 @@ const DEFAULT_OVERLAY_ID = 'landmark-overlay';
 const DEFAULT_GEOJSON_URL = 'data/athens_places.geojson';
 
 const DEFAULT_NPC_MODEL_URLS = [
-  'models/Adventurer.glb',
   'models/Adventurer1.glb',
   'models/brokenCHar.glb',
-  'models/character2.glb',
   'models/character3.glb',
   assetUrl('assets/models/hoplite_npc.glb'),
   assetUrl('assets/models/npc_athenian.glb')
