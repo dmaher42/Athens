@@ -1,9 +1,11 @@
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
+  day: 'High Noon',
   golden_hour: 'Golden Hour',
   dawn: 'Golden Dawn',
   dusk: 'Dusk',
-  midnight: 'Midnight'
+  midnight: 'Midnight',
+  night: 'Midnight'
 };
 
 const STATUS_UPDATE_INTERVAL = 0.1; // seconds

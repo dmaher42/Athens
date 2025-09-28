@@ -6,3 +6,12 @@ public/assets/models/plane.glb
 public/assets/models/hoplite_npc.glb
 public/assets/models/npc_athenian.glb
 public/favicon.ico
+# Development gradient placeholders (not tracked)
+assets/sky/dawn.jpg
+assets/sky/day.jpg
+assets/sky/dusk.jpg
+assets/sky/night.jpg
+public/assets/sky/dawn.jpg
+public/assets/sky/day.jpg
+public/assets/sky/dusk.jpg
+public/assets/sky/night.jpg

@@ -42,3 +42,29 @@ public/assets/sky/blue_hour.jpg
 
 This file is prefetched during initialization so the skydome can swap immediately when entering the "Blue Hour" preset. If
 it's absent the experience will fall back to the built-in dusk assets.
+
+## Time-of-day Gradient Backdrops
+
+For development builds the runtime can load lightweight gradient panoramas for the simplified `timeSky` system. Because this
+pull request workflow cannot include binary assets, the JPG placeholders are not checked into source control. To enable them
+locally, create four 2048×1024 JPGs named:
+
+```
+assets/sky/dawn.jpg
+assets/sky/day.jpg
+assets/sky/dusk.jpg
+assets/sky/night.jpg
+```
+
+and mirror the same files under `public/assets/sky/`. Any image editor can be used to author the gradients. If you have
+ImageMagick installed, the following commands generate quick stand-ins:
+
+```
+magick -size 2048x1024 gradient:"#3b2c57-#f8c36a" assets/sky/dawn.jpg
+magick -size 2048x1024 gradient:"#6ea8ff-#e4f2ff" assets/sky/day.jpg
+magick -size 2048x1024 gradient:"#733d6e-#f8a06c" assets/sky/dusk.jpg
+magick -size 2048x1024 gradient:"#0b1630-#2f3a5d" assets/sky/night.jpg
+```
+
+Copy the generated files into `public/assets/sky/` so the engine can resolve them in development builds. Replace the gradients
+with art-directed panoramas for production deployments.
