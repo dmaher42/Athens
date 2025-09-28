@@ -11,6 +11,23 @@ import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { createCity } from '../buildings/createCity.js';
+import { createOriginalUi } from '../ui/originalUi.js';
+
+const ENVIRONMENT_LABELS = {
+  high_noon: 'High Noon',
+  golden_hour: 'Golden Hour',
+  dawn: 'Golden Dawn',
+  dusk: 'Dusk',
+  midnight: 'Midnight'
+};
+
+const formatEnvironmentLabel = (mode) => {
+  if (!mode) {
+    return '';
+  }
+  const normalized = String(mode).toLowerCase();
+  return ENVIRONMENT_LABELS[normalized] || normalized.replace(/_/g, ' ');
+};
 
 const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
@@ -216,6 +233,8 @@ export async function initializeAthens(options = {}) {
     geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
   });
   landmarks.featureLines?.updateResolution?.();
+  const ui = createOriginalUi({ container, overlayCanvas, environmentController });
+  ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
 
   let roadNetwork = null;
   if (options.enableRoads !== false) {
@@ -263,9 +282,11 @@ export async function initializeAthens(options = {}) {
 
   const keyboard = createKeyboard();
   const controller = createPlayerController(playerObject, keyboard, {
-    walkSpeed: 4.0,
-    runMultiplier: 1.7,
-    turnLerp: 0.18
+    walkSpeed: 5.5,
+    runMultiplier: 2.0,
+    flyMultiplier: 1.6,
+    turnLerp: 0.18,
+    flightToggleKey: 'KeyX'
   });
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
@@ -319,6 +340,11 @@ export async function initializeAthens(options = {}) {
     landmarks.update?.(camera);
     stats?.update?.();
     controller?.update(delta, camera);
+    ui?.update?.(delta, {
+      position: playerObject?.position,
+      isFlying: controller?.isFlying?.(),
+      isRunning: controller?.isRunning?.()
+    });
     followCamera?.update();
     renderer.render(scene, camera);
     frameId = requestAnimationFrame(frame);
@@ -340,7 +366,12 @@ export async function initializeAthens(options = {}) {
     environmentController,
     city,
     container,
+    ui,
     setEnvironmentMode(mode, envOptions = {}) {
+      const label = formatEnvironmentLabel(mode);
+      if (label) {
+        ui?.setTimeLabel?.(label);
+      }
       return environmentController?.setMode?.(mode, envOptions);
     },
     dispose() {
@@ -353,14 +384,15 @@ export async function initializeAthens(options = {}) {
       }
       window.removeEventListener('resize', resizeHandler);
       overlay?.destroy?.();
-      if (overlayCanvas.parentNode === container) {
-        container.removeChild(overlayCanvas);
+      if (overlayCanvas.parentNode) {
+        overlayCanvas.parentNode.removeChild(overlayCanvas);
       }
       mainCharacter?.dispose?.();
       npcManager?.dispose?.();
       roadNetwork?.dispose?.();
       landmarks?.dispose?.();
       environmentController?.dispose?.();
+      ui?.dispose?.();
       if (stats?.dom && stats.dom.parentNode === container) {
         container.removeChild(stats.dom);
       }
@@ -375,6 +407,7 @@ export async function initializeAthens(options = {}) {
     window.__athens.mainCharacter = context.mainCharacter;
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
     window.__athens.city = context.city;
+    window.__athens.ui = context.ui;
   }
 
   return context;

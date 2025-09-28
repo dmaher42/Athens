@@ -10,7 +10,15 @@ const RELEVANT_KEYS = new Set([
   'ArrowLeft',
   'ArrowRight',
   'ShiftLeft',
-  'ShiftRight'
+  'ShiftRight',
+  'Space',
+  'KeyX',
+  'KeyC',
+  'KeyE',
+  'KeyQ',
+  'KeyZ',
+  'ControlLeft',
+  'ControlRight'
 ]);
 
 export function createKeyboard(target = typeof window !== 'undefined' ? window : null) {
