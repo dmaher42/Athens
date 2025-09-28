@@ -2,6 +2,12 @@ import * as THREE from 'three';
 import { setupGround, updateTrees, initPerformanceStats } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
 import boot from '../core/bootstrap.js';
+import createKeyboard from '../input/keyboard.js';
+import { createPlayerController } from '../player/playerController.js';
+import { createFollowCamera } from '../camera/followCamera.js';
+import { markGround, collectGround } from '../physics/groundRegistry.js';
+import { snapToGround } from '../physics/groundSnap.js';
+import { createNpcManager } from '../npc/simpleNpcManager.js';
 
 type RunOptions = {
   containerId?: string;
@@ -47,6 +53,34 @@ function computeSize(element: HTMLElement) {
     width: Math.max(1, Math.floor(width || fallbackWidth || 1)),
     height: Math.max(1, Math.floor(height || fallbackHeight || 1))
   };
+}
+
+function createPlaceholderPlayer() {
+  const group = new THREE.Group();
+  group.name = 'Player';
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.65, metalness: 0.15 });
+  const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5, metalness: 0.1 });
+
+  if (typeof THREE.CapsuleGeometry === 'function') {
+    const capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 1.6, 12, 24), bodyMaterial);
+    capsule.castShadow = true;
+    capsule.receiveShadow = true;
+    group.add(capsule);
+  } else {
+    const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.6, 16), bodyMaterial);
+    cylinder.castShadow = true;
+    cylinder.receiveShadow = true;
+    group.add(cylinder);
+  }
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), accentMaterial);
+  head.position.y = 1.1;
+  head.castShadow = true;
+  head.receiveShadow = true;
+  group.add(head);
+
+  return group;
 }
 
 export async function runAthens(options: RunOptions = {}) {
@@ -114,6 +148,41 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
+  markGround(scene);
+  const groundMeshes = collectGround(scene);
+
+  const playerObject = createPlaceholderPlayer();
+  scene.add(playerObject);
+  if (groundMeshes.length) {
+    const initialState = { vy: 0, lastGoodY: playerObject.position.y };
+    snapToGround(playerObject, groundMeshes, initialState, 0);
+  }
+
+  const keyboard = createKeyboard();
+  const playerController = createPlayerController(playerObject, keyboard, {
+    walkSpeed: 4.0,
+    runMultiplier: 1.7,
+    acceleration: 10,
+    turnLerp: 0.18
+  });
+  playerController.setGroundMeshes(groundMeshes);
+
+  const followCamera = createFollowCamera(camera, playerObject, {
+    offset: new THREE.Vector3(0, 2.2, -6),
+    lerp: 0.12,
+    lookAtOffset: new THREE.Vector3(0, 1.5, 0)
+  });
+  followCamera.syncImmediate();
+
+  const npcManager = createNpcManager(scene, groundMeshes);
+  npcManager.setGroundMeshes(groundMeshes);
+  npcManager.spawn({
+    waypoints: [
+      new THREE.Vector3(6, 0, 6),
+      new THREE.Vector3(10, 0, 6)
+    ]
+  });
+
   const clock = new THREE.Clock();
   let frameId: number | null = null;
 
@@ -138,6 +207,20 @@ export async function runAthens(options: RunOptions = {}) {
       }
     }
 
+    try {
+      playerController.update(delta, camera);
+    } catch (error) {
+      console.warn('[Athens][Boot] player update failed', error);
+    }
+
+    try {
+      npcManager.update(delta);
+    } catch (error) {
+      console.warn('[Athens][Boot] npc update failed', error);
+    }
+
+    followCamera.update(keyboard, delta);
+
     renderer.render(scene, camera);
     frameId = requestAnimationFrame(animate);
   };
@@ -150,6 +233,10 @@ export async function runAthens(options: RunOptions = {}) {
     scene,
     camera,
     renderer,
+    keyboard,
+    playerController,
+    followCamera,
+    npcManager,
     dispose() {
       if (frameId !== null && typeof cancelAnimationFrame === 'function') {
         cancelAnimationFrame(frameId);
@@ -158,6 +245,8 @@ export async function runAthens(options: RunOptions = {}) {
       if (typeof window !== 'undefined') {
         window.removeEventListener('resize', handleResize);
       }
+      npcManager.dispose();
+      keyboard.dispose();
       renderer.dispose();
     }
   };

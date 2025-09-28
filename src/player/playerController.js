@@ -1,76 +1,70 @@
 import * as THREE from 'three';
-import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
+import { snapToGround } from '../physics/groundSnap.js';
+import { keepUpright } from '../physics/upright.js';
 
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 const cameraForward = new THREE.Vector3();
 const cameraRight = new THREE.Vector3();
 const moveDirection = new THREE.Vector3();
-const horizontalDirection = new THREE.Vector3();
-const targetQuaternion = new THREE.Quaternion();
-const referenceForward = new THREE.Vector3(0, 0, 1);
-const movementDelta = new THREE.Vector3();
+
+const targetVelocity = new THREE.Vector3();
+const velocity = new THREE.Vector3();
+const horizontalVector = new THREE.Vector3();
+const FORWARD = new THREE.Vector3(0, 0, 1);
+
+function deriveYaw(object3d) {
+  if (!object3d) return 0;
+  horizontalVector.copy(FORWARD).applyQuaternion(object3d.quaternion);
+  horizontalVector.y = 0;
+  if (horizontalVector.lengthSq() < 1e-6) return 0;
+  horizontalVector.normalize();
+  return Math.atan2(horizontalVector.x, horizontalVector.z);
+}
 
 export function createPlayerController(
   object3d,
   keyboard,
   {
-    walkSpeed = 5.5,
-    runMultiplier = 2.0,
-    flyMultiplier = 1.6,
-    turnLerp = 0.18,
-    flightToggleKey = 'KeyX',
-    colliders = null,
-    collisionOptions = {}
+    walkSpeed = 4.0,
+    runMultiplier = 1.7,
+    acceleration = 10,
+    turnLerp = 0.18
   } = {}
 ) {
   let controlledObject = object3d || null;
-  let flightEnabled = false;
-  let previousToggleDown = false;
-  let runningState = false;
-  let colliderEntries = Array.isArray(colliders) ? colliders : null;
+  let currentKeyboard = keyboard || null;
+  let groundMeshes = [];
 
-  const capsule = new Capsule(0.45, 1.6);
-  const capsuleOffsetY = capsule.height * 0.5 + capsule.radius;
-
-  const getColliderEntries = () => (Array.isArray(colliderEntries) ? colliderEntries : null);
-
-  const syncCapsuleToObject = () => {
-    if (!controlledObject) {
-      return;
-    }
-    capsule.setPosition(
-      controlledObject.position.x,
-      controlledObject.position.y + capsuleOffsetY,
-      controlledObject.position.z
-    );
+  const physicsState = {
+    vy: 0,
+    lastGoodY: controlledObject?.position?.y ?? 0
   };
 
-  if (controlledObject) {
-    syncCapsuleToObject();
-  }
+  let desiredYaw = deriveYaw(controlledObject);
+  let runningState = false;
 
-  const isKeyDown = (code) => (typeof keyboard?.isDown === 'function' ? keyboard.isDown(code) : false);
+  const setGroundMeshes = (meshes) => {
+    groundMeshes = Array.isArray(meshes) ? meshes : [];
+  };
 
-  const getSpeed = () => {
-    const base = Number.isFinite(walkSpeed) ? walkSpeed : 4.0;
-    const runningMultiplier = runningState && Number.isFinite(runMultiplier) && runMultiplier > 0 ? runMultiplier : 1;
-    const activeFlyMultiplier = flightEnabled && Number.isFinite(flyMultiplier) && flyMultiplier > 0 ? flyMultiplier : 1;
-    return base * runningMultiplier * activeFlyMultiplier;
+  const setObject = (nextObject) => {
+    if (!nextObject) return;
+    controlledObject = nextObject;
+    physicsState.vy = 0;
+    physicsState.lastGoodY = controlledObject.position?.y ?? 0;
+    desiredYaw = deriveYaw(controlledObject);
+  };
+
+  const setKeyboard = (nextKeyboard) => {
+    currentKeyboard = nextKeyboard || currentKeyboard;
   };
 
   const update = (deltaSeconds, camera) => {
-    if (!controlledObject || !keyboard || !camera) {
-      return;
-    }
+    if (!controlledObject || !currentKeyboard || !camera) return;
 
-    syncCapsuleToObject();
+    const dt = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
 
-    const toggleDown = flightToggleKey ? isKeyDown(flightToggleKey) : false;
-    if (toggleDown && !previousToggleDown) {
-      flightEnabled = !flightEnabled;
-    }
-    previousToggleDown = toggleDown;
-
+    // Camera basis (flat)
     camera.getWorldDirection(cameraForward);
     cameraForward.y = 0;
     if (cameraForward.lengthSq() < 1e-6) {
@@ -78,91 +72,59 @@ export function createPlayerController(
     } else {
       cameraForward.normalize();
     }
-
     cameraRight.copy(cameraForward).cross(WORLD_UP).normalize();
 
+    // Input
+    const axisX = currentKeyboard.axis?.x || 0;
+    const axisZ = currentKeyboard.axis?.z || 0;
+    const hasInput = axisX !== 0 || axisZ !== 0;
+
     moveDirection.set(0, 0, 0);
-    const axisX = keyboard.axis?.x || 0;
-    const axisZ = keyboard.axis?.z || 0;
+    if (axisZ !== 0) moveDirection.addScaledVector(cameraForward, -axisZ);
+    if (axisX !== 0) moveDirection.addScaledVector(cameraRight, axisX);
+    if (moveDirection.lengthSq() > 1e-6) moveDirection.normalize();
 
-    if (axisZ !== 0) {
-      moveDirection.addScaledVector(cameraForward, -axisZ);
-    }
-    if (axisX !== 0) {
-      moveDirection.addScaledVector(cameraRight, axisX);
-    }
+    // Speed target
+    const shiftDown = Boolean(currentKeyboard.axis?.running);
+    const effectiveRunMultiplier = shiftDown ? Math.max(runMultiplier, 1) : 1;
+    const baseSpeed = Number.isFinite(walkSpeed) ? walkSpeed : 4.0;
+    const targetSpeed = hasInput ? baseSpeed * effectiveRunMultiplier : 0;
+    runningState = hasInput && shiftDown && targetSpeed > baseSpeed;
 
-    const shiftDown = isKeyDown('ShiftLeft') || isKeyDown('ShiftRight');
-    runningState = !flightEnabled && shiftDown;
-
-    if (flightEnabled) {
-      let verticalInput = 0;
-      if (isKeyDown('Space')) {
-        verticalInput += 1;
-      }
-      if (
-        shiftDown ||
-        isKeyDown('ControlLeft') ||
-        isKeyDown('ControlRight') ||
-        isKeyDown('KeyC') ||
-        isKeyDown('KeyZ')
-      ) {
-        verticalInput -= 1;
-      }
-      if (verticalInput !== 0) {
-        moveDirection.y = verticalInput;
-      }
+    if (hasInput) {
+      targetVelocity.copy(moveDirection).multiplyScalar(targetSpeed);
+    } else {
+      targetVelocity.set(0, 0, 0);
     }
 
-    const lengthSq = moveDirection.lengthSq();
-    if (lengthSq > 1e-6) {
-      moveDirection.normalize();
-      const speed = getSpeed();
-      const distance = speed * (Number.isFinite(deltaSeconds) ? deltaSeconds : 0);
-      movementDelta.copy(moveDirection).multiplyScalar(distance);
+    // Accel/lerp velocity
+    const accel = Number.isFinite(acceleration) ? Math.max(acceleration, 0) : 10;
+    const lerpAlpha = accel > 0 && dt > 0 ? 1 - Math.exp(-accel * dt) : 1;
+    velocity.lerp(targetVelocity, THREE.MathUtils.clamp(lerpAlpha, 0, 1));
 
-      const collidersList = getColliderEntries();
-      const result = collidersList && collidersList.length
-        ? resolveCapsuleVsAABBs(capsule, movementDelta, collidersList, collisionOptions)
-        : null;
-
-      const moved = result?.moved ?? movementDelta;
-      if (moved.lengthSq && moved.lengthSq() > 0) {
-        controlledObject.position.add(moved);
-      }
-
-      syncCapsuleToObject();
-
-      horizontalDirection.copy(moved);
-      horizontalDirection.y = 0;
-      if (horizontalDirection.lengthSq() > 1e-6) {
-        horizontalDirection.normalize();
-        targetQuaternion.setFromUnitVectors(referenceForward, horizontalDirection);
-        controlledObject.quaternion.slerp(targetQuaternion, THREE.MathUtils.clamp(turnLerp, 0, 1));
-      }
+    // Integrate horizontal motion
+    if (dt > 0) {
+      controlledObject.position.addScaledVector(velocity, dt);
     }
-  };
 
-  const setObject = (nextObject) => {
-    if (!nextObject) {
-      return;
+    // Face move direction smoothly
+    horizontalVector.copy(velocity);
+    horizontalVector.y = 0;
+    if (horizontalVector.lengthSq() > 1e-6) {
+      horizontalVector.normalize();
+      desiredYaw = Math.atan2(horizontalVector.x, horizontalVector.z);
     }
-    controlledObject = nextObject;
-    syncCapsuleToObject();
+
+    // Ground & upright stabilization
+    snapToGround(controlledObject, groundMeshes, physicsState, dt);
+    keepUpright(controlledObject, desiredYaw, Number.isFinite(turnLerp) ? turnLerp : 0.18);
   };
 
   return {
     update,
     setObject,
-    setColliders(nextColliders) {
-      colliderEntries = Array.isArray(nextColliders) ? nextColliders : null;
-    },
-    getCapsule() {
-      return capsule;
-    },
-    isFlying() {
-      return flightEnabled;
-    },
+    setKeyboard,
+    setGroundMeshes,
     isRunning() {
       return runningState;
     }
