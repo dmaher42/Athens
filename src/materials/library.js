@@ -26,6 +26,11 @@ const TEXTURE_DEFINITIONS = {
     file: 'city_wall.jpg',
     fallback: 0x8d8d8d,
     materialOptions: { roughness: 0.9, metalness: 0.05 }
+  },
+  road: {
+    file: 'road_texture.jpg',
+    fallback: 0x6f5b43,
+    materialOptions: { roughness: 0.95, metalness: 0.08 }
   }
 };
 
