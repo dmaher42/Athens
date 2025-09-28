@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+if (typeof window !== 'undefined') {
+  (window as any).THREE = THREE;
+}
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
@@ -153,7 +156,7 @@ export async function runAthens(options: RunOptions = {}) {
     container.removeChild(container.firstChild);
   }
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setPixelRatio(Math.min((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1, 2));
 
@@ -188,6 +191,10 @@ export async function runAthens(options: RunOptions = {}) {
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+  if (typeof window !== 'undefined') {
+    (window as any).__athensDebug = { scene, camera, renderer };
+  }
 
   const audio = new AudioManager(camera, { masterVolume: 0.9 });
 
