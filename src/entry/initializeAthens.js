@@ -11,6 +11,7 @@ import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
+import { createCity } from '../buildings/createCity.js';
 
 const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
@@ -203,8 +204,11 @@ export async function initializeAthens(options = {}) {
 
   await setupGround(scene, renderer);
 
+  // Combine both branches: ground registry for NPC snapping AND city creation
   markGround(scene);
   const groundMeshes = collectGround(scene);
+
+  const city = await createCity({ renderer, scene });
 
   const landmarks = await loadLandmarks({
     scene,
@@ -339,6 +343,7 @@ export async function initializeAthens(options = {}) {
     npcManager,
     mainCharacter,
     environmentController,
+    city,
     container,
     setEnvironmentMode(mode, envOptions = {}) {
       return environmentController?.setMode?.(mode, envOptions);
@@ -366,6 +371,7 @@ export async function initializeAthens(options = {}) {
       }
       renderer.dispose();
       keyboard?.dispose?.();
+      city?.dispose?.();
     }
   };
 
@@ -374,6 +380,7 @@ export async function initializeAthens(options = {}) {
     window.__athens.environment = context.environmentController;
     window.__athens.mainCharacter = context.mainCharacter;
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
+    window.__athens.city = context.city;
   }
 
   return context;
