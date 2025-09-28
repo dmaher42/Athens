@@ -5,7 +5,7 @@ import { getAssetBase } from './utils/asset-paths.js';
 const ATHENS_MAIN_SENTINEL = Symbol.for('athens.main.entrypoint');
 const isAthensMainEntrypoint = (fn) => typeof fn === 'function' && fn[ATHENS_MAIN_SENTINEL];
 
-const STATS_MODULE_ID = 'three/examples/jsm/libs/stats.module.js';
+const STATS_MODULE_ID = 'stats.js';
 const DEV_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '']);
 
 let StatsConstructor = null;
