@@ -11,7 +11,8 @@ import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
-import { snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
+import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
+import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
 import { createCity } from '../buildings/createCity.js';
 import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
@@ -68,6 +69,94 @@ function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
     const waypoints = buildNpcPatrolPath(radius, angle);
     return { modelUrl, initialPosition: waypoints[0], waypoints };
   });
+}
+
+const DEFAULT_PLAYER_START = new THREE.Vector3(6, 0, -12);
+const PLAYER_SEARCH_STEP = 4;
+const PLAYER_SEARCH_RINGS = 10;
+const PLAYER_COLLIDER_MARGIN = 1.5;
+
+const _spawnCandidate = new THREE.Vector3();
+
+function toVector3(input, fallback = DEFAULT_PLAYER_START) {
+  if (!input) return fallback.clone();
+  if (input.isVector3) return input.clone();
+  const result = fallback.clone();
+  const { x, y, z } = input;
+  if (Number.isFinite(x)) result.x = Number(x);
+  if (Number.isFinite(y)) result.y = Number(y);
+  if (Number.isFinite(z)) result.z = Number(z);
+  return result;
+}
+
+function pointIntersectsColliders(x, y, z, colliders, margin = PLAYER_COLLIDER_MARGIN) {
+  if (!Array.isArray(colliders) || colliders.length === 0) return false;
+  for (let i = 0; i < colliders.length; i += 1) {
+    const entry = colliders[i];
+    const box = entry?.box;
+    if (!box) continue;
+    const minX = box.min.x - margin;
+    const maxX = box.max.x + margin;
+    if (x < minX || x > maxX) continue;
+    const minZ = box.min.z - margin;
+    const maxZ = box.max.z + margin;
+    if (z < minZ || z > maxZ) continue;
+    const minY = box.min.y - 2;
+    const maxY = box.max.y + 3;
+    if (y >= minY && y <= maxY) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function findSafePlayerSpawn({
+  hint,
+  groundMeshes,
+  colliders,
+  hover = 0.05,
+  fromY = 400
+} = {}) {
+  const base = toVector3(hint, DEFAULT_PLAYER_START);
+  if (!groundMeshes?.length) {
+    return base.clone();
+  }
+
+  const attemptPosition = (x, z) => {
+    const groundY = sampleGroundY(x, z, groundMeshes, { fromY });
+    if (groundY == null) {
+      return null;
+    }
+    const finalY = groundY + hover;
+    if (pointIntersectsColliders(x, finalY, z, colliders)) {
+      return null;
+    }
+    return new THREE.Vector3(x, finalY, z);
+  };
+
+  const baseAttempt = attemptPosition(base.x, base.z);
+  if (baseAttempt) {
+    return baseAttempt;
+  }
+
+  for (let ring = 1; ring <= PLAYER_SEARCH_RINGS; ring += 1) {
+    const radius = PLAYER_SEARCH_STEP * ring;
+    const steps = Math.max(6, ring * 8);
+    for (let step = 0; step < steps; step += 1) {
+      const angle = (step / steps) * Math.PI * 2;
+      const x = base.x + Math.cos(angle) * radius;
+      const z = base.z + Math.sin(angle) * radius;
+      const attempt = attemptPosition(x, z);
+      if (attempt) {
+        return attempt;
+      }
+    }
+  }
+
+  const fallbackY = sampleGroundY(base.x, base.z, groundMeshes, { fromY });
+  const resolvedY = fallbackY == null ? base.y : fallbackY + hover;
+  _spawnCandidate.set(base.x, resolvedY, base.z);
+  return _spawnCandidate.clone();
 }
 
 function ensureContainerElement(options = {}) {
@@ -266,6 +355,20 @@ export async function initializeAthens(options = {}) {
     snapGroupToGround(extendedCity, groundMeshes, { hover: 0.03, fromY: 300 });
   }
 
+  markColliders(scene);
+  const colliderMeshes = collectColliders(scene);
+  const colliders = buildAABBs(colliderMeshes);
+
+  const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
+  const spawnHint = mainCharacterOptions?.initialPosition ?? DEFAULT_PLAYER_START;
+  const playerSpawn = findSafePlayerSpawn({
+    hint: spawnHint,
+    groundMeshes,
+    colliders,
+    hover: 0.05,
+    fromY: 400
+  });
+
   // Landmarks & overlay
   const landmarks = await loadLandmarks({
     scene,
@@ -303,7 +406,7 @@ export async function initializeAthens(options = {}) {
   // NPCs
   let npcManager = null;
   if (options.enableNpcs !== false) {
-    npcManager = createNpcManager(scene, groundMeshes);
+    npcManager = createNpcManager(scene, groundMeshes, { colliders });
 
     // Example extra NPC with simple path
     const p0 = new THREE.Vector3(5, 0, 5);
@@ -335,26 +438,36 @@ export async function initializeAthens(options = {}) {
   }
 
   // Main character
-  const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
   const mainCharacter = options.enableMainCharacter === false
     ? null
     : createMainCharacter(scene, {
-        initialPosition: { x: 72, y: 0, z: -48 },
-        ...(mainCharacterOptions || {})
+        ...(mainCharacterOptions || {}),
+        initialPosition: playerSpawn
       });
 
   const findPlayerObject = () => scene.getObjectByName('Player') || scene.getObjectByName('Hero');
+
+  const placeAtSpawn = (object) => {
+    if (!object) return;
+    object.position.copy(playerSpawn);
+    if (groundMeshes?.length) {
+      const snapped = snapObjectToGround(object, groundMeshes, { hover: 0.05, fromY: 400 });
+      if (snapped) {
+        playerSpawn.y = object.position.y;
+      }
+    }
+  };
 
   let playerObject = findPlayerObject() || mainCharacter?.object3d || null;
   let placeholderPlayer = null;
 
   if (!playerObject) {
     placeholderPlayer = createPlaceholderPlayer();
+    placeAtSpawn(placeholderPlayer);
     scene.add(placeholderPlayer);
     playerObject = placeholderPlayer;
-    if (groundMeshes?.length) {
-      snapObjectToGround(placeholderPlayer, groundMeshes, { hover: 0.05, fromY: 300 });
-    }
+  } else {
+    placeAtSpawn(playerObject);
   }
 
   // Controls & camera
@@ -363,9 +476,11 @@ export async function initializeAthens(options = {}) {
     walkSpeed: 5.5,
     runMultiplier: 2.5,
     acceleration: 12,
-    turnLerp: 0.18
+    turnLerp: 0.18,
+    colliders
   });
   controller.setGroundMeshes(groundMeshes);
+  controller.setColliders?.(colliders);
 
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(0, 2.2, -6),
@@ -377,6 +492,7 @@ export async function initializeAthens(options = {}) {
     mainCharacter.ready.then(() => {
       const resolvedPlayer = mainCharacter.object3d || findPlayerObject() || scene.getObjectByName('MainCharacter');
       if (resolvedPlayer) {
+        placeAtSpawn(resolvedPlayer);
         controller.setObject?.(resolvedPlayer);
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
