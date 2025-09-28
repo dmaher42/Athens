@@ -6,6 +6,9 @@ import { createLandmarkOverlay } from '../map/landmarks.js';
 import { buildRoadNetwork } from '../roads/roadNetwork.js';
 import { createNpcManager } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
+import { createKeyboard } from '../input/keyboard.js';
+import { createFollowCamera } from '../camera/followCamera.js';
+import { createPlayerController } from '../player/playerController.js';
 
 const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
@@ -126,6 +129,34 @@ function ensureLights(scene) {
   }
 }
 
+function createPlaceholderPlayer() {
+  const group = new THREE.Group();
+  group.name = 'Player';
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.65, metalness: 0.15 });
+  const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5, metalness: 0.1 });
+
+  if (typeof THREE.CapsuleGeometry === 'function') {
+    const capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 1.6, 12, 24), bodyMaterial);
+    capsule.castShadow = true;
+    capsule.receiveShadow = true;
+    group.add(capsule);
+  } else {
+    const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.6, 16), bodyMaterial);
+    cylinder.castShadow = true;
+    cylinder.receiveShadow = true;
+    group.add(cylinder);
+  }
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), accentMaterial);
+  head.position.y = 1.1;
+  head.castShadow = true;
+  head.receiveShadow = true;
+  group.add(head);
+
+  return group;
+}
+
 export async function initializeAthens(options = {}) {
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
@@ -215,6 +246,45 @@ export async function initializeAthens(options = {}) {
         ...(mainCharacterOptions || {})
       });
 
+  const findPlayerObject = () => scene.getObjectByName('Player') || scene.getObjectByName('Hero');
+
+  let playerObject = findPlayerObject() || mainCharacter?.object3d || null;
+  let placeholderPlayer = null;
+
+  if (!playerObject) {
+    placeholderPlayer = createPlaceholderPlayer();
+    scene.add(placeholderPlayer);
+    playerObject = placeholderPlayer;
+  }
+
+  const keyboard = createKeyboard();
+  const controller = createPlayerController(playerObject, keyboard, {
+    walkSpeed: 4.0,
+    runMultiplier: 1.7,
+    turnLerp: 0.18
+  });
+  const followCamera = createFollowCamera(camera, playerObject, {
+    offset: new THREE.Vector3(0, 2.2, -6),
+    lerp: 0.12,
+    lookAtOffset: new THREE.Vector3(0, 1.5, 0)
+  });
+
+  if (mainCharacter?.ready?.then) {
+    mainCharacter.ready.then(() => {
+      const resolvedPlayer = mainCharacter.object3d || findPlayerObject() || scene.getObjectByName('MainCharacter');
+      if (resolvedPlayer) {
+        controller.setObject(resolvedPlayer);
+        followCamera.setTarget(resolvedPlayer);
+        playerObject = resolvedPlayer;
+        if (placeholderPlayer && placeholderPlayer.parent) {
+          placeholderPlayer.parent.remove(placeholderPlayer);
+        }
+      }
+    });
+  }
+
+  followCamera.update();
+
   const resizeHandler = () => {
     const { width, height } = computeContainerSize(container);
     renderer.setSize(width, height, false);
@@ -244,6 +314,8 @@ export async function initializeAthens(options = {}) {
     npcManager?.update(delta);
     landmarks.update?.(camera);
     stats?.update?.();
+    controller?.update(delta, camera);
+    followCamera?.update();
     renderer.render(scene, camera);
     frameId = requestAnimationFrame(frame);
   };
@@ -288,6 +360,7 @@ export async function initializeAthens(options = {}) {
         container.removeChild(stats.dom);
       }
       renderer.dispose();
+      keyboard?.dispose?.();
     }
   };
 
