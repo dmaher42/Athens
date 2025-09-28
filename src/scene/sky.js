@@ -631,8 +631,8 @@ export async function setEnvironment(renderer, scene, mode = 'day', options = {}
   }
 
   const {
-    preserveBackground = false,
-    enablePhotoSky = true,
+    preserveBackground = true,
+    enablePhotoSky = false,
     photoSkyOptions = {}
   } = options;
 
