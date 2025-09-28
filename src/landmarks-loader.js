@@ -3,6 +3,7 @@ import { applyFeatureOffset } from './geo/featureOffsets.js';
 import { createFeatureLines } from './scene/feature-lines.js';
 import { applyCompressionToVector3 } from './world/scale.js';
 import { resolveAssetUrl } from './utils/asset-paths.js';
+import { snapObjectToGround } from './physics/groundProject.js';
 
 /**
  * Load every feature from a GeoJSON file and add to the scene.
@@ -41,7 +42,8 @@ export async function loadLandmarks({
   scene,
   geoJsonUrl = 'data/athens_places.geojson',
   projector = null,
-  onPoint = null
+  onPoint = null,
+  groundMeshes = null
 }) {
   const root = new THREE.Group();
   root.name = 'Landmarks';
@@ -74,6 +76,23 @@ export async function loadLandmarks({
     projector ? projector(lon, lat) : lonLatToLocal(lon, lat)
   );
 
+  const updateWorldMatrices = () => {
+    if (scene?.updateMatrixWorld) {
+      scene.updateMatrixWorld(true);
+    } else {
+      root.updateMatrixWorld(true);
+    }
+  };
+
+  const snapLandmarkObject = (object) => {
+    if (!object || !groundMeshes?.length) {
+      return;
+    }
+    updateWorldMatrices();
+    snapObjectToGround(object, groundMeshes, { hover: 0.02, fromY: 300 });
+    updateWorldMatrices();
+  };
+
   for (const f of geo.features || []) {
     const props = f.properties || {};
     const name = props.title || props.name || 'Unnamed';
@@ -101,6 +120,7 @@ export async function loadLandmarks({
       pin.name = `LandmarkPin:${id}`;
       pin.userData = { name, props, id, isLandmark: true };
       targetGroup.add(pin);
+      snapLandmarkObject(pin);
       markers.push(pin);
 
       const label = makeLabelSprite(name);

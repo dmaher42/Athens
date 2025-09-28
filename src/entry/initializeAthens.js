@@ -11,6 +11,7 @@ import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
+import { snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
 import { createCity } from '../buildings/createCity.js';
 
 const DEFAULT_CONTAINER_ID = 'app';
@@ -204,15 +205,19 @@ export async function initializeAthens(options = {}) {
 
   await setupGround(scene, renderer);
 
-  // Combine both branches: ground registry for NPC snapping AND city creation
+  const city = await createCity({ renderer, scene });
+
   markGround(scene);
   const groundMeshes = collectGround(scene);
-
-  const city = await createCity({ renderer, scene });
+  if (city?.root && groundMeshes.length) {
+    snapChildrenToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
+    snapGroupToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
+  }
 
   const landmarks = await loadLandmarks({
     scene,
-    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
+    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
+    groundMeshes
   });
 
   const overlayCanvasId = options.overlayCanvasId ?? DEFAULT_OVERLAY_ID;
@@ -264,6 +269,9 @@ export async function initializeAthens(options = {}) {
     placeholderPlayer = createPlaceholderPlayer();
     scene.add(placeholderPlayer);
     playerObject = placeholderPlayer;
+    if (groundMeshes?.length) {
+      snapObjectToGround(placeholderPlayer, groundMeshes, { hover: 0.05, fromY: 300 });
+    }
   }
 
   const keyboard = createKeyboard();
