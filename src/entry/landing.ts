@@ -28,14 +28,6 @@ let initializedContext: RunAthensResult | null = null;
 let resizeListenerAttached = false;
 let loggedRenderLoop = false;
 
-console.log('[Athens] boot starting');
-try {
-  await boot?.();
-} catch (error) {
-  console.error('[Athens] Boot invocation failed.', error);
-}
-await whenBootReady().catch(() => {});
-
 declare global {
   interface Window {
     runAthens?: RunAthensHandle;
@@ -53,6 +45,14 @@ async function runAthens(): Promise<RunAthensResult> {
   }
 
   initializationTask = (async () => {
+    console.log('[Athens] boot starting');
+    try {
+      await boot?.();
+    } catch (error) {
+      console.error('[Athens] Boot invocation failed.', error);
+    }
+    await whenBootReady().catch(() => {});
+
     container = document.getElementById('app') as HTMLElement | null;
     if (!container) {
       initializationTask = null;
@@ -148,36 +148,11 @@ async function runAthens(): Promise<RunAthensResult> {
   }
 }
 
-async function getAthensContext(): Promise<RunAthensResult | undefined> {
-  if (initializedContext) {
-    return initializedContext;
-  }
-
-  if (initializationTask) {
-    return initializationTask;
-  }
-
-  const ready = (window as any).__AthensBootReady as Promise<unknown> | undefined;
-  if (ready && typeof (ready as any).then === 'function') {
-    console.warn('[Athens] Delaying until boot finishes…');
-    await ready.catch(() => {});
-    if (initializedContext) {
-      return initializedContext;
-    }
-    if (initializationTask) {
-      return initializationTask;
-    }
-  }
-
-  console.warn('[Athens] Boot not ready; proceeding cautiously.');
-  return undefined;
-}
-
 (window as any).runAthens = runAthens;
-(window as any).getAthensContext = getAthensContext;
+(window as any).getAthensContext = async () => initializedContext ?? initializationTask ?? undefined;
 window.dispatchEvent(
   new CustomEvent('athens:initializer-ready', {
-    detail: { initializer: (window as any).runAthens, source: 'index.html' }
+    detail: { initializer: runAthens, source: 'index.html' }
   })
 );
 console.log('[Athens] initializer ready');
