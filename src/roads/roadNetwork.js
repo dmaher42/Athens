@@ -506,16 +506,35 @@ export function buildRoadNetwork({ scene, landmarks = [], options = {} } = {}) {
     scatterToken: 0
   };
 
+  if (scene) {
+    scene.add(root);
+  }
+
   rebuildNetwork(state);
 
   return {
     root,
     rebuild(newOptions = {}) {
-      state.options = normalizeOptions({ ...state.options, ...newOptions });
+      if (Array.isArray(newOptions.landmarks)) {
+        state.landmarks = newOptions.landmarks;
+      }
+      const { landmarks: _ignored, ...optionPatch } = newOptions || {};
+      state.options = normalizeOptions({ ...state.options, ...optionPatch });
       rebuildNetwork(state);
     },
     setVisible(visible) {
       root.visible = Boolean(visible);
+    },
+    dispose() {
+      removeScatteredProps(state);
+      disposeRoadMeshes(root);
+      if (state.sharedMaterial) {
+        state.sharedMaterial.dispose?.();
+        state.sharedMaterial = null;
+      }
+      if (root.parent) {
+        root.parent.remove(root);
+      }
     }
   };
 }

@@ -1,4 +1,23 @@
-const DEFAULT_GEOJSON_PATH = './data/athens_places.geojson';
+import { resolveAssetUrl } from '../utils/asset-paths.js';
+
+const DEFAULT_GEOJSON_PATH = 'data/athens_places.geojson';
+
+function normalizeGeoJsonUrl(url) {
+    if (typeof url !== 'string' || !url) {
+        return resolveAssetUrl(DEFAULT_GEOJSON_PATH);
+    }
+
+    const trimmed = url.trim();
+    if (!trimmed) {
+        return resolveAssetUrl(DEFAULT_GEOJSON_PATH);
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed;
+    }
+
+    return resolveAssetUrl(trimmed);
+}
 
 /**
  * Fetches a GeoJSON feature collection containing places around Athens.
@@ -12,14 +31,16 @@ export async function loadGeoJson(url = DEFAULT_GEOJSON_PATH, fetchImpl = global
         throw new TypeError('A valid fetch implementation must be provided');
     }
 
-    const response = await fetchImpl(url, {
+    const targetUrl = normalizeGeoJsonUrl(url);
+
+    const response = await fetchImpl(targetUrl, {
         headers: {
             'Accept': 'application/geo+json, application/json'
         }
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to load GeoJSON from ${url}: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to load GeoJSON from ${targetUrl}: ${response.status} ${response.statusText}`);
     }
 
     return response.json();
