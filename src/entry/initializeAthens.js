@@ -5,10 +5,53 @@ import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
 import { buildRoadNetwork } from '../roads/roadNetwork.js';
 import { createNpcManager } from '../npc/npcSystem.js';
+import { createMainCharacter } from '../npc/mainCharacter.js';
 
 const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
 const DEFAULT_GEOJSON_URL = 'data/athens_places.geojson';
+
+const DEFAULT_NPC_MODEL_URLS = [
+  'models/Adventurer.glb',
+  'models/Adventurer1.glb',
+  'models/brokenCHar.glb',
+  'models/character2.glb',
+  'models/character3.glb',
+  'models/hoplite_npc.glb',
+  'models/npc_athenian.glb'
+];
+
+function buildNpcPatrolPath(radius, angle, height = 0) {
+  const baseX = Math.cos(angle) * radius;
+  const baseZ = Math.sin(angle) * radius;
+  const offset = Math.max(2, radius * 0.25);
+
+  const waypoint = (x, z) => ({ x, y: height, z });
+
+  return [
+    waypoint(baseX, baseZ),
+    waypoint(baseX + Math.cos(angle + Math.PI / 4) * offset, baseZ + Math.sin(angle + Math.PI / 4) * offset),
+    waypoint(baseX + Math.cos(angle - Math.PI / 4) * offset, baseZ + Math.sin(angle - Math.PI / 4) * offset)
+  ];
+}
+
+function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
+  if (!Array.isArray(modelUrls) || modelUrls.length === 0) {
+    return [];
+  }
+
+  const radius = 18;
+
+  return modelUrls.map((modelUrl, index) => {
+    const angle = (index / modelUrls.length) * Math.PI * 2;
+    const waypoints = buildNpcPatrolPath(radius, angle);
+    return {
+      modelUrl,
+      initialPosition: waypoints[0],
+      waypoints
+    };
+  });
+}
 
 function ensureContainerElement(options = {}) {
   if (typeof document === 'undefined') {
@@ -147,34 +190,30 @@ export async function initializeAthens(options = {}) {
   let npcManager = null;
   if (options.enableNpcs !== false) {
     npcManager = createNpcManager(scene);
+    const defaultNpcConfigs = createDefaultNpcConfigs(
+      Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
+        ? options.npcModelUrls
+        : DEFAULT_NPC_MODEL_URLS
+    );
     const npcConfigs = Array.isArray(options.npcConfigs) && options.npcConfigs.length
       ? options.npcConfigs
-      : [
-          {
-            modelUrl: 'models/npc_athenian.glb',
-            initialPosition: { x: 8, y: 0, z: -6 },
-            waypoints: [
-              { x: 8, y: 0, z: -6 },
-              { x: -6, y: 0, z: -8 },
-              { x: -4, y: 0, z: 6 },
-              { x: 10, y: 0, z: 4 }
-            ]
-          },
-          {
-            modelUrl: 'models/hoplite_npc.glb',
-            initialPosition: { x: -12, y: 0, z: 12 },
-            waypoints: [
-              { x: -12, y: 0, z: 12 },
-              { x: -2, y: 0, z: 18 },
-              { x: 6, y: 0, z: 10 },
-              { x: -4, y: 0, z: 4 }
-            ]
-          }
-        ];
-    npcConfigs.slice(0, 3).forEach((config) => {
+      : defaultNpcConfigs;
+
+    npcConfigs.forEach((config) => {
+      if (!config || typeof config !== 'object') {
+        return;
+      }
       npcManager.spawn(config);
     });
   }
+
+  const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
+  const mainCharacter = options.enableMainCharacter === false
+    ? null
+    : createMainCharacter(scene, {
+        initialPosition: { x: 4, y: 0, z: 4 },
+        ...(mainCharacterOptions || {})
+      });
 
   const resizeHandler = () => {
     const { width, height } = computeContainerSize(container);
@@ -201,6 +240,7 @@ export async function initializeAthens(options = {}) {
     } catch (error) {
       console.warn('[Athens] Tree animation update failed.', error);
     }
+    mainCharacter?.update(delta);
     npcManager?.update(delta);
     landmarks.update?.(camera);
     stats?.update?.();
@@ -220,6 +260,7 @@ export async function initializeAthens(options = {}) {
     landmarks,
     roadNetwork,
     npcManager,
+    mainCharacter,
     environmentController,
     container,
     setEnvironmentMode(mode, envOptions = {}) {
@@ -238,6 +279,7 @@ export async function initializeAthens(options = {}) {
       if (overlayCanvas.parentNode === container) {
         container.removeChild(overlayCanvas);
       }
+      mainCharacter?.dispose?.();
       npcManager?.dispose?.();
       roadNetwork?.dispose?.();
       landmarks?.dispose?.();
@@ -252,6 +294,7 @@ export async function initializeAthens(options = {}) {
   if (typeof window !== 'undefined') {
     window.__athens = window.__athens || {};
     window.__athens.environment = context.environmentController;
+    window.__athens.mainCharacter = context.mainCharacter;
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
   }
 
