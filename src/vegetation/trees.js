@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createProceduralTree } from './procTree.js';
-import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { assetUrl } from '../utils/assetUrl.js';
 import { applyCompressionToVector3 } from '../world/scale.js';
 
 const TREE_MODEL_FILES = {
@@ -252,7 +252,7 @@ function buildInstancingData(group, height) {
 async function loadTreeDefinition(name, file, loader) {
   let gltfScene = null;
   try {
-    const url = resolveAssetUrl(`assets/models/${file}`);
+    const url = assetUrl(`assets/models/${file}`);
     const gltf = await loader.loadAsync(url);
     gltfScene = gltf.scene || (gltf.scenes && gltf.scenes[0]) || null;
   } catch (error) {

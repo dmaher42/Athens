@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { assetUrl } from '../utils/assetUrl.js';
 
 const loader = new GLTFLoader();
 const DEFAULT_SPEED = 1.6; // meters per second
@@ -103,6 +104,41 @@ export function createNpc({
     object3d.add(modelGroup);
   };
 
+  const normalizeModelUrl = (input) => {
+    if (!input) {
+      return null;
+    }
+
+    if (typeof input !== 'string') {
+      return resolveAssetUrl(input);
+    }
+
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    if (/^(https?:)?\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+
+    if (/^\/assets\/models\//i.test(trimmed)) {
+      return assetUrl(trimmed);
+    }
+
+    if (/^assets\/models\//i.test(trimmed)) {
+      return assetUrl(trimmed);
+    }
+
+    const normalized = trimmed.replace(/^\/+/, '');
+    if (/^models\/(hoplite_npc|npc_athenian)\.glb$/i.test(normalized)) {
+      const file = normalized.split('/').pop();
+      return assetUrl(`assets/models/${file}`);
+    }
+
+    return resolveAssetUrl(trimmed);
+  };
+
   const loadModel = async () => {
     if (!modelUrl) {
       attachModel(buildPlaceholderModel());
@@ -110,7 +146,11 @@ export function createNpc({
     }
 
     try {
-      const resolvedUrl = resolveAssetUrl(modelUrl);
+      const resolvedUrl = normalizeModelUrl(modelUrl);
+      if (!resolvedUrl) {
+        attachModel(buildPlaceholderModel());
+        return null;
+      }
       const gltf = await loader.loadAsync(resolvedUrl);
       const scene = gltf?.scene || gltf?.scenes?.[0];
       if (scene) {
@@ -267,7 +307,7 @@ export function createNpcManager(scene) {
  * Example NPC configuration:
  *
  * createNpcManager(scene).spawn({
- *   modelUrl: 'models/npc_athenian.glb',
+ *   modelUrl: 'assets/models/npc_athenian.glb',
  *   initialPosition: { x: 12, y: 0, z: -6 },
  *   waypoints: [
  *     { x: 12, y: 0, z: -6 },

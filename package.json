@@ -4,10 +4,12 @@
   "description": "Ancient Athens web experience",
   "type": "module",
   "scripts": {
+    "predev": "npm run generate:assets && node ./scripts/generate-favicon.js",
     "dev": "vite",
     "dev:clean": "rimraf node_modules/.vite node_modules/.vite-* .vite || true",
     "dev:force": "vite --force --open --port 4173",
-    "build": "node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
+    "generate:assets": "node ./scripts/generate-static-assets.js",
+    "build": "npm run generate:assets && node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
     "preview": "vite preview",
     "test": "node --test",
     "html:no-ts": "./scripts/check-html-no-ts.sh"
@@ -19,6 +21,7 @@
     "tone": "^14.7.77"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.2.1",
     "rimraf": "^6.0.1",
     "vite": "^5.4.0"
   }
