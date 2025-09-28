@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { assetUrl } from '../utils/assetUrl.js';
+import { runIdle } from '../utils/idle.js';
 
 const MODE_CONFIG = {
   dawn: { path: 'assets/sky/dawn.jpg', fallbackColor: 0x335577 },
@@ -31,7 +32,6 @@ const MODE_ALIASES = new Map(
   })
 );
 
-const loader = new THREE.TextureLoader();
 const cache = new Map();
 const loadTasks = new Map();
 const loggedFailures = new Set();
@@ -78,69 +78,33 @@ function normalizeMode(mode) {
 function fallbackEntry(mode) {
   const config = MODE_CONFIG[mode] || {};
   const color = new THREE.Color(config.fallbackColor ?? 0x000000);
-  return { background: color, envMap: null, mode };
+  return { background: color, envMap: null, envTarget: null, mode };
 }
 
-async function loadSky(mode) {
-  if (cache.has(mode)) {
-    return cache.get(mode);
+function updateEnvironment(entry) {
+  if (!activeScene || !entry) {
+    return;
   }
-  if (loadTasks.has(mode)) {
-    return loadTasks.get(mode);
+  if (entry.envMap && entry.mode === currentMode) {
+    activeScene.environment = entry.envMap;
   }
+}
 
-  const task = new Promise((resolve) => {
-    const config = MODE_CONFIG[mode];
-    if (!config?.path) {
-      const entry = fallbackEntry(mode);
-      cache.set(mode, entry);
-      resolve(entry);
-      return;
+function schedulePmrem(entry, texture) {
+  const generator = ensurePmrem(activeRenderer);
+  if (!generator || !entry || !texture) {
+    return;
+  }
+  runIdle(() => {
+    try {
+      const target = generator.fromEquirectangular(texture);
+      entry.envTarget = target;
+      entry.envMap = target?.texture || null;
+      updateEnvironment(entry);
+    } catch (error) {
+      console.warn(`[timeSky] Failed to generate environment map for "${entry.mode}".`, error);
     }
-
-    const url = assetUrl(config.path);
-
-    loader.load(
-      url,
-      (texture) => {
-        ensureColorSpace(texture);
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        texture.needsUpdate = true;
-
-        const generator = ensurePmrem(activeRenderer);
-        let envTarget = null;
-        let envMap = null;
-        if (generator) {
-          envTarget = generator.fromEquirectangular(texture);
-          envMap = envTarget.texture;
-        }
-
-        const entry = {
-          background: texture,
-          envMap,
-          envTarget,
-          mode
-        };
-        cache.set(mode, entry);
-        resolve(entry);
-      },
-      undefined,
-      () => {
-        if (!loggedFailures.has(mode)) {
-          console.warn(`[timeSky] Failed to load sky texture for "${mode}" (${url}). Falling back to solid color.`);
-          loggedFailures.add(mode);
-        }
-        const entry = fallbackEntry(mode);
-        cache.set(mode, entry);
-        resolve(entry);
-      }
-    );
-  }).finally(() => {
-    loadTasks.delete(mode);
   });
-
-  loadTasks.set(mode, task);
-  return task;
 }
 
 function applySky(entry) {
@@ -154,8 +118,100 @@ function applySky(entry) {
   } else {
     activeScene.background = null;
   }
-  activeScene.environment = entry.envMap || null;
+  if (entry.envMap) {
+    activeScene.environment = entry.envMap;
+  } else {
+    activeScene.environment = null;
+  }
   currentMode = entry.mode;
+}
+
+function loadImageElement(url) {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || typeof Image === 'undefined') {
+      reject(new Error('Image constructor is not available in this environment.'));
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.decoding = 'async';
+    const cleanup = () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+    img.onload = async () => {
+      try {
+        if (typeof img.decode === 'function') {
+          await img.decode();
+        }
+      } catch (error) {
+        console.warn(`[timeSky] Image decode warning for ${url}`, error);
+      }
+      cleanup();
+      resolve(img);
+    };
+    img.onerror = (event) => {
+      cleanup();
+      reject(event instanceof ErrorEvent ? event.error || event : event || new Error('Image failed to load.'));
+    };
+    img.src = url;
+  });
+}
+
+async function loadTexture(url) {
+  const image = await loadImageElement(url);
+  const texture = new THREE.Texture(image);
+  texture.needsUpdate = true;
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  ensureColorSpace(texture);
+  return texture;
+}
+
+async function loadSky(mode) {
+  if (cache.has(mode)) {
+    return cache.get(mode);
+  }
+  if (loadTasks.has(mode)) {
+    return loadTasks.get(mode);
+  }
+
+  const task = (async () => {
+    const config = MODE_CONFIG[mode];
+    if (!config?.path) {
+      const entry = fallbackEntry(mode);
+      cache.set(mode, entry);
+      return entry;
+    }
+
+    const url = assetUrl(config.path);
+
+    try {
+      const texture = await loadTexture(url);
+      texture.name = `Sky:${mode}`;
+      const entry = {
+        background: texture,
+        envMap: null,
+        envTarget: null,
+        mode
+      };
+      cache.set(mode, entry);
+      schedulePmrem(entry, texture);
+      return entry;
+    } catch (error) {
+      if (!loggedFailures.has(mode)) {
+        console.warn(`[timeSky] Failed to load sky texture for "${mode}" (${url}). Falling back to solid color.`);
+        loggedFailures.add(mode);
+      }
+      const entry = fallbackEntry(mode);
+      cache.set(mode, entry);
+      return entry;
+    }
+  })().finally(() => {
+    loadTasks.delete(mode);
+  });
+
+  loadTasks.set(mode, task);
+  return task;
 }
 
 export async function createTimeSky(renderer, scene, initial = 'day') {
@@ -165,8 +221,8 @@ export async function createTimeSky(renderer, scene, initial = 'day') {
   const normalized = normalizeMode(initial);
   const entry = await loadSky(normalized);
   applySky(entry);
+  updateEnvironment(entry);
 
-  // Prefetch other modes without blocking.
   Object.keys(MODE_CONFIG).forEach((mode) => {
     if (mode !== normalized) {
       loadSky(mode).catch(() => {});
@@ -180,6 +236,7 @@ export async function setTimeOfDay(mode) {
   const normalized = normalizeMode(mode);
   const entry = await loadSky(normalized);
   applySky(entry);
+  updateEnvironment(entry);
   return currentMode;
 }
 
@@ -209,13 +266,13 @@ export function attachTimeHotkeys(win = typeof window !== 'undefined' ? window :
         setTimeOfDay('night');
         break;
       default:
-        return;
+        break;
     }
   };
   win.addEventListener('keydown', handler);
   hotkeyAttached = true;
   return () => {
-    win.removeEventListener('keydown', handler);
     hotkeyAttached = false;
+    win.removeEventListener('keydown', handler);
   };
 }

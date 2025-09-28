@@ -1,7 +1,7 @@
 import { logOnce } from '../utils/logOnce.js';
 
 const MIN_DT = 1 / 300;
-const MAX_DT = 0.2;
+const MAX_DT = 0.25;
 
 let activeLoop = null;
 
@@ -31,6 +31,7 @@ export function createGameLoop(update, render) {
     }
 
     let dt = (timestamp - lastTimestamp) / 1000;
+    const originalDt = Number.isFinite(dt) ? dt : MIN_DT;
     lastTimestamp = timestamp;
 
     if (!Number.isFinite(dt)) {
@@ -39,12 +40,14 @@ export function createGameLoop(update, render) {
 
     let skippedLargeDt = false;
     if (dt <= 0) {
-      logOnce('dt_zero', '[loop] clamped non-positive dt', dt);
       dt = MIN_DT;
     } else if (dt > MAX_DT) {
-      logOnce('dt_huge', `[loop] clamped large dt ${dt.toFixed(3)}s`);
       dt = MAX_DT;
       skippedLargeDt = true;
+    }
+
+    if (originalDt > 0.3) {
+      logOnce('dt_huge', `[loop] clamped large dt ${originalDt.toFixed(3)}s`);
     }
 
     try {

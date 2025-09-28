@@ -575,8 +575,8 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
   const npcs = [];
   const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
   let warnedGround = false;
-  const { navMesh = null, pathfinder = null, timeSource = null } = options || {};
-  const navContext = { navMesh, pathfinder };
+  const { navMesh = null, pathfinder = null, timeSource = null, navGrid: initialNavGrid = null } = options || {};
+  const navContext = { navMesh, pathfinder, navGrid: initialNavGrid };
   let lastTimeMode = typeof timeSource === 'function' ? timeSource() : null;
   let activeSchedule = mapModeToSchedule(lastTimeMode);
 
@@ -633,5 +633,9 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
     }
   }
 
-  return { spawn, update, dispose, _npcs: npcs };
+  function setNavGrid(grid) {
+    navContext.navGrid = grid || null;
+  }
+
+  return { spawn, update, dispose, setNavGrid, _npcs: npcs };
 }
