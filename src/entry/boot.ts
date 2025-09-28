@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { setupGround, updateTrees, initPerformanceStats } from '../main.js';
+import { createStats } from '../debug/statsShim.js';
+import { setupGround, updateTrees } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
@@ -22,6 +23,58 @@ type RunOptions = {
   preset?: string;
   preserveBackground?: boolean;
 };
+
+type StatsHandle = {
+  dom: HTMLElement | null;
+  begin: () => void;
+  end: () => void;
+};
+
+const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
+
+let stats: StatsHandle | null = null;
+let statsVisible = true;
+
+const updateStatsVisibility = () => {
+  const panel = stats?.dom;
+  if (panel) {
+    panel.style.display = statsVisible ? '' : 'none';
+  }
+};
+
+const registerGlobalStatsHelpers = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const globalWindow = window as typeof window & {
+    getStats?: () => StatsHandle | null;
+    toggleStatsVisibility?: (forceVisible?: boolean) => boolean;
+  };
+
+  globalWindow.getStats = () => stats;
+  globalWindow.toggleStatsVisibility = (forceVisible?: boolean) => {
+    if (typeof forceVisible === 'boolean') {
+      statsVisible = forceVisible;
+    } else {
+      statsVisible = !statsVisible;
+    }
+    updateStatsVisibility();
+    return statsVisible;
+  };
+};
+
+const statsReady: Promise<StatsHandle> = (async () => {
+  const created = (await createStats()) as StatsHandle;
+  stats = created;
+  if (created.dom && typeof document !== 'undefined' && document.body) {
+    created.dom.style.cssText = DEFAULT_STATS_STYLE;
+    document.body.appendChild(created.dom);
+  }
+  registerGlobalStatsHelpers();
+  updateStatsVisibility();
+  return created;
+})();
 
 const bootFn = (boot as unknown as (() => void) | null | undefined);
 console.log('[Athens] boot starting');
@@ -110,12 +163,24 @@ export async function runAthens(options: RunOptions = {}) {
   renderer.domElement.style.height = '100%';
   container.appendChild(renderer.domElement);
 
-  const stats = typeof initPerformanceStats === 'function' ? initPerformanceStats() : null;
-  if (stats?.dom) {
-    stats.dom.style.position = 'absolute';
-    stats.dom.style.left = '0';
-    stats.dom.style.top = '0';
-  }
+  statsReady
+    .then((created) => {
+      if (!created.dom) {
+        return;
+      }
+      created.dom.style.position = 'absolute';
+      created.dom.style.left = '0';
+      created.dom.style.top = '0';
+      created.dom.style.pointerEvents = 'none';
+      created.dom.style.zIndex = '5';
+      if (!container.contains(created.dom)) {
+        container.appendChild(created.dom);
+      }
+      updateStatsVisibility();
+    })
+    .catch(() => {
+      // Ignore stats setup errors.
+    });
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#8fbcd4');
@@ -262,53 +327,59 @@ export async function runAthens(options: RunOptions = {}) {
   }
 
   const animate = () => {
-    const delta = clock.getDelta();
-    if (typeof updateTrees === 'function') {
-      try {
-        updateTrees(delta);
-      } catch (error) {
-        console.warn('[Athens][Boot] updateTrees failed', error);
-      }
-    }
-
-    previousPlayerPosition.copy(playerObject.position);
+    const activeStats = stats;
+    activeStats?.begin();
     try {
-      playerController.update(delta, camera);
-    } catch (error) {
-      console.warn('[Athens][Boot] player update failed', error);
-    }
-
-    playerDelta.subVectors(playerObject.position, previousPlayerPosition);
-    const moveDistance = playerDelta.length();
-    const currentSpeed = delta > 1e-6 ? moveDistance / Math.max(delta, 1e-6) : 0;
-    footstepInterval = footsteps.setIntervalBySpeed(currentSpeed);
-    if (Number.isFinite(footstepInterval)) {
-      if (currentSpeed < 0.3) {
-        footstepTimer = Math.min(footstepTimer, footstepInterval);
-      } else {
-        footstepTimer += delta;
-        if (footstepTimer >= footstepInterval) {
-          footstepTimer = 0;
-          const { x, z } = playerObject.position;
-          const surface = Math.abs(x) < 55 && Math.abs(z) < 55 ? 'stone' : 'dirt';
-          footsteps.onStep(surface);
+      const delta = clock.getDelta();
+      if (typeof updateTrees === 'function') {
+        try {
+          updateTrees(delta);
+        } catch (error) {
+          console.warn('[Athens][Boot] updateTrees failed', error);
         }
       }
-    } else {
-      footstepTimer = 0;
+
+      previousPlayerPosition.copy(playerObject.position);
+      try {
+        playerController.update(delta, camera);
+      } catch (error) {
+        console.warn('[Athens][Boot] player update failed', error);
+      }
+
+      playerDelta.subVectors(playerObject.position, previousPlayerPosition);
+      const moveDistance = playerDelta.length();
+      const currentSpeed = delta > 1e-6 ? moveDistance / Math.max(delta, 1e-6) : 0;
+      footstepInterval = footsteps.setIntervalBySpeed(currentSpeed);
+      if (Number.isFinite(footstepInterval)) {
+        if (currentSpeed < 0.3) {
+          footstepTimer = Math.min(footstepTimer, footstepInterval);
+        } else {
+          footstepTimer += delta;
+          if (footstepTimer >= footstepInterval) {
+            footstepTimer = 0;
+            const { x, z } = playerObject.position;
+            const surface = Math.abs(x) < 55 && Math.abs(z) < 55 ? 'stone' : 'dirt';
+            footsteps.onStep(surface);
+          }
+        }
+      } else {
+        footstepTimer = 0;
+      }
+
+      scheduler.tick?.(delta);
+
+      try {
+        npcManager.update(delta);
+      } catch (error) {
+        console.warn('[Athens][Boot] npc update failed', error);
+      }
+
+      followCamera.update(keyboard, delta);
+
+      renderer.render(scene, camera);
+    } finally {
+      activeStats?.end();
     }
-
-    scheduler.tick?.(delta);
-
-    try {
-      npcManager.update(delta);
-    } catch (error) {
-      console.warn('[Athens][Boot] npc update failed', error);
-    }
-
-    followCamera.update(keyboard, delta);
-
-    renderer.render(scene, camera);
     frameId = requestAnimationFrame(animate);
   };
 
@@ -320,6 +391,7 @@ export async function runAthens(options: RunOptions = {}) {
     scene,
     camera,
     renderer,
+    stats,
     keyboard,
     playerController,
     followCamera,
@@ -340,6 +412,10 @@ export async function runAthens(options: RunOptions = {}) {
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('click', resumeAudioContext);
         window.removeEventListener('keydown', resumeAudioContext);
+      }
+      const panel = stats?.dom;
+      if (panel && panel.parentNode === container) {
+        container.removeChild(panel);
       }
       npcManager.dispose();
       keyboard.dispose();

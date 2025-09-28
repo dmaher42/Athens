@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { setupGround, updateTrees, initPerformanceStats } from '../main.js';
+import { createStats } from '../debug/statsShim.js';
+import { setupGround, updateTrees } from '../main.js';
 import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
 import { buildRoadNetwork } from '../roads/roadNetwork.js';
@@ -15,11 +16,55 @@ import { markColliders, collectColliders, buildAABBs } from '../physics/collider
 import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
 import { buildNavGrid } from '../nav/navgrid.js';
 import { createScheduler } from '../sim/schedule.js';
+import { createGameLoop } from '../engine/loop.js';
 import { createCity } from '../buildings/createCity.js';
 import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
 import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
+
+const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
+
+let stats = null;
+let statsVisible = true;
+
+const updateStatsVisibility = () => {
+  const panel = stats?.dom;
+  if (panel) {
+    panel.style.display = statsVisible ? '' : 'none';
+  }
+};
+
+const registerGlobalStatsHelpers = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (typeof window.getStats !== 'function') {
+    window.getStats = () => stats;
+  }
+
+  window.toggleStatsVisibility = (forceVisible) => {
+    if (typeof forceVisible === 'boolean') {
+      statsVisible = forceVisible;
+    } else {
+      statsVisible = !statsVisible;
+    }
+    updateStatsVisibility();
+    return statsVisible;
+  };
+};
+
+const statsReady = (async () => {
+  stats = await createStats();
+  if (stats.dom && typeof document !== 'undefined' && document.body) {
+    stats.dom.style.cssText = DEFAULT_STATS_STYLE;
+    document.body.appendChild(stats.dom);
+  }
+  registerGlobalStatsHelpers();
+  updateStatsVisibility();
+  return stats;
+})();
 
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
@@ -278,17 +323,24 @@ export async function initializeAthens(options = {}) {
 
   ensureLights(scene);
 
-  const stats = initPerformanceStats?.();
-  if (stats?.dom) {
-    stats.dom.style.position = 'absolute';
-    stats.dom.style.left = '16px';
-    stats.dom.style.top = '16px';
-    stats.dom.style.zIndex = '5';
-    stats.dom.style.pointerEvents = 'none';
-    if (!container.contains(stats.dom)) {
-      container.appendChild(stats.dom);
-    }
-  }
+  statsReady
+    .then((created) => {
+      if (!created?.dom) {
+        return;
+      }
+      created.dom.style.position = 'absolute';
+      created.dom.style.left = '16px';
+      created.dom.style.top = '16px';
+      created.dom.style.zIndex = '5';
+      created.dom.style.pointerEvents = 'none';
+      if (!container.contains(created.dom)) {
+        container.appendChild(created.dom);
+      }
+      updateStatsVisibility();
+    })
+    .catch(() => {
+      // Ignore stats setup errors.
+    });
 
   await createTimeSky(renderer, scene, 'day');
   if (typeof attachTimeHotkeys === 'function') {
@@ -532,35 +584,67 @@ export async function initializeAthens(options = {}) {
   window.addEventListener('resize', resizeHandler);
 
   // Main loop
-  const clock = new THREE.Clock();
   let disposed = false;
-  let frameId = 0;
+  let statsForFrame = null;
 
-  const frame = () => {
-    if (disposed) return;
-    const delta = clock.getDelta();
-    try {
-      updateTrees?.(delta);
-    } catch (error) {
-      console.warn('[Athens] Tree animation update failed.', error);
+  const updateFrame = (delta, { skippedLargeDt }) => {
+    if (disposed) {
+      statsForFrame = stats;
+      statsForFrame?.begin?.();
+      statsForFrame?.end?.();
+      statsForFrame = null;
+      return;
     }
-    mainCharacter?.update(delta, { groundMeshes });
-    scheduler.tick?.(delta);
-    npcManager?.update(delta);
-    landmarks.update?.(camera);
-    stats?.update?.();
-    controller?.update(delta, camera);
-    ui?.update?.(delta, {
-      position: playerObject?.position,
-      isFlying: false,
-      isRunning: controller?.isRunning?.()
-    });
-    followCamera?.update();
-    renderer.render(scene, camera);
-    frameId = requestAnimationFrame(frame);
+
+    statsForFrame = stats;
+    statsForFrame?.begin?.();
+
+    try {
+      try {
+        updateTrees?.(delta);
+      } catch (error) {
+        console.warn('[Athens] Tree animation update failed.', error);
+      }
+
+      const skipped = Boolean(skippedLargeDt);
+      const npcContext = { groundMeshes, skippedLargeDt: skipped };
+      mainCharacter?.update?.(delta, npcContext);
+      if (!skipped) {
+        scheduler.tick?.(delta);
+      }
+      npcManager?.update?.(delta, { skippedLargeDt: skipped });
+      landmarks.update?.(camera);
+
+      if (!skipped) {
+        controller?.update?.(delta, camera);
+      }
+
+      ui?.update?.(delta, {
+        position: playerObject?.position,
+        isFlying: false,
+        isRunning: controller?.isRunning?.(),
+        skippedLargeDt: skipped
+      });
+
+      followCamera?.update?.();
+    } catch (error) {
+      console.warn('[Athens] Frame update failed.', error);
+    }
   };
 
-  frameId = requestAnimationFrame(frame);
+  const renderFrame = () => {
+    try {
+      if (!disposed) {
+        renderer.render(scene, camera);
+      }
+    } finally {
+      statsForFrame?.end?.();
+      statsForFrame = null;
+    }
+  };
+
+  const gameLoop = createGameLoop(updateFrame, renderFrame);
+  gameLoop.start();
 
   // Context / teardown
   const context = {
@@ -590,7 +674,7 @@ export async function initializeAthens(options = {}) {
     dispose() {
       if (disposed) return;
       disposed = true;
-      if (frameId) cancelAnimationFrame(frameId);
+      gameLoop?.dispose?.();
       window.removeEventListener('resize', resizeHandler);
       overlay?.destroy?.();
       if (overlayCanvas.parentNode) {
