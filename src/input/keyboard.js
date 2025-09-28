@@ -1,30 +1,30 @@
 const INV_SQRT2 = 1 / Math.sqrt(2);
 
-const RELEVANT_KEYS = new Set([
+const MOVEMENT_KEYS = [
   'KeyW',
   'KeyA',
   'KeyS',
-  'KeyD',
+  'KeyD'
+];
+
+const LOOK_KEYS = [
   'ArrowUp',
   'ArrowDown',
   'ArrowLeft',
-  'ArrowRight',
-  'ShiftLeft',
-  'ShiftRight',
-  'Space',
-  'KeyX',
-  'KeyC',
-  'KeyE',
-  'KeyQ',
-  'KeyZ',
-  'ControlLeft',
-  'ControlRight'
-]);
+  'ArrowRight'
+];
+
+const MODIFIER_KEYS = ['ShiftLeft', 'ShiftRight'];
+
+const EXTRA_KEYS = ['Space', 'KeyX', 'KeyC', 'KeyE', 'KeyQ', 'KeyZ', 'ControlLeft', 'ControlRight'];
+
+const RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
 
 export function createKeyboard(target = typeof window !== 'undefined' ? window : null) {
   const pressed = new Set();
   const listeners = new Map();
   const axisVector = { x: 0, z: 0 };
+  const lookVector = { x: 0, y: 0 };
 
   const handleKeyDown = (event) => {
     if (!RELEVANT_KEYS.has(event.code)) {
@@ -53,16 +53,16 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     let x = 0;
     let z = 0;
 
-    if (isDown('KeyA') || isDown('ArrowLeft')) {
+    if (isDown('KeyA')) {
       x -= 1;
     }
-    if (isDown('KeyD') || isDown('ArrowRight')) {
+    if (isDown('KeyD')) {
       x += 1;
     }
-    if (isDown('KeyW') || isDown('ArrowUp')) {
+    if (isDown('KeyW')) {
       z -= 1;
     }
-    if (isDown('KeyS') || isDown('ArrowDown')) {
+    if (isDown('KeyS')) {
       z += 1;
     }
 
@@ -74,6 +74,28 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     axisVector.x = x;
     axisVector.z = z;
     return axisVector;
+  };
+
+  const computeLook = () => {
+    let x = 0;
+    let y = 0;
+
+    if (isDown('ArrowLeft')) {
+      x -= 1;
+    }
+    if (isDown('ArrowRight')) {
+      x += 1;
+    }
+    if (isDown('ArrowUp')) {
+      y += 1;
+    }
+    if (isDown('ArrowDown')) {
+      y -= 1;
+    }
+
+    lookVector.x = x;
+    lookVector.y = y;
+    return lookVector;
   };
 
   const axis = {};
@@ -93,7 +115,23 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     running: {
       enumerable: true,
       get() {
-        return isDown('ShiftLeft') || isDown('ShiftRight');
+        return MODIFIER_KEYS.some((code) => isDown(code));
+      }
+    }
+  });
+
+  const look = {};
+  Object.defineProperties(look, {
+    x: {
+      enumerable: true,
+      get() {
+        return computeLook().x;
+      }
+    },
+    y: {
+      enumerable: true,
+      get() {
+        return computeLook().y;
       }
     }
   });
@@ -112,6 +150,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   return {
     isDown,
     axis,
+    look,
     dispose
   };
 }
