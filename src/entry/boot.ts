@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
-import { createTimeSky, setTimeOfDay } from '../sky/timeSky.js';
+import { createTimeSky, setTimeOfDay, setSkyEnabled } from '../sky/timeSky.js';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -353,12 +353,17 @@ export async function runAthens(options: RunOptions = {}) {
     audio.setMasterVolume(value);
   };
 
+  const handleSkyEnabled = (enabled: boolean) => {
+    setSkyEnabled(Boolean(enabled));
+  };
+
   applyQualityPreset('high');
 
   createHUD({
     setTimeOfDay: (mode) => handleTimeOfDay(mode),
     setVolume: (value) => handleVolume(Number(value)),
-    setQuality: (preset) => applyQualityPreset(String(preset))
+    setQuality: (preset) => applyQualityPreset(String(preset)),
+    setSkyEnabled: (value) => handleSkyEnabled(Boolean(value))
   });
 
   markGround(scene);

@@ -39,6 +39,8 @@ let pmremGenerator = null;
 let activeRenderer = null;
 let activeScene = null;
 let currentMode = null;
+let currentEntry = null;
+let skyEnabled = true;
 let hotkeyAttached = false;
 
 function ensureColorSpace(texture) {
@@ -147,6 +149,13 @@ function applySky(entry) {
   if (!activeScene || !entry) {
     return;
   }
+  currentEntry = entry;
+  currentMode = entry.mode;
+  if (!skyEnabled) {
+    activeScene.background = null;
+    activeScene.environment = null;
+    return;
+  }
   if (entry.background?.isTexture) {
     activeScene.background = entry.background;
   } else if (entry.background instanceof THREE.Color) {
@@ -155,7 +164,17 @@ function applySky(entry) {
     activeScene.background = null;
   }
   activeScene.environment = entry.envMap || null;
-  currentMode = entry.mode;
+}
+
+function notifySkyEnabledChange() {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
+    return;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent('athens:sky-enabled-changed', { detail: { enabled: skyEnabled } }));
+  } catch (_) {
+    // ignored
+  }
 }
 
 export async function createTimeSky(renderer, scene, initial = 'day') {
@@ -187,6 +206,45 @@ export function getTimeOfDay() {
   return currentMode;
 }
 
+export function isSkyEnabled() {
+  return skyEnabled;
+}
+
+export function setSkyEnabled(enabled) {
+  const normalized = Boolean(enabled);
+  if (normalized === skyEnabled) {
+    return skyEnabled;
+  }
+  skyEnabled = normalized;
+  if (!activeScene) {
+    notifySkyEnabledChange();
+    return skyEnabled;
+  }
+  if (!skyEnabled) {
+    activeScene.background = null;
+    activeScene.environment = null;
+  } else if (currentEntry) {
+    applySky(currentEntry);
+  } else if (currentMode) {
+    loadSky(currentMode)
+      .then((entry) => {
+        if (skyEnabled) {
+          applySky(entry);
+        }
+      })
+      .catch(() => {});
+  }
+  notifySkyEnabledChange();
+  return skyEnabled;
+}
+
+export function toggleSkyEnabled(force) {
+  if (typeof force === 'boolean') {
+    return setSkyEnabled(force);
+  }
+  return setSkyEnabled(!skyEnabled);
+}
+
 export function attachTimeHotkeys(win = typeof window !== 'undefined' ? window : null) {
   if (!win || hotkeyAttached) {
     return undefined;
@@ -195,7 +253,8 @@ export function attachTimeHotkeys(win = typeof window !== 'undefined' ? window :
     if (event.defaultPrevented || event.altKey || event.metaKey || event.ctrlKey) {
       return;
     }
-    switch (event.key) {
+    const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+    switch (key) {
       case '1':
         setTimeOfDay('dawn');
         break;
@@ -207,6 +266,9 @@ export function attachTimeHotkeys(win = typeof window !== 'undefined' ? window :
         break;
       case '4':
         setTimeOfDay('night');
+        break;
+      case 'k':
+        toggleSkyEnabled();
         break;
       default:
         return;
