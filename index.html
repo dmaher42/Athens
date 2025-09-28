@@ -4,46 +4,70 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ancient Athens</title>
+    <style>
+      /* Ensure the canvas can fill the viewport */
+      html, body, #app { height: 100%; margin: 0; }
+      #app { position: fixed; inset: 0; }
+    </style>
   </head>
   <body>
     <div id="app"></div>
+
+    <!-- Early initializer shim -->
     <script>
-      // Early initializer shim
       (function () {
-        if (window.runAthens) {
-          return;
-        }
+        if (typeof window.runAthens === 'function') return;
 
+        /** @type {{ args: any[]; resolve: (v:any)=>void; reject: (e?:any)=>void; }[]} */
         const pendingCalls = [];
+        /** @type {((...args:any[]) => Promise<any>) | null} */
+        let liveInitializer = null;
 
+        // Placeholder initializer: queue calls until the real one is provided
         window.runAthens = function (...args) {
-          pendingCalls.push(args);
+          if (liveInitializer) {
+            return liveInitializer.apply(window, args);
+          }
+          return new Promise((resolve, reject) => {
+            pendingCalls.push({ args, resolve, reject });
+          });
         };
 
+        // Announce a placeholder initializer so early listeners proceed
         window.dispatchEvent(
           new CustomEvent('athens:initializer-ready', {
             detail: { initializer: window.runAthens, source: 'shim' },
-          }),
+          })
         );
 
+        // When the real initializer is announced, swap in and flush the queue
         function handleInitializerReady(event) {
           const detail = event && event.detail;
-          if (!detail || detail.source === 'shim' || typeof detail.initializer !== 'function') {
-            return;
-          }
+          if (!detail || detail.source === 'shim' || typeof detail.initializer !== 'function') return;
 
           window.removeEventListener('athens:initializer-ready', handleInitializerReady);
 
-          window.runAthens = detail.initializer;
+          liveInitializer = detail.initializer;
+          window.runAthens = function (...initializerArgs) {
+            return liveInitializer.apply(window, initializerArgs);
+          };
 
           while (pendingCalls.length) {
-            window.runAthens.apply(window, pendingCalls.shift());
+            const call = pendingCalls.shift();
+            if (!call) continue;
+            try {
+              liveInitializer.apply(window, call.args).then(call.resolve, call.reject);
+            } catch (error) {
+              call.reject(error);
+            }
           }
         }
 
         window.addEventListener('athens:initializer-ready', handleInitializerReady);
       })();
     </script>
+
+    <!-- Vite will rewrite this to /Athens/assets/*.js in production -->
     <script type="module" src="./src/entry/landing.ts"></script>
   </body>
 </html>
