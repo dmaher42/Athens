@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
+import { createTimeSky, setTimeOfDay } from '../sky/timeSky.js';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -14,6 +15,7 @@ import { AudioManager } from '../audio/AudioManager.js';
 import { initAmbience, setAmbience } from '../audio/ambience.js';
 import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
+import { createHUD } from '../ui/hud.js';
 
 type RunOptions = {
   containerId?: string;
@@ -217,6 +219,71 @@ export async function runAthens(options: RunOptions = {}) {
   scene.add(ambientLight);
   scene.add(directionalLight);
 
+  const applyQualityPreset = (preset: string) => {
+    const normalized = typeof preset === 'string' ? preset.toLowerCase() : '';
+    let target: 'low' | 'medium' | 'high';
+    if (normalized === 'low' || normalized === 'medium' || normalized === 'high') {
+      target = normalized;
+    } else {
+      target = 'medium';
+    }
+
+    const shadow = directionalLight.shadow;
+
+    switch (target) {
+      case 'low': {
+        renderer.shadowMap.enabled = false;
+        renderer.shadowMap.type = THREE.BasicShadowMap;
+        renderer.shadowMap.needsUpdate = true;
+        if (directionalLight) {
+          directionalLight.castShadow = false;
+        }
+        renderer.toneMappingExposure = 0.9;
+        break;
+      }
+      case 'medium': {
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.BasicShadowMap;
+        renderer.shadowMap.needsUpdate = true;
+        if (directionalLight) {
+          directionalLight.castShadow = true;
+        }
+        if (shadow?.mapSize?.set) {
+          shadow.mapSize.set(512, 512);
+        } else if (shadow) {
+          shadow.mapSize.width = 512;
+          shadow.mapSize.height = 512;
+        }
+        if (shadow) {
+          shadow.needsUpdate = true;
+        }
+        renderer.toneMappingExposure = 1.0;
+        break;
+      }
+      default: {
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.needsUpdate = true;
+        if (directionalLight) {
+          directionalLight.castShadow = true;
+        }
+        if (shadow?.mapSize?.set) {
+          shadow.mapSize.set(2048, 2048);
+        } else if (shadow) {
+          shadow.mapSize.width = 2048;
+          shadow.mapSize.height = 2048;
+        }
+        if (shadow) {
+          shadow.needsUpdate = true;
+        }
+        renderer.toneMappingExposure = 1.1;
+        break;
+      }
+    }
+
+    return target;
+  };
+
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
   if (typeof setEnvironment === 'function') {
     try {
@@ -226,6 +293,12 @@ export async function runAthens(options: RunOptions = {}) {
     } catch (error) {
       console.warn('[Athens][Boot] setEnvironment failed', error);
     }
+  }
+
+  try {
+    await createTimeSky(renderer, scene, environmentMode);
+  } catch (error) {
+    console.warn('[Athens][Boot] createTimeSky failed', error);
   }
 
   if (typeof setupGround === 'function') {
@@ -242,6 +315,51 @@ export async function runAthens(options: RunOptions = {}) {
   } catch (error) {
     console.warn('[Athens][Boot] initAmbience failed', error);
   }
+
+  let currentAmbienceMode = ambienceMode;
+  const applyAmbienceForMode = (mode: string) => {
+    if (!audio) {
+      return;
+    }
+    const targetMode = ['dawn', 'day', 'dusk', 'night'].includes(mode) ? mode : 'day';
+    currentAmbienceMode = targetMode;
+    setAmbience(audio, targetMode).catch(() => {});
+  };
+
+  const handleTimeOfDay = (mode: string) => {
+    const fallback = typeof mode === 'string' ? mode : 'day';
+    currentAmbienceMode = fallback;
+    applyAmbienceForMode(fallback);
+    const result = setTimeOfDay(fallback);
+    if (result && typeof (result as Promise<unknown>).then === 'function') {
+      (result as Promise<string | null>)
+        .then((resolved) => {
+          const normalized = resolved && typeof resolved === 'string' ? resolved : fallback;
+          applyAmbienceForMode(normalized);
+          return normalized;
+        })
+        .catch((error) => {
+          console.warn('[Athens][Boot] setTimeOfDay failed', error);
+          applyAmbienceForMode(fallback);
+        });
+    }
+    return result;
+  };
+
+  const handleVolume = (value: number) => {
+    if (!audio || typeof value !== 'number' || Number.isNaN(value)) {
+      return;
+    }
+    audio.setMasterVolume(value);
+  };
+
+  applyQualityPreset('high');
+
+  createHUD({
+    setTimeOfDay: (mode) => handleTimeOfDay(mode),
+    setVolume: (value) => handleVolume(Number(value)),
+    setQuality: (preset) => applyQualityPreset(String(preset))
+  });
 
   markGround(scene);
   const groundMeshes = collectGround(scene);
