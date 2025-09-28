@@ -450,8 +450,10 @@ export async function initializeAthens(options = {}) {
     mainCharacter,
     environmentController,
     city,
+    extendedCity,
     container,
     ui,
+    refreshColliders,
     async setEnvironmentMode(mode, envOptions = {}) {
       const result = await environmentController?.setMode?.(mode, envOptions);
       const label = formatEnvironmentLabel(result || mode);
@@ -479,6 +481,7 @@ export async function initializeAthens(options = {}) {
       renderer.dispose();
       keyboard?.dispose?.();
       city?.dispose?.();
+      extendedCity?.dispose?.();
     }
   };
 
@@ -488,6 +491,7 @@ export async function initializeAthens(options = {}) {
     window.__athens.mainCharacter = context.mainCharacter;
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
     window.__athens.city = context.city;
+    window.__athens.extendedCity = context.extendedCity;
     window.__athens.ui = context.ui;
   }
 
