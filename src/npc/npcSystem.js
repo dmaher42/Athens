@@ -130,10 +130,15 @@ export function createNpc({
       return assetUrl(trimmed);
     }
 
+    const assetsIndex = trimmed.toLowerCase().indexOf('assets/models/');
+    if (assetsIndex >= 0) {
+      const relativeAssetPath = trimmed.slice(assetsIndex).replace(/^\/+/, '');
+      return assetUrl(relativeAssetPath);
+    }
+
     const normalized = trimmed.replace(/^\/+/, '');
-    if (/^models\/(hoplite_npc|npc_athenian)\.glb$/i.test(normalized)) {
-      const file = normalized.split('/').pop();
-      return assetUrl(`assets/models/${file}`);
+    if (normalized.toLowerCase().startsWith('models/')) {
+      return assetUrl(`assets/models/${normalized.slice('models/'.length)}`);
     }
 
     return resolveAssetUrl(trimmed);
