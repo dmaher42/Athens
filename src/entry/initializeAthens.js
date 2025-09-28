@@ -334,8 +334,8 @@ export async function initializeAthens(options = {}) {
   const keyboard = createKeyboard();
   const controller = createPlayerController(playerObject, keyboard, {
     walkSpeed: 5.5,
-    runMultiplier: 2.0,
-    flyMultiplier: 1.6,
+    runMultiplier: 2.5,
+    flyMultiplier: 3.0,
     turnLerp: 0.18,
     flightToggleKey: 'KeyX'
   });
