@@ -27,9 +27,7 @@ const ENVIRONMENT_LABELS = {
 };
 
 const formatEnvironmentLabel = (mode) => {
-  if (!mode) {
-    return '';
-  }
+  if (!mode) return '';
   const normalized = String(mode).toLowerCase();
   return ENVIRONMENT_LABELS[normalized] || normalized.replace(/_/g, ' ');
 };
@@ -52,9 +50,7 @@ function buildNpcPatrolPath(radius, angle, height = 0) {
   const baseX = Math.cos(angle) * radius;
   const baseZ = Math.sin(angle) * radius;
   const offset = Math.max(2, radius * 0.25);
-
   const waypoint = (x, z) => ({ x, y: height, z });
-
   return [
     waypoint(baseX, baseZ),
     waypoint(baseX + Math.cos(angle + Math.PI / 4) * offset, baseZ + Math.sin(angle + Math.PI / 4) * offset),
@@ -63,20 +59,12 @@ function buildNpcPatrolPath(radius, angle, height = 0) {
 }
 
 function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
-  if (!Array.isArray(modelUrls) || modelUrls.length === 0) {
-    return [];
-  }
-
+  if (!Array.isArray(modelUrls) || modelUrls.length === 0) return [];
   const radius = 18;
-
   return modelUrls.map((modelUrl, index) => {
     const angle = (index / modelUrls.length) * Math.PI * 2;
     const waypoints = buildNpcPatrolPath(radius, angle);
-    return {
-      modelUrl,
-      initialPosition: waypoints[0],
-      waypoints
-    };
+    return { modelUrl, initialPosition: waypoints[0], waypoints };
   });
 }
 
@@ -84,14 +72,10 @@ function ensureContainerElement(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('initializeAthens requires a browser document.');
   }
-  if (options.container instanceof HTMLElement) {
-    return options.container;
-  }
+  if (options.container instanceof HTMLElement) return options.container;
   const containerId = options.containerId ?? DEFAULT_CONTAINER_ID;
   const element = document.getElementById(containerId);
-  if (!element) {
-    throw new Error(`Athens container #${containerId} not found.`);
-  }
+  if (!element) throw new Error(`Athens container #${containerId} not found.`);
   return element;
 }
 
@@ -99,17 +83,12 @@ function computeContainerSize(element) {
   const rect = element.getBoundingClientRect?.();
   const width = rect && rect.width ? rect.width : element.clientWidth || window.innerWidth || 1;
   const height = rect && rect.height ? rect.height : element.clientHeight || window.innerHeight || 1;
-  return {
-    width: Math.max(1, Math.floor(width)),
-    height: Math.max(1, Math.floor(height))
-  };
+  return { width: Math.max(1, Math.floor(width)), height: Math.max(1, Math.floor(height)) };
 }
 
 function ensureOverlayCanvas(container, overlayCanvasId) {
   const existing = typeof document !== 'undefined' ? document.getElementById(overlayCanvasId) : null;
-  if (existing instanceof HTMLCanvasElement) {
-    return existing;
-  }
+  if (existing instanceof HTMLCanvasElement) return existing;
 
   const canvas = document.createElement('canvas');
   canvas.id = overlayCanvasId;
@@ -132,9 +111,7 @@ function ensureOverlayCanvas(container, overlayCanvasId) {
 }
 
 function ensureLights(scene) {
-  if (!scene) {
-    return;
-  }
+  if (!scene) return;
   if (!scene.children.some((child) => child.isAmbientLight)) {
     scene.add(new THREE.AmbientLight(0xfef7e5, 0.55));
   }
@@ -234,9 +211,7 @@ export async function initializeAthens(options = {}) {
     async setMode(mode) {
       try {
         const resolved = await setTimeOfDay(mode);
-        if (resolved) {
-          this.mode = resolved;
-        }
+        if (resolved) this.mode = resolved;
         return this.mode;
       } catch (error) {
         console.warn('[Athens] Failed to set time of day.', error);
@@ -252,6 +227,7 @@ export async function initializeAthens(options = {}) {
 
   const city = await createCity({ renderer, scene });
 
+  // --- Merge: grass material application + ground registry + snapping ---
   const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
   if (mainGround?.isMesh) {
     try {
@@ -269,11 +245,15 @@ export async function initializeAthens(options = {}) {
   }
 
   markGround(scene);
-  const groundMeshes = collectGround(scene);
+  let groundMeshes = collectGround(scene);
+  if (!groundMeshes.length) {
+    console.warn('[npc] no ground meshes');
+  }
   if (city?.root && groundMeshes.length) {
     snapChildrenToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
     snapGroupToGround(city.root, groundMeshes, { hover: 0.03, fromY: 300 });
   }
+  // --- end merge ---
 
   const landmarks = await loadLandmarks({
     scene,
@@ -287,6 +267,7 @@ export async function initializeAthens(options = {}) {
     geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
   });
   landmarks.featureLines?.updateResolution?.();
+
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
 
@@ -297,7 +278,22 @@ export async function initializeAthens(options = {}) {
 
   let npcManager = null;
   if (options.enableNpcs !== false) {
-    npcManager = createNpcManager(scene);
+    npcManager = createNpcManager(scene, groundMeshes);
+
+    // Example extra NPC with simple path
+    const p0 = new THREE.Vector3(5, 0, 5);
+    const p1 = new THREE.Vector3(20, 0, 5);
+    const npcRoot = scene.getObjectByName('NPC_1') || new THREE.Object3D();
+    npcRoot.name = 'NPC_1';
+    if (!npcRoot.parent) scene.add(npcRoot);
+    npcManager.spawn({
+      object3d: npcRoot,
+      waypoints: [p0, p1],
+      walkSpeed: 1.6,
+      accel: 5.0,
+      turn: 0.18
+    });
+
     const defaultNpcConfigs = createDefaultNpcConfigs(
       Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
         ? options.npcModelUrls
@@ -308,9 +304,7 @@ export async function initializeAthens(options = {}) {
       : defaultNpcConfigs;
 
     npcConfigs.forEach((config) => {
-      if (!config || typeof config !== 'object') {
-        return;
-      }
+      if (!config || typeof config !== 'object') return;
       npcManager.spawn(config);
     });
   }
@@ -383,17 +377,15 @@ export async function initializeAthens(options = {}) {
   let frameId = 0;
 
   const frame = () => {
-    if (disposed) {
-      return;
-    }
+    if (disposed) return;
     const delta = clock.getDelta();
     try {
       updateTrees?.(delta);
     } catch (error) {
       console.warn('[Athens] Tree animation update failed.', error);
     }
-    mainCharacter?.update(delta);
-    npcManager?.update(delta, { groundMeshes });
+    mainCharacter?.update(delta, { groundMeshes });
+    npcManager?.update(delta);
     landmarks.update?.(camera);
     stats?.update?.();
     controller?.update(delta, camera);
@@ -427,19 +419,13 @@ export async function initializeAthens(options = {}) {
     async setEnvironmentMode(mode, envOptions = {}) {
       const result = await environmentController?.setMode?.(mode, envOptions);
       const label = formatEnvironmentLabel(result || mode);
-      if (label) {
-        ui?.setTimeLabel?.(label);
-      }
+      if (label) ui?.setTimeLabel?.(label);
       return result;
     },
     dispose() {
-      if (disposed) {
-        return;
-      }
+      if (disposed) return;
       disposed = true;
-      if (frameId) {
-        cancelAnimationFrame(frameId);
-      }
+      if (frameId) cancelAnimationFrame(frameId);
       window.removeEventListener('resize', resizeHandler);
       overlay?.destroy?.();
       if (overlayCanvas.parentNode) {

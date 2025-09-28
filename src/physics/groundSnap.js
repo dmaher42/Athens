@@ -74,7 +74,8 @@ export function snapToGround(object3d, groundMeshes, inputState, deltaSeconds = 
 
     if (hit) {
       const hitY = hit.point.y;
-      if (hitY >= predictedY && hitY - predictedY <= stepMax) {
+      const delta = hitY - predictedY;
+      if (Math.abs(delta) <= stepMax) {
         position.y = hitY + hover;
         state.vy = 0;
         state.lastGoodY = hitY;
@@ -90,6 +91,7 @@ export function snapToGround(object3d, groundMeshes, inputState, deltaSeconds = 
   if (lastGoodY - position.y > 2) {
     position.y = lastGoodY + hover;
     state.vy = 0;
+    state.lastGoodY = lastGoodY;
     return true;
   }
 
