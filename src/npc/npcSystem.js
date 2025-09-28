@@ -19,12 +19,8 @@ const INIT_DIRECTION = new THREE.Vector3();
 const TMP_EULER = new THREE.Euler(0, 0, 0, 'YXZ');
 
 function toVector3(value) {
-  if (!value) {
-    return null;
-  }
-  if (value.isVector3) {
-    return value.clone();
-  }
+  if (!value) return null;
+  if (value.isVector3) return value.clone();
   if (Array.isArray(value) && value.length >= 3) {
     const x = Number(value[0]) || 0;
     const y = Number(value[1]) || 0;
@@ -59,9 +55,7 @@ function buildPlaceholderModel() {
 }
 
 function enableMeshShadows(root) {
-  if (!root) {
-    return;
-  }
+  if (!root) return;
   root.traverse?.((child) => {
     if (child.isMesh || child.isSkinnedMesh) {
       child.castShadow = true;
@@ -71,9 +65,7 @@ function enableMeshShadows(root) {
 }
 
 function fixModelTilt(object3d) {
-  if (!object3d) {
-    return;
-  }
+  if (!object3d) return;
   TMP_EULER.setFromQuaternion(object3d.quaternion, 'YXZ');
   if (Math.abs(TMP_EULER.x) > 0.25 || Math.abs(TMP_EULER.z) > 0.25) {
     object3d.rotation.x = 0;
@@ -82,9 +74,7 @@ function fixModelTilt(object3d) {
 }
 
 function disposeObject3D(object) {
-  if (!object) {
-    return;
-  }
+  if (!object) return;
   object.traverse((child) => {
     if (child.isMesh || child.isSkinnedMesh) {
       child.geometry?.dispose?.();
@@ -102,30 +92,16 @@ function disposeObject3D(object) {
 }
 
 function normalizeModelUrl(input) {
-  if (!input) {
-    return null;
-  }
-
-  if (typeof input !== 'string') {
-    return resolveAssetUrl(input);
-  }
+  if (!input) return null;
+  if (typeof input !== 'string') return resolveAssetUrl(input);
 
   const trimmed = input.trim();
-  if (!trimmed) {
-    return null;
-  }
+  if (!trimmed) return null;
 
-  if (/^(https?:)?\/\//i.test(trimmed)) {
-    return trimmed;
-  }
+  if (/^(https?:)?\/\//i.test(trimmed)) return trimmed;
 
-  if (/^\/assets\/models\//i.test(trimmed)) {
-    return assetUrl(trimmed);
-  }
-
-  if (/^assets\/models\//i.test(trimmed)) {
-    return assetUrl(trimmed);
-  }
+  if (/^\/assets\/models\//i.test(trimmed)) return assetUrl(trimmed);
+  if (/^assets\/models\//i.test(trimmed)) return assetUrl(trimmed);
 
   const assetsIndex = trimmed.toLowerCase().indexOf('assets/models/');
   if (assetsIndex >= 0) {
@@ -146,35 +122,23 @@ function sanitizeWaypoints(waypoints, fallbackPosition) {
   if (Array.isArray(waypoints)) {
     for (const waypoint of waypoints) {
       const vector = toVector3(waypoint);
-      if (vector) {
-        result.push(vector);
-      }
+      if (vector) result.push(vector);
     }
   } else if (waypoints) {
     const vector = toVector3(waypoints);
-    if (vector) {
-      result.push(vector);
-    }
+    if (vector) result.push(vector);
   }
 
   if (!result.length) {
-    const fallbackVector = fallbackPosition?.isVector3
-      ? fallbackPosition.clone()
-      : toVector3(fallbackPosition);
-    if (fallbackVector) {
-      result.push(fallbackVector);
-    } else {
-      result.push(new THREE.Vector3());
-    }
+    const fallbackVector = fallbackPosition?.isVector3 ? fallbackPosition.clone() : toVector3(fallbackPosition);
+    result.push(fallbackVector || new THREE.Vector3());
   }
 
   return result;
 }
 
 function attachModelToNpc(npc, model) {
-  if (!npc || !npc.object3d) {
-    return;
-  }
+  if (!npc || !npc.object3d) return;
   const { object3d } = npc;
   if (npc.modelRoot && npc.modelRoot.parent === object3d) {
     object3d.remove(npc.modelRoot);
@@ -234,17 +198,13 @@ function loadNpcModel(npc, modelUrl) {
 }
 
 function disposeNpcEntity(npc) {
-  if (!npc || npc.disposed) {
-    return;
-  }
+  if (!npc || npc.disposed) return;
   npc.disposed = true;
   npc.mixer?.stopAllAction?.();
   npc.mixer?.uncacheRoot?.(npc.modelRoot || npc.object3d);
   npc.mixer = null;
   if (npc.modelRoot) {
-    if (npc.modelRoot.parent === npc.object3d) {
-      npc.object3d.remove(npc.modelRoot);
-    }
+    if (npc.modelRoot.parent === npc.object3d) npc.object3d.remove(npc.modelRoot);
     disposeObject3D(npc.modelRoot);
     npc.modelRoot = null;
   }
@@ -310,19 +270,14 @@ function createNpcEntity(config = {}, { scene = null } = {}) {
 
   npc.ready = loadNpcModel(npc, modelUrl);
   npc.dispose = () => disposeNpcEntity(npc);
-
   return npc;
 }
 
 function stepNpc(npc, deltaSeconds, groundMeshes) {
-  if (!npc || npc.disposed) {
-    return;
-  }
+  if (!npc || npc.disposed) return;
 
   const dt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
-  if (dt <= 0) {
-    return;
-  }
+  if (dt <= 0) return;
 
   const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
 
@@ -335,9 +290,7 @@ function stepNpc(npc, deltaSeconds, groundMeshes) {
   }
 
   const target = npc.waypoints[npc.targetIdx];
-  if (!target) {
-    return;
-  }
+  if (!target) return;
 
   STEP_DIRECTION.subVectors(target, npc.object3d.position);
   STEP_DIRECTION.y = 0;
@@ -363,7 +316,6 @@ function stepNpc(npc, deltaSeconds, groundMeshes) {
 
 export function createNpc(options = {}) {
   const npc = createNpcEntity(options);
-
   return {
     object3d: npc.object3d,
     update(deltaSeconds, context = {}) {
@@ -386,14 +338,10 @@ export function createNpcManager(scene, groundMeshes) {
     npcs.push(npc);
     const originalDispose = npc.dispose;
     npc.dispose = () => {
-      if (npc.disposed) {
-        return;
-      }
+      if (npc.disposed) return;
       originalDispose();
       const index = npcs.indexOf(npc);
-      if (index !== -1) {
-        npcs.splice(index, 1);
-      }
+      if (index !== -1) npcs.splice(index, 1);
     };
     return npc;
   }
@@ -404,9 +352,7 @@ export function createNpcManager(scene, groundMeshes) {
       console.warn('[npc] bad dt', rawDt);
     }
     const dt = Math.max(0, Math.min(rawDt, 0.2));
-    if (dt === 0) {
-      return;
-    }
+    if (dt === 0) return;
 
     if (!warnedGround && surfaces.length === 0) {
       console.warn('[npc] no ground meshes');
