@@ -27,20 +27,65 @@ let initializationTask: Promise<RunAthensResult> | null = null;
 let initializedContext: RunAthensResult | null = null;
 let resizeListenerAttached = false;
 let loggedRenderLoop = false;
-
-console.log('[Athens] boot starting');
-try {
-  await boot?.();
-} catch (error) {
-  console.error('[Athens] Boot invocation failed.', error);
-}
-await whenBootReady().catch(() => {});
+let bootPromise: Promise<unknown> | null = null;
+let bootLogEmitted = false;
 
 declare global {
   interface Window {
     runAthens?: RunAthensHandle;
     getAthensContext?: GetAthensContextHandle;
   }
+}
+
+async function waitForDomReady(): Promise<void> {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    const handleReady = () => {
+      document.removeEventListener('DOMContentLoaded', handleReady);
+      resolve();
+    };
+
+    document.addEventListener('DOMContentLoaded', handleReady, { once: true });
+  });
+}
+
+function ensureBootStarted(): { promise: Promise<unknown>; started: boolean } | null {
+  if (typeof boot !== 'function') {
+    return null;
+  }
+
+  let started = false;
+
+  if (!bootPromise) {
+    started = true;
+
+    if (!bootLogEmitted) {
+      console.log('[Athens] boot starting');
+      bootLogEmitted = true;
+    }
+
+    const promise = Promise.resolve()
+      .then(() => boot())
+      .catch((error) => {
+        console.error('[Athens] Boot invocation failed.', error);
+        throw error;
+      });
+
+    bootPromise = promise;
+  }
+
+  if (!bootPromise) {
+    return null;
+  }
+
+  return { promise: bootPromise, started };
 }
 
 async function runAthens(): Promise<RunAthensResult> {
@@ -53,6 +98,35 @@ async function runAthens(): Promise<RunAthensResult> {
   }
 
   initializationTask = (async () => {
+    const bootState = ensureBootStarted();
+    const bootTask = bootState?.promise ?? null;
+    const bootStartedHere = bootState?.started ?? false;
+
+    if (bootTask && !bootStartedHere) {
+      try {
+        await bootTask;
+      } catch (error) {
+        initializationTask = null;
+        throw error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
+    if (bootTask) {
+      const bootReady = whenBootReady();
+      if (!bootStartedHere) {
+        try {
+          await bootReady;
+        } catch (error) {
+          initializationTask = null;
+          throw error instanceof Error ? error : new Error(String(error));
+        }
+      } else {
+        bootReady.catch(() => {});
+      }
+    }
+
+    await waitForDomReady();
+
     container = document.getElementById('app') as HTMLElement | null;
     if (!container) {
       initializationTask = null;
@@ -148,36 +222,25 @@ async function runAthens(): Promise<RunAthensResult> {
   }
 }
 
-async function getAthensContext(): Promise<RunAthensResult | undefined> {
+(window as any).runAthens = runAthens;
+(window as any).getAthensContext = async () => {
   if (initializedContext) {
     return initializedContext;
   }
 
   if (initializationTask) {
-    return initializationTask;
-  }
-
-  const ready = (window as any).__AthensBootReady as Promise<unknown> | undefined;
-  if (ready && typeof (ready as any).then === 'function') {
-    console.warn('[Athens] Delaying until boot finishes…');
-    await ready.catch(() => {});
-    if (initializedContext) {
-      return initializedContext;
-    }
-    if (initializationTask) {
-      return initializationTask;
+    try {
+      return await initializationTask;
+    } catch {
+      return undefined;
     }
   }
 
-  console.warn('[Athens] Boot not ready; proceeding cautiously.');
   return undefined;
-}
-
-(window as any).runAthens = runAthens;
-(window as any).getAthensContext = getAthensContext;
+};
 window.dispatchEvent(
   new CustomEvent('athens:initializer-ready', {
-    detail: { initializer: (window as any).runAthens, source: 'index.html' }
+    detail: { initializer: runAthens, source: 'index.html' }
   })
 );
 console.log('[Athens] initializer ready');

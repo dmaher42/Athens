@@ -7,6 +7,63 @@
   </head>
   <body>
     <div id="app"></div>
+    <script>
+      // Early initializer shim
+      (function () {
+        if (window.runAthens) {
+          return;
+        }
+
+        /** @type {{ args: any[]; resolve: (value: any) => void; reject: (reason?: any) => void; }[]} */
+        const pendingCalls = [];
+        /** @type {((...args: any[]) => Promise<any>) | null} */
+        let liveInitializer = null;
+
+        window.runAthens = function (...args) {
+          if (liveInitializer) {
+            return liveInitializer.apply(window, args);
+          }
+
+          return new Promise((resolve, reject) => {
+            pendingCalls.push({ args, resolve, reject });
+          });
+        };
+
+        window.dispatchEvent(
+          new CustomEvent('athens:initializer-ready', {
+            detail: { initializer: window.runAthens, source: 'shim' },
+          }),
+        );
+
+        function handleInitializerReady(event) {
+          const detail = event && event.detail;
+          if (!detail || detail.source === 'shim' || typeof detail.initializer !== 'function') {
+            return;
+          }
+
+          window.removeEventListener('athens:initializer-ready', handleInitializerReady);
+
+          liveInitializer = detail.initializer;
+          window.runAthens = function (...initializerArgs) {
+            return liveInitializer.apply(window, initializerArgs);
+          };
+
+          while (pendingCalls.length) {
+            const call = pendingCalls.shift();
+            if (!call) {
+              continue;
+            }
+            try {
+              liveInitializer.apply(window, call.args).then(call.resolve, call.reject);
+            } catch (error) {
+              call.reject(error);
+            }
+          }
+        }
+
+        window.addEventListener('athens:initializer-ready', handleInitializerReady);
+      })();
+    </script>
     <script type="module" src="./src/entry/landing.ts"></script>
   </body>
 </html>
