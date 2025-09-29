@@ -1,12 +1,11 @@
-import * as THREE from 'three';
+import { groundYAt } from '../utils/spawn.ts';
 
-const DOWN = new THREE.Vector3(0, -1, 0);
-const RAY_ORIGIN = new THREE.Vector3();
-const RAYCASTER = new THREE.Raycaster();
 const DEFAULT_OPTIONS = {
   gravity: 12,
-  stepMax: 0.6,
-  hover: 0.03
+  hover: 0.03,
+  maxStepUp: 1,
+  maxDrop: 4,
+  rayStart: 1000
 };
 
 function ensureState(state, positionY) {
@@ -25,19 +24,6 @@ function ensureState(state, positionY) {
   return state;
 }
 
-function chooseHit(intersections) {
-  if (!Array.isArray(intersections) || intersections.length === 0) {
-    return null;
-  }
-  for (let i = 0; i < intersections.length; i += 1) {
-    const hit = intersections[i];
-    if (hit && hit.object && hit.point) {
-      return hit;
-    }
-  }
-  return null;
-}
-
 export function snapToGround(object3d, groundMeshes, inputState, deltaSeconds = 0, options = DEFAULT_OPTIONS) {
   if (!object3d) {
     return false;
@@ -45,50 +31,60 @@ export function snapToGround(object3d, groundMeshes, inputState, deltaSeconds = 
 
   const state = ensureState(inputState, object3d.position?.y ?? 0);
   const dt = Number.isFinite(deltaSeconds) && deltaSeconds > 0 ? deltaSeconds : 0;
-  const meshes = Array.isArray(groundMeshes) ? groundMeshes : [];
+  const meshes = Array.isArray(groundMeshes)
+    ? groundMeshes
+    : groundMeshes
+      ? [groundMeshes]
+      : [];
 
   const gravity = Number.isFinite(options?.gravity) ? options.gravity : DEFAULT_OPTIONS.gravity;
-  const stepMax = Number.isFinite(options?.stepMax) ? options.stepMax : DEFAULT_OPTIONS.stepMax;
   const hover = Number.isFinite(options?.hover) ? options.hover : DEFAULT_OPTIONS.hover;
+  const stepMaxRaw = Number.isFinite(options?.maxStepUp)
+    ? options.maxStepUp
+    : Number.isFinite(options?.stepMax)
+      ? options.stepMax
+      : DEFAULT_OPTIONS.maxStepUp;
+  const dropMaxRaw = Number.isFinite(options?.maxDrop) ? options.maxDrop : DEFAULT_OPTIONS.maxDrop;
+  const rayStart = Number.isFinite(options?.rayStart) ? options.rayStart : DEFAULT_OPTIONS.rayStart;
 
-  if (dt > 0) {
-    state.vy += gravity * dt;
+  const maxStepUp = Math.max(0, stepMaxRaw);
+  const maxDrop = Math.max(0, dropMaxRaw);
+
+  const position = object3d.position;
+  if (!position) {
+    return false;
   }
 
-  const vy = state.vy;
-  const fallDistance = vy * dt;
-  const position = object3d.position;
-  const predictedY = position.y - fallDistance;
+  const groundY = groundYAt(position.x, position.z, meshes, rayStart);
 
-  if (meshes.length > 0) {
-    RAY_ORIGIN.copy(position);
-    RAY_ORIGIN.y += 1.2;
+  if (groundY != null) {
+    const targetY = groundY + hover;
+    const delta = targetY - position.y;
+    if (delta > 1e-5) {
+      const step = Math.min(delta, maxStepUp);
+      position.y = step === delta ? targetY : position.y + step;
+    } else if (delta < -1e-5) {
+      const step = Math.max(delta, -maxDrop);
+      position.y = step === delta ? targetY : position.y + step;
+    } else {
+      position.y = targetY;
+    }
+    state.vy = 0;
+    state.lastGoodY = groundY;
+    return true;
+  }
 
-    RAYCASTER.ray.origin.copy(RAY_ORIGIN);
-    RAYCASTER.ray.direction.copy(DOWN);
-    RAYCASTER.near = 0;
-    RAYCASTER.far = Math.max(5, 1.2 + stepMax + hover + Math.abs(vy * 0.5));
-
-    const intersections = RAYCASTER.intersectObjects(meshes, false);
-    const hit = chooseHit(intersections);
-
-    if (hit) {
-      const hitY = hit.point.y;
-      const delta = hitY - predictedY;
-      if (Math.abs(delta) <= stepMax) {
-        position.y = hitY + hover;
-        state.vy = 0;
-        state.lastGoodY = hitY;
-        return true;
-      }
+  if (dt > 0 && Number.isFinite(gravity) && gravity > 0) {
+    state.vy += gravity * dt;
+    const fallDistance = state.vy * dt;
+    if (Number.isFinite(fallDistance) && fallDistance > 0) {
+      const limit = maxDrop > 0 ? maxDrop : fallDistance;
+      position.y -= Math.min(fallDistance, limit);
     }
   }
 
-  position.y = predictedY;
-  state.vy = vy;
-
   const lastGoodY = Number.isFinite(state.lastGoodY) ? state.lastGoodY : position.y;
-  if (lastGoodY - position.y > 2) {
+  if (lastGoodY - position.y > maxDrop + hover) {
     position.y = lastGoodY + hover;
     state.vy = 0;
     state.lastGoodY = lastGoodY;

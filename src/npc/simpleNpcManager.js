@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
 import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
+import { ensureFeetAtLocalZero, placeOnGround } from '../utils/spawn.ts';
 
 const tempDirection = new THREE.Vector3();
 const flatDirection = new THREE.Vector3();
@@ -89,6 +90,13 @@ export function createNpcManager(scene, initialGroundMeshes = [], { colliders: i
   const spawn = ({ object3d, waypoints, walkSpeed = 1.6, accel = 5.0, turn = 0.18 } = {}) => {
     const npcObject = object3d || buildPlaceholderNpc();
     npcObject.userData.isNpc = true;
+    ensureFeetAtLocalZero(npcObject);
+
+    const spawnClearance = 0.03;
+    const groundTarget = groundMeshes.length ? groundMeshes : scene;
+    if (groundTarget) {
+      placeOnGround(npcObject, groundTarget, { clearance: spawnClearance });
+    }
 
     const path = normalizeWaypoints(waypoints);
     if (path.length === 0) {
@@ -105,7 +113,7 @@ export function createNpcManager(scene, initialGroundMeshes = [], { colliders: i
       velocity: new THREE.Vector3(),
       physics: {
         vy: 0,
-        lastGoodY: npcObject.position?.y ?? 0
+        lastGoodY: (npcObject.position?.y ?? 0) - spawnClearance
       },
       yaw: deriveYaw(npcObject),
       capsule: new Capsule(0.4, 1.5),
