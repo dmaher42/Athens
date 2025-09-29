@@ -6,7 +6,7 @@ import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
 import { createFollowCamera } from '../camera/followCamera.js';
-import { sanitizeObjectPosition, safeNumber } from '../utils/sanitize';
+import { sanitizeObjectPosition, sanitizeVec3 } from '../utils/sanitize';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
 import { createNpcManager } from '../npc/simpleNpcManager.js';
@@ -32,6 +32,8 @@ type StatsHandle = {
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 const DEFAULT_BACKGROUND_HEX = 0x202834;
+const DEFAULT_PLAYER = { x: 0, y: 1, z: 0 } as const;
+const DEFAULT_CAMERA = { x: 20, y: 12, z: 20 } as const;
 
 let stats: StatsHandle | null = null;
 let statsVisible = true;
@@ -149,6 +151,7 @@ export async function runAthens(options: RunOptions = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+  renderer.setClearAlpha(1.0);
   renderer.setPixelRatio(Math.min((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1, 2));
 
   const { width: initialWidth, height: initialHeight } = computeSize(container);
@@ -176,21 +179,23 @@ export async function runAthens(options: RunOptions = {}) {
   scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
 
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
-  camera.position.set(90, 110, 180);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  camera.position.set(DEFAULT_CAMERA.x, DEFAULT_CAMERA.y, DEFAULT_CAMERA.z);
+  sanitizeVec3(camera.position, DEFAULT_CAMERA);
 
-  {
-    camera.position.set(
-      safeNumber(camera.position.x, 20),
-      safeNumber(camera.position.y, 12),
-      safeNumber(camera.position.z, 20)
-    );
+  const canvas = renderer.domElement;
+  if (canvas?.clientWidth && canvas?.clientHeight) {
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
   }
 
   if (typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search);
+    const globalWindow = window as typeof window & { __athensDebug?: unknown };
+    globalWindow.THREE = THREE;
+    globalWindow.__athensDebug = { scene, camera, renderer };
+
+    const params = new URLSearchParams(globalWindow.location.search);
     if (params.get('headlessSmoke') === '1') {
-      (window as any).__athensDebug = { renderer, scene, camera };
+      (globalWindow as any).__athensDebug = { renderer, scene, camera };
     }
   }
 
@@ -334,12 +339,20 @@ export async function runAthens(options: RunOptions = {}) {
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
 
-  const playerObject = createPlaceholderPlayer();
-  scene.add(playerObject);
-  {
-    const player = scene.getObjectByName('MainCharacter') || scene.getObjectByName('Player');
-    sanitizeObjectPosition(player, { x: 0, y: 1, z: 0 });
+  const existingPlayer =
+    scene.getObjectByName('MainCharacter') || scene.getObjectByName('Player');
+  const playerObject = existingPlayer ?? createPlaceholderPlayer();
+  playerObject.name = playerObject.name || 'MainCharacter';
+  if (!scene.getObjectByName(playerObject.name)) {
+    scene.add(playerObject);
   }
+
+  sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+  sanitizeVec3(camera.position, DEFAULT_CAMERA);
+
+  const initialTarget = playerObject.position;
+  sanitizeVec3(initialTarget, DEFAULT_PLAYER);
+  camera.lookAt(initialTarget);
   if (groundMeshes.length) {
     const initialState = { vy: 0, lastGoodY: playerObject.position.y };
     snapToGround(playerObject, groundMeshes, initialState, 0);
@@ -364,6 +377,9 @@ export async function runAthens(options: RunOptions = {}) {
     lookAtOffset: new THREE.Vector3(0, 1.5, 0)
   });
   followCamera.syncImmediate?.();
+  if ((followCamera as any)?.target) {
+    sanitizeVec3((followCamera as any).target, DEFAULT_PLAYER);
+  }
 
   const npcManager = createNpcManager(scene, groundMeshes, { colliders });
   npcManager.setGroundMeshes?.(groundMeshes);
@@ -444,20 +460,21 @@ export async function runAthens(options: RunOptions = {}) {
 
       // --- NaN guards (player & camera) ---
       {
-        const player = scene.getObjectByName('MainCharacter') || scene.getObjectByName('Player');
-        sanitizeObjectPosition(player, { x: 0, y: 1, z: 0 });
+        const player =
+          scene.getObjectByName('MainCharacter') ||
+          scene.getObjectByName('Player') ||
+          playerObject;
+        sanitizeObjectPosition(player, DEFAULT_PLAYER);
+        sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+        sanitizeVec3(camera.position, DEFAULT_CAMERA);
 
-        camera.position.set(
-          safeNumber(camera.position.x, 20),
-          safeNumber(camera.position.y, 12),
-          safeNumber(camera.position.z, 20)
-        );
+        if ((followCamera as any)?.target) {
+          sanitizeVec3((followCamera as any).target, DEFAULT_PLAYER);
+        }
 
-        const t = player?.position ?? { x: 0, y: 1, z: 0 };
-        const tx = safeNumber(t.x, 0);
-        const ty = safeNumber(t.y, 1);
-        const tz = safeNumber(t.z, 0);
-        camera.lookAt(tx, ty, tz);
+        const lookTarget = player?.position ?? playerObject.position;
+        sanitizeVec3(lookTarget, DEFAULT_PLAYER);
+        camera.lookAt(lookTarget);
       }
 
       renderer.render(scene, camera);
