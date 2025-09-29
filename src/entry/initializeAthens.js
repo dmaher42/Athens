@@ -14,6 +14,7 @@ import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { createGameLoop } from '../engine/loop.js';
+import { applySky } from '../scene/sky.ts';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
@@ -365,6 +366,8 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  const skyTask = applySky(scene, renderer);
+
   ensureLights(scene);
 
   statsReady
@@ -397,6 +400,10 @@ export async function initializeAthens(options = {}) {
       // placeholder for compatibility
     }
   };
+
+  await skyTask.catch((error) => {
+    console.warn('[Athens] applySky failed.', error);
+  });
 
   await setupGround(scene, renderer);
 
