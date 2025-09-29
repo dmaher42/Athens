@@ -161,6 +161,18 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       get() {
         return MODIFIER_KEYS.some((code) => isDown(code));
       }
+    },
+    lookX: {
+      enumerable: true,
+      get() {
+        return computeLook().x;
+      }
+    },
+    lookY: {
+      enumerable: true,
+      get() {
+        return computeLook().y;
+      }
     }
   });
 

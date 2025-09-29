@@ -760,7 +760,7 @@ export async function initializeAthens(options = {}) {
     });
   }
 
-  followCamera.update();
+  followCamera.update(keyboard, 0);
 
   // Resize
   const resizeHandler = () => {
@@ -832,7 +832,7 @@ export async function initializeAthens(options = {}) {
         skippedLargeDt: Boolean(skippedLargeDt)
       });
 
-      followCamera?.update?.();
+      followCamera?.update?.(keyboard, delta);
 
       const activePlayer = findPlayerObject() || playerObject;
       if (activePlayer?.position && !isFiniteVec3(activePlayer.position)) {
