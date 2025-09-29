@@ -1,0 +1,17 @@
+name: smoke-render
+on:
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+      - run: npx http-server dist -p 4173 -s &
+      - run: npx wait-on http://localhost:4173
+      - run: node scripts/smoke-render.js http://localhost:4173

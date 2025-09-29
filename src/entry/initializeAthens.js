@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-// Expose THREE globally for console-driven debugging
-if (typeof window !== 'undefined') window.THREE = THREE;
+if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { loadLandmarks } from '../landmarks-loader.js';
@@ -303,7 +302,7 @@ export async function initializeAthens(options = {}) {
 
   const { width: initialWidth, height: initialHeight } = computeContainerSize(container);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); // avoid page-white if background=null
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -321,7 +320,6 @@ export async function initializeAthens(options = {}) {
   scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
 
-  // Minimal debug hook for smoke tests / console
   if (typeof window !== 'undefined') {
     const params = new URLSearchParams(window.location.search);
     if (params.get('headlessSmoke') === '1') {
@@ -332,11 +330,6 @@ export async function initializeAthens(options = {}) {
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   scene.add(camera);
-
-  // Publish a lightweight debug context for DevTools
-  if (typeof window !== 'undefined') {
-    window.__athensDebug = { scene, camera, renderer };
-  }
 
   ensureLights(scene);
 
