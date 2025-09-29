@@ -12,7 +12,9 @@
     "build": "npm run generate:assets && node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
     "preview": "vite preview",
     "test": "node --test",
-    "html:no-ts": "./scripts/check-html-no-ts.sh"
+    "html:no-ts": "./scripts/check-html-no-ts.sh",
+    "serve:dist": "http-server dist -p 4173 -s",
+    "smoke": "node scripts/smoke-render.js http://localhost:4173"
   },
   "dependencies": {
     "cannon": "^0.6.2",
@@ -22,6 +24,8 @@
   "devDependencies": {
     "@gltf-transform/core": "^4.2.1",
     "rimraf": "^6.0.1",
-    "vite": "^5.4.0"
+    "vite": "^5.4.0",
+    "http-server": "^14.1.1",
+    "puppeteer": "^22.15.0"
   }
 }
