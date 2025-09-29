@@ -7,6 +7,7 @@ export type SkyChoice = {
   dir?: string;
   faces?: { px: string; nx: string; py: string; ny: string; pz: string; nz: string };
   file?: string;
+  aliases?: string[];
 };
 
 // Auto-discovered JPG panoramas available in this repo (scanned under assets/sky).
@@ -15,20 +16,23 @@ export const SKY_CHOICES: SkyChoice[] = [
   {
     id: 'day',
     type: 'equirect',
-    label: 'Daytime',
-    file: 'assets/sky/day.jpg'
+    label: 'Sunny Day',
+    file: 'assets/sky/day.jpg',
+    aliases: ['sunny-day', 'daytime', 'high-noon', 'noon', 'midday']
   },
   {
     id: 'dawn',
     type: 'equirect',
     label: 'Dawn',
-    file: 'assets/sky/dawn.jpg'
+    file: 'assets/sky/dawn.jpg',
+    aliases: ['sunrise']
   },
   {
     id: 'dusk',
     type: 'equirect',
     label: 'Dusk',
-    file: 'assets/sky/dusk.jpg'
+    file: 'assets/sky/dusk.jpg',
+    aliases: ['golden-hour', 'sunset', 'evening', 'goldenhour']
   },
   {
     id: 'blue-hour',
@@ -40,13 +44,15 @@ export const SKY_CHOICES: SkyChoice[] = [
     id: 'night',
     type: 'equirect',
     label: 'Night',
-    file: 'assets/sky/night.jpg'
+    file: 'assets/sky/night.jpg',
+    aliases: ['night-sky', 'starlit-night', 'midnight']
   },
   {
     id: 'night-4k',
     type: 'equirect',
     label: 'Night (4K)',
-    file: 'assets/sky/night_sky_4k.jpg'
+    file: 'assets/sky/night_sky_4k.jpg',
+    aliases: ['night-hires', 'night_sky_4k']
   }
 ];
 
@@ -59,21 +65,47 @@ function setTextureColorSpace(texture: THREE.Texture | THREE.CubeTexture) {
 }
 
 function baseURL(rel: string) {
-  if (/^https?:\/\//.test(rel)) {
-    return rel;
+  if (/^https?:\/\//.test(rel)) return rel;
+
+  const sanitized = rel.replace(/^\/+/, '');
+
+  if (typeof document !== 'undefined' && typeof document.baseURI === 'string') {
+    return new URL(sanitized, document.baseURI).toString();
   }
-  if (typeof window === 'undefined') {
-    return rel;
+
+  const baseFromImport = (import.meta as any)?.env?.BASE_URL;
+  if (typeof baseFromImport === 'string' && baseFromImport.length > 0) {
+    if (/^https?:\/\//.test(baseFromImport)) {
+      return new URL(sanitized, baseFromImport).toString();
+    }
+    const normalized = baseFromImport.endsWith('/') ? baseFromImport : `${baseFromImport}/`;
+    return `${normalized}${sanitized}`.replace(/^\/+/, '/');
   }
-  const baseHref = typeof document !== 'undefined' ? document.querySelector('base')?.getAttribute('href') : null;
-  const root = baseHref || window.location.pathname.replace(/[^/]*$/, '');
-  return new URL(rel, window.location.origin + root).toString();
+
+  if (typeof window !== 'undefined') {
+    const root = window.location.pathname.replace(/[^/]*$/, '');
+    return new URL(sanitized, window.location.origin + root).toString();
+  }
+
+  return sanitized;
 }
 
 export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, choice?: string) {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const id = (params?.get('sky')) || choice;
-  const pick = SKY_CHOICES.find((s) => s.id === id) || SKY_CHOICES[0];
+  const normalize = (value?: string | null) =>
+    value && typeof value === 'string'
+      ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      : null;
+
+  const requested = normalize(params?.get('sky') || choice || undefined);
+
+  const pick =
+    SKY_CHOICES.find((s) => {
+      const baseId = normalize(s.id);
+      if (requested && baseId === requested) return true;
+      return requested ? s.aliases?.some((alias) => normalize(alias) === requested) : false;
+    }) || SKY_CHOICES[0];
+
   if (!pick) {
     console.warn('[sky] No sky choices found.');
     return;
@@ -92,6 +124,7 @@ export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer
     const env = pmrem.fromCubemap(tex).texture;
     scene.environment = env;
     pmrem.dispose();
+
     if (typeof window !== 'undefined') {
       (window as typeof window & { __athensDebug?: any }).__athensDebug = {
         ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
@@ -104,19 +137,21 @@ export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer
   if (pick.type === 'equirect' && pick.file) {
     const loader = new THREE.TextureLoader();
     const tex = await new Promise<THREE.Texture>((resolve, reject) =>
-      loader.load(baseURL(pick.file!), resolve, undefined, reject)
+      loader.load(baseURL(pick.file), resolve, undefined, reject)
     );
     tex.mapping = THREE.EquirectangularReflectionMapping;
     setTextureColorSpace(tex);
     scene.background = tex;
+
     const pmrem = new THREE.PMREMGenerator(renderer);
     const env = pmrem.fromEquirectangular(tex).texture;
     scene.environment = env;
     pmrem.dispose();
+
     if (typeof window !== 'undefined') {
       (window as typeof window & { __athensDebug?: any }).__athensDebug = {
         ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
-        sky: { type: 'equirect', id: pick.id, file: baseURL(pick.file!) }
+        sky: { type: 'equirect', id: pick.id, file: baseURL(pick.file) }
       };
     }
     return;
