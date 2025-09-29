@@ -3,9 +3,6 @@ import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
 import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
 
-const WORLD_UP = new THREE.Vector3(0, 1, 0);
-const cameraForward = new THREE.Vector3();
-const cameraRight = new THREE.Vector3();
 const moveDirection = new THREE.Vector3();
 
 const targetVelocity = new THREE.Vector3();
@@ -14,6 +11,10 @@ const horizontalVector = new THREE.Vector3();
 const FORWARD = new THREE.Vector3(0, 0, 1);
 const moveDelta = new THREE.Vector3();
 const actualMove = new THREE.Vector3();
+
+const TURN_SPEED = 2.2;
+const TURN_ACCEL = 12;
+const TURN_DAMP = 10;
 
 function deriveYaw(object3d) {
   if (!object3d) return 0;
@@ -47,10 +48,23 @@ export function createPlayerController(
     lastGoodY: controlledObject?.position?.y ?? 0
   };
 
-  let desiredYaw = deriveYaw(controlledObject);
+  let yaw = deriveYaw(controlledObject);
+  let angularVelocity = 0;
   let runningState = false;
   let isFlying = false;
   let prevFlyKeyDown = false;
+
+  const debugControlsEnabled = (() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    try {
+      return new URLSearchParams(window.location.search).get('debugControls') === '1';
+    } catch {
+      return false;
+    }
+  })();
+  let debugLogTime = 0;
 
   if (controlledObject) {
     capsule.setPosition(
@@ -73,7 +87,8 @@ export function createPlayerController(
     controlledObject = nextObject;
     physicsState.vy = 0;
     physicsState.lastGoodY = controlledObject.position?.y ?? 0;
-    desiredYaw = deriveYaw(controlledObject);
+    yaw = deriveYaw(controlledObject);
+    angularVelocity = 0;
     capsule.setPosition(
       controlledObject.position.x,
       controlledObject.position.y,
@@ -106,39 +121,49 @@ export function createPlayerController(
       return;
     }
 
-    const dt = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
+    const dtRaw = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : NaN;
+    const dt = Number.isFinite(dtRaw) ? Math.min(dtRaw, 0.25) : 0;
+    const dtSafe = Number.isFinite(dtRaw) ? dt : 1 / 60;
 
-    // Camera basis (flat)
-    camera.getWorldDirection(cameraForward);
-    cameraForward.y = 0;
-    if (cameraForward.lengthSq() < 1e-6) {
-      cameraForward.set(0, 0, -1);
-    } else {
-      cameraForward.normalize();
+    // Turn control (yaw)
+    const turnInputRaw = currentKeyboard.axis?.turn;
+    const turnInput = Number.isFinite(turnInputRaw) ? turnInputRaw : 0;
+    const targetAngularVelocity = turnInput * TURN_SPEED;
+    const turnLerp = 1 - Math.exp(-TURN_ACCEL * dtSafe);
+    angularVelocity += (targetAngularVelocity - angularVelocity) * turnLerp;
+    angularVelocity *= Math.exp(-TURN_DAMP * dtSafe);
+    if (!Number.isFinite(angularVelocity)) {
+      angularVelocity = 0;
     }
-    cameraRight.copy(cameraForward).cross(WORLD_UP).normalize();
 
-    // Input
-    const axisX = currentKeyboard.axis?.x || 0;
+    yaw += angularVelocity * dtSafe;
+    if (!Number.isFinite(yaw)) {
+      yaw = 0;
+    } else {
+      yaw = THREE.MathUtils.euclideanModulo(yaw + Math.PI, Math.PI * 2) - Math.PI;
+    }
+
+    // Input (forward/back)
     const axisZ = currentKeyboard.axis?.z || 0;
-    const hasInput = axisX !== 0 || axisZ !== 0;
-
-    moveDirection.set(0, 0, 0);
-    if (axisZ !== 0) moveDirection.addScaledVector(cameraForward, -axisZ);
-    if (axisX !== 0) moveDirection.addScaledVector(cameraRight, axisX);
-    if (moveDirection.lengthSq() > 1e-6) moveDirection.normalize();
+    const hasMoveInput = axisZ !== 0;
 
     // Speed target
     const shiftDown = Boolean(currentKeyboard.axis?.running);
     const effectiveRunMultiplier = shiftDown ? Math.max(runMultiplier, 1) : 1;
     const baseSpeed = Number.isFinite(walkSpeed) ? walkSpeed : 4.0;
-    const targetSpeed = hasInput ? baseSpeed * effectiveRunMultiplier : 0;
-    runningState = hasInput && shiftDown && targetSpeed > baseSpeed;
+    const targetSpeed = hasMoveInput ? baseSpeed * effectiveRunMultiplier : 0;
+    runningState = hasMoveInput && shiftDown && targetSpeed > baseSpeed;
 
-    if (hasInput) {
-      targetVelocity.copy(moveDirection).multiplyScalar(targetSpeed);
-    } else {
-      targetVelocity.set(0, 0, 0);
+    targetVelocity.set(0, 0, 0);
+    if (hasMoveInput) {
+      moveDirection.set(Math.sin(yaw), 0, Math.cos(yaw));
+      if (moveDirection.lengthSq() < 1e-6) {
+        moveDirection.set(0, 0, 1);
+      } else {
+        moveDirection.normalize();
+      }
+      const forwardMagnitude = THREE.MathUtils.clamp(-axisZ, -1, 1);
+      targetVelocity.addScaledVector(moveDirection, forwardMagnitude * targetSpeed);
     }
 
     if (isFlying) {
@@ -188,12 +213,16 @@ export function createPlayerController(
       }
     }
 
-    // Face move direction smoothly
-    horizontalVector.copy(actualMove.lengthSq() > 0 ? actualMove : velocity);
-    horizontalVector.y = 0;
-    if (horizontalVector.lengthSq() > 1e-6) {
-      horizontalVector.normalize();
-      desiredYaw = Math.atan2(horizontalVector.x, horizontalVector.z);
+    if (debugControlsEnabled && dtSafe > 0 && debugLogTime <= 2) {
+      debugLogTime += dtSafe;
+      if (debugLogTime <= 2) {
+        console.log('[controls]', {
+          turn: turnInput,
+          z: axisZ,
+          yaw,
+          angVel: angularVelocity
+        });
+      }
     }
 
     // Ground & upright stabilization
@@ -205,7 +234,7 @@ export function createPlayerController(
       controlledObject.position.y,
       controlledObject.position.z
     );
-    keepUpright(controlledObject, desiredYaw, Number.isFinite(turnLerp) ? turnLerp : 0.18);
+    keepUpright(controlledObject, yaw, 1);
   };
 
   return {
