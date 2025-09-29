@@ -30,6 +30,7 @@ import { AmbientAPI, AMBIENT_TRACKS, initAmbient } from '../audio/ambient';
 import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
+import { createMountainRim as createHorizonMountainRim } from '../horizon/mountainRim.js';
 
 type TransformState = {
   pos?: Partial<THREE.Vector3> | { x?: number | null; y?: number | null; z?: number | null } | null;
@@ -59,6 +60,16 @@ type StatsHandle = {
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 const DEFAULT_BACKGROUND_HEX = 0x202834;
+const HORIZON_QUERY_PARAM = 'horizon';
+const HORIZON_DEFAULT_ENABLED = true;
+const HORIZON_DEFAULT_OPTIONS = Object.freeze({
+  radius: 1100,
+  height: 75,
+  radialSegments: 192,
+  noise: 0.32,
+  seed: 7331,
+  color: 0x0f1d2d
+});
 
 let stats: StatsHandle | null = null;
 let statsVisible = true;
@@ -230,12 +241,50 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
+  const resolveHorizonEnabled = () => {
+    const override = searchParams?.get(HORIZON_QUERY_PARAM);
+    if (override == null) {
+      return HORIZON_DEFAULT_ENABLED;
+    }
+    const normalized = override.trim().toLowerCase();
+    if (!normalized) {
+      return HORIZON_DEFAULT_ENABLED;
+    }
+    if (normalized === '0' || normalized === 'false' || normalized === 'off' || normalized === 'no') {
+      return false;
+    }
+    if (normalized === '1' || normalized === 'true' || normalized === 'on' || normalized === 'yes') {
+      return true;
+    }
+    return HORIZON_DEFAULT_ENABLED;
+  };
+
+  let horizonRim: THREE.Mesh | null = null;
+  const applyHorizonVisibility = (enabled: boolean) => {
+    if (horizonRim) {
+      horizonRim.visible = enabled;
+    }
+    return enabled;
+  };
+
+  if (resolveHorizonEnabled()) {
+    try {
+      horizonRim = createHorizonMountainRim(HORIZON_DEFAULT_OPTIONS);
+      scene.add(horizonRim);
+      applyHorizonVisibility(true);
+    } catch (error) {
+      console.warn('[Athens][Boot] Failed to create horizon rim.', error);
+      horizonRim = null;
+    }
+  }
+
   await initAmbient(camera);
 
   if (globalWindow) {
     globalWindow.__athensDebug = {
       ...(globalWindow.__athensDebug || {}),
-      audioAPI: AmbientAPI
+      audioAPI: AmbientAPI,
+      horizonRim
     };
   }
 
@@ -394,6 +443,7 @@ export async function runAthens(options: RunOptions = {}) {
     const normalized = Boolean(enabled);
     scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
     renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    applyHorizonVisibility(normalized || resolveHorizonEnabled());
     return normalized;
   };
 
@@ -767,6 +817,8 @@ export async function runAthens(options: RunOptions = {}) {
     npcManager,
     audio,
     footsteps,
+    horizonRim,
+    setHorizonVisible: (visible: boolean) => applyHorizonVisibility(Boolean(visible)),
     setAmbience(mode: string) {
       return applyAmbientForMode(mode, true);
     },
