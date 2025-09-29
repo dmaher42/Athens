@@ -13,8 +13,7 @@
     "preview": "vite preview",
     "test": "node --test",
     "html:no-ts": "./scripts/check-html-no-ts.sh",
-    "serve:dist": "http-server dist -p 4173 -s",
-    "smoke": "node scripts/smoke-render.js http://localhost:4173"
+    "serve:dist": "http-server dist -p 4173 -s"
   },
   "dependencies": {
     "cannon": "^0.6.2",
