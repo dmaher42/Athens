@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { applySky } from '../scene/sky.ts';
 
 export function createSafeScene(canvasSelector = 'canvas') {
   const canvas = typeof document !== 'undefined' ? document.querySelector(canvasSelector) : null;
@@ -6,6 +7,7 @@ export function createSafeScene(canvasSelector = 'canvas') {
   renderer.setPixelRatio(Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2));
   renderer.setSize(typeof window !== 'undefined' ? window.innerWidth : 1, typeof window !== 'undefined' ? window.innerHeight : 1, false);
   renderer.setClearColor(0x202834, 1);
+  renderer.setClearAlpha(1);
   renderer.domElement.style.width = '100%';
   renderer.domElement.style.height = '100%';
   renderer.domElement.style.display = 'block';
@@ -16,6 +18,15 @@ export function createSafeScene(canvasSelector = 'canvas') {
   const camera = new THREE.PerspectiveCamera(60, (typeof window !== 'undefined' ? window.innerWidth : 1) / (typeof window !== 'undefined' ? window.innerHeight || 1 : 1), 0.1, 2000);
   camera.position.set(0, 3.5, 7);
   scene.add(camera);
+
+  let skyReady = false;
+  applySky(scene, renderer)
+    .catch((error) => {
+      console.warn('[safeEntry] applySky failed.', error);
+    })
+    .finally(() => {
+      skyReady = true;
+    });
 
   const ambient = new THREE.AmbientLight(0xffffff, 0.35);
   scene.add(ambient);
@@ -53,6 +64,9 @@ export function createSafeScene(canvasSelector = 'canvas') {
   };
 
   const render = () => {
+    if (!skyReady) {
+      return;
+    }
     renderer.render(scene, camera);
   };
 

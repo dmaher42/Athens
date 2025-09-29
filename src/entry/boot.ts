@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
+import { applySky } from '../scene/sky.ts';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -220,6 +221,8 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
+  const skyTask = applySky(scene, renderer);
+
   const audio = new AudioManager(camera, { masterVolume: 0.9 });
 
   const resumeAudioContext = () => {
@@ -302,6 +305,10 @@ export async function runAthens(options: RunOptions = {}) {
       console.warn('[Athens][Boot] setEnvironment failed', error);
     }
   }
+
+  await skyTask.catch((error) => {
+    console.warn('[Athens][Boot] applySky failed', error);
+  });
 
   if (typeof setupGround === 'function') {
     try {
