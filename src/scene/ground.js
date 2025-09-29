@@ -31,6 +31,7 @@ function ensureWindowGroundAccessor(groundLayers) {
   window.showGround = () => {
     if (groundLayers?.dirt) groundLayers.dirt.visible = true;
     if (groundLayers?.grass) groundLayers.grass.visible = true;
+    if (groundLayers?.foundationBlend) groundLayers.foundationBlend.visible = true;
   };
 }
 

@@ -100,6 +100,11 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
   return texture;
 }
 
+export function createSharedDirtTexture({ repeat, anisotropy } = {}) {
+  const baseTexture = loadBaseTexture();
+  return configureTexture(baseTexture, { repeat, anisotropy });
+}
+
 export function createDirtGround({
   size = 200,
   repeat = 16,
