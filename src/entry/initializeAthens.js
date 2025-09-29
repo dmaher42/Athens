@@ -884,6 +884,8 @@ export async function initializeAthens(options = {}) {
         }
       }
 
+      keyboard?.update?.();
+
       const npcContext = { groundMeshes, skippedLargeDt: Boolean(skippedLargeDt) };
       mainCharacter?.update?.(delta, npcContext);
       npcManager?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
