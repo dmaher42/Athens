@@ -5,7 +5,6 @@ if (typeof window !== 'undefined') {
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
-import { createTimeSky, setTimeOfDay, setSkyEnabled } from '../sky/timeSky.js';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -34,6 +33,8 @@ type StatsHandle = {
 };
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
+
+const DEFAULT_BACKGROUND_HEX = 0x202834;
 
 let stats: StatsHandle | null = null;
 let statsVisible = true;
@@ -158,6 +159,7 @@ export async function runAthens(options: RunOptions = {}) {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
+  renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
   renderer.setPixelRatio(Math.min((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1, 2));
 
   const { width: initialWidth, height: initialHeight } = computeSize(container);
@@ -186,7 +188,7 @@ export async function runAthens(options: RunOptions = {}) {
     });
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#8fbcd4');
+  scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
 
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
   camera.position.set(90, 110, 180);
@@ -304,12 +306,6 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
-  try {
-    await createTimeSky(renderer, scene, environmentMode);
-  } catch (error) {
-    console.warn('[Athens][Boot] createTimeSky failed', error);
-  }
-
   if (typeof setupGround === 'function') {
     try {
       await setupGround(scene, renderer);
@@ -336,23 +332,10 @@ export async function runAthens(options: RunOptions = {}) {
   };
 
   const handleTimeOfDay = (mode: string) => {
-    const fallback = typeof mode === 'string' ? mode : 'day';
+    const fallback = typeof mode === 'string' && mode ? mode : 'day';
     currentAmbienceMode = fallback;
     applyAmbienceForMode(fallback);
-    const result = setTimeOfDay(fallback);
-    if (result && typeof (result as Promise<unknown>).then === 'function') {
-      (result as Promise<string | null>)
-        .then((resolved) => {
-          const normalized = resolved && typeof resolved === 'string' ? resolved : fallback;
-          applyAmbienceForMode(normalized);
-          return normalized;
-        })
-        .catch((error) => {
-          console.warn('[Athens][Boot] setTimeOfDay failed', error);
-          applyAmbienceForMode(fallback);
-        });
-    }
-    return result;
+    return fallback;
   };
 
   const handleVolume = (value: number) => {
@@ -363,7 +346,10 @@ export async function runAthens(options: RunOptions = {}) {
   };
 
   const handleSkyEnabled = (enabled: boolean) => {
-    setSkyEnabled(Boolean(enabled));
+    const normalized = Boolean(enabled);
+    scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    return normalized;
   };
 
   applyQualityPreset('high');
