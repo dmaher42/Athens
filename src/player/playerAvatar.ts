@@ -76,7 +76,6 @@ function prepareClipMap(clips: THREE.AnimationClip[]): AnimationClipMap {
     if (hit) resolved[state] = hit;
   });
 
-  // Fill gaps with sensible fallbacks and log once
   const ensureFallback = (state: PlayerAnimationState, order: PlayerAnimationState[]) => {
     if (!resolved[state]) {
       for (const candidate of order) {
@@ -149,7 +148,7 @@ export async function loadPlayerAvatar(options: LoadPlayerAvatarOptions = {}): P
   const root = (gltf.scene || (Array.isArray(gltf.scenes) && gltf.scenes[0])) as THREE.Object3D | null;
   if (!root) throw new Error('GLTF did not include a scene graph.');
 
-  // Clone properly for skinned meshes
+  // Proper clone for skinned meshes
   const object = (SkeletonUtils.clone(root) as THREE.Object3D) || root.clone(true);
   object.name = 'MainCharacter';
   object.position.set(0, 0, 0);
