@@ -282,6 +282,8 @@ function findNeighborForDirection(instances, tile, direction) {
 }
 
 function applyElevationSkirts(instances) {
+  const records = [];
+
   instances.forEach((tile) => {
     if (!tile?.dirtGroup || !tile.bounds) return;
 
@@ -333,8 +335,36 @@ function applyElevationSkirts(instances) {
       }
 
       tile.dirtGroup.add(mesh);
+
+      const topLocalY = bottomLocal + height;
+      const topLocal = direction.axis === 'x'
+        ? new THREE.Vector3(centerAxisLocal, topLocalY, centerPerpLocal)
+        : new THREE.Vector3(centerPerpLocal, topLocalY, centerAxisLocal);
+      const bottomLocalVec = direction.axis === 'x'
+        ? new THREE.Vector3(centerAxisLocal, bottomLocal, centerPerpLocal)
+        : new THREE.Vector3(centerPerpLocal, bottomLocal, centerAxisLocal);
+
+      const record = {
+        mesh,
+        tileIndex: tile.index,
+        neighborIndex: neighbor.index,
+        direction: direction.key,
+        height,
+        tileSurface,
+        neighborSurface,
+        topLocal,
+        bottomLocal: bottomLocalVec,
+      };
+
+      tile.skirts = tile.skirts || [];
+      tile.skirts.push(record);
+      mesh.userData = mesh.userData || {};
+      mesh.userData.groundSkirt = record;
+      records.push(record);
     });
   });
+
+  return records;
 }
 
 function getFoundationBlendRingMaterial({ repeat, anisotropy }) {
@@ -397,8 +427,16 @@ function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
  *
  * Tile definitions may specify `disableUnderBuilding` to suppress dirt/grass meshes and
  * `addFoundationBlendRing` to render a subtle inset ring around pads.
- * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group, foundationBlend: THREE.Group }}
- */
+ * @returns {{
+ *   root: THREE.Group,
+ *   dirt: THREE.Group,
+ *   grass: THREE.Group,
+ *   foundationBlend: THREE.Group,
+ *   tiles: Array,
+ *   skirts: Array,
+ *   config: { preventTileSeams: boolean, stabilizeTileOverlap: boolean, addElevationSkirts: boolean }
+ * }}
+*/
 export function createGroundLayered({
   dirtOptions = {},
   grassOptions = {},
@@ -542,15 +580,32 @@ export function createGroundLayered({
       coverageSize,
       surfaceY,
       bounds,
+      skirts: [],
     });
   });
 
-  if (addElevationSkirts) {
-    applyElevationSkirts(tileInstances);
-  }
+  const skirtRecords = addElevationSkirts ? applyElevationSkirts(tileInstances) : [];
 
   dirtLayer.visible = !!showDirt;
   grassLayer.visible = !!showGrass;
 
-  return { root, dirt: dirtLayer, grass: grassLayer, foundationBlend: foundationLayer };
+  const config = {
+    preventTileSeams: enableSeamPrevention,
+    stabilizeTileOverlap: enableTileStabilization,
+    addElevationSkirts: !!addElevationSkirts,
+  };
+
+  root.userData = root.userData || {};
+  root.userData.tileInstances = tileInstances;
+  root.userData.groundConfig = config;
+
+  return {
+    root,
+    dirt: dirtLayer,
+    grass: grassLayer,
+    foundationBlend: foundationLayer,
+    tiles: tileInstances,
+    skirts: skirtRecords,
+    config,
+  };
 }
