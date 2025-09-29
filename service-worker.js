@@ -1,7 +1,7 @@
 // ---- service-worker.js ----
 
 // Bump this whenever you change the SW to force an update
-const CACHE_NAME = 'athens-static-v6';
+const CACHE_NAME = 'athens-static-v7';
 
 // Optional pre-cache list (can stay empty for GH Pages)
 const PRECACHE_URLS = [];

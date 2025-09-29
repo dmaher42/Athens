@@ -23,43 +23,77 @@ let fallbackActive = false;
 let fallbackLoop = null;
 let fallbackScene = null;
 let fallbackRoot = null;
+let fallbackInitTask = null;
 
 const ensureFallback = () => {
-  if (fallbackActive || typeof document === 'undefined') {
-    return;
+  if (fallbackActive || fallbackInitTask || typeof document === 'undefined') {
+    return fallbackInitTask;
   }
   if (!document.body) {
-    document.addEventListener('DOMContentLoaded', ensureFallback, { once: true });
-    return;
+    const handleReady = () => {
+      document.removeEventListener('DOMContentLoaded', handleReady);
+      ensureFallback();
+    };
+    document.addEventListener('DOMContentLoaded', handleReady, { once: true });
+    return null;
   }
 
-  fallbackActive = true;
-  fallbackRoot = document.createElement('div');
-  fallbackRoot.id = 'athens-fallback-root';
-  fallbackRoot.style.cssText =
-    'position:fixed;inset:0;z-index:9998;pointer-events:none;display:flex;align-items:center;justify-content:center;background:#202834;';
-  document.body.appendChild(fallbackRoot);
+  fallbackInitTask = (async () => {
+    fallbackActive = true;
+    fallbackRoot = document.createElement('div');
+    fallbackRoot.id = 'athens-fallback-root';
+    fallbackRoot.style.cssText =
+      'position:fixed;inset:0;z-index:9998;pointer-events:none;display:flex;align-items:center;justify-content:center;background:#202834;';
+    document.body.appendChild(fallbackRoot);
 
-  fallbackScene = createSafeScene();
-  const canvas = fallbackScene.renderer?.domElement;
-  if (canvas) {
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.pointerEvents = 'none';
-    fallbackRoot.appendChild(canvas);
-  }
-
-  fallbackLoop = startGameLoop({
-    update: (dt) => {
-      fallbackScene?.update?.(dt);
-    },
-    render: () => {
-      fallbackScene?.render?.();
+    try {
+      fallbackScene = await createSafeScene();
+    } catch (error) {
+      console.warn('[Athens] Failed to initialize fallback scene.', error);
+      fallbackActive = false;
+      if (fallbackRoot?.parentNode) {
+        fallbackRoot.parentNode.removeChild(fallbackRoot);
+      }
+      fallbackRoot = null;
+      return;
     }
-  });
+
+    const canvas = fallbackScene.renderer?.domElement;
+    if (canvas) {
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.pointerEvents = 'none';
+      fallbackRoot.appendChild(canvas);
+    }
+
+    fallbackLoop = startGameLoop({
+      update: (dt) => {
+        fallbackScene?.update?.(dt);
+      },
+      render: () => {
+        fallbackScene?.render?.();
+      }
+    });
+  })()
+    .catch((error) => {
+      console.warn('[Athens] Fallback initialization failed.', error);
+    })
+    .finally(() => {
+      fallbackInitTask = null;
+    });
+
+  return fallbackInitTask;
 };
 
 const teardownFallback = () => {
+  if (fallbackInitTask) {
+    fallbackInitTask
+      .catch(() => {})
+      .finally(() => {
+        teardownFallback();
+      });
+    return;
+  }
   if (!fallbackActive) {
     return;
   }
@@ -74,7 +108,10 @@ const teardownFallback = () => {
   fallbackRoot = null;
 };
 
-ensureFallback();
+const initialFallbackTask = ensureFallback();
+if (initialFallbackTask) {
+  initialFallbackTask.catch(() => {});
+}
 
 async function waitForDomReady() {
   if (typeof document === 'undefined') {

@@ -1,126 +1,115 @@
 import * as THREE from 'three';
 
-export type SkyChoice = {
-  id: string;
-  type: 'cube' | 'equirect';
-  label: string;
-  dir?: string;
-  faces?: { px: string; nx: string; py: string; ny: string; pz: string; nz: string };
-  file?: string;
-};
+export type SkyChoice =
+  | {
+      id: string;
+      type: 'cube';
+      label: string;
+      dir: string;
+      faces: {
+        px: string;
+        nx: string;
+        py: string;
+        ny: string;
+        pz: string;
+        nz: string;
+      };
+    }
+  | {
+      id: string;
+      type: 'equirect';
+      label: string;
+      file: string;
+    };
 
-// Auto-discovered JPG panoramas available in this repo (scanned under assets/sky).
-// These provide ready-to-use photographic skies when served from GitHub Pages or local builds.
 export const SKY_CHOICES: SkyChoice[] = [
-  {
-    id: 'day',
-    type: 'equirect',
-    label: 'Daytime',
-    file: 'assets/sky/day.jpg'
-  },
-  {
-    id: 'dawn',
-    type: 'equirect',
-    label: 'Dawn',
-    file: 'assets/sky/dawn.jpg'
-  },
-  {
-    id: 'dusk',
-    type: 'equirect',
-    label: 'Dusk',
-    file: 'assets/sky/dusk.jpg'
-  },
-  {
-    id: 'blue-hour',
-    type: 'equirect',
-    label: 'Blue Hour',
-    file: 'assets/sky/blue_hour.jpg'
-  },
-  {
-    id: 'night',
-    type: 'equirect',
-    label: 'Night',
-    file: 'assets/sky/night.jpg'
-  },
-  {
-    id: 'night-4k',
-    type: 'equirect',
-    label: 'Night (4K)',
-    file: 'assets/sky/night_sky_4k.jpg'
-  }
+  { id: 'blue-hour', type: 'equirect', label: 'Blue Hour', file: 'assets/sky/blue_hour.jpg' },
+  { id: 'dawn', type: 'equirect', label: 'Dawn Gradient', file: 'assets/sky/dawn.jpg' },
+  { id: 'day', type: 'equirect', label: 'Day Gradient', file: 'assets/sky/day.jpg' },
+  { id: 'dusk', type: 'equirect', label: 'Dusk Gradient', file: 'assets/sky/dusk.jpg' },
+  { id: 'golden-hour', type: 'equirect', label: 'Golden Hour', file: 'assets/sky/golden_hour.jpg' },
+  { id: 'high-noon', type: 'equirect', label: 'High Noon', file: 'assets/sky/high_noon.jpg' },
+  { id: 'night', type: 'equirect', label: 'Night Gradient', file: 'assets/sky/night.jpg' },
+  { id: 'night-sky', type: 'equirect', label: 'Night Sky', file: 'assets/sky/night_sky.jpg' },
+  { id: 'night-sky-4k', type: 'equirect', label: 'Night Sky 4K', file: 'assets/sky/night_sky_4k.jpg' },
+  { id: 'dirt', type: 'equirect', label: 'Dirt (Test HDRI)', file: 'assets/sky/dirt.jpg' },
+  { id: 'marble', type: 'equirect', label: 'Marble (Test HDRI)', file: 'assets/sky/marble.jpg' },
+  { id: 'roof-tiles', type: 'equirect', label: 'Roof Tiles (Test HDRI)', file: 'assets/sky/roof_tiles.jpg' }
 ];
 
-function setTextureColorSpace(texture: THREE.Texture | THREE.CubeTexture) {
-  if ('colorSpace' in texture) {
-    (texture as THREE.Texture).colorSpace = THREE.SRGBColorSpace;
-  } else {
-    (texture as THREE.Texture).encoding = THREE.sRGBEncoding;
-  }
-}
-
 function baseURL(rel: string) {
-  if (/^https?:\/\//.test(rel)) {
-    return rel;
-  }
-  if (typeof window === 'undefined') {
-    return rel;
-  }
-  const baseHref = typeof document !== 'undefined' ? document.querySelector('base')?.getAttribute('href') : null;
-  const root = baseHref || window.location.pathname.replace(/[^/]*$/, '');
-  return new URL(rel, window.location.origin + root).toString();
+  return new URL(rel, document.baseURI).toString();
 }
 
-export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, choice?: string) {
-  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const id = (params?.get('sky')) || choice;
-  const pick = SKY_CHOICES.find((s) => s.id === id) || SKY_CHOICES[0];
-  if (!pick) {
+function disposeExistingEnvironment(scene: THREE.Scene) {
+  const current = scene.environment;
+  if (current && typeof (current as THREE.Texture).dispose === 'function') {
+    (current as THREE.Texture).dispose();
+  }
+}
+
+export async function applySky(
+  scene: THREE.Scene,
+  renderer: THREE.WebGLRenderer,
+  choiceId?: string
+) {
+  const previousBackground = scene.background as THREE.Texture | THREE.Color | null;
+  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const id = choiceId || params.get('sky') || SKY_CHOICES[0]?.id;
+  const choice = SKY_CHOICES.find((s) => s.id === id) || SKY_CHOICES[0];
+  if (!choice) {
     console.warn('[sky] No sky choices found.');
     return;
   }
 
-  if (pick.type === 'cube' && pick.dir && pick.faces) {
-    const loader = new THREE.CubeTextureLoader();
-    const order = [pick.faces.px, pick.faces.nx, pick.faces.py, pick.faces.ny, pick.faces.pz, pick.faces.nz]
-      .map((n) => baseURL(`${pick.dir}${n}`));
-    const tex = await new Promise<THREE.CubeTexture>((resolve, reject) =>
-      loader.load(order, resolve, undefined, reject)
-    );
-    setTextureColorSpace(tex);
-    scene.background = tex;
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    const env = pmrem.fromCubemap(tex).texture;
-    scene.environment = env;
-    pmrem.dispose();
-    if (typeof window !== 'undefined') {
-      (window as typeof window & { __athensDebug?: any }).__athensDebug = {
-        ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
-        sky: { type: 'cube', id: pick.id, files: order }
-      };
+  (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace ?? (renderer as any).outputColorSpace;
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+
+  try {
+    if (choice.type === 'cube') {
+      const order = [choice.faces.px, choice.faces.nx, choice.faces.py, choice.faces.ny, choice.faces.pz, choice.faces.nz].map(
+        (f) => baseURL(`${choice.dir}${f}`)
+      );
+      const tex = await new Promise<THREE.CubeTexture>((resolve, reject) => {
+        new THREE.CubeTextureLoader().load(order, (texture) => resolve(texture), undefined, (error) => reject(error));
+      });
+      (tex as any).colorSpace = (THREE as any).SRGBColorSpace ?? (tex as any).colorSpace;
+      scene.background = tex;
+      disposeExistingEnvironment(scene);
+      scene.environment = pmrem.fromCubemap(tex).texture;
+    } else {
+      const url = baseURL(choice.file);
+      const tex = await new Promise<THREE.Texture>((resolve, reject) => {
+        new THREE.TextureLoader().load(url, (texture) => resolve(texture), undefined, (error) => reject(error));
+      });
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      (tex as any).colorSpace = (THREE as any).SRGBColorSpace ?? (tex as any).colorSpace;
+      scene.background = tex;
+      disposeExistingEnvironment(scene);
+      scene.environment = pmrem.fromEquirectangular(tex).texture;
     }
-    return;
+  } catch (error) {
+    console.warn('[sky] Failed to apply sky environment.', error);
+  } finally {
+    pmrem.dispose();
   }
 
-  if (pick.type === 'equirect' && pick.file) {
-    const loader = new THREE.TextureLoader();
-    const tex = await new Promise<THREE.Texture>((resolve, reject) =>
-      loader.load(baseURL(pick.file!), resolve, undefined, reject)
-    );
-    tex.mapping = THREE.EquirectangularReflectionMapping;
-    setTextureColorSpace(tex);
-    scene.background = tex;
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    const env = pmrem.fromEquirectangular(tex).texture;
-    scene.environment = env;
-    pmrem.dispose();
-    if (typeof window !== 'undefined') {
-      (window as typeof window & { __athensDebug?: any }).__athensDebug = {
-        ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
-        sky: { type: 'equirect', id: pick.id, file: baseURL(pick.file!) }
-      };
-    }
-    return;
+  if (typeof window !== 'undefined') {
+    const globalWindow = window as typeof window & { __athensDebug?: Record<string, unknown> };
+    globalWindow.__athensDebug = { ...(globalWindow.__athensDebug || {}), sky: choice };
   }
 
-  console.warn('[sky] Invalid sky choice config:', pick);
+  const backgroundDisposable = previousBackground as unknown as { dispose?: () => void };
+  if (
+    previousBackground &&
+    previousBackground !== scene.background &&
+    typeof backgroundDisposable.dispose === 'function'
+  ) {
+    try {
+      backgroundDisposable.dispose?.();
+    } catch (error) {
+      console.warn('[sky] Failed to dispose previous background texture.', error);
+    }
+  }
 }
