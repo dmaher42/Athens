@@ -7,28 +7,66 @@ export type SkyChoice = {
   dir?: string;
   faces?: { px: string; nx: string; py: string; ny: string; pz: string; nz: string };
   file?: string;
+  aliases?: string[];
 };
 
 // Auto-discovered JPG panoramas available in this repo (scanned under public/assets/sky).
 // These provide ready-to-use photographic skies when served from GitHub Pages or local builds.
 export const SKY_CHOICES: SkyChoice[] = [
   {
-    id: 'night-sky',
+    id: 'day',
     type: 'equirect',
-    label: 'Night Sky',
-    file: 'assets/sky/night_sky.jpg'
+    label: 'Sunny Day',
+    file: 'assets/sky/day.jpg',
+    aliases: ['sunny-day', 'daytime', 'high-noon']
   },
   {
     id: 'high-noon',
     type: 'equirect',
     label: 'High Noon',
-    file: 'assets/sky/high_noon.jpg'
+    file: 'assets/sky/high_noon.jpg',
+    aliases: ['noon', 'midday']
   },
   {
     id: 'golden-hour',
     type: 'equirect',
     label: 'Golden Hour',
-    file: 'assets/sky/golden_hour.jpg'
+    file: 'assets/sky/golden_hour.jpg',
+    aliases: ['sunset', 'dusk', 'golden-hour']
+  },
+  {
+    id: 'blue-hour',
+    type: 'equirect',
+    label: 'Blue Hour',
+    file: 'assets/sky/blue_hour.jpg'
+  },
+  {
+    id: 'dawn',
+    type: 'equirect',
+    label: 'Dawn',
+    file: 'assets/sky/dawn.jpg',
+    aliases: ['sunrise']
+  },
+  {
+    id: 'dusk',
+    type: 'equirect',
+    label: 'Dusk',
+    file: 'assets/sky/dusk.jpg',
+    aliases: ['evening']
+  },
+  {
+    id: 'night',
+    type: 'equirect',
+    label: 'Night Sky',
+    file: 'assets/sky/night_sky.jpg',
+    aliases: ['night-sky', 'starlit-night']
+  },
+  {
+    id: 'night-4k',
+    type: 'equirect',
+    label: 'Night Sky (4K)',
+    file: 'assets/sky/night_sky_4k.jpg',
+    aliases: ['night-hires', 'night_sky_4k']
   }
 ];
 
@@ -44,18 +82,47 @@ function baseURL(rel: string) {
   if (/^https?:\/\//.test(rel)) {
     return rel;
   }
-  if (typeof window === 'undefined') {
-    return rel;
+
+  const sanitized = rel.replace(/^\/+/, '');
+
+  if (typeof document !== 'undefined' && typeof document.baseURI === 'string') {
+    return new URL(sanitized, document.baseURI).toString();
   }
-  const baseHref = typeof document !== 'undefined' ? document.querySelector('base')?.getAttribute('href') : null;
-  const root = baseHref || window.location.pathname.replace(/[^/]*$/, '');
-  return new URL(rel, window.location.origin + root).toString();
+
+  const baseFromImport = (import.meta as any)?.env?.BASE_URL;
+  if (typeof baseFromImport === 'string' && baseFromImport.length > 0) {
+    if (/^https?:\/\//.test(baseFromImport)) {
+      return new URL(sanitized, baseFromImport).toString();
+    }
+    const normalized = baseFromImport.endsWith('/') ? baseFromImport : `${baseFromImport}/`;
+    return `${normalized}${sanitized}`.replace(/^\/+/, '/');
+  }
+
+  if (typeof window !== 'undefined') {
+    const root = window.location.pathname.replace(/[^/]*$/, '');
+    return new URL(sanitized, window.location.origin + root).toString();
+  }
+
+  return sanitized;
 }
 
 export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer, choice?: string) {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const id = (params?.get('sky')) || choice;
-  const pick = SKY_CHOICES.find((s) => s.id === id) || SKY_CHOICES[0];
+  const normalize = (value?: string | null) =>
+    value && typeof value === 'string'
+      ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      : null;
+  const requested = normalize(params?.get('sky') || choice || undefined);
+  const pick =
+    SKY_CHOICES.find((s) => {
+      const baseId = normalize(s.id);
+      if (requested && baseId === requested) {
+        return true;
+      }
+      return requested
+        ? s.aliases?.some((alias) => normalize(alias) === requested)
+        : false;
+    }) || SKY_CHOICES[0];
   if (!pick) {
     console.warn('[sky] No sky choices found.');
     return;

@@ -110,6 +110,9 @@ export function createPlayerController(
       if (isFlying) {
         physicsState.vy = 0;
       }
+      if (typeof window !== 'undefined') {
+        console.debug('[controls] Fly toggle', isFlying ? 'ENABLED' : 'DISABLED');
+      }
     }
     prevFlyKeyDown = flyKeyDown;
     if (
@@ -189,6 +192,11 @@ export function createPlayerController(
     const accel = Number.isFinite(acceleration) ? Math.max(acceleration, 0) : 10;
     const lerpAlpha = accel > 0 && dt > 0 ? 1 - Math.exp(-accel * dt) : 1;
     velocity.lerp(targetVelocity, THREE.MathUtils.clamp(lerpAlpha, 0, 1));
+    if (isFlying) {
+      velocity.y = targetVelocity.y;
+    } else {
+      velocity.y = 0;
+    }
 
     // Integrate horizontal motion
     capsule.setPosition(
