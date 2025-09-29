@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath, URL } from 'node:url';
 
-export default defineConfig(({ mode }) => ({
-  base: '/Athens/',
+export default defineConfig(() => ({
+  base: process.env.GH_PAGES === '1' ? '/athens/' : '/',
   cacheDir: 'node_modules/.vite-athens',
   optimizeDeps: {
     force: true,

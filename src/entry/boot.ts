@@ -1,7 +1,4 @@
 import * as THREE from 'three';
-if (typeof window !== 'undefined') {
-  (window as any).THREE = THREE;
-}
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { setEnvironment } from '../scene/sky.js';
@@ -179,9 +176,11 @@ export async function runAthens(options: RunOptions = {}) {
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  // Optional debug hook for smoke tests / console
   if (typeof window !== 'undefined') {
-    (window as any).__athensDebug = { scene, camera, renderer };
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('headlessSmoke') === '1') {
+      (window as any).__athensDebug = { renderer, scene, camera };
+    }
   }
 
   const audio = new AudioManager(camera, { masterVolume: 0.9 });
@@ -259,8 +258,8 @@ export async function runAthens(options: RunOptions = {}) {
   if (typeof setEnvironment === 'function') {
     try {
       await setEnvironment(renderer, scene, environmentMode, {
-        enablePhotoSky: false,   // skip JPG dome while debugging
-        preserveBackground: true // keep background; avoid white flash
+        enablePhotoSky: false,
+        preserveBackground: true
       });
     } catch (error) {
       console.warn('[Athens][Boot] setEnvironment failed', error);

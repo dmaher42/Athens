@@ -1,64 +1,26 @@
-name: Deploy to GitHub Pages
-
+name: gh-pages
 on:
-  # Auto-deploy anytime code lands on main
   push:
-    branches: [ "main" ]
-  # Allow manual runs from the Actions tab
+    branches: [ main ]
   workflow_dispatch:
 
-# Required for GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Only one deploy at a time
-concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      # SAFETY CHECK: fail the build if any HTML tries to load a .ts file directly
-      # (This catches accidental merges that reference src/entry/landing.ts, etc.)
-      - name: Guardrail – no .ts in <script> src
-        run: |
-          set -e
-          # Scan common locations including the repo root
-          grep -RIn --include="*.html" -E '<script[^>]*type=["'\'']module["'\''][^>]*src=["'\''][^"'\''>]+\.ts["'\'']' . && \
-            { echo "::error::Found a <script type='module' src='... .ts'> in HTML. Use built JS instead."; exit 1; } || true
-
-      - name: Build site
-        # If your Vite config needs a base for GH Pages, make sure it's set there (likely already done)
-        run: npm run build
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - run: npm ci
+      - run: GH_PAGES=1 npm run build
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      - uses: actions/deploy-pages@v4
 
-  deploy:
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+# Notes:
+# - We set GH_PAGES=1 so vite.config uses base '/athens/'.
+# - Only 'dist' is published — dev HTML that imports node_modules is NOT deployed.
