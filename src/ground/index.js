@@ -13,16 +13,31 @@ export const GroundType = Object.freeze({
 
 const DEFAULT_TILE_GRID = Object.freeze({ columns: 5, rows: 5 });
 
+// Skirt tuning values (all expressed in world units unless otherwise noted).
+// Skirts are created when the height delta between tiles exceeds 3cm to avoid
+// clutter on nearly level tiles.
 const SKIRT_MIN_DELTA = 0.03;
+// Generated skirt quads are 2cm thick to sit just inside the tile bounds and
+// avoid z-fighting.
 const SKIRT_THICKNESS = 0.02;
+// Allow a small percentage of the tile size (0.5%) when considering two edges
+// to be aligned.
 const SKIRT_EDGE_TOLERANCE_RATIO = 0.005;
+// Clamp the edge alignment tolerance between 5cm and 2m so that both small and
+// large tiles behave consistently.
 const SKIRT_POSITION_TOLERANCE_MIN = 0.05;
 const SKIRT_POSITION_TOLERANCE_MAX = 2;
 
+// Blend ring configuration. Rings are offset by 3cm above the tile surface to
+// avoid z-fighting, are at least 25cm wide, and otherwise scale to 8% of the
+// tile size. We render 48 segments to provide a smooth circle.
 const FOUNDATION_BLEND_RING_OFFSET = 0.03;
 const FOUNDATION_BLEND_RING_WIDTH_RATIO = 0.08;
 const FOUNDATION_BLEND_RING_MIN_WIDTH = 0.25;
 const FOUNDATION_BLEND_RING_SEGMENTS = 48;
+
+const SKIRT_MATERIAL_CACHE = new WeakMap();
+const FOUNDATION_BLEND_RING_MATERIAL_CACHE = new Map();
 
 function toVector3(position) {
   if (position instanceof THREE.Vector3) {
@@ -235,24 +250,7 @@ export function createGroundLayered({
     defaultRepeat: resolvedDefaultRepeat,
   });
 
-  const tileInstances = tileDefinitions.map((tile, index) => ({
-    index,
-    definition: tile,
-    position: tile.position.clone(),
-    disableUnderBuilding: !!tile.disableUnderBuilding,
-    addFoundationBlendRing: tile.addFoundationBlendRing,
-    dirtGroup: null,
-    dirtMesh: null,
-    dirtHeight: 0,
-    dirtSize: undefined,
-    coverageSize: tile.size ?? resolvedDefaultSize,
-    surfaceY: tile.position.y,
-    bounds: null,
-  }));
-
-  tileDefinitions.forEach((tile, index) => {
-    const instance = tileInstances[index];
-
+  const tileInstances = tileDefinitions.map((tile, index) => {
     const fallbackSize = tile.size ?? resolvedDefaultSize;
     const fallbackRepeat = tile.repeat ?? resolvedDefaultRepeat;
 
@@ -272,19 +270,21 @@ export function createGroundLayered({
 
     const baseDirtHeight = typeof dirtConfig.height === 'number' ? dirtConfig.height : 0;
 
+    let dirtGroup = null;
+    let dirtMesh = null;
+    let dirtSize;
+    let surfaceY = tile.position.y + baseDirtHeight;
+
     if (!tile.disableUnderBuilding && tile.enableDirt) {
       const dirt = createDirtGround(dirtConfig);
       dirt.name = tile.dirtName ?? `ground:dirt:tile:${index}`;
       dirt.position.copy(tile.position);
       dirtLayer.add(dirt);
 
-      instance.dirtGroup = dirt;
-      instance.dirtMesh = dirt.children.find(child => child?.isMesh);
-      instance.dirtHeight = baseDirtHeight;
-      instance.dirtSize = dirtConfig.size;
-      instance.surfaceY = tile.position.y + baseDirtHeight;
-    } else {
-      instance.surfaceY = tile.position.y + baseDirtHeight;
+      dirtGroup = dirt;
+      dirtMesh = dirt.children.find(child => child?.isMesh) ?? null;
+      dirtSize = dirtConfig.size;
+      surfaceY = tile.position.y + baseDirtHeight;
     }
 
     if (!tile.disableUnderBuilding && tile.enableGrass) {
@@ -294,22 +294,22 @@ export function createGroundLayered({
       grassLayer.add(grass);
     }
 
-    instance.coverageSize = instance.dirtSize ?? fallbackSize ?? resolvedDefaultSize;
-    instance.bounds = computeTileBounds(tile.position, instance.coverageSize);
+    const coverageSize = dirtSize ?? fallbackSize ?? resolvedDefaultSize;
+    const bounds = computeTileBounds(tile.position, coverageSize);
 
     if (tile.disableUnderBuilding && addFoundationBlendRing) {
-      const allowBlend = instance.addFoundationBlendRing ?? true;
+      const allowBlend = tile.addFoundationBlendRing ?? false;
       if (allowBlend) {
         const ringRepeat = typeof dirtConfig.repeat === 'number'
           ? Math.max(1, dirtConfig.repeat / 2)
           : dirtConfig.repeat;
         const blendRing = createFoundationBlendRingMesh({
-          size: instance.coverageSize,
+          size: coverageSize,
           repeat: ringRepeat,
           anisotropy: dirtConfig.anisotropy,
         });
         if (blendRing) {
-          const surfaceOffset = instance.surfaceY - tile.position.y;
+          const surfaceOffset = surfaceY - tile.position.y;
           blendRing.name = tile.dirtName
             ? `${tile.dirtName}:foundationBlendRing`
             : `ground:dirt:foundationBlendRing:${index}`;
@@ -322,6 +322,21 @@ export function createGroundLayered({
         }
       }
     }
+
+    return {
+      index,
+      definition: tile,
+      position: tile.position.clone(),
+      disableUnderBuilding: Boolean(tile.disableUnderBuilding),
+      addFoundationBlendRing: tile.addFoundationBlendRing,
+      dirtGroup,
+      dirtMesh,
+      dirtHeight: baseDirtHeight,
+      dirtSize,
+      coverageSize,
+      surfaceY,
+      bounds,
+    };
   });
 
   if (addElevationSkirts) {
@@ -392,6 +407,23 @@ const SKIRT_DIRECTIONS = [
   },
 ];
 
+function getSkirtMaterial(baseMaterial) {
+  if (!baseMaterial) return null;
+
+  let material = SKIRT_MATERIAL_CACHE.get(baseMaterial);
+  if (!material) {
+    material = baseMaterial.clone();
+    material.side = THREE.DoubleSide;
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = 1;
+    material.polygonOffsetUnits = 1;
+    material.color?.multiplyScalar?.(0.9);
+    SKIRT_MATERIAL_CACHE.set(baseMaterial, material);
+  }
+
+  return material;
+}
+
 function findNeighborForDirection(instances, tile, direction) {
   const bounds = tile.bounds;
   if (!bounds) return null;
@@ -444,14 +476,8 @@ function applyElevationSkirts(instances) {
     if (!tile?.dirtGroup || !tile.bounds) return;
 
     const baseMesh = tile.dirtMesh ?? tile.dirtGroup.children.find(child => child?.isMesh);
-    if (!baseMesh?.material) return;
-
-    const skirtMaterial = baseMesh.material.clone();
-    skirtMaterial.side = THREE.DoubleSide;
-    skirtMaterial.polygonOffset = true;
-    skirtMaterial.polygonOffsetFactor = 1;
-    skirtMaterial.polygonOffsetUnits = 1;
-    skirtMaterial.color?.multiplyScalar?.(0.9);
+    const skirtMaterial = getSkirtMaterial(baseMesh?.material);
+    if (!skirtMaterial) return;
 
     SKIRT_DIRECTIONS.forEach((direction) => {
       const neighborInfo = findNeighborForDirection(instances, tile, direction);
@@ -505,6 +531,24 @@ function applyElevationSkirts(instances) {
   });
 }
 
+function getFoundationBlendRingMaterial({ repeat, anisotropy }) {
+  const repeatKey = typeof repeat === 'number' ? repeat : 'auto';
+  const anisotropyKey = typeof anisotropy === 'number' ? anisotropy : 'auto';
+  const cacheKey = `${repeatKey}:${anisotropyKey}`;
+
+  if (!FOUNDATION_BLEND_RING_MATERIAL_CACHE.has(cacheKey)) {
+    const material = createDirtMaterial({ repeat, anisotropy });
+    material.side = THREE.DoubleSide;
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = 1;
+    material.polygonOffsetUnits = 1;
+    material.color?.multiplyScalar?.(0.92);
+    FOUNDATION_BLEND_RING_MATERIAL_CACHE.set(cacheKey, material);
+  }
+
+  return FOUNDATION_BLEND_RING_MATERIAL_CACHE.get(cacheKey);
+}
+
 function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
   if (!(size > 0)) return null;
 
@@ -517,12 +561,7 @@ function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
   if (!(innerRadius > 0)) return null;
 
   const geometry = new THREE.RingGeometry(innerRadius, outerRadius, FOUNDATION_BLEND_RING_SEGMENTS);
-  const material = createDirtMaterial({ repeat, anisotropy });
-  material.side = THREE.DoubleSide;
-  material.polygonOffset = true;
-  material.polygonOffsetFactor = 1;
-  material.polygonOffsetUnits = 1;
-  material.color?.multiplyScalar?.(0.92);
+  const material = getFoundationBlendRingMaterial({ repeat, anisotropy });
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.rotation.x = -Math.PI / 2;
