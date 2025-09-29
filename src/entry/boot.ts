@@ -159,6 +159,7 @@ export async function runAthens(options: RunOptions = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setPixelRatio(Math.min((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1, 2));
+  renderer.setClearColor(0x202834, 1);
 
   const { width: initialWidth, height: initialHeight } = computeSize(container);
   renderer.setSize(initialWidth, initialHeight, false);
@@ -186,7 +187,7 @@ export async function runAthens(options: RunOptions = {}) {
     });
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#8fbcd4');
+  scene.background = new THREE.Color(0x202834);
 
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
   camera.position.set(90, 110, 180);

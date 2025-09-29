@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { assetUrl } from '../utils/assetUrl.js';
 
+const DEFAULT_BACKGROUND_COLOR = 0x202834;
+
 const MODE_CONFIG = {
-  dawn: { path: 'assets/sky/dawn.jpg', fallbackColor: 0x335577 },
-  day: { path: 'assets/sky/day.jpg', fallbackColor: 0x87ceeb },
-  dusk: { path: 'assets/sky/dusk.jpg', fallbackColor: 0x553344 },
-  night: { path: 'assets/sky/night.jpg', fallbackColor: 0x0b0e19 }
+  dawn: { fallbackColor: DEFAULT_BACKGROUND_COLOR },
+  day: { fallbackColor: DEFAULT_BACKGROUND_COLOR },
+  dusk: { fallbackColor: DEFAULT_BACKGROUND_COLOR },
+  night: { fallbackColor: DEFAULT_BACKGROUND_COLOR }
 };
 
 const MODE_ALIASES = new Map(
@@ -43,6 +45,16 @@ let currentEntry = null;
 let skyEnabled = true;
 let hotkeyAttached = false;
 
+const DEFAULT_BACKGROUND = new THREE.Color(DEFAULT_BACKGROUND_COLOR);
+
+function applyDefaultBackground() {
+  if (!activeScene) {
+    return;
+  }
+  activeScene.background = DEFAULT_BACKGROUND.clone();
+  activeScene.environment = null;
+}
+
 function ensureColorSpace(texture) {
   if (!texture) {
     return;
@@ -79,7 +91,7 @@ function normalizeMode(mode) {
 
 function fallbackEntry(mode) {
   const config = MODE_CONFIG[mode] || {};
-  const color = new THREE.Color(config.fallbackColor ?? 0x000000);
+  const color = new THREE.Color(config.fallbackColor ?? DEFAULT_BACKGROUND_COLOR);
   return { background: color, envMap: null, mode };
 }
 
@@ -152,8 +164,7 @@ function applySky(entry) {
   currentEntry = entry;
   currentMode = entry.mode;
   if (!skyEnabled) {
-    activeScene.background = null;
-    activeScene.environment = null;
+    applyDefaultBackground();
     return;
   }
   if (entry.background?.isTexture) {
@@ -221,8 +232,7 @@ export function setSkyEnabled(enabled) {
     return skyEnabled;
   }
   if (!skyEnabled) {
-    activeScene.background = null;
-    activeScene.environment = null;
+    applyDefaultBackground();
   } else if (currentEntry) {
     applySky(currentEntry);
   } else if (currentMode) {

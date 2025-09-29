@@ -253,6 +253,7 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.shadowMap.enabled = true;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setClearColor(0x202834, 1);
         const { width, height } = computeContainerSize();
         renderer.setSize(width, height, false);
         renderer.domElement.style.width = '100%';
@@ -268,7 +269,7 @@
         }
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color('#8fbcd4');
+        scene.background = new THREE.Color(0x202834);
 
         const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 2000);
         camera.position.set(90, 110, 180);
@@ -295,7 +296,12 @@
         if (typeof setEnvironment === 'function') {
           try {
             const mode = options?.skyMode || 'day';
-            setEnvironment(renderer, scene, mode, { preserveBackground: Boolean(options?.preserveBackground) });
+            const preserveBackgroundOption = options?.preserveBackground;
+            const environmentOptions = {
+              preserveBackground:
+                preserveBackgroundOption === undefined ? true : Boolean(preserveBackgroundOption)
+            };
+            setEnvironment(renderer, scene, mode, environmentOptions);
           } catch (error) {
             console.warn('[Athens][Dev] setEnvironment failed', error);
           }
