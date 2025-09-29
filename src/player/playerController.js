@@ -53,6 +53,7 @@ export function createPlayerController(
   let runningState = false;
   let isFlying = false;
   let prevFlyKeyDown = false;
+  let flyGraceFrames = 0;
 
   const debugControlsEnabled = (() => {
     if (typeof window === 'undefined') return false;
@@ -107,9 +108,21 @@ export function createPlayerController(
       isFlying = !isFlying;
       if (isFlying) {
         physicsState.vy = 0;
+        velocity.y = 0;
+        if (controlledObject) {
+          controlledObject.position.y += 0.12;
+          capsule.setPosition(
+            controlledObject.position.x,
+            controlledObject.position.y,
+            controlledObject.position.z
+          );
+        }
+        flyGraceFrames = 5;
+      } else {
+        flyGraceFrames = 0;
       }
       if (typeof console !== 'undefined' && typeof console.info === 'function') {
-        console.info(`[playerController] KeyX pressed. Fly mode ${isFlying ? 'enabled' : 'disabled'}.`);
+        console.info(`[playerController] Fly ${isFlying ? 'ON' : 'OFF'}`);
       }
     }
     prevFlyKeyDown = flyKeyDown;
@@ -152,6 +165,7 @@ export function createPlayerController(
     const effectiveRunMultiplier = shiftDown ? Math.max(runMultiplier, 1) : 1;
     const baseSpeed = Number.isFinite(walkSpeed) ? walkSpeed : 4.0;
     const targetSpeed = hasMoveInput ? baseSpeed * effectiveRunMultiplier : 0;
+    const verticalSpeed = baseSpeed * effectiveRunMultiplier;
     runningState = hasMoveInput && shiftDown && targetSpeed > baseSpeed;
 
     targetVelocity.set(0, 0, 0);
@@ -166,8 +180,8 @@ export function createPlayerController(
       targetVelocity.addScaledVector(moveDirection, forwardMagnitude * targetSpeed);
     }
 
+    let flyVerticalVelocity = 0;
     if (isFlying) {
-      const verticalSpeed = baseSpeed * effectiveRunMultiplier;
       const ascend = Boolean(currentKeyboard.isDown?.('Space') || currentKeyboard.isDown?.('KeyE'));
       const descend = Boolean(
         currentKeyboard.isDown?.('ControlLeft') ||
@@ -175,10 +189,13 @@ export function createPlayerController(
           currentKeyboard.isDown?.('KeyC') ||
           currentKeyboard.isDown?.('KeyQ')
       );
-      let vy = 0;
-      if (ascend) vy += verticalSpeed;
-      if (descend) vy -= verticalSpeed;
-      targetVelocity.y = vy;
+      if (ascend) {
+        flyVerticalVelocity = verticalSpeed;
+      } else if (descend) {
+        flyVerticalVelocity = -verticalSpeed;
+      } else {
+        flyVerticalVelocity = 0;
+      }
       physicsState.vy = 0;
     } else {
       targetVelocity.y = 0;
@@ -189,7 +206,7 @@ export function createPlayerController(
     const lerpAlpha = accel > 0 && dt > 0 ? 1 - Math.exp(-accel * dt) : 1;
     velocity.lerp(targetVelocity, THREE.MathUtils.clamp(lerpAlpha, 0, 1));
     if (isFlying) {
-      velocity.y = targetVelocity.y;
+      velocity.y = flyVerticalVelocity;
     } else {
       velocity.y = 0;
     }
@@ -201,6 +218,10 @@ export function createPlayerController(
     if (dt > 0) {
       moveDelta.copy(velocity).multiplyScalar(dt);
       if (!isFlying) moveDelta.y = 0;
+      if (isFlying && flyGraceFrames > 0 && velocity.y > 0) {
+        moveDelta.y += 0.02;
+        flyGraceFrames--;
+      }
 
       if (moveDelta.lengthSq() > 1e-10) {
         const result = resolveCapsuleVsAABBs(capsule, moveDelta, colliderAabbs, {
