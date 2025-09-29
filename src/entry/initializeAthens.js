@@ -827,7 +827,7 @@ export async function initializeAthens(options = {}) {
 
       ui?.update?.(delta, {
         position: playerObject?.position,
-        isFlying: false,
+        isFlying: controller?.isFlying?.() ?? false,
         isRunning: controller?.isRunning?.(),
         skippedLargeDt: Boolean(skippedLargeDt)
       });
