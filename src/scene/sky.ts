@@ -10,7 +10,7 @@ export type SkyChoice = {
   aliases?: string[];
 };
 
-// Auto-discovered JPG panoramas available in this repo (scanned under public/assets/sky).
+// Auto-discovered JPG panoramas available in this repo (scanned under assets/sky).
 // These provide ready-to-use photographic skies when served from GitHub Pages or local builds.
 export const SKY_CHOICES: SkyChoice[] = [
   {
@@ -18,27 +18,7 @@ export const SKY_CHOICES: SkyChoice[] = [
     type: 'equirect',
     label: 'Sunny Day',
     file: 'assets/sky/day.jpg',
-    aliases: ['sunny-day', 'daytime', 'high-noon']
-  },
-  {
-    id: 'high-noon',
-    type: 'equirect',
-    label: 'High Noon',
-    file: 'assets/sky/high_noon.jpg',
-    aliases: ['noon', 'midday']
-  },
-  {
-    id: 'golden-hour',
-    type: 'equirect',
-    label: 'Golden Hour',
-    file: 'assets/sky/golden_hour.jpg',
-    aliases: ['sunset', 'dusk', 'golden-hour']
-  },
-  {
-    id: 'blue-hour',
-    type: 'equirect',
-    label: 'Blue Hour',
-    file: 'assets/sky/blue_hour.jpg'
+    aliases: ['sunny-day', 'daytime', 'high-noon', 'noon', 'midday']
   },
   {
     id: 'dawn',
@@ -52,19 +32,25 @@ export const SKY_CHOICES: SkyChoice[] = [
     type: 'equirect',
     label: 'Dusk',
     file: 'assets/sky/dusk.jpg',
-    aliases: ['evening']
+    aliases: ['golden-hour', 'sunset', 'evening', 'goldenhour']
+  },
+  {
+    id: 'blue-hour',
+    type: 'equirect',
+    label: 'Blue Hour',
+    file: 'assets/sky/blue_hour.jpg'
   },
   {
     id: 'night',
     type: 'equirect',
-    label: 'Night Sky',
-    file: 'assets/sky/night_sky.jpg',
-    aliases: ['night-sky', 'starlit-night']
+    label: 'Night',
+    file: 'assets/sky/night.jpg',
+    aliases: ['night-sky', 'starlit-night', 'midnight']
   },
   {
     id: 'night-4k',
     type: 'equirect',
-    label: 'Night Sky (4K)',
+    label: 'Night (4K)',
     file: 'assets/sky/night_sky_4k.jpg',
     aliases: ['night-hires', 'night_sky_4k']
   }
@@ -79,9 +65,7 @@ function setTextureColorSpace(texture: THREE.Texture | THREE.CubeTexture) {
 }
 
 function baseURL(rel: string) {
-  if (/^https?:\/\//.test(rel)) {
-    return rel;
-  }
+  if (/^https?:\/\//.test(rel)) return rel;
 
   const sanitized = rel.replace(/^\/+/, '');
 
@@ -112,17 +96,16 @@ export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer
     value && typeof value === 'string'
       ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
       : null;
+
   const requested = normalize(params?.get('sky') || choice || undefined);
+
   const pick =
     SKY_CHOICES.find((s) => {
       const baseId = normalize(s.id);
-      if (requested && baseId === requested) {
-        return true;
-      }
-      return requested
-        ? s.aliases?.some((alias) => normalize(alias) === requested)
-        : false;
+      if (requested && baseId === requested) return true;
+      return requested ? s.aliases?.some((alias) => normalize(alias) === requested) : false;
     }) || SKY_CHOICES[0];
+
   if (!pick) {
     console.warn('[sky] No sky choices found.');
     return;
@@ -141,6 +124,7 @@ export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer
     const env = pmrem.fromCubemap(tex).texture;
     scene.environment = env;
     pmrem.dispose();
+
     if (typeof window !== 'undefined') {
       (window as typeof window & { __athensDebug?: any }).__athensDebug = {
         ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
@@ -153,19 +137,21 @@ export async function applySky(scene: THREE.Scene, renderer: THREE.WebGLRenderer
   if (pick.type === 'equirect' && pick.file) {
     const loader = new THREE.TextureLoader();
     const tex = await new Promise<THREE.Texture>((resolve, reject) =>
-      loader.load(baseURL(pick.file!), resolve, undefined, reject)
+      loader.load(baseURL(pick.file), resolve, undefined, reject)
     );
     tex.mapping = THREE.EquirectangularReflectionMapping;
     setTextureColorSpace(tex);
     scene.background = tex;
+
     const pmrem = new THREE.PMREMGenerator(renderer);
     const env = pmrem.fromEquirectangular(tex).texture;
     scene.environment = env;
     pmrem.dispose();
+
     if (typeof window !== 'undefined') {
       (window as typeof window & { __athensDebug?: any }).__athensDebug = {
         ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
-        sky: { type: 'equirect', id: pick.id, file: baseURL(pick.file!) }
+        sky: { type: 'equirect', id: pick.id, file: baseURL(pick.file) }
       };
     }
     return;

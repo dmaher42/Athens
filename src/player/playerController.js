@@ -32,7 +32,7 @@ export function createPlayerController(
     walkSpeed = 4.0,
     runMultiplier = 1.7,
     acceleration = 10,
-    turnLerp = 0.18,
+    turnLerp = 0.18, // kept for API compatibility
     colliders: initialColliders = []
   } = {}
 ) {
@@ -55,9 +55,7 @@ export function createPlayerController(
   let prevFlyKeyDown = false;
 
   const debugControlsEnabled = (() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
+    if (typeof window === 'undefined') return false;
     try {
       return new URLSearchParams(window.location.search).get('debugControls') === '1';
     } catch {
@@ -110,11 +108,12 @@ export function createPlayerController(
       if (isFlying) {
         physicsState.vy = 0;
       }
-      if (typeof window !== 'undefined') {
-        console.debug('[controls] Fly toggle', isFlying ? 'ENABLED' : 'DISABLED');
+      if (typeof console !== 'undefined' && typeof console.info === 'function') {
+        console.info(`[playerController] KeyX pressed. Fly mode ${isFlying ? 'enabled' : 'disabled'}.`);
       }
     }
     prevFlyKeyDown = flyKeyDown;
+
     if (
       !position ||
       !Number.isFinite(position.x) ||
@@ -132,12 +131,10 @@ export function createPlayerController(
     const turnInputRaw = currentKeyboard.axis?.turn;
     const turnInput = Number.isFinite(turnInputRaw) ? turnInputRaw : 0;
     const targetAngularVelocity = turnInput * TURN_SPEED;
-    const turnLerp = 1 - Math.exp(-TURN_ACCEL * dtSafe);
-    angularVelocity += (targetAngularVelocity - angularVelocity) * turnLerp;
+    const turnLerpAlpha = 1 - Math.exp(-TURN_ACCEL * dtSafe);
+    angularVelocity += (targetAngularVelocity - angularVelocity) * turnLerpAlpha;
     angularVelocity *= Math.exp(-TURN_DAMP * dtSafe);
-    if (!Number.isFinite(angularVelocity)) {
-      angularVelocity = 0;
-    }
+    if (!Number.isFinite(angularVelocity)) angularVelocity = 0;
 
     yaw += angularVelocity * dtSafe;
     if (!Number.isFinite(yaw)) {
@@ -171,9 +168,7 @@ export function createPlayerController(
 
     if (isFlying) {
       const verticalSpeed = baseSpeed * effectiveRunMultiplier;
-      const ascend = Boolean(
-        currentKeyboard.isDown?.('Space') || currentKeyboard.isDown?.('KeyE')
-      );
+      const ascend = Boolean(currentKeyboard.isDown?.('Space') || currentKeyboard.isDown?.('KeyE'));
       const descend = Boolean(
         currentKeyboard.isDown?.('ControlLeft') ||
           currentKeyboard.isDown?.('ControlRight') ||
@@ -184,6 +179,7 @@ export function createPlayerController(
       if (ascend) vy += verticalSpeed;
       if (descend) vy -= verticalSpeed;
       targetVelocity.y = vy;
+      physicsState.vy = 0;
     } else {
       targetVelocity.y = 0;
     }
@@ -198,19 +194,14 @@ export function createPlayerController(
       velocity.y = 0;
     }
 
-    // Integrate horizontal motion
-    capsule.setPosition(
-      controlledObject.position.x,
-      controlledObject.position.y,
-      controlledObject.position.z
-    );
+    // Integrate motion with collisions
+    capsule.setPosition(position.x, position.y, position.z);
 
     actualMove.set(0, 0, 0);
     if (dt > 0) {
       moveDelta.copy(velocity).multiplyScalar(dt);
-      if (!isFlying) {
-        moveDelta.y = 0;
-      }
+      if (!isFlying) moveDelta.y = 0;
+
       if (moveDelta.lengthSq() > 1e-10) {
         const result = resolveCapsuleVsAABBs(capsule, moveDelta, colliderAabbs, {
           maxIters: 3,
@@ -237,11 +228,7 @@ export function createPlayerController(
     if (!isFlying) {
       snapToGround(controlledObject, groundMeshes, physicsState, dt);
     }
-    capsule.setPosition(
-      controlledObject.position.x,
-      controlledObject.position.y,
-      controlledObject.position.z
-    );
+    capsule.setPosition(controlledObject.position.x, controlledObject.position.y, controlledObject.position.z);
     keepUpright(controlledObject, yaw, 1);
   };
 
