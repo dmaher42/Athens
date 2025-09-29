@@ -4,10 +4,10 @@ import { assetUrl } from '../utils/assetUrl.js';
 const DEFAULT_BACKGROUND_COLOR = 0x202834;
 
 const MODE_CONFIG = {
-  dawn: { fallbackColor: DEFAULT_BACKGROUND_COLOR },
-  day: { fallbackColor: DEFAULT_BACKGROUND_COLOR },
-  dusk: { fallbackColor: DEFAULT_BACKGROUND_COLOR },
-  night: { fallbackColor: DEFAULT_BACKGROUND_COLOR }
+  dawn: { path: 'assets/sky/dawn.jpg', fallbackColor: DEFAULT_BACKGROUND_COLOR },
+  day: { path: 'assets/sky/day.jpg', fallbackColor: DEFAULT_BACKGROUND_COLOR },
+  dusk: { path: 'assets/sky/dusk.jpg', fallbackColor: DEFAULT_BACKGROUND_COLOR },
+  night: { path: 'assets/sky/night.jpg', fallbackColor: DEFAULT_BACKGROUND_COLOR }
 };
 
 const MODE_ALIASES = new Map(
@@ -44,8 +44,43 @@ let currentMode = null;
 let currentEntry = null;
 let skyEnabled = true;
 let hotkeyAttached = false;
+let manualSkyOverride = null;
+
+function resolveMode(mode) {
+  if (!mode) {
+    return null;
+  }
+  const key = `${mode}`
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  const alias = MODE_ALIASES.get(key);
+  if (alias) {
+    return alias;
+  }
+  if (MODE_CONFIG[key]) {
+    return key;
+  }
+  return null;
+}
 
 const DEFAULT_BACKGROUND = new THREE.Color(DEFAULT_BACKGROUND_COLOR);
+
+function detectSkyOverride() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('sky');
+    return resolveMode(requested);
+  } catch (_) {
+    return null;
+  }
+}
+
+manualSkyOverride = detectSkyOverride();
 
 function applyDefaultBackground() {
   if (!activeScene) {
@@ -75,18 +110,7 @@ function ensurePmrem(renderer) {
 }
 
 function normalizeMode(mode) {
-  if (!mode) {
-    return 'day';
-  }
-  const key = `${mode}`.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-  const alias = MODE_ALIASES.get(key);
-  if (alias) {
-    return alias;
-  }
-  if (MODE_CONFIG[key]) {
-    return key;
-  }
-  return 'day';
+  return resolveMode(mode) ?? 'day';
 }
 
 function fallbackEntry(mode) {
@@ -192,7 +216,8 @@ export async function createTimeSky(renderer, scene, initial = 'day') {
   activeRenderer = renderer || activeRenderer;
   activeScene = scene || activeScene;
   ensurePmrem(activeRenderer);
-  const normalized = normalizeMode(initial);
+  const hasOverride = Boolean(manualSkyOverride);
+  const normalized = hasOverride ? manualSkyOverride : normalizeMode(initial);
   const entry = await loadSky(normalized);
   applySky(entry);
 
@@ -207,6 +232,9 @@ export async function createTimeSky(renderer, scene, initial = 'day') {
 }
 
 export async function setTimeOfDay(mode) {
+  if (manualSkyOverride) {
+    return currentMode ?? manualSkyOverride;
+  }
   const normalized = normalizeMode(mode);
   const entry = await loadSky(normalized);
   applySky(entry);

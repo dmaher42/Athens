@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
-import { setEnvironment } from '../scene/sky.js';
 import { applySky } from '../scene/sky.ts';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
 import { loadPlayerAvatar, PlayerAvatar } from '../player/playerAvatar.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
+import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { installRenderGuard } from '../safety/hardenPositions';
 import {
   DEFAULT_CAMERA,
@@ -29,6 +29,7 @@ import { AmbientAPI, AMBIENT_TRACKS, initAmbient } from '../audio/ambient';
 import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
+import { createMountainRim as createHorizonMountainRim } from '../horizon/mountainRim.js';
 
 type TransformState = {
   pos?: Partial<THREE.Vector3> | { x?: number | null; y?: number | null; z?: number | null } | null;
@@ -58,6 +59,16 @@ type StatsHandle = {
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 const DEFAULT_BACKGROUND_HEX = 0x202834;
+const HORIZON_QUERY_PARAM = 'horizon';
+const HORIZON_DEFAULT_ENABLED = true;
+const HORIZON_DEFAULT_OPTIONS = Object.freeze({
+  radius: 1100,
+  height: 75,
+  radialSegments: 192,
+  noise: 0.32,
+  seed: 7331,
+  color: 0x0f1d2d
+});
 
 let stats: StatsHandle | null = null;
 let statsVisible = true;
@@ -229,12 +240,50 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
+  const resolveHorizonEnabled = () => {
+    const override = searchParams?.get(HORIZON_QUERY_PARAM);
+    if (override == null) {
+      return HORIZON_DEFAULT_ENABLED;
+    }
+    const normalized = override.trim().toLowerCase();
+    if (!normalized) {
+      return HORIZON_DEFAULT_ENABLED;
+    }
+    if (normalized === '0' || normalized === 'false' || normalized === 'off' || normalized === 'no') {
+      return false;
+    }
+    if (normalized === '1' || normalized === 'true' || normalized === 'on' || normalized === 'yes') {
+      return true;
+    }
+    return HORIZON_DEFAULT_ENABLED;
+  };
+
+  let horizonRim: THREE.Mesh | null = null;
+  const applyHorizonVisibility = (enabled: boolean) => {
+    if (horizonRim) {
+      horizonRim.visible = enabled;
+    }
+    return enabled;
+  };
+
+  if (resolveHorizonEnabled()) {
+    try {
+      horizonRim = createHorizonMountainRim(HORIZON_DEFAULT_OPTIONS);
+      scene.add(horizonRim);
+      applyHorizonVisibility(true);
+    } catch (error) {
+      console.warn('[Athens][Boot] Failed to create horizon rim.', error);
+      horizonRim = null;
+    }
+  }
+
   await initAmbient(camera);
 
   if (globalWindow) {
     globalWindow.__athensDebug = {
       ...(globalWindow.__athensDebug || {}),
-      audioAPI: AmbientAPI
+      audioAPI: AmbientAPI,
+      horizonRim
     };
   }
 
@@ -310,19 +359,8 @@ export async function runAthens(options: RunOptions = {}) {
   };
 
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
-  if (typeof setEnvironment === 'function') {
-    try {
-      await setEnvironment(renderer, scene, environmentMode, {
-        enablePhotoSky: false,
-        preserveBackground: true
-      });
-    } catch (error) {
-      console.warn('[Athens][Boot] setEnvironment failed', error);
-    }
-  }
-
   try {
-    await applySky(scene, renderer);
+    await applySky(scene, renderer, environmentMode);
   } catch (error) {
     console.warn('[Athens][Boot] applySky failed', error);
   }
@@ -393,6 +431,7 @@ export async function runAthens(options: RunOptions = {}) {
     const normalized = Boolean(enabled);
     scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
     renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    applyHorizonVisibility(normalized || resolveHorizonEnabled());
     return normalized;
   };
 
@@ -532,15 +571,13 @@ export async function runAthens(options: RunOptions = {}) {
     placeOnGround(playerObject, groundMeshes.length ? groundMeshes : scene, { clearance: 0.02 });
   }
 
-  if (!hasSavedCameraPos) {
-    const camBack = 6;
-    const camUp = 3;
-    camera.position.set(spawnPosition.x + camBack, spawnPosition.y + camUp, spawnPosition.z + camBack);
-  }
-
   if (groundMeshes.length) {
     const initialState = { vy: 0, lastGoodY: playerObject.position.y };
     snapToGround(playerObject, groundMeshes, initialState, 0);
+  }
+
+  if (!hasSavedCameraPos) {
+    seedCameraBehindPlayer(playerObject, camera, { followDistance: 6, shoulderHeight: 1.6, pitchDeg: -15 });
   }
 
   sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
@@ -768,6 +805,8 @@ export async function runAthens(options: RunOptions = {}) {
     npcManager,
     audio,
     footsteps,
+    horizonRim,
+    setHorizonVisible: (visible: boolean) => applyHorizonVisibility(Boolean(visible)),
     setAmbience(mode: string) {
       return applyAmbientForMode(mode, true);
     },

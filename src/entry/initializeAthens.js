@@ -11,6 +11,7 @@ import { createNpcManager } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
+import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { createGameLoop } from '../engine/loop.js';
@@ -802,6 +803,11 @@ export async function initializeAthens(options = {}) {
   const savedState = resolveSavedState();
   restoreCameraAndPlayer(savedState);
 
+  if (!savedState?.camera?.pos) {
+    seedCameraBehindPlayer(playerObject, camera, { followDistance: 6, shoulderHeight: 1.6, pitchDeg: -15 });
+    followCamera.syncImmediate?.();
+  }
+
   if (mainCharacter?.ready?.then) {
     mainCharacter.ready.then(() => {
       const resolvedPlayer = mainCharacter.object3d || findPlayerObject() || scene.getObjectByName('MainCharacter');
@@ -817,8 +823,7 @@ export async function initializeAthens(options = {}) {
           restoreCameraAndPlayer(savedState);
         } else {
           sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
-          sanitizeVec3(camera.position, DEFAULT_CAMERA);
-          camera.lookAt(playerObject.position);
+          seedCameraBehindPlayer(playerObject, camera, { followDistance: 6, shoulderHeight: 1.6, pitchDeg: -15 });
         }
         followCamera.syncImmediate?.();
         if (placeholderPlayer && placeholderPlayer.parent) {

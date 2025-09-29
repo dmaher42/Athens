@@ -14,6 +14,7 @@ const DEF: Required<GroundOpts> = {
 };
 
 const RAY = new THREE.Raycaster();
+const RAY_ORIGIN = new THREE.Vector3();
 const DOWN = new THREE.Vector3(0, -1, 0);
 const UP   = new THREE.Vector3(0, 1, 0);
 
@@ -46,10 +47,19 @@ export function ensureFeetAtLocalZero(obj: THREE.Object3D) {
 }
 
 /** Raycast world (x,z) down to find ground Y from provided ground meshes (or whole scene). */
-export function groundYAt(x:number, z:number, sceneOrMeshes: THREE.Object3D | THREE.Object3D[]): number | null {
-  const targets = Array.isArray(sceneOrMeshes) ? sceneOrMeshes : collectMeshesByName(sceneOrMeshes, ['ground', 'floor', 'terrain', 'plane', 'tile']);
-  if (!targets.length) return 0;
-  RAY.set(new THREE.Vector3(x, 1000, z), DOWN);
+export function groundYAt(
+  x:number,
+  z:number,
+  sceneOrMeshes: THREE.Object3D | THREE.Object3D[],
+  rayStart = DEF.rayStart
+): number | null {
+  const targets = Array.isArray(sceneOrMeshes)
+    ? sceneOrMeshes
+    : collectMeshesByName(sceneOrMeshes, ['ground', 'floor', 'terrain', 'plane', 'tile']);
+  if (!targets.length) return null;
+  const originY = Number.isFinite(rayStart) ? rayStart : DEF.rayStart;
+  RAY_ORIGIN.set(x, originY, z);
+  RAY.set(RAY_ORIGIN, DOWN);
   const hits = RAY.intersectObjects(targets, true);
   if (!hits.length) return null;
   return hits[0].point.y;
@@ -59,9 +69,11 @@ export function groundYAt(x:number, z:number, sceneOrMeshes: THREE.Object3D | TH
 export function placeOnGround(obj: THREE.Object3D, sceneOrMeshes: THREE.Object3D | THREE.Object3D[], opts?: GroundOpts) {
   const O = { ...DEF, ...(opts||{}) };
   ensureFeetAtLocalZero(obj);
-  const y = groundYAt(obj.position.x, obj.position.z, sceneOrMeshes);
-  obj.position.y = ((y ?? 0) + O.clearance);
-  obj.updateMatrixWorld(true);
+  const y = groundYAt(obj.position.x, obj.position.z, sceneOrMeshes, O.rayStart);
+  if (y != null) {
+    obj.position.y = y + O.clearance;
+    obj.updateMatrixWorld(true);
+  }
 }
 
 /** Quick test: is there a roof/ceiling directly above this world position within `height`? */

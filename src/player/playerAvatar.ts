@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import { logOnce } from '../utils/logOnce.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 type PlayerAnimationState = 'idle' | 'walk' | 'run' | 'jump';
 
 type AnimationClipMap = Partial<Record<PlayerAnimationState, THREE.AnimationClip>> & {
-  fallbacks: Partial<Record<PlayerAnimationState, string>>;
+  fallbacks: Partial<Record<PlayerAnimationState, PlayerAnimationState>>;
 };
 
 type AnimationActionMap = Partial<Record<PlayerAnimationState, THREE.AnimationAction>>;
@@ -33,7 +34,8 @@ export type LoadPlayerAvatarOptions = {
   scaleToHeight?: number;
 };
 
-const DEFAULT_MODEL_URL = 'https://threejs.org/examples/models/gltf/Soldier.glb';
+const DEFAULT_MODEL_URL =
+  'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r155/examples/models/gltf/Soldier.glb';
 const DEFAULT_HEIGHT = 1.75;
 const FADE_DURATION = 0.25;
 const RUN_SPEED_THRESHOLD = 3.6;
@@ -46,46 +48,44 @@ const CLIP_NAME_PREFERENCES: Record<PlayerAnimationState, string[]> = {
   jump: ['jump', 'Jump', 'JUMP', 'jump_loop']
 };
 
-const consoleTag = '[player/avatar]';
+const CONSOLE_TAG = '[player/avatar]';
 
 function findClip(preferredNames: string[], clips: THREE.AnimationClip[]): THREE.AnimationClip | undefined {
-  const lowerCaseMap = new Map<string, THREE.AnimationClip>();
-  for (const clip of clips) {
-    lowerCaseMap.set(clip.name.toLowerCase(), clip);
-  }
-  for (const candidate of preferredNames) {
-    const found = lowerCaseMap.get(candidate.toLowerCase());
-    if (found) {
-      return found;
-    }
+  const lowerMap = new Map<string, THREE.AnimationClip>();
+  for (const c of clips) lowerMap.set(c.name.toLowerCase(), c);
+  for (const name of preferredNames) {
+    const hit = lowerMap.get(name.toLowerCase());
+    if (hit) return hit;
   }
   return undefined;
 }
 
+function cloneClipForJump(base: THREE.AnimationClip, fallbackSource: PlayerAnimationState) {
+  const clone = base.clone();
+  const baseName = base.name?.trim().length ? base.name : fallbackSource;
+  clone.name = `${baseName}::jumpFallback::${THREE.MathUtils.generateUUID()}`;
+  return clone;
+}
+
 function prepareClipMap(clips: THREE.AnimationClip[]): AnimationClipMap {
   const resolved: Partial<Record<PlayerAnimationState, THREE.AnimationClip>> = {};
-  const fallbacks: Partial<Record<PlayerAnimationState, string>> = {};
+  const fallbacks: Partial<Record<PlayerAnimationState, PlayerAnimationState>> = {};
 
-  const clipEntries: [PlayerAnimationState, string[]][] = [
-    ['idle', CLIP_NAME_PREFERENCES.idle],
-    ['walk', CLIP_NAME_PREFERENCES.walk],
-    ['run', CLIP_NAME_PREFERENCES.run],
-    ['jump', CLIP_NAME_PREFERENCES.jump]
-  ];
+  (['idle', 'walk', 'run', 'jump'] as PlayerAnimationState[]).forEach((state) => {
+    const hit = findClip(CLIP_NAME_PREFERENCES[state], clips);
+    if (hit) resolved[state] = hit;
+  });
 
-  for (const [state, names] of clipEntries) {
-    const resolvedClip = findClip(names, clips);
-    if (resolvedClip) {
-      resolved[state] = resolvedClip;
-    }
-  }
-
-  const ensureFallback = (state: PlayerAnimationState, fallbackOrder: PlayerAnimationState[]) => {
+  const ensureFallback = (state: PlayerAnimationState, order: PlayerAnimationState[]) => {
     if (!resolved[state]) {
-      for (const fallbackState of fallbackOrder) {
-        if (resolved[fallbackState]) {
-          resolved[state] = resolved[fallbackState];
-          fallbacks[state] = fallbackState;
+      for (const candidate of order) {
+        if (resolved[candidate]) {
+          resolved[state] = resolved[candidate]!;
+          fallbacks[state] = candidate;
+          logOnce(
+            `player_avatar_fallback_${state}_${candidate}`,
+            `${CONSOLE_TAG} Missing "${state}" animation; using "${candidate}" as fallback.`
+          );
           break;
         }
       }
@@ -97,22 +97,22 @@ function prepareClipMap(clips: THREE.AnimationClip[]): AnimationClipMap {
   ensureFallback('run', ['walk', 'idle']);
   ensureFallback('jump', ['run', 'walk', 'idle']);
 
-  return {
-    ...resolved,
-    fallbacks
-  };
+  // If jump is a fallback, clone it so we can configure looping independently
+  if (resolved.jump && fallbacks.jump) {
+    resolved.jump = cloneClipForJump(resolved.jump, fallbacks.jump);
+  }
+
+  return { ...resolved, fallbacks };
 }
 
 function scaleObjectToHeight(object: THREE.Object3D, targetHeight: number) {
-  if (!Number.isFinite(targetHeight) || targetHeight <= 0) {
-    return;
-  }
+  if (!Number.isFinite(targetHeight) || targetHeight <= 0) return;
   const box = new THREE.Box3().setFromObject(object);
   if (!box.isEmpty()) {
-    const height = box.max.y - box.min.y;
-    if (Number.isFinite(height) && height > 1e-3) {
-      const scale = targetHeight / height;
-      object.scale.setScalar(scale);
+    const h = box.max.y - box.min.y;
+    if (Number.isFinite(h) && h > 1e-3) {
+      const s = targetHeight / h;
+      object.scale.setScalar(s);
       object.updateMatrixWorld(true);
     }
   }
@@ -131,61 +131,13 @@ function enableShadows(object: THREE.Object3D) {
   });
 }
 
-function applySoldierMaterialTweaks(object: THREE.Object3D) {
-  const hasBodyMesh = Boolean(object.getObjectByName('vanguard_Mesh'));
-  if (!hasBodyMesh) {
-    return;
-  }
-
-  const updateMaterial = (
-    material: THREE.Material | THREE.Material[] | undefined,
-    opts: { body: boolean }
-  ) => {
-    if (!material) return;
-    if (Array.isArray(material)) {
-      material.forEach((m) => updateMaterial(m, opts));
-      return;
-    }
-    const standard = material as THREE.MeshStandardMaterial;
-    if (!(standard as any).isMeshStandardMaterial) {
-      return;
-    }
-    if (opts.body) {
-      standard.metalness = 1.0;
-      standard.roughness = 0.2;
-      standard.color.setScalar(1);
-      if (standard.map) {
-        standard.metalnessMap = standard.map;
-      }
-    } else {
-      standard.metalness = 1.0;
-      standard.roughness = 0.0;
-      standard.transparent = true;
-      standard.opacity = 0.8;
-      standard.color.setScalar(1);
-    }
-  };
-
-  object.traverse((child) => {
-    const mesh = child as THREE.Mesh;
-    if (!(mesh as any).isMesh) return;
-    const isBodyMesh = mesh.name === 'vanguard_Mesh';
-    updateMaterial(mesh.material as THREE.Material | THREE.Material[] | undefined, { body: isBodyMesh });
-  });
-}
-
 function summarizeClips(map: AnimationClipMap) {
-  const summary: string[] = [];
-  (['idle', 'walk', 'run', 'jump'] as PlayerAnimationState[]).forEach((key) => {
-    const clip = map[key];
-    if (clip) {
-      const fallback = map.fallbacks[key];
-      summary.push(`${key}:${clip.name}${fallback ? ` (fallback:${fallback})` : ''}`);
-    } else {
-      summary.push(`${key}:none`);
-    }
-  });
-  return summary.join(', ');
+  return (['idle', 'walk', 'run', 'jump'] as PlayerAnimationState[])
+    .map((key) => {
+      const clip = map[key];
+      return clip ? `${key}:${clip.name}${map.fallbacks[key] ? ` (fallback:${map.fallbacks[key]})` : ''}` : `${key}:none`;
+    })
+    .join(', ');
 }
 
 export async function loadPlayerAvatar(options: LoadPlayerAvatarOptions = {}): Promise<PlayerAvatar> {
@@ -194,11 +146,9 @@ export async function loadPlayerAvatar(options: LoadPlayerAvatarOptions = {}): P
   loader.setCrossOrigin('anonymous');
   const gltf = await loader.loadAsync(url);
   const root = (gltf.scene || (Array.isArray(gltf.scenes) && gltf.scenes[0])) as THREE.Object3D | null;
+  if (!root) throw new Error('GLTF did not include a scene graph.');
 
-  if (!root) {
-    throw new Error('GLTF did not include a scene graph.');
-  }
-
+  // Proper clone for skinned meshes
   const object = (SkeletonUtils.clone(root) as THREE.Object3D) || root.clone(true);
   object.name = 'MainCharacter';
   object.position.set(0, 0, 0);
@@ -207,60 +157,44 @@ export async function loadPlayerAvatar(options: LoadPlayerAvatarOptions = {}): P
 
   scaleObjectToHeight(object, options.scaleToHeight ?? DEFAULT_HEIGHT);
   enableShadows(object);
-  applySoldierMaterialTweaks(object);
 
   const mixer = new THREE.AnimationMixer(object);
   const clipMap = prepareClipMap(Array.isArray(gltf.animations) ? gltf.animations : []);
-
-  if (clipMap.jump && clipMap.fallbacks.jump) {
-    const baseName = clipMap.jump.name || 'clip';
-    const cloned = clipMap.jump.clone();
-    cloned.name = `${baseName}__jumpFallback`;
-    clipMap.jump = cloned;
-  }
   const actions: AnimationActionMap = {};
 
-  for (const state of ['idle', 'walk', 'run', 'jump'] as PlayerAnimationState[]) {
+  (['idle', 'walk', 'run', 'jump'] as PlayerAnimationState[]).forEach((state) => {
     const clip = clipMap[state];
-    if (clip) {
-      const action = mixer.clipAction(clip);
-      if (state === 'jump') {
-        const usesFallback = Boolean(clipMap.fallbacks.jump);
-        if (!usesFallback) {
-          action.setLoop(THREE.LoopOnce, 1);
-          action.clampWhenFinished = true;
-        } else {
-          action.setLoop(THREE.LoopRepeat, Infinity);
-          action.clampWhenFinished = false;
-        }
-        action.enabled = true;
+    if (!clip) return;
+    const action = mixer.clipAction(clip);
+    if (state === 'jump') {
+      const usesFallback = Boolean(clipMap.fallbacks.jump);
+      if (!usesFallback) {
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
       } else {
         action.setLoop(THREE.LoopRepeat, Infinity);
-        action.enabled = true;
+        action.clampWhenFinished = false;
       }
-      action.weight = 0;
-      actions[state] = action;
+    } else {
+      action.setLoop(THREE.LoopRepeat, Infinity);
     }
-  }
+    action.enabled = true;
+    action.weight = 0;
+    actions[state] = action;
+  });
 
   let currentState: PlayerAnimationState | null = null;
   let jumpActive = false;
   let queuedBaseState: PlayerAnimationState | null = 'idle';
 
   const setBaseState = (next: PlayerAnimationState | null) => {
-    if (!next || currentState === next) {
-      return;
-    }
+    if (!next || currentState === next) return;
     const nextAction = actions[next];
-    if (!nextAction) {
-      return;
-    }
+    if (!nextAction) return;
 
     if (currentState && currentState !== 'jump') {
-      const currentAction = actions[currentState];
-      currentAction?.fadeOut(FADE_DURATION);
+      actions[currentState]?.fadeOut(FADE_DURATION);
     }
-
     nextAction.reset();
     nextAction.enabled = true;
     nextAction.fadeIn(FADE_DURATION);
@@ -269,18 +203,10 @@ export async function loadPlayerAvatar(options: LoadPlayerAvatarOptions = {}): P
   };
 
   const resolveDesiredState = (speed: number, running: boolean, flying: boolean): PlayerAnimationState => {
-    if (flying) {
-      return clipMap.idle ? 'idle' : clipMap.walk ? 'walk' : 'run';
-    }
-    if (running && clipMap.run && speed >= WALK_SPEED_THRESHOLD) {
-      return 'run';
-    }
-    if (speed >= RUN_SPEED_THRESHOLD && clipMap.run) {
-      return 'run';
-    }
-    if (speed >= WALK_SPEED_THRESHOLD && clipMap.walk) {
-      return 'walk';
-    }
+    if (flying) return clipMap.idle ? 'idle' : clipMap.walk ? 'walk' : 'run';
+    if (running && clipMap.run && speed >= WALK_SPEED_THRESHOLD) return 'run';
+    if (speed >= RUN_SPEED_THRESHOLD && clipMap.run) return 'run';
+    if (speed >= WALK_SPEED_THRESHOLD && clipMap.walk) return 'walk';
     return clipMap.idle ? 'idle' : clipMap.walk ? 'walk' : 'run';
   };
 
@@ -290,29 +216,17 @@ export async function loadPlayerAvatar(options: LoadPlayerAvatarOptions = {}): P
       jumpAction.fadeOut(FADE_DURATION * 0.5);
       jumpAction.stop();
       jumpActive = false;
-      if (queuedBaseState) {
-        setBaseState(queuedBaseState);
-      }
+      if (queuedBaseState) setBaseState(queuedBaseState);
     }
   };
   mixer.addEventListener('finished', finishedListener);
 
-  if (actions.idle) {
-    setBaseState('idle');
-  } else if (actions.walk) {
-    setBaseState('walk');
-  } else if (actions.run) {
-    setBaseState('run');
-  }
+  if (actions.idle) setBaseState('idle');
+  else if (actions.walk) setBaseState('walk');
+  else if (actions.run) setBaseState('run');
 
   if (typeof console !== 'undefined' && typeof console.info === 'function') {
-    console.info(`${consoleTag} Loaded model`, {
-      url,
-      clips: summarizeClips(clipMap)
-    });
-    if (Object.keys(clipMap.fallbacks).length > 0 && typeof console.debug === 'function') {
-      console.debug(`${consoleTag} Applied animation fallbacks`, clipMap.fallbacks);
-    }
+    console.info(`${CONSOLE_TAG} Loaded model`, { url, clips: summarizeClips(clipMap) });
   }
 
   const update = (deltaSeconds: number, context: PlayerAvatarUpdateContext = {}) => {
