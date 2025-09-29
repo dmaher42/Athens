@@ -6,6 +6,7 @@ import { applySky } from '../scene/sky.ts';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
+import { loadPlayerAvatar, PlayerAvatar } from '../player/playerAvatar.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { installRenderGuard } from '../safety/hardenPositions';
 import {
@@ -410,9 +411,23 @@ export async function runAthens(options: RunOptions = {}) {
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
 
+  let playerAvatar: PlayerAvatar | null = null;
   const existingPlayer =
     scene.getObjectByName('MainCharacter') || scene.getObjectByName('Player');
-  const playerObject = existingPlayer ?? createPlaceholderPlayer();
+
+  let playerObject = existingPlayer ?? null;
+
+  if (!playerObject) {
+    try {
+      playerAvatar = await loadPlayerAvatar();
+      playerObject = playerAvatar.object;
+    } catch (error) {
+      console.warn('[Athens][Boot] Failed to load hoplite avatar, using placeholder.', error);
+      playerObject = createPlaceholderPlayer();
+      playerAvatar = null;
+    }
+  }
+
   playerObject.name = playerObject.name || 'MainCharacter';
   if (!scene.getObjectByName(playerObject.name)) {
     scene.add(playerObject);
@@ -582,6 +597,7 @@ export async function runAthens(options: RunOptions = {}) {
   const playerDelta = new THREE.Vector3();
   let footstepTimer = 0;
   let footstepInterval = Infinity;
+  let previousJumpDown = false;
 
   const handleResize = () => {
     const { width, height } = computeSize(container);
@@ -654,6 +670,27 @@ export async function runAthens(options: RunOptions = {}) {
       playerDelta.subVectors(playerObject.position, previousPlayerPosition);
       const moveDistance = playerDelta.length();
       const currentSpeed = delta > 1e-6 ? moveDistance / Math.max(delta, 1e-6) : 0;
+
+      const jumpDown = Boolean(keyboard.isDown?.('Space'));
+      const jumpRequested = jumpDown && !previousJumpDown;
+      previousJumpDown = jumpDown;
+
+      if (playerAvatar) {
+        try {
+          const isRunning = typeof playerController.isRunning === 'function'
+            ? playerController.isRunning()
+            : currentSpeed > 3.5;
+          playerAvatar.update(delta, {
+            speed: currentSpeed,
+            isRunning,
+            jumpRequested,
+            isFlying: flying
+          });
+        } catch (error) {
+          console.warn('[Athens][Boot] player avatar update failed', error);
+        }
+      }
+
       footstepInterval = footsteps.setIntervalBySpeed(currentSpeed);
       if (Number.isFinite(footstepInterval)) {
         if (currentSpeed < 0.3) {
