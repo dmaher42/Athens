@@ -63,24 +63,70 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
     }
   };
 
-  const fallbackAcropolisCenter = new THREE.Vector3(0, 0, 0);
-  const sceneAcropolis = scene?.userData?.acropolis ?? {};
-  const acropolisCenterSource =
-    groundResult?.acropolisCenter ??
-    sceneAcropolis.center ??
-    fallbackAcropolisCenter;
-  const acropolisCenter = acropolisCenterSource instanceof THREE.Vector3
-    ? acropolisCenterSource.clone()
-    : new THREE.Vector3(acropolisCenterSource?.x ?? 0, acropolisCenterSource?.y ?? 0, acropolisCenterSource?.z ?? 0);
+  // ACROPOLIS_START
+  const acropolisMeta = (() => {
+    const fallbackCenter = new THREE.Vector3(0, 0, 0);
+    const sceneAcropolis = scene?.userData?.acropolis ?? {};
 
-  const plateauY =
-    typeof groundResult?.plateauHeight === 'number'
+    const centerCandidate = groundResult?.acropolisCenter ?? sceneAcropolis.center ?? fallbackCenter;
+    const center = fallbackCenter.clone();
+    if (centerCandidate instanceof THREE.Vector3) {
+      center.copy(centerCandidate);
+    } else if (Array.isArray(centerCandidate)) {
+      const [x = 0, y = 0, z = 0] = centerCandidate;
+      center.set(x ?? 0, y ?? 0, z ?? 0);
+    } else if (centerCandidate && typeof centerCandidate === 'object') {
+      center.set(centerCandidate.x ?? 0, centerCandidate.y ?? 0, centerCandidate.z ?? 0);
+    }
+
+    const plateauHeight = typeof groundResult?.plateauHeight === 'number'
       ? groundResult.plateauHeight
       : (typeof sceneAcropolis.plateauHeight === 'number' ? sceneAcropolis.plateauHeight : 28);
+
+    return { center, plateauHeight };
+  })();
+  // ACROPOLIS_END
+
+  const acropolisCenter = acropolisMeta.center;
+  const plateauY = acropolisMeta.plateauHeight;
 
   const parthenonPosition = new THREE.Vector3(acropolisCenter.x + 6, plateauY, acropolisCenter.z - 4);
   const parthenon = createParthenon(materials, { position: parthenonPosition });
   addAndSnap(parthenon);
+
+  // ACROPOLIS_START
+  const applyPlateauHeight = (object) => {
+    if (!object?.isObject3D) {
+      return;
+    }
+    object.position.y = acropolisMeta.plateauHeight;
+  };
+
+  const ensureNamedObject = (container, name) => {
+    if (!container?.getObjectByName || typeof container.getObjectByName !== 'function') {
+      return null;
+    }
+    return container.getObjectByName(name) ?? null;
+  };
+
+  const namedTargets = new Set();
+  ['Parthenon', 'Acropolis', 'AcropolisGroup'].forEach((name) => {
+    const rootTarget = ensureNamedObject(root, name);
+    const sceneTarget = ensureNamedObject(scene, name);
+    if (rootTarget) {
+      namedTargets.add(rootTarget);
+    }
+    if (sceneTarget) {
+      namedTargets.add(sceneTarget);
+    }
+  });
+
+  if (parthenon) {
+    namedTargets.add(parthenon);
+  }
+
+  namedTargets.forEach((target) => applyPlateauHeight(target));
+  // ACROPOLIS_END
 
   const agoraPosition = new THREE.Vector3(80, 0, -40);
   const agora = createAgora(materials, { position: agoraPosition });

@@ -20,6 +20,7 @@ function setTextureRepeat(material, repeatX = 1, repeatY = 1) {
   }
 }
 
+// ACROPOLIS_START
 function normalizeVector3(value, fallback = new THREE.Vector3()) {
   if (value instanceof THREE.Vector3) {
     return value.clone();
@@ -88,7 +89,7 @@ function buildAcropolisMesa(scene, materials, options) {
   const rampLength = Math.max(1, typeof rampLengthOption === 'number' ? rampLengthOption : 110);
 
   const acropolisGroup = new THREE.Group();
-  acropolisGroup.name = 'AcropolisMesa';
+  acropolisGroup.name = 'AcropolisGroup';
 
   const terraceMaterial = cloneMaterial(materials.dust, 0xb89c7a);
   terraceMaterial.name = 'AcropolisTerraceMaterial';
@@ -191,6 +192,10 @@ function buildAcropolisMesa(scene, materials, options) {
   };
 }
 
+// ACROPOLIS_END
+
+// ACROPOLIS_START
+
 /**
  * @typedef {Object} GroundOptions
  * @property {THREE.Vector3|number[]} [acropolisCenter=[0,0,0]]
@@ -205,6 +210,8 @@ function buildAcropolisMesa(scene, materials, options) {
  * @property {number} [rampLength=110]
  * @property {boolean} [debugAcropolis=false]
  */
+
+// ACROPOLIS_END
 
 export async function createGround(sceneOrMaterials = {}, materialsOrOptions = {}, maybeOptions = {}) {
   let scene = null;
@@ -260,6 +267,7 @@ export async function createGround(sceneOrMaterials = {}, materialsOrOptions = {
     });
   }
 
+  // ACROPOLIS_START
   const mesa = buildAcropolisMesa(scene, materials, options);
   if (mesa?.group) {
     group.add(mesa.group);
@@ -267,7 +275,9 @@ export async function createGround(sceneOrMaterials = {}, materialsOrOptions = {
 
   const acropolisCenter = mesa?.acropolisCenter ?? normalizeVector3(options.acropolisCenter ?? [0, 0, 0]);
   acropolisCenter.y = 0;
-  const plateauHeight = typeof mesa?.plateauHeight === 'number' ? mesa.plateauHeight : (typeof options.plateauHeight === 'number' ? options.plateauHeight : 28);
+  const plateauHeight = typeof mesa?.plateauHeight === 'number'
+    ? mesa.plateauHeight
+    : (typeof options.plateauHeight === 'number' ? options.plateauHeight : 28);
 
   group.userData.acropolisCenter = acropolisCenter.clone();
   group.userData.plateauHeight = plateauHeight;
@@ -278,4 +288,5 @@ export async function createGround(sceneOrMaterials = {}, materialsOrOptions = {
     acropolisCenter: acropolisCenter.clone(),
     plateauHeight,
   };
+  // ACROPOLIS_END
 }
