@@ -71,6 +71,8 @@ function createGridTiles({
         position: new THREE.Vector3(x, 0, z),
         enableDirt: true,
         enableGrass: true,
+        gridX: col,
+        gridZ: row,
       });
     }
   }
@@ -105,6 +107,8 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     dirtName,
     grassName,
     name,
+    gridX,
+    gridZ,
   } = tile;
 
   const vectorPosition = position ? toVector3(position) : toVector3({ x, y, z });
@@ -119,6 +123,8 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     grassOptions: grassOptions && typeof grassOptions === 'object' ? { ...grassOptions } : undefined,
     dirtName: dirtName ?? (name ? `${name}:dirt` : undefined),
     grassName: grassName ?? (name ? `${name}:grass` : undefined),
+    gridX: typeof gridX === 'number' ? gridX : undefined,
+    gridZ: typeof gridZ === 'number' ? gridZ : undefined,
   };
 }
 
@@ -137,7 +143,13 @@ function buildTileDefinitions({
   let definitions = [];
 
   if (Array.isArray(tiles) && tiles.length > 0) {
-    definitions = tiles.map(t => normalizeTile(t, { defaultSize: effectiveSize, defaultRepeat: effectiveRepeat }));
+    definitions = tiles
+      .map(t => normalizeTile(t, { defaultSize: effectiveSize, defaultRepeat: effectiveRepeat }))
+      .map((tile, index) => ({
+        ...tile,
+        gridX: typeof tile.gridX === 'number' ? tile.gridX : index,
+        gridZ: typeof tile.gridZ === 'number' ? tile.gridZ : 0,
+      }));
   } else {
     const gridTiles = createGridTiles({
       grid: tileGrid ?? DEFAULT_TILE_GRID,
@@ -169,6 +181,8 @@ function buildTileDefinitions({
  * @param {number} [options.tileSize]     - Base tile size (used for generated tiles and as fallback for explicit tiles).
  * @param {number} [options.tileRepeat]   - Base texture repeat for generated tiles.
  * @param {number|{x?:number,z?:number}} [options.tileSpacing=0] - Gap/overlap between generated tiles.
+ * @param {boolean} [options.preventTileSeams=true] - Expand tile geometry slightly to hide seams.
+ * @param {boolean} [options.stabilizeTileOverlap=true] - Apply a subtle alternating height bias to dirt tiles.
  * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group }}
  */
 export function createGroundLayered({
@@ -181,6 +195,8 @@ export function createGroundLayered({
   tileSize,
   tileRepeat,
   tileSpacing = 0,
+  preventTileSeams = true,
+  stabilizeTileOverlap = true,
 } = {}) {
   const root = new THREE.Group();
   root.name = 'ground:root';
@@ -216,13 +232,30 @@ export function createGroundLayered({
     defaultRepeat: resolvedDefaultRepeat,
   });
 
+  const enableSeamPrevention = !!preventTileSeams;
+  const enableTileStabilization = !!stabilizeTileOverlap;
+
   tileDefinitions.forEach((tile, index) => {
     if (tile.enableDirt) {
+      const ix = Math.floor(typeof tile.gridX === 'number' ? tile.gridX : index);
+      const iz = Math.floor(typeof tile.gridZ === 'number' ? tile.gridZ : 0);
+      const stabilizationBias = ((ix + iz) & 1) ? 0.001 : 0;
+      const resolvedDirtHeightBias =
+        tile.dirtOptions?.heightBias ??
+        dirtOptions.heightBias ??
+        (enableTileStabilization ? stabilizationBias : 0);
+      const resolvedDirtSeamExpansion =
+        tile.dirtOptions?.expandForSeams ??
+        dirtOptions.expandForSeams ??
+        enableSeamPrevention;
+
       const dirt = createDirtGround({
         ...dirtOptions,
         ...(tile.dirtOptions ?? {}),
         size: tile.dirtOptions?.size ?? tile.size ?? dirtOptions.size ?? resolvedDefaultSize,
         repeat: tile.dirtOptions?.repeat ?? tile.repeat ?? dirtOptions.repeat ?? resolvedDefaultRepeat,
+        expandForSeams: resolvedDirtSeamExpansion,
+        heightBias: resolvedDirtHeightBias,
       });
       dirt.name = tile.dirtName ?? `ground:dirt:tile:${index}`;
       dirt.position.copy(tile.position);
@@ -230,11 +263,16 @@ export function createGroundLayered({
     }
 
     if (tile.enableGrass) {
+      const resolvedGrassSeamExpansion =
+        tile.grassOptions?.expandForSeams ??
+        grassOptions.expandForSeams ??
+        enableSeamPrevention;
       const grass = createGrassGround({
         ...grassOptions,
         ...(tile.grassOptions ?? {}),
         size: tile.grassOptions?.size ?? tile.size ?? grassOptions.size ?? resolvedDefaultSize,
         repeat: tile.grassOptions?.repeat ?? tile.repeat ?? grassOptions.repeat ?? resolvedDefaultRepeat,
+        expandForSeams: resolvedGrassSeamExpansion,
       });
       grass.name = tile.grassName ?? `ground:grass:tile:${index}`;
       grass.position.copy(tile.position);

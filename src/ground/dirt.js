@@ -9,6 +9,7 @@ import { applyDoubleSidedGroundSupport } from './double-sided.js';
 const textureLoader = new THREE.TextureLoader();
 let cachedBaseTexture = null;
 const pendingTextureUpdates = new Set();
+const TILE_SEAM_EPSILON = 0.01;
 
 function flushPendingTextureUpdates(baseTexture) {
   if (pendingTextureUpdates.size === 0) return;
@@ -105,13 +106,19 @@ export function createDirtGround({
   height = 0,
   receiveShadow = true,
   anisotropy = 8,
+  expandForSeams = false,
+  heightBias = 0,
 } = {}) {
   const group = new THREE.Group();
   group.name = 'ground:dirt';
 
-  const geo = new THREE.PlaneGeometry(size, size, 1, 1);
+  const baseSize = Math.max(typeof size === 'number' ? size : 200, 0);
+  const geometrySize = expandForSeams ? baseSize + TILE_SEAM_EPSILON * 2 : baseSize;
+  const geo = new THREE.PlaneGeometry(geometrySize, geometrySize, 1, 1);
   geo.rotateX(-Math.PI / 2);
-  geo.translate(0, height, 0);
+  const finalHeight = typeof height === 'number' ? height : 0;
+  const finalBias = typeof heightBias === 'number' ? heightBias : 0;
+  geo.translate(0, finalHeight + finalBias, 0);
 
   const color = configureTexture(loadBaseTexture(), { repeat, anisotropy });
 
