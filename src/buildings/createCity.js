@@ -7,7 +7,7 @@ import { createGround } from './ground.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapGroupToGround } from '../physics/groundProject.js';
 
-export async function createCity({ renderer, scene } = {}) {
+export async function createCity({ renderer, scene, ground: groundOverrides } = {}) {
   const materials = await loadMaterials(renderer);
   const root = new THREE.Group();
   root.name = 'AthensCity';
@@ -16,8 +16,20 @@ export async function createCity({ renderer, scene } = {}) {
     scene.add(root);
   }
 
-  const ground = await createGround(materials, { size: 1000, repeat: 80, renderer });
-  root.add(ground);
+  const defaultGroundOptions = { size: 1000, repeat: 80 };
+  const groundOptions = {
+    ...defaultGroundOptions,
+    ...(groundOverrides ?? {}),
+  };
+  if (groundOptions.renderer === undefined) {
+    groundOptions.renderer = renderer;
+  }
+
+  const groundResult = await createGround(scene, materials, groundOptions);
+  const groundGroup = groundResult?.group ?? groundResult;
+  if (groundGroup) {
+    root.add(groundGroup);
+  }
 
   const registryRoot = scene ?? root;
   markGround(registryRoot);
@@ -51,7 +63,22 @@ export async function createCity({ renderer, scene } = {}) {
     }
   };
 
-  const parthenonPosition = new THREE.Vector3(0, 6, 0);
+  const fallbackAcropolisCenter = new THREE.Vector3(0, 0, 0);
+  const sceneAcropolis = scene?.userData?.acropolis ?? {};
+  const acropolisCenterSource =
+    groundResult?.acropolisCenter ??
+    sceneAcropolis.center ??
+    fallbackAcropolisCenter;
+  const acropolisCenter = acropolisCenterSource instanceof THREE.Vector3
+    ? acropolisCenterSource.clone()
+    : new THREE.Vector3(acropolisCenterSource?.x ?? 0, acropolisCenterSource?.y ?? 0, acropolisCenterSource?.z ?? 0);
+
+  const plateauY =
+    typeof groundResult?.plateauHeight === 'number'
+      ? groundResult.plateauHeight
+      : (typeof sceneAcropolis.plateauHeight === 'number' ? sceneAcropolis.plateauHeight : 28);
+
+  const parthenonPosition = new THREE.Vector3(acropolisCenter.x + 6, plateauY, acropolisCenter.z - 4);
   const parthenon = createParthenon(materials, { position: parthenonPosition });
   addAndSnap(parthenon);
 
