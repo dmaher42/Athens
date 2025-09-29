@@ -63,7 +63,7 @@ const normalizeCode = (event) => {
 export function createKeyboard(target = typeof window !== 'undefined' ? window : null) {
   const pressed = new Set();
   const listeners = new Map();
-  const axisVector = { x: 0, z: 0 };
+  const axisVector = { x: 0, z: 0, turn: 0 };
   const lookVector = { x: 0, y: 0 };
 
   const handleKeyDown = (event) => {
@@ -103,6 +103,8 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     if (isDown('KeyD')) {
       x += 1;
     }
+    const turn = x;
+
     if (isDown('KeyW')) {
       z -= 1;
     }
@@ -117,6 +119,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
     axisVector.x = x;
     axisVector.z = z;
+    axisVector.turn = turn;
     return axisVector;
   };
 
@@ -154,6 +157,12 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       enumerable: true,
       get() {
         return computeAxis().z;
+      }
+    },
+    turn: {
+      enumerable: true,
+      get() {
+        return computeAxis().turn;
       }
     },
     running: {
