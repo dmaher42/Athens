@@ -220,6 +220,17 @@ function computeTileBounds(position, size) {
   };
 }
 
+function averageCornerHeight(cornerHeights) {
+  if (!cornerHeights || typeof cornerHeights !== 'object') return 0;
+  const corners = ['nw', 'ne', 'se', 'sw'];
+  let total = 0;
+  for (const key of corners) {
+    const value = cornerHeights[key];
+    total += typeof value === 'number' ? value : 0;
+  }
+  return total / corners.length;
+}
+
 const SKIRT_DIRECTIONS = [
   { key: 'east',  axis: 'x', dir:  1, axisCoord: 'x', perpCoord: 'z', axisMin: 'minX', axisMax: 'maxX', perpMin: 'minZ', perpMax: 'maxZ' },
   { key: 'west',  axis: 'x', dir: -1, axisCoord: 'x', perpCoord: 'z', axisMin: 'minX', axisMax: 'maxX', perpMin: 'minZ', perpMax: 'maxZ' },
@@ -411,8 +422,8 @@ function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
  * You can toggle visibility on each layer independently.
  *
  * @param {Object} options
- * @param {Object} [options.dirtOptions]  - Options passed to createDirtGround
- * @param {Object} [options.grassOptions] - Options passed to createGrassGround
+ * @param {Object} [options.dirtOptions]  - Options passed to createDirtGround (supports height, slope, cornerHeights, etc.)
+ * @param {Object} [options.grassOptions] - Options passed to createGrassGround (supports height, slope, cornerHeights, etc.)
  * @param {boolean} [options.showDirt=true]
  * @param {boolean} [options.showGrass=true]
  * @param {Object[]} [options.tiles]      - Explicit tile definitions. If omitted a grid will be generated.
@@ -427,6 +438,8 @@ function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
  *
  * Tile definitions may specify `disableUnderBuilding` to suppress dirt/grass meshes and
  * `addFoundationBlendRing` to render a subtle inset ring around pads.
+ * Per-tile `dirtOptions` and `grassOptions` are forwarded to the respective ground builders,
+ * allowing custom `height`, `slope`, or `cornerHeights` per tile.
  * @returns {{
  *   root: THREE.Group,
  *   dirt: THREE.Group,
@@ -522,11 +535,13 @@ export function createGroundLayered({
     };
 
     const baseDirtHeight = typeof dirtConfig.height === 'number' ? dirtConfig.height : 0;
+    const baseDirtBias = typeof dirtConfig.heightBias === 'number' ? dirtConfig.heightBias : 0;
+    const baseCornerAverage = averageCornerHeight(dirtConfig.cornerHeights);
 
     let dirtGroup = null;
     let dirtMesh = null;
     let dirtSize;
-    let surfaceY = tile.position.y + baseDirtHeight;
+    let surfaceY = tile.position.y + baseDirtHeight + baseDirtBias + baseCornerAverage;
 
     if (!disableForBuilding && tile.enableDirt) {
       const dirt = createDirtGround(dirtConfig);
@@ -537,7 +552,7 @@ export function createGroundLayered({
       dirtGroup = dirt;
       dirtMesh = dirt.children.find(child => child?.isMesh) ?? null;
       dirtSize = dirtConfig.size;
-      surfaceY = tile.position.y + baseDirtHeight;
+      surfaceY = tile.position.y + baseDirtHeight + baseDirtBias + baseCornerAverage;
     }
 
     if (!disableForBuilding && tile.enableGrass) {
