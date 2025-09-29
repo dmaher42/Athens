@@ -6,6 +6,7 @@ import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
 import { createFollowCamera } from '../camera/followCamera.js';
+import { sanitizeObjectPosition, safeNumber } from '../utils/sanitize';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
 import { createNpcManager } from '../npc/simpleNpcManager.js';
@@ -130,6 +131,8 @@ function createPlaceholderPlayer() {
   head.receiveShadow = true;
   group.add(head);
 
+  sanitizeObjectPosition(group, { x: 0, y: 1, z: 0 });
+
   return group;
 }
 
@@ -175,6 +178,14 @@ export async function runAthens(options: RunOptions = {}) {
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+  {
+    camera.position.set(
+      safeNumber(camera.position.x, 20),
+      safeNumber(camera.position.y, 12),
+      safeNumber(camera.position.z, 20)
+    );
+  }
 
   if (typeof window !== 'undefined') {
     const params = new URLSearchParams(window.location.search);
@@ -325,6 +336,10 @@ export async function runAthens(options: RunOptions = {}) {
 
   const playerObject = createPlaceholderPlayer();
   scene.add(playerObject);
+  {
+    const player = scene.getObjectByName('MainCharacter') || scene.getObjectByName('Player');
+    sanitizeObjectPosition(player, { x: 0, y: 1, z: 0 });
+  }
   if (groundMeshes.length) {
     const initialState = { vy: 0, lastGoodY: playerObject.position.y };
     snapToGround(playerObject, groundMeshes, initialState, 0);
@@ -425,6 +440,25 @@ export async function runAthens(options: RunOptions = {}) {
       }
 
       followCamera.update(keyboard, delta);
+
+      // --- NaN guards (player & camera) ---
+      {
+        const player = scene.getObjectByName('MainCharacter') || scene.getObjectByName('Player');
+        sanitizeObjectPosition(player, { x: 0, y: 1, z: 0 });
+
+        camera.position.set(
+          safeNumber(camera.position.x, 20),
+          safeNumber(camera.position.y, 12),
+          safeNumber(camera.position.z, 20)
+        );
+
+        // If you have a follow-camera lookAt each frame, ensure the target is finite
+        const target = player?.position ?? { x: 0, y: 0, z: 0 };
+        const tx = safeNumber(target.x, 0);
+        const ty = safeNumber(target.y, 1);
+        const tz = safeNumber(target.z, 0);
+        camera.lookAt(tx, ty, tz);
+      }
 
       renderer.render(scene, camera);
     } finally {
