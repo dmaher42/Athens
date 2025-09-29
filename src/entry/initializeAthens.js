@@ -22,6 +22,7 @@ import { createOriginalUi } from '../ui/originalUi.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
 import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
+import { maybeRemoteInit } from '../core/remoteInit.js';
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
@@ -320,16 +321,25 @@ export async function initializeAthens(options = {}) {
   scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
 
-  if (typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('headlessSmoke') === '1') {
-      window.__athensDebug = { scene, camera, renderer };
-    }
-  }
-
   camera.position.set(90, 110, 180);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   scene.add(camera);
+
+  const debugPayload = { scene, camera, renderer };
+  if (typeof window !== 'undefined') {
+    const globalWindow = window;
+    globalWindow.__athensDebug = debugPayload;
+    if (!globalWindow.THREE) {
+      globalWindow.THREE = THREE;
+    }
+  }
+
+  // Render once immediately so the canvas is never blank while assets load.
+  try {
+    renderer.render(scene, camera);
+  } catch (error) {
+    console.warn('[Athens] Initial render failed.', error);
+  }
 
   ensureLights(scene);
 
@@ -654,6 +664,27 @@ export async function initializeAthens(options = {}) {
 
   const gameLoop = createGameLoop(updateFrame, renderFrame);
   gameLoop.start();
+
+  const scheduleRemoteInit = () => {
+    try {
+      const result = maybeRemoteInit();
+      if (result && typeof result.then === 'function') {
+        result.catch((error) => {
+          console.warn('[remote] init failed.', error);
+        });
+      }
+    } catch (error) {
+      console.warn('[remote] init failed.', error);
+    }
+  };
+
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(() => {
+      scheduleRemoteInit();
+    });
+  } else {
+    setTimeout(scheduleRemoteInit, 0);
+  }
 
   // Context / teardown
   const context = {

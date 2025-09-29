@@ -1,4 +1,4 @@
-const CACHE_NAME = 'athens-static-v1';
+const CACHE_NAME = 'athens-static-v2';
 const INDEX_URL = new URL('index.html', self.registration.scope).toString();
 
 function isCacheable(response) {
@@ -11,81 +11,93 @@ function isCacheable(response) {
 
 self.addEventListener('install', (event) => {
   const precacheUrls = [INDEX_URL, self.registration.scope];
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(precacheUrls))
-  );
+  event.waitUntil((async () => {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        await cache.addAll(precacheUrls);
+      } catch (error) {
+        console.warn('Service Worker precache skipped (likely offline).', error);
+      }
+    } catch (error) {
+      console.warn('Service Worker failed to open cache during install.', error);
+    }
+  })());
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-        )
-      )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+    } catch (error) {
+      console.warn('Service Worker activation cleanup failed.', error);
+    }
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') {
+  const req = event.request;
+  const url = new URL(req.url);
+  const isSameOrigin = url.origin === self.location.origin;
+
+  if (req.method !== 'GET' || !isSameOrigin) {
+    event.respondWith(
+      fetch(req).catch(() =>
+        new Response(JSON.stringify({ ok: false }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+    );
     return;
   }
 
-  const requestUrl = new URL(event.request.url);
-  if (requestUrl.origin !== self.location.origin) {
-    // Allow the browser to handle cross-origin requests (e.g. CDN assets).
-    return;
-  }
+  event.respondWith((async () => {
+    try {
+      const cached = await caches.match(req);
+      if (cached) {
+        return cached;
+      }
 
-  event.respondWith(handleRequest(event.request));
-});
+      const res = await fetch(req);
+      const cache = await caches.open(CACHE_NAME);
+      if (isCacheable(res)) {
+        cache.put(req, res.clone()).catch((error) => {
+          console.warn('Service Worker failed to cache response.', error);
+        });
+      }
+      return res;
+    } catch (error) {
+      console.warn('Service Worker fetch failed, providing fallback response.', error);
+      const isDocument =
+        req.destination === 'document' || req.headers.get('accept')?.includes('text/html');
 
-async function handleRequest(request) {
-  let cache;
-  let cachedResponse;
-  let cacheAvailable = true;
-
-  try {
-    cache = await caches.open(CACHE_NAME);
-    cachedResponse = await cache.match(request);
-  } catch (cacheError) {
-    cacheAvailable = false;
-    console.error('Service Worker cache access failed, falling back to network only.', cacheError);
-  }
-
-  try {
-    const networkResponse = await fetch(request);
-    if (cacheAvailable && cache && isCacheable(networkResponse)) {
-      cache.put(request, networkResponse.clone()).catch((putError) => {
-        console.error('Service Worker failed to update cache entry.', putError);
-      });
-    }
-    return networkResponse;
-  } catch (error) {
-    console.error('Service Worker fetch failed, attempting to serve from cache.', error);
-
-    if (cacheAvailable && cachedResponse) {
-      return cachedResponse;
-    }
-
-    if (cacheAvailable && cache && request.mode === 'navigate') {
-      try {
-        const offlineShell = await cache.match(INDEX_URL);
+      if (isDocument) {
+        let offlineShell = null;
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          offlineShell = await cache.match(INDEX_URL);
+        } catch (cacheError) {
+          console.warn('Service Worker failed to retrieve offline shell.', cacheError);
+        }
         if (offlineShell) {
           return offlineShell;
         }
-      } catch (shellError) {
-        console.error('Service Worker failed to retrieve offline shell.', shellError);
+        return new Response('<h1>Offline</h1><p>Network error.</p>', {
+          status: 503,
+          headers: { 'Content-Type': 'text/html' }
+        });
       }
-    }
 
-    return new Response('Offline', {
-      status: 503,
-      statusText: 'Service Unavailable'
-    });
-  }
-}
+      return new Response(JSON.stringify({ ok: false, error: 'network-error' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  })());
+});
