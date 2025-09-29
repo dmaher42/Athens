@@ -25,6 +25,8 @@ const KEY_FALLBACK_MAP = new Map([
   ['a', 'KeyA'],
   ['s', 'KeyS'],
   ['d', 'KeyD'],
+  ['z', 'KeyW'],
+  ['q', 'KeyA'],
   ['arrowup', 'ArrowUp'],
   ['arrowdown', 'ArrowDown'],
   ['arrowleft', 'ArrowLeft'],
@@ -35,8 +37,6 @@ const KEY_FALLBACK_MAP = new Map([
   ['x', 'KeyX'],
   ['c', 'KeyC'],
   ['e', 'KeyE'],
-  ['q', 'KeyQ'],
-  ['z', 'KeyZ'],
   ['shift', 'ShiftLeft'],
   ['control', 'ControlLeft']
 ]);

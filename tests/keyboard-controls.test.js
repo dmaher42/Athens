@@ -73,3 +73,28 @@ test('keyboard normalizes events without code to maintain controls', () => {
 
   keyboard.dispose();
 });
+
+test('keyboard maps azerty movement aliases without triggering descend', () => {
+  const target = createMockTarget();
+  const keyboard = createKeyboard(target);
+  const keydown = target.listeners.get('keydown');
+  const keyup = target.listeners.get('keyup');
+
+  keydown({ key: 'z' });
+  assert.strictEqual(keyboard.isDown('KeyW'), true);
+  assert.strictEqual(keyboard.axis.z, -1);
+
+  keyup({ key: 'z' });
+  assert.strictEqual(keyboard.axis.z, 0);
+
+  keydown({ key: 'q' });
+  assert.strictEqual(keyboard.isDown('KeyA'), true);
+  assert.strictEqual(keyboard.axis.x, -1);
+  assert.strictEqual(keyboard.isDown('KeyQ'), false);
+
+  keyup({ key: 'q' });
+
+  assert.strictEqual(keyboard.axis.x, 0);
+
+  keyboard.dispose();
+});
