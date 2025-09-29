@@ -1,5 +1,6 @@
 // src/scene/ground.js
 import { createGroundLayered } from '../ground/index.js';
+import { updateGroundDebugOverlay, clearGroundDebugOverlay } from '../ground/debug.js';
 
 let __groundSingleton = null;
 
@@ -35,6 +36,15 @@ function ensureWindowGroundAccessor(groundLayers) {
   };
 }
 
+function isGroundDebugEnabled() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location.search).get('groundDebug') === '1';
+  } catch {
+    return false;
+  }
+}
+
 // Signature stays the same as your current code expects.
 export async function loadGround(scene, renderer, options = {}) {
   const {
@@ -54,6 +64,8 @@ export async function loadGround(scene, renderer, options = {}) {
     tileSpacing = 0,
     addElevationSkirts = false,
     addFoundationBlendRing = false,
+    preventTileSeams,
+    stabilizeTileOverlap,
   } = options;
 
   const hasShowDirtOverride = Object.prototype.hasOwnProperty.call(options, 'showDirt');
@@ -63,7 +75,7 @@ export async function loadGround(scene, renderer, options = {}) {
   const initialShowGrass = hasShowGrassOverride ? !!showGrass : true;
 
   if (!__groundSingleton) {
-    __groundSingleton = createGroundLayered({
+    const layeredOptions = {
       dirtOptions: { size, repeat, height: 0, ...dirtOptions },
       grassOptions: { size, repeat, height: 0.02, ...grassOptions },
       showDirt: initialShowDirt,
@@ -75,7 +87,16 @@ export async function loadGround(scene, renderer, options = {}) {
       tileSpacing,
       addElevationSkirts,
       addFoundationBlendRing,
-    });
+    };
+
+    if (typeof preventTileSeams === 'boolean') {
+      layeredOptions.preventTileSeams = preventTileSeams;
+    }
+    if (typeof stabilizeTileOverlap === 'boolean') {
+      layeredOptions.stabilizeTileOverlap = stabilizeTileOverlap;
+    }
+
+    __groundSingleton = createGroundLayered(layeredOptions);
 
     if (__groundSingleton?.root) {
       __groundSingleton.root.userData.layeredGround = true;
@@ -96,6 +117,18 @@ export async function loadGround(scene, renderer, options = {}) {
 
   hideLegacyGroundPlanes(scene, __groundSingleton?.root);
   ensureWindowGroundAccessor(__groundSingleton);
+
+  const debugEnabled = isGroundDebugEnabled();
+  if (debugEnabled) {
+    updateGroundDebugOverlay(scene, __groundSingleton, {
+      enabled: true,
+      preventTileSeams: __groundSingleton?.config?.preventTileSeams ?? true,
+      stabilizeTileOverlap: __groundSingleton?.config?.stabilizeTileOverlap ?? true,
+      addElevationSkirts: __groundSingleton?.config?.addElevationSkirts ?? !!addElevationSkirts,
+    });
+  } else {
+    clearGroundDebugOverlay();
+  }
 
   return __groundSingleton;
 }
