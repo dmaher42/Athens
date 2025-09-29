@@ -6,7 +6,16 @@ import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
 import { createFollowCamera } from '../camera/followCamera.js';
-import { sanitizeObjectPosition, sanitizeVec3 } from '../utils/sanitize';
+import {
+  DEFAULT_CAMERA,
+  DEFAULT_PLAYER,
+  finiteNumber,
+  isFiniteVec3,
+  sanitizeEuler,
+  sanitizeQuaternion,
+  sanitizeVec3,
+  safeSetVec3
+} from '../utils/sanitize';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
 import { createNpcManager } from '../npc/simpleNpcManager.js';
@@ -17,11 +26,24 @@ import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
 
+type TransformState = {
+  pos?: Partial<THREE.Vector3> | { x?: number | null; y?: number | null; z?: number | null } | null;
+  rotEuler?: { x?: number | null; y?: number | null; z?: number | null } | null;
+  rotQuat?: { x?: number | null; y?: number | null; z?: number | null; w?: number | null } | null;
+};
+
+type SavedState = {
+  player?: TransformState | null;
+  camera?: TransformState | null;
+};
+
 type RunOptions = {
   containerId?: string;
   skyMode?: string;
   preset?: string;
   preserveBackground?: boolean;
+  savedState?: SavedState | null;
+  initialState?: SavedState | null;
 };
 
 type StatsHandle = {
@@ -32,8 +54,6 @@ type StatsHandle = {
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 const DEFAULT_BACKGROUND_HEX = 0x202834;
-const DEFAULT_PLAYER = { x: 0, y: 1, z: 0 } as const;
-const DEFAULT_CAMERA = { x: 20, y: 12, z: 20 } as const;
 
 let stats: StatsHandle | null = null;
 let statsVisible = true;
@@ -133,7 +153,7 @@ function createPlaceholderPlayer() {
   head.receiveShadow = true;
   group.add(head);
 
-  sanitizeObjectPosition(group, { x: 0, y: 1, z: 0 });
+  sanitizeVec3(group.position, DEFAULT_PLAYER);
 
   return group;
 }
@@ -183,10 +203,13 @@ export async function runAthens(options: RunOptions = {}) {
   sanitizeVec3(camera.position, DEFAULT_CAMERA);
 
   const canvas = renderer.domElement;
-  if (canvas?.clientWidth && canvas?.clientHeight) {
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-  }
+  const canvasWidth = finiteNumber(canvas?.clientWidth, initialWidth);
+  const canvasHeight = finiteNumber(canvas?.clientHeight, initialHeight);
+  const safeWidth = Math.max(1, canvasWidth);
+  const safeHeight = Math.max(1, canvasHeight);
+  const aspect = safeHeight > 0 ? safeWidth / safeHeight : 16 / 9;
+  camera.aspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 16 / 9;
+  camera.updateProjectionMatrix();
 
   if (typeof window !== 'undefined') {
     const globalWindow = window as typeof window & { __athensDebug?: unknown };
@@ -347,16 +370,101 @@ export async function runAthens(options: RunOptions = {}) {
     scene.add(playerObject);
   }
 
-  sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
-  sanitizeVec3(camera.position, DEFAULT_CAMERA);
+  const resolveSavedState = (): SavedState | null => {
+    if (options?.savedState) {
+      return options.savedState;
+    }
+    if (options?.initialState) {
+      return options.initialState;
+    }
+    if (typeof window !== 'undefined') {
+      const globalWindow = window as typeof window & {
+        __ATHENS_SAVED_STATE?: SavedState | null;
+      };
+      if (globalWindow.__ATHENS_SAVED_STATE && typeof globalWindow.__ATHENS_SAVED_STATE === 'object') {
+        return globalWindow.__ATHENS_SAVED_STATE;
+      }
+      try {
+        const raw = globalWindow.localStorage?.getItem?.('athens:lastState');
+        if (raw) {
+          const parsed = JSON.parse(raw) as SavedState;
+          if (parsed && typeof parsed === 'object') {
+            return parsed;
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+    return null;
+  };
 
-  const initialTarget = playerObject.position;
-  sanitizeVec3(initialTarget, DEFAULT_PLAYER);
-  camera.lookAt(initialTarget);
+  const restoreCameraAndPlayer = (saved: SavedState | null | undefined) => {
+    if (saved?.player?.pos) {
+      safeSetVec3(playerObject.position, saved.player.pos, DEFAULT_PLAYER);
+    } else {
+      sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+    }
+
+    if (saved?.player?.rotEuler) {
+      playerObject.rotation.set(
+        finiteNumber(saved.player.rotEuler.x, playerObject.rotation.x),
+        finiteNumber(saved.player.rotEuler.y, playerObject.rotation.y),
+        finiteNumber(saved.player.rotEuler.z, playerObject.rotation.z)
+      );
+    }
+    sanitizeEuler(playerObject.rotation);
+
+    if (saved?.player?.rotQuat) {
+      playerObject.quaternion.set(
+        finiteNumber(saved.player.rotQuat.x, playerObject.quaternion.x),
+        finiteNumber(saved.player.rotQuat.y, playerObject.quaternion.y),
+        finiteNumber(saved.player.rotQuat.z, playerObject.quaternion.z),
+        finiteNumber(saved.player.rotQuat.w, playerObject.quaternion.w)
+      );
+    }
+    sanitizeQuaternion(playerObject.quaternion);
+
+    if (saved?.camera?.pos) {
+      safeSetVec3(camera.position, saved.camera.pos, DEFAULT_CAMERA);
+    } else {
+      sanitizeVec3(camera.position, DEFAULT_CAMERA);
+    }
+
+    if (saved?.camera?.rotEuler) {
+      camera.rotation.set(
+        finiteNumber(saved.camera.rotEuler.x, camera.rotation.x),
+        finiteNumber(saved.camera.rotEuler.y, camera.rotation.y),
+        finiteNumber(saved.camera.rotEuler.z, camera.rotation.z)
+      );
+    }
+    sanitizeEuler(camera.rotation);
+
+    if (saved?.camera?.rotQuat) {
+      camera.quaternion.set(
+        finiteNumber(saved.camera.rotQuat.x, camera.quaternion.x),
+        finiteNumber(saved.camera.rotQuat.y, camera.quaternion.y),
+        finiteNumber(saved.camera.rotQuat.z, camera.quaternion.z),
+        finiteNumber(saved.camera.rotQuat.w, camera.quaternion.w)
+      );
+    }
+    sanitizeQuaternion(camera.quaternion);
+
+    const lookTarget = playerObject.position;
+    sanitizeVec3(lookTarget, DEFAULT_PLAYER);
+    camera.lookAt(lookTarget);
+  };
+
+  restoreCameraAndPlayer(resolveSavedState());
+
   if (groundMeshes.length) {
     const initialState = { vy: 0, lastGoodY: playerObject.position.y };
     snapToGround(playerObject, groundMeshes, initialState, 0);
   }
+
+  sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+  sanitizeVec3(camera.position, DEFAULT_CAMERA);
+  camera.lookAt(playerObject.position);
 
   const keyboard = createKeyboard();
   const playerController = createPlayerController(playerObject, keyboard, {
@@ -400,8 +508,13 @@ export async function runAthens(options: RunOptions = {}) {
 
   const handleResize = () => {
     const { width, height } = computeSize(container);
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
+    const safeWidth = Math.max(1, finiteNumber(width, 1));
+    const safeHeight = Math.max(1, finiteNumber(height, 1));
+    renderer.setSize(safeWidth, safeHeight, false);
+    const aspect = safeHeight > 0 ? safeWidth / safeHeight : camera.aspect;
+    if (Number.isFinite(aspect) && aspect > 0) {
+      camera.aspect = aspect;
+    }
     camera.updateProjectionMatrix();
   };
 
@@ -420,6 +533,21 @@ export async function runAthens(options: RunOptions = {}) {
           updateTrees(delta);
         } catch (error) {
           console.warn('[Athens][Boot] updateTrees failed', error);
+        }
+      }
+
+      if (!isFiniteVec3(playerObject.position)) {
+        sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+      }
+      if (!isFiniteVec3(camera.position)) {
+        sanitizeVec3(camera.position, DEFAULT_CAMERA);
+      }
+      const followTarget = (followCamera as any)?.target;
+      if (followTarget) {
+        if (!isFiniteVec3(followTarget)) {
+          followTarget.copy(playerObject.position);
+        } else {
+          sanitizeVec3(followTarget, DEFAULT_PLAYER);
         }
       }
 
@@ -464,12 +592,23 @@ export async function runAthens(options: RunOptions = {}) {
           scene.getObjectByName('MainCharacter') ||
           scene.getObjectByName('Player') ||
           playerObject;
-        sanitizeObjectPosition(player, DEFAULT_PLAYER);
-        sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
-        sanitizeVec3(camera.position, DEFAULT_CAMERA);
+        if (player?.position && !isFiniteVec3(player.position)) {
+          sanitizeVec3(player.position, DEFAULT_PLAYER);
+        }
+        if (!isFiniteVec3(playerObject.position)) {
+          sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+        }
+        if (!isFiniteVec3(camera.position)) {
+          sanitizeVec3(camera.position, DEFAULT_CAMERA);
+        }
 
-        if ((followCamera as any)?.target) {
-          sanitizeVec3((followCamera as any).target, DEFAULT_PLAYER);
+        const guardTarget = (followCamera as any)?.target;
+        if (guardTarget) {
+          if (!isFiniteVec3(guardTarget)) {
+            guardTarget.copy(playerObject.position);
+          } else {
+            sanitizeVec3(guardTarget, DEFAULT_PLAYER);
+          }
         }
 
         const lookTarget = player?.position ?? playerObject.position;

@@ -22,6 +22,16 @@ import { createOriginalUi } from '../ui/originalUi.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
 import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
+import {
+  DEFAULT_CAMERA,
+  DEFAULT_PLAYER,
+  finiteNumber,
+  isFiniteVec3,
+  sanitizeEuler,
+  sanitizeQuaternion,
+  sanitizeVec3,
+  safeSetVec3
+} from '../utils/sanitize.ts';
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
@@ -126,14 +136,22 @@ const PLAYER_COLLIDER_MARGIN = 1.5;
 const _spawnCandidate = new THREE.Vector3();
 
 function toVector3(input, fallback = DEFAULT_PLAYER_START) {
-  if (!input) return fallback.clone();
-  if (input.isVector3) return input.clone();
-  const result = fallback.clone();
+  const base = fallback?.isVector3 ? fallback : DEFAULT_PLAYER_START;
+  const result = base.clone();
+  if (!input) {
+    return sanitizeVec3(result, DEFAULT_PLAYER_START);
+  }
+  if (input.isVector3) {
+    result.copy(input);
+    return sanitizeVec3(result, DEFAULT_PLAYER_START);
+  }
   const { x, y, z } = input;
-  if (Number.isFinite(x)) result.x = Number(x);
-  if (Number.isFinite(y)) result.y = Number(y);
-  if (Number.isFinite(z)) result.z = Number(z);
-  return result;
+  result.set(
+    finiteNumber(Number(x), result.x),
+    finiteNumber(Number(y), result.y),
+    finiteNumber(Number(z), result.z)
+  );
+  return sanitizeVec3(result, DEFAULT_PLAYER_START);
 }
 
 function pointIntersectsColliders(x, y, z, colliders, margin = PLAYER_COLLIDER_MARGIN) {
@@ -293,6 +311,8 @@ function createPlaceholderPlayer() {
   head.receiveShadow = true;
   group.add(head);
 
+  sanitizeVec3(group.position, DEFAULT_PLAYER);
+
   return group;
 }
 
@@ -305,6 +325,7 @@ export async function initializeAthens(options = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+  renderer.setClearAlpha(1.0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(initialWidth, initialHeight, false);
   renderer.domElement.style.width = '100%';
@@ -319,17 +340,32 @@ export async function initializeAthens(options = {}) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
+  camera.position.set(90, 110, 180);
+  sanitizeVec3(camera.position, DEFAULT_CAMERA);
+
+  const canvas = renderer.domElement;
+  const canvasWidth = finiteNumber(canvas?.clientWidth, initialWidth);
+  const canvasHeight = finiteNumber(canvas?.clientHeight, initialHeight);
+  const safeWidth = Math.max(1, canvasWidth);
+  const safeHeight = Math.max(1, canvasHeight);
+  const aspect = safeHeight > 0 ? safeWidth / safeHeight : 16 / 9;
+  camera.aspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 16 / 9;
+  camera.updateProjectionMatrix();
+
+  const initialLookTarget = new THREE.Vector3(0, 0, 0);
+  sanitizeVec3(initialLookTarget, DEFAULT_PLAYER);
+  camera.lookAt(initialLookTarget);
+  scene.add(camera);
 
   if (typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search);
+    const globalWindow = window;
+    const params = new URLSearchParams(globalWindow.location.search);
+    globalWindow.THREE = THREE;
+    globalWindow.__athensDebug = { scene, camera, renderer };
     if (params.get('headlessSmoke') === '1') {
-      window.__athensDebug = { scene, camera, renderer };
+      globalWindow.__athensDebug = { scene, camera, renderer };
     }
   }
-
-  camera.position.set(90, 110, 180);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
-  scene.add(camera);
 
   ensureLights(scene);
 
@@ -418,6 +454,7 @@ export async function initializeAthens(options = {}) {
     hover: 0.05,
     fromY: 400
   });
+  sanitizeVec3(playerSpawn, DEFAULT_PLAYER);
 
   // Landmarks & overlay
   const landmarks = await loadLandmarks({
@@ -530,12 +567,14 @@ export async function initializeAthens(options = {}) {
   const placeAtSpawn = (object) => {
     if (!object) return;
     object.position.copy(playerSpawn);
+    sanitizeVec3(object.position, DEFAULT_PLAYER);
     if (groundMeshes?.length) {
       const snapped = snapObjectToGround(object, groundMeshes, { hover: 0.05, fromY: 400 });
       if (snapped) {
         playerSpawn.y = object.position.y;
       }
     }
+    sanitizeVec3(object.position, DEFAULT_PLAYER);
   };
 
   let playerObject = findPlayerObject() || mainCharacter?.object3d || null;
@@ -548,6 +587,10 @@ export async function initializeAthens(options = {}) {
     playerObject = placeholderPlayer;
   } else {
     placeAtSpawn(playerObject);
+  }
+
+  if (playerObject?.position) {
+    sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
   }
 
   // Controls & camera
@@ -568,14 +611,139 @@ export async function initializeAthens(options = {}) {
     lookAtOffset: new THREE.Vector3(0, 1.5, 0)
   });
 
+  followCamera.syncImmediate?.();
+  if ((followCamera as any)?.target) {
+    sanitizeVec3((followCamera as any).target, DEFAULT_PLAYER);
+  }
+
+  const resolveSavedState = () => {
+    if (options?.savedState) {
+      return options.savedState;
+    }
+    if (options?.initialState) {
+      return options.initialState;
+    }
+    if (typeof window !== 'undefined') {
+      const globalWindow = window;
+      if (globalWindow.__ATHENS_SAVED_STATE && typeof globalWindow.__ATHENS_SAVED_STATE === 'object') {
+        return globalWindow.__ATHENS_SAVED_STATE;
+      }
+      try {
+        const raw = globalWindow.localStorage?.getItem?.('athens:lastState');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            return parsed;
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+    return null;
+  };
+
+  const restoreCameraAndPlayer = (saved) => {
+    const playerState = saved?.player || null;
+    const cameraState = saved?.camera || null;
+
+    if (playerObject?.position) {
+      if (playerState?.pos) {
+        safeSetVec3(playerObject.position, playerState.pos, DEFAULT_PLAYER);
+      } else {
+        sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+      }
+    }
+
+    if (playerState?.rotEuler && playerObject?.rotation) {
+      playerObject.rotation.set(
+        finiteNumber(playerState.rotEuler.x, playerObject.rotation.x),
+        finiteNumber(playerState.rotEuler.y, playerObject.rotation.y),
+        finiteNumber(playerState.rotEuler.z, playerObject.rotation.z)
+      );
+    }
+    if (playerObject?.rotation) {
+      sanitizeEuler(playerObject.rotation);
+    }
+
+    if (playerState?.rotQuat && playerObject?.quaternion) {
+      playerObject.quaternion.set(
+        finiteNumber(playerState.rotQuat.x, playerObject.quaternion.x),
+        finiteNumber(playerState.rotQuat.y, playerObject.quaternion.y),
+        finiteNumber(playerState.rotQuat.z, playerObject.quaternion.z),
+        finiteNumber(playerState.rotQuat.w, playerObject.quaternion.w)
+      );
+    }
+    if (playerObject?.quaternion) {
+      sanitizeQuaternion(playerObject.quaternion);
+    }
+
+    if (cameraState?.pos) {
+      safeSetVec3(camera.position, cameraState.pos, DEFAULT_CAMERA);
+    } else {
+      sanitizeVec3(camera.position, DEFAULT_CAMERA);
+    }
+
+    if (cameraState?.rotEuler) {
+      camera.rotation.set(
+        finiteNumber(cameraState.rotEuler.x, camera.rotation.x),
+        finiteNumber(cameraState.rotEuler.y, camera.rotation.y),
+        finiteNumber(cameraState.rotEuler.z, camera.rotation.z)
+      );
+    }
+    sanitizeEuler(camera.rotation);
+
+    if (cameraState?.rotQuat) {
+      camera.quaternion.set(
+        finiteNumber(cameraState.rotQuat.x, camera.quaternion.x),
+        finiteNumber(cameraState.rotQuat.y, camera.quaternion.y),
+        finiteNumber(cameraState.rotQuat.z, camera.quaternion.z),
+        finiteNumber(cameraState.rotQuat.w, camera.quaternion.w)
+      );
+    }
+    sanitizeQuaternion(camera.quaternion);
+
+    if (playerObject) {
+      followCamera?.setTarget?.(playerObject);
+    }
+    if ((followCamera as any)?.target) {
+      const followTarget = (followCamera as any).target;
+      if (!isFiniteVec3(followTarget)) {
+        followTarget.copy(playerObject?.position || DEFAULT_PLAYER);
+      } else {
+        sanitizeVec3(followTarget, DEFAULT_PLAYER);
+      }
+    }
+
+    const lookTarget = playerObject?.position
+      ? playerObject.position
+      : new THREE.Vector3(DEFAULT_PLAYER.x, DEFAULT_PLAYER.y, DEFAULT_PLAYER.z);
+    sanitizeVec3(lookTarget, DEFAULT_PLAYER);
+    camera.lookAt(lookTarget);
+  };
+
+  const savedState = resolveSavedState();
+  restoreCameraAndPlayer(savedState);
+
   if (mainCharacter?.ready?.then) {
     mainCharacter.ready.then(() => {
       const resolvedPlayer = mainCharacter.object3d || findPlayerObject() || scene.getObjectByName('MainCharacter');
       if (resolvedPlayer) {
         placeAtSpawn(resolvedPlayer);
+        sanitizeVec3(resolvedPlayer.position, DEFAULT_PLAYER);
+        sanitizeEuler(resolvedPlayer.rotation);
+        sanitizeQuaternion(resolvedPlayer.quaternion);
         controller.setObject?.(resolvedPlayer);
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
+        if (savedState) {
+          restoreCameraAndPlayer(savedState);
+        } else {
+          sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+          sanitizeVec3(camera.position, DEFAULT_CAMERA);
+          camera.lookAt(playerObject.position);
+        }
+        followCamera.syncImmediate?.();
         if (placeholderPlayer && placeholderPlayer.parent) {
           placeholderPlayer.parent.remove(placeholderPlayer);
         }
@@ -588,8 +756,13 @@ export async function initializeAthens(options = {}) {
   // Resize
   const resizeHandler = () => {
     const { width, height } = computeContainerSize(container);
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
+    const safeWidth = Math.max(1, finiteNumber(width, 1));
+    const safeHeight = Math.max(1, finiteNumber(height, 1));
+    renderer.setSize(safeWidth, safeHeight, false);
+    const aspect = safeHeight > 0 ? safeWidth / safeHeight : camera.aspect;
+    if (Number.isFinite(aspect) && aspect > 0) {
+      camera.aspect = aspect;
+    }
     camera.updateProjectionMatrix();
     overlay.requestRender();
     landmarks.featureLines?.updateResolution?.();
@@ -619,6 +792,21 @@ export async function initializeAthens(options = {}) {
         console.warn('[Athens] Tree animation update failed.', error);
       }
 
+      if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
+        sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+      }
+      if (!isFiniteVec3(camera.position)) {
+        sanitizeVec3(camera.position, DEFAULT_CAMERA);
+      }
+      const followTarget = (followCamera as any)?.target;
+      if (followTarget) {
+        if (!isFiniteVec3(followTarget)) {
+          followTarget.copy(playerObject?.position || DEFAULT_PLAYER);
+        } else {
+          sanitizeVec3(followTarget, DEFAULT_PLAYER);
+        }
+      }
+
       const npcContext = { groundMeshes, skippedLargeDt: Boolean(skippedLargeDt) };
       mainCharacter?.update?.(delta, npcContext);
       npcManager?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
@@ -636,6 +824,34 @@ export async function initializeAthens(options = {}) {
       });
 
       followCamera?.update?.();
+
+      const activePlayer = findPlayerObject() || playerObject;
+      if (activePlayer?.position && !isFiniteVec3(activePlayer.position)) {
+        sanitizeVec3(activePlayer.position, DEFAULT_PLAYER);
+      }
+      if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
+        sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+      }
+      if (!isFiniteVec3(camera.position)) {
+        sanitizeVec3(camera.position, DEFAULT_CAMERA);
+      }
+
+      const guardTarget = (followCamera as any)?.target;
+      if (guardTarget) {
+        if (!isFiniteVec3(guardTarget)) {
+          guardTarget.copy(activePlayer?.position || playerObject?.position || DEFAULT_PLAYER);
+        } else {
+          sanitizeVec3(guardTarget, DEFAULT_PLAYER);
+        }
+      }
+
+      const lookTarget = activePlayer?.position
+        ? activePlayer.position
+        : playerObject?.position
+          ? playerObject.position
+          : new THREE.Vector3(DEFAULT_PLAYER.x, DEFAULT_PLAYER.y, DEFAULT_PLAYER.z);
+      sanitizeVec3(lookTarget, DEFAULT_PLAYER);
+      camera.lookAt(lookTarget);
     } catch (error) {
       console.warn('[Athens] Frame update failed.', error);
     }
@@ -644,6 +860,23 @@ export async function initializeAthens(options = {}) {
   const renderFrame = () => {
     try {
       if (!disposed) {
+        const activePlayer = findPlayerObject() || playerObject;
+        if (activePlayer?.position && !isFiniteVec3(activePlayer.position)) {
+          sanitizeVec3(activePlayer.position, DEFAULT_PLAYER);
+        }
+        if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
+          sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
+        }
+        if (!isFiniteVec3(camera.position)) {
+          sanitizeVec3(camera.position, DEFAULT_CAMERA);
+        }
+        const renderTarget = activePlayer?.position
+          ? activePlayer.position
+          : playerObject?.position
+            ? playerObject.position
+            : new THREE.Vector3(DEFAULT_PLAYER.x, DEFAULT_PLAYER.y, DEFAULT_PLAYER.z);
+        sanitizeVec3(renderTarget, DEFAULT_PLAYER);
+        camera.lookAt(renderTarget);
         renderer.render(scene, camera);
       }
     } finally {
