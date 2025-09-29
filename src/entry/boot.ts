@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
-import { setEnvironment } from '../scene/sky.js';
 import { applySky } from '../scene/sky.ts';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
@@ -311,19 +310,8 @@ export async function runAthens(options: RunOptions = {}) {
   };
 
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
-  if (typeof setEnvironment === 'function') {
-    try {
-      await setEnvironment(renderer, scene, environmentMode, {
-        enablePhotoSky: false,
-        preserveBackground: true
-      });
-    } catch (error) {
-      console.warn('[Athens][Boot] setEnvironment failed', error);
-    }
-  }
-
   try {
-    await applySky(scene, renderer);
+    await applySky(scene, renderer, environmentMode);
   } catch (error) {
     console.warn('[Athens][Boot] applySky failed', error);
   }
