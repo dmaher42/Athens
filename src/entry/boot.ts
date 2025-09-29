@@ -33,7 +33,6 @@ type StatsHandle = {
 };
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
-
 const DEFAULT_BACKGROUND_HEX = 0x202834;
 
 let stats: StatsHandle | null = null;
@@ -47,9 +46,7 @@ const updateStatsVisibility = () => {
 };
 
 const registerGlobalStatsHelpers = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
+  if (typeof window === 'undefined') return;
 
   const globalWindow = window as typeof window & {
     getStats?: () => StatsHandle | null;
@@ -58,11 +55,7 @@ const registerGlobalStatsHelpers = () => {
 
   globalWindow.getStats = () => stats;
   globalWindow.toggleStatsVisibility = (forceVisible?: boolean) => {
-    if (typeof forceVisible === 'boolean') {
-      statsVisible = forceVisible;
-    } else {
-      statsVisible = !statsVisible;
-    }
+    statsVisible = typeof forceVisible === 'boolean' ? forceVisible : !statsVisible;
     updateStatsVisibility();
     return statsVisible;
   };
@@ -88,9 +81,7 @@ const DEFAULT_CONTAINER_ID = 'app';
 const STATUS_SELECTOR = '[data-status-line]';
 
 function updateStatus(message: string, level: 'info' | 'error' = 'info') {
-  if (typeof document === 'undefined') {
-    return;
-  }
+  if (typeof document === 'undefined') return;
   const statusEl = document.querySelector<HTMLElement>(STATUS_SELECTOR);
   if (statusEl) {
     statusEl.textContent = message;
@@ -103,9 +94,7 @@ function ensureContainer(id: string) {
     throw new Error('Document is not available in the current environment.');
   }
   const container = document.getElementById(id);
-  if (!container) {
-    throw new Error(`Athens boot: container #${id} not found.`);
-  }
+  if (!container) throw new Error(`Athens boot: container #${id} not found.`);
   return container;
 }
 
@@ -126,8 +115,8 @@ function createPlaceholderPlayer() {
   const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.65, metalness: 0.15 });
   const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5, metalness: 0.1 });
 
-  if (typeof THREE.CapsuleGeometry === 'function') {
-    const capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 1.6, 12, 24), bodyMaterial);
+  if (typeof (THREE as any).CapsuleGeometry === 'function') {
+    const capsule = new THREE.Mesh(new (THREE as any).CapsuleGeometry(0.45, 1.6, 12, 24), bodyMaterial);
     capsule.castShadow = true;
     capsule.receiveShadow = true;
     group.add(capsule);
@@ -170,9 +159,7 @@ export async function runAthens(options: RunOptions = {}) {
 
   statsReady
     .then((created) => {
-      if (!created.dom) {
-        return;
-      }
+      if (!created.dom) return;
       created.dom.style.position = 'absolute';
       created.dom.style.left = '0';
       created.dom.style.top = '0';
@@ -183,9 +170,7 @@ export async function runAthens(options: RunOptions = {}) {
       }
       updateStatsVisibility();
     })
-    .catch(() => {
-      // Ignore stats setup errors.
-    });
+    .catch(() => { /* ignore */ });
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
@@ -203,7 +188,7 @@ export async function runAthens(options: RunOptions = {}) {
 
   const resumeAudioContext = () => {
     const listener = audio.getListener?.();
-    const ctx = listener?.context || listener?.getContext?.();
+    const ctx = (listener as any)?.context || (listener as any)?.getContext?.();
     if (ctx && ctx.state === 'suspended' && typeof ctx.resume === 'function') {
       ctx.resume().catch(() => {});
     }
@@ -231,12 +216,8 @@ export async function runAthens(options: RunOptions = {}) {
 
   const applyQualityPreset = (preset: string) => {
     const normalized = typeof preset === 'string' ? preset.toLowerCase() : '';
-    let target: 'low' | 'medium' | 'high';
-    if (normalized === 'low' || normalized === 'medium' || normalized === 'high') {
-      target = normalized;
-    } else {
-      target = 'medium';
-    }
+    const target: 'low' | 'medium' | 'high' =
+      normalized === 'low' || normalized === 'medium' || normalized === 'high' ? (normalized as any) : 'medium';
 
     const shadow = directionalLight.shadow;
 
@@ -245,9 +226,7 @@ export async function runAthens(options: RunOptions = {}) {
         renderer.shadowMap.enabled = false;
         renderer.shadowMap.type = THREE.BasicShadowMap;
         renderer.shadowMap.needsUpdate = true;
-        if (directionalLight) {
-          directionalLight.castShadow = false;
-        }
+        directionalLight.castShadow = false;
         renderer.toneMappingExposure = 0.9;
         break;
       }
@@ -255,18 +234,9 @@ export async function runAthens(options: RunOptions = {}) {
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.BasicShadowMap;
         renderer.shadowMap.needsUpdate = true;
-        if (directionalLight) {
-          directionalLight.castShadow = true;
-        }
-        if (shadow?.mapSize?.set) {
-          shadow.mapSize.set(512, 512);
-        } else if (shadow) {
-          shadow.mapSize.width = 512;
-          shadow.mapSize.height = 512;
-        }
-        if (shadow) {
-          shadow.needsUpdate = true;
-        }
+        directionalLight.castShadow = true;
+        shadow.mapSize.set(512, 512);
+        shadow.needsUpdate = true;
         renderer.toneMappingExposure = 1.0;
         break;
       }
@@ -274,18 +244,9 @@ export async function runAthens(options: RunOptions = {}) {
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.shadowMap.needsUpdate = true;
-        if (directionalLight) {
-          directionalLight.castShadow = true;
-        }
-        if (shadow?.mapSize?.set) {
-          shadow.mapSize.set(2048, 2048);
-        } else if (shadow) {
-          shadow.mapSize.width = 2048;
-          shadow.mapSize.height = 2048;
-        }
-        if (shadow) {
-          shadow.needsUpdate = true;
-        }
+        directionalLight.castShadow = true;
+        shadow.mapSize.set(2048, 2048);
+        shadow.needsUpdate = true;
         renderer.toneMappingExposure = 1.1;
         break;
       }
@@ -299,7 +260,7 @@ export async function runAthens(options: RunOptions = {}) {
     try {
       await setEnvironment(renderer, scene, environmentMode, {
         enablePhotoSky: false,   // skip JPG dome while debugging
-        preserveBackground: true // keep blue/env visible, no white flash
+        preserveBackground: true // keep background; avoid white flash
       });
     } catch (error) {
       console.warn('[Athens][Boot] setEnvironment failed', error);
@@ -323,9 +284,7 @@ export async function runAthens(options: RunOptions = {}) {
 
   let currentAmbienceMode = ambienceMode;
   const applyAmbienceForMode = (mode: string) => {
-    if (!audio) {
-      return;
-    }
+    if (!audio) return;
     const targetMode = ['dawn', 'day', 'dusk', 'night'].includes(mode) ? mode : 'day';
     currentAmbienceMode = targetMode;
     setAmbience(audio, targetMode).catch(() => {});
@@ -339,9 +298,7 @@ export async function runAthens(options: RunOptions = {}) {
   };
 
   const handleVolume = (value: number) => {
-    if (!audio || typeof value !== 'number' || Number.isNaN(value)) {
-      return;
-    }
+    if (!audio || typeof value !== 'number' || Number.isNaN(value)) return;
     audio.setMasterVolume(value);
   };
 
@@ -382,8 +339,8 @@ export async function runAthens(options: RunOptions = {}) {
     turnLerp: 0.18,
     colliders
   });
-  playerController.setGroundMeshes(groundMeshes);
-  playerController.setColliders(colliders);
+  playerController.setGroundMeshes?.(groundMeshes);
+  playerController.setColliders?.(colliders);
 
   const footsteps = createFootsteps(audio);
 
@@ -392,16 +349,13 @@ export async function runAthens(options: RunOptions = {}) {
     lerp: 0.12,
     lookAtOffset: new THREE.Vector3(0, 1.5, 0)
   });
-  followCamera.syncImmediate();
+  followCamera.syncImmediate?.();
 
   const npcManager = createNpcManager(scene, groundMeshes, { colliders });
-  npcManager.setGroundMeshes(groundMeshes);
-  npcManager.setColliders(colliders);
+  npcManager.setGroundMeshes?.(groundMeshes);
+  npcManager.setColliders?.(colliders);
   const npcState = npcManager.spawn({
-    waypoints: [
-      new THREE.Vector3(6, 0, 6),
-      new THREE.Vector3(10, 0, 6)
-    ]
+    waypoints: [new THREE.Vector3(6, 0, 6), new THREE.Vector3(10, 0, 6)]
   });
   if (npcState?.object3d) {
     attachNpcAudio(audio, npcState.object3d, { clip: 'market_chatter.mp3', volume: 0.3, distance: 20 }).catch(() => {});
@@ -512,11 +466,11 @@ export async function runAthens(options: RunOptions = {}) {
       if (panel && panel.parentNode === container) {
         container.removeChild(panel);
       }
-      npcManager.dispose();
-      keyboard.dispose();
-      footsteps.dispose();
-      audio.stopAll();
-      renderer.dispose();
+      npcManager.dispose?.();
+      keyboard.dispose?.();
+      footsteps.dispose?.();
+      audio.stopAll?.();
+      renderer.dispose?.();
     }
   };
 
