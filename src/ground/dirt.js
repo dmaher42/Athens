@@ -46,17 +46,9 @@ function loadBaseTexture() {
         cachedBaseTexture = texture;
         flushPendingTextureUpdates(texture);
         if (fallbackTexture && fallbackTexture !== texture) {
-          try {
-            fallbackTexture.dispose?.();
-          } catch {
-            /* ignore */
-          }
+          try { fallbackTexture.dispose?.(); } catch {}
         } else if (previous && previous !== texture) {
-          try {
-            previous.dispose?.();
-          } catch {
-            /* ignore */
-          }
+          try { previous.dispose?.(); } catch {}
         }
       },
       onFallback: (texture) => {
@@ -99,6 +91,12 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
   }
 
   return texture;
+}
+
+/** Optional helper: get a configured, shared dirt texture (cloned from cached base). */
+export function createSharedDirtTexture({ repeat, anisotropy } = {}) {
+  const baseTexture = loadBaseTexture();
+  return configureTexture(baseTexture, { repeat, anisotropy });
 }
 
 export function createDirtMaterial({ repeat = 16, anisotropy = 8 } = {}) {

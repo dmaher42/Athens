@@ -12,25 +12,17 @@ export const GroundType = Object.freeze({
 });
 
 const DEFAULT_TILE_GRID = Object.freeze({ columns: 5, rows: 5 });
+const BUILDING_NAME_PATTERN = /(foundation|building|pad)/i;
+const BUILDING_USERDATA_KEYS = ['building', 'buildingPad', 'foundation', 'isBuilding', 'isFoundation'];
 
-// Skirt tuning values (all expressed in world units unless otherwise noted).
-// Skirts are created when the height delta between tiles exceeds 3cm to avoid
-// clutter on nearly level tiles.
+// Skirt tuning values (world units).
 const SKIRT_MIN_DELTA = 0.03;
-// Generated skirt quads are 2cm thick to sit just inside the tile bounds and
-// avoid z-fighting.
 const SKIRT_THICKNESS = 0.02;
-// Allow a small percentage of the tile size (0.5%) when considering two edges
-// to be aligned.
 const SKIRT_EDGE_TOLERANCE_RATIO = 0.005;
-// Clamp the edge alignment tolerance between 5cm and 2m so that both small and
-// large tiles behave consistently.
 const SKIRT_POSITION_TOLERANCE_MIN = 0.05;
 const SKIRT_POSITION_TOLERANCE_MAX = 2;
 
-// Blend ring configuration. Rings are offset by 3cm above the tile surface to
-// avoid z-fighting, are at least 25cm wide, and otherwise scale to 8% of the
-// tile size. We render 48 segments to provide a smooth circle.
+// Foundation blend ring config
 const FOUNDATION_BLEND_RING_OFFSET = 0.03;
 const FOUNDATION_BLEND_RING_WIDTH_RATIO = 0.08;
 const FOUNDATION_BLEND_RING_MIN_WIDTH = 0.25;
@@ -40,9 +32,7 @@ const SKIRT_MATERIAL_CACHE = new WeakMap();
 const FOUNDATION_BLEND_RING_MATERIAL_CACHE = new Map();
 
 function toVector3(position) {
-  if (position instanceof THREE.Vector3) {
-    return position.clone();
-  }
+  if (position instanceof THREE.Vector3) return position.clone();
   if (Array.isArray(position)) {
     const [x = 0, y = 0, z = 0] = position;
     return new THREE.Vector3(x, y, z);
@@ -53,15 +43,10 @@ function toVector3(position) {
 }
 
 function parseSpacing(spacing) {
-  if (typeof spacing === 'number') {
-    return { x: spacing, z: spacing };
-  }
+  if (typeof spacing === 'number') return { x: spacing, z: spacing };
   if (spacing && typeof spacing === 'object') {
     const { x = 0, z = 0 } = spacing;
-    return {
-      x: typeof x === 'number' ? x : 0,
-      z: typeof z === 'number' ? z : 0,
-    };
+    return { x: typeof x === 'number' ? x : 0, z: typeof z === 'number' ? z : 0 };
   }
   return { x: 0, z: 0 };
 }
@@ -81,7 +66,6 @@ function createGridTiles({ grid, size, repeat, spacing }) {
     for (let col = 0; col < columns; col += 1) {
       const x = col * stepX - offsetX;
       const z = row * stepZ - offsetZ;
-
       tiles.push({
         size,
         repeat,
@@ -129,6 +113,9 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     gridZ,
     disableUnderBuilding,
     addFoundationBlendRing,
+    foundationBlendOptions,
+    userData,
+    objects,
   } = tile;
 
   const vectorPosition = position ? toVector3(position) : toVector3({ x, y, z });
@@ -146,8 +133,14 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     gridX: typeof gridX === 'number' ? gridX : undefined,
     gridZ: typeof gridZ === 'number' ? gridZ : undefined,
     disableUnderBuilding: Boolean(disableUnderBuilding),
-    addFoundationBlendRing:
-      typeof addFoundationBlendRing === 'boolean' ? addFoundationBlendRing : undefined,
+    addFoundationBlendRing: typeof addFoundationBlendRing === 'boolean' ? addFoundationBlendRing : undefined,
+    foundationBlendOptions:
+      foundationBlendOptions && typeof foundationBlendOptions === 'object'
+        ? { ...foundationBlendOptions }
+        : undefined,
+    userData: userData && typeof userData === 'object' ? { ...userData } : undefined,
+    objects: Array.isArray(objects) ? objects : undefined,
+    name: typeof name === 'string' ? name : undefined,
   };
 }
 
@@ -190,189 +183,30 @@ function buildTileDefinitions({
   return definitions;
 }
 
-/**
- * Builds a layered ground group containing separate dirt and grass groups.
- * You can toggle visibility on each layer independently.
- *
- * @param {Object} options
- * @param {Object} [options.dirtOptions]  - Options passed to createDirtGround
- * @param {Object} [options.grassOptions] - Options passed to createGrassGround
- * @param {boolean} [options.showDirt=true]
- * @param {boolean} [options.showGrass=true]
- * @param {Object[]} [options.tiles]      - Explicit tile definitions. If omitted a grid will be generated.
- * @param {{ columns?: number, rows?: number }} [options.tileGrid] - Grid size when generating tiles. Defaults to 5x5.
- * @param {number} [options.tileSize]     - Base tile size (used for generated tiles and as fallback for explicit tiles).
- * @param {number} [options.tileRepeat]   - Base texture repeat for generated tiles.
- * @param {number|{x?:number,z?:number}} [options.tileSpacing=0] - Gap/overlap between generated tiles.
- * @param {boolean} [options.addElevationSkirts=false] - Adds skirts between tiles with height differences.
- * @param {boolean} [options.addFoundationBlendRing=false] - Adds optional blend ring when dirt is disabled.
- * @param {boolean} [options.preventTileSeams=true] - Expand tile geometry slightly to hide seams.
- * @param {boolean} [options.stabilizeTileOverlap=true] - Apply a subtle alternating height bias to dirt tiles.
- * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group }}
- */
-export function createGroundLayered({
-  dirtOptions = {},
-  grassOptions = {},
-  showDirt = true,
-  showGrass = true,
-  tiles,
-  tileGrid,
-  tileSize,
-  tileRepeat,
-  tileSpacing = 0,
-  addElevationSkirts = false,
-  addFoundationBlendRing = false,
-  preventTileSeams = true,
-  stabilizeTileOverlap = true,
-} = {}) {
-  const root = new THREE.Group();
-  root.name = 'ground:root';
+function hasBuildingFlag(userData) {
+  if (!userData || typeof userData !== 'object') return false;
+  return BUILDING_USERDATA_KEYS.some((key) => userData[key]);
+}
 
-  const dirtLayer = new THREE.Group();
-  dirtLayer.name = 'ground:dirt';
+function shouldDisableTileGround(tile) {
+  if (!tile || typeof tile !== 'object') return false;
 
-  const grassLayer = new THREE.Group();
-  grassLayer.name = 'ground:grass';
+  if (tile.disableUnderBuilding === true) return true;
+  if (hasBuildingFlag(tile.userData)) return true;
+  if (hasBuildingFlag(tile.dirtOptions?.userData) || hasBuildingFlag(tile.grassOptions?.userData)) return true;
 
-  root.add(dirtLayer);
-  root.add(grassLayer);
+  const namesToCheck = [tile.name, tile.dirtName, tile.grassName, tile.dirtOptions?.name, tile.grassOptions?.name];
+  if (namesToCheck.some((v) => typeof v === 'string' && BUILDING_NAME_PATTERN.test(v))) return true;
 
-  const defaultSize =
-    (typeof tileSize === 'number' && tileSize > 0) ? tileSize :
-    (typeof grassOptions.size === 'number' ? grassOptions.size : dirtOptions.size);
-
-  const resolvedDefaultSize = typeof defaultSize === 'number' ? defaultSize : 200;
-
-  const defaultRepeat =
-    (typeof tileRepeat === 'number' && tileRepeat > 0) ? tileRepeat :
-    (typeof grassOptions.repeat === 'number' ? grassOptions.repeat : dirtOptions.repeat);
-
-  const resolvedDefaultRepeat = typeof defaultRepeat === 'number' ? defaultRepeat : 16;
-
-  const tileDefinitions = buildTileDefinitions({
-    tiles,
-    tileGrid,
-    tileSize: resolvedDefaultSize,
-    tileRepeat: resolvedDefaultRepeat,
-    tileSpacing,
-    defaultSize: resolvedDefaultSize,
-    defaultRepeat: resolvedDefaultRepeat,
-  });
-
-  const tileInstances = tileDefinitions.map((tile, index) => {
-    const fallbackSize = tile.size ?? resolvedDefaultSize;
-    const fallbackRepeat = tile.repeat ?? resolvedDefaultRepeat;
-
-    // Stabilization bias alternates based on grid position to reduce coplanar z-fighting
-    const ix = Math.floor(typeof tile.gridX === 'number' ? tile.gridX : index);
-    const iz = Math.floor(typeof tile.gridZ === 'number' ? tile.gridZ : 0);
-    const stabilizationBias = ((ix + iz) & 1) ? 0.001 : 0;
-
-    const dirtConfig = {
-      ...dirtOptions,
-      ...(tile.dirtOptions ?? {}),
-      size: tile.dirtOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
-      repeat: tile.dirtOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
-      expandForSeams:
-        tile.dirtOptions?.expandForSeams ??
-        dirtOptions.expandForSeams ??
-        !!preventTileSeams,
-      heightBias:
-        tile.dirtOptions?.heightBias ??
-        dirtOptions.heightBias ??
-        (stabilizeTileOverlap ? stabilizationBias : 0),
-    };
-
-    const grassConfig = {
-      ...grassOptions,
-      ...(tile.grassOptions ?? {}),
-      size: tile.grassOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
-      repeat: tile.grassOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
-      expandForSeams:
-        tile.grassOptions?.expandForSeams ??
-        grassOptions.expandForSeams ??
-        !!preventTileSeams,
-    };
-
-    const baseDirtHeight = typeof dirtConfig.height === 'number' ? dirtConfig.height : 0;
-
-    let dirtGroup = null;
-    let dirtMesh = null;
-    let dirtSize;
-    let surfaceY = tile.position.y + baseDirtHeight;
-
-    if (!tile.disableUnderBuilding && tile.enableDirt) {
-      const dirt = createDirtGround(dirtConfig);
-      dirt.name = tile.dirtName ?? `ground:dirt:tile:${index}`;
-      dirt.position.copy(tile.position);
-      dirtLayer.add(dirt);
-
-      dirtGroup = dirt;
-      dirtMesh = dirt.children.find(child => child?.isMesh) ?? null;
-      dirtSize = dirtConfig.size;
-      surfaceY = tile.position.y + baseDirtHeight;
+  if (Array.isArray(tile.objects)) {
+    for (const obj of tile.objects) {
+      if (!obj) continue;
+      if (hasBuildingFlag(obj.userData)) return true;
+      if (typeof obj.name === 'string' && BUILDING_NAME_PATTERN.test(obj.name)) return true;
     }
-
-    if (!tile.disableUnderBuilding && tile.enableGrass) {
-      const grass = createGrassGround(grassConfig);
-      grass.name = tile.grassName ?? `ground:grass:tile:${index}`;
-      grass.position.copy(tile.position);
-      grassLayer.add(grass);
-    }
-
-    const coverageSize = dirtSize ?? fallbackSize ?? resolvedDefaultSize;
-    const bounds = computeTileBounds(tile.position, coverageSize);
-
-    if (tile.disableUnderBuilding && addFoundationBlendRing) {
-      const allowBlend = tile.addFoundationBlendRing ?? false;
-      if (allowBlend) {
-        const ringRepeat = typeof dirtConfig.repeat === 'number'
-          ? Math.max(1, dirtConfig.repeat / 2)
-          : dirtConfig.repeat;
-        const blendRing = createFoundationBlendRingMesh({
-          size: coverageSize,
-          repeat: ringRepeat,
-          anisotropy: dirtConfig.anisotropy,
-        });
-        if (blendRing) {
-          const surfaceOffset = surfaceY - tile.position.y;
-          blendRing.name = tile.dirtName
-            ? `${tile.dirtName}:foundationBlendRing`
-            : `ground:dirt:foundationBlendRing:${index}`;
-          blendRing.position.set(
-            tile.position.x,
-            tile.position.y + surfaceOffset + FOUNDATION_BLEND_RING_OFFSET,
-            tile.position.z,
-          );
-          dirtLayer.add(blendRing);
-        }
-      }
-    }
-
-    return {
-      index,
-      definition: tile,
-      position: tile.position.clone(),
-      disableUnderBuilding: Boolean(tile.disableUnderBuilding),
-      addFoundationBlendRing: tile.addFoundationBlendRing,
-      dirtGroup,
-      dirtMesh,
-      dirtHeight: baseDirtHeight,
-      dirtSize,
-      coverageSize,
-      surfaceY,
-      bounds,
-    };
-  });
-
-  if (addElevationSkirts) {
-    applyElevationSkirts(tileInstances);
   }
 
-  dirtLayer.visible = !!showDirt;
-  grassLayer.visible = !!showGrass;
-
-  return { root, dirt: dirtLayer, grass: grassLayer };
+  return false;
 }
 
 function computeTileBounds(position, size) {
@@ -395,7 +229,6 @@ const SKIRT_DIRECTIONS = [
 
 function getSkirtMaterial(baseMaterial) {
   if (!baseMaterial) return null;
-
   let material = SKIRT_MATERIAL_CACHE.get(baseMaterial);
   if (!material) {
     material = baseMaterial.clone();
@@ -406,7 +239,6 @@ function getSkirtMaterial(baseMaterial) {
     material.color?.multiplyScalar?.(0.9);
     SKIRT_MATERIAL_CACHE.set(baseMaterial, material);
   }
-
   return material;
 }
 
@@ -439,18 +271,10 @@ function findNeighborForDirection(instances, tile, direction) {
     const overlapLength = overlapMax - overlapMin;
     if (overlapLength <= 0) continue;
 
-    if (
-      !best ||
-      overlapLength > best.overlapLength ||
-      (Math.abs(overlapLength - best.overlapLength) < 1e-6 && distance < best.distance)
-    ) {
-      best = {
-        instance: candidate,
-        overlapMin,
-        overlapMax,
-        overlapLength,
-        distance,
-      };
+    if (!best ||
+        overlapLength > best.overlapLength ||
+        (Math.abs(overlapLength - best.overlapLength) < 1e-6 && distance < best.distance)) {
+      best = { instance: candidate, overlapMin, overlapMax, overlapLength, distance };
     }
   }
 
@@ -470,12 +294,8 @@ function applyElevationSkirts(instances) {
       if (!neighborInfo) return;
 
       const neighbor = neighborInfo.instance;
-      const tileSurface = typeof tile.surfaceY === 'number'
-        ? tile.surfaceY
-        : tile.position?.y ?? 0;
-      const neighborSurface = typeof neighbor.surfaceY === 'number'
-        ? neighbor.surfaceY
-        : neighbor.position?.y ?? 0;
+      const tileSurface = typeof tile.surfaceY === 'number' ? tile.surfaceY : tile.position?.y ?? 0;
+      const neighborSurface = typeof neighbor.surfaceY === 'number' ? neighbor.surfaceY : neighbor.position?.y ?? 0;
       const height = tileSurface - neighborSurface;
       if (!(height > SKIRT_MIN_DELTA)) return;
 
@@ -531,7 +351,6 @@ function getFoundationBlendRingMaterial({ repeat, anisotropy }) {
     material.color?.multiplyScalar?.(0.92);
     FOUNDATION_BLEND_RING_MATERIAL_CACHE.set(cacheKey, material);
   }
-
   return FOUNDATION_BLEND_RING_MATERIAL_CACHE.get(cacheKey);
 }
 
@@ -555,4 +374,183 @@ function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
   mesh.receiveShadow = false;
 
   return mesh;
+}
+
+/**
+ * Builds a layered ground group containing separate dirt and grass groups.
+ * You can toggle visibility on each layer independently.
+ *
+ * @param {Object} options
+ * @param {Object} [options.dirtOptions]  - Options passed to createDirtGround
+ * @param {Object} [options.grassOptions] - Options passed to createGrassGround
+ * @param {boolean} [options.showDirt=true]
+ * @param {boolean} [options.showGrass=true]
+ * @param {Object[]} [options.tiles]      - Explicit tile definitions. If omitted a grid will be generated.
+ * @param {{ columns?: number, rows?: number }} [options.tileGrid] - Grid size when generating tiles. Defaults to 5x5.
+ * @param {number} [options.tileSize]     - Base tile size (used for generated tiles and as fallback for explicit tiles).
+ * @param {number} [options.tileRepeat]   - Base texture repeat for generated tiles.
+ * @param {number|{x?:number,z?:number}} [options.tileSpacing=0] - Gap/overlap between generated tiles.
+ * @param {boolean} [options.addElevationSkirts=false] - Adds skirts between tiles with height differences.
+ * @param {boolean} [options.addFoundationBlendRing=false] - Adds optional blend ring when dirt is disabled.
+ * @param {boolean} [options.preventTileSeams=true] - Expand tile geometry slightly to hide seams.
+ * @param {boolean} [options.stabilizeTileOverlap=true] - Apply a subtle alternating height bias to dirt tiles.
+ *
+ * Tile definitions may specify `disableUnderBuilding` to suppress dirt/grass meshes and
+ * `addFoundationBlendRing` to render a subtle inset ring around pads.
+ * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group, foundationBlend: THREE.Group }}
+ */
+export function createGroundLayered({
+  dirtOptions = {},
+  grassOptions = {},
+  showDirt = true,
+  showGrass = true,
+  tiles,
+  tileGrid,
+  tileSize,
+  tileRepeat,
+  tileSpacing = 0,
+  addElevationSkirts = false,
+  addFoundationBlendRing = false,
+  preventTileSeams = true,
+  stabilizeTileOverlap = true,
+} = {}) {
+  const root = new THREE.Group();
+  root.name = 'ground:root';
+
+  const dirtLayer = new THREE.Group();
+  dirtLayer.name = 'ground:dirt';
+
+  const grassLayer = new THREE.Group();
+  grassLayer.name = 'ground:grass';
+
+  const foundationLayer = new THREE.Group();
+  foundationLayer.name = 'ground:foundationBlend';
+
+  root.add(dirtLayer);
+  root.add(grassLayer);
+  root.add(foundationLayer);
+
+  const defaultSize =
+    (typeof tileSize === 'number' && tileSize > 0) ? tileSize :
+    (typeof grassOptions.size === 'number' ? grassOptions.size : dirtOptions.size);
+  const resolvedDefaultSize = typeof defaultSize === 'number' ? defaultSize : 200;
+
+  const defaultRepeat =
+    (typeof tileRepeat === 'number' && tileRepeat > 0) ? tileRepeat :
+    (typeof grassOptions.repeat === 'number' ? grassOptions.repeat : dirtOptions.repeat);
+  const resolvedDefaultRepeat = typeof defaultRepeat === 'number' ? defaultRepeat : 16;
+
+  const tileDefinitions = buildTileDefinitions({
+    tiles,
+    tileGrid,
+    tileSize: resolvedDefaultSize,
+    tileRepeat: resolvedDefaultRepeat,
+    tileSpacing,
+    defaultSize: resolvedDefaultSize,
+    defaultRepeat: resolvedDefaultRepeat,
+  });
+
+  const enableSeamPrevention = !!preventTileSeams;
+  const enableTileStabilization = !!stabilizeTileOverlap;
+
+  const tileInstances = [];
+
+  tileDefinitions.forEach((tile, index) => {
+    const fallbackSize = tile.size ?? resolvedDefaultSize;
+    const fallbackRepeat = tile.repeat ?? resolvedDefaultRepeat;
+
+    const disableForBuilding = shouldDisableTileGround(tile);
+
+    // Alternating micro height bias to reduce coplanar z-fighting
+    const ix = Math.floor(typeof tile.gridX === 'number' ? tile.gridX : index);
+    const iz = Math.floor(typeof tile.gridZ === 'number' ? tile.gridZ : 0);
+    const stabilizationBias = ((ix + iz) & 1) ? 0.001 : 0;
+
+    const dirtConfig = {
+      ...dirtOptions,
+      ...(tile.dirtOptions ?? {}),
+      size: tile.dirtOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
+      repeat: tile.dirtOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
+      expandForSeams: tile.dirtOptions?.expandForSeams ?? dirtOptions.expandForSeams ?? enableSeamPrevention,
+      heightBias: tile.dirtOptions?.heightBias ?? dirtOptions.heightBias ?? (enableTileStabilization ? stabilizationBias : 0),
+    };
+
+    const grassConfig = {
+      ...grassOptions,
+      ...(tile.grassOptions ?? {}),
+      size: tile.grassOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
+      repeat: tile.grassOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
+      expandForSeams: tile.grassOptions?.expandForSeams ?? grassOptions.expandForSeams ?? enableSeamPrevention,
+    };
+
+    const baseDirtHeight = typeof dirtConfig.height === 'number' ? dirtConfig.height : 0;
+
+    let dirtGroup = null;
+    let dirtMesh = null;
+    let dirtSize;
+    let surfaceY = tile.position.y + baseDirtHeight;
+
+    if (!disableForBuilding && tile.enableDirt) {
+      const dirt = createDirtGround(dirtConfig);
+      dirt.name = tile.dirtName ?? `ground:dirt:tile:${index}`;
+      dirt.position.copy(tile.position);
+      dirtLayer.add(dirt);
+
+      dirtGroup = dirt;
+      dirtMesh = dirt.children.find(child => child?.isMesh) ?? null;
+      dirtSize = dirtConfig.size;
+      surfaceY = tile.position.y + baseDirtHeight;
+    }
+
+    if (!disableForBuilding && tile.enableGrass) {
+      const grass = createGrassGround(grassConfig);
+      grass.name = tile.grassName ?? `ground:grass:tile:${index}`;
+      grass.position.copy(tile.position);
+      grassLayer.add(grass);
+    }
+
+    const coverageSize = dirtSize ?? fallbackSize ?? resolvedDefaultSize;
+    const bounds = computeTileBounds(tile.position, coverageSize);
+
+    // Optional foundation blend ring around disabled (building pad) tiles
+    if (addFoundationBlendRing && tile.addFoundationBlendRing && disableForBuilding) {
+      const blendOptions = tile.foundationBlendOptions ?? {};
+      const ringSize = blendOptions.size ?? coverageSize;
+      const blendMesh = createFoundationBlendRingMesh({
+        size: ringSize,
+        repeat: blendOptions.repeat ?? tile.dirtOptions?.repeat ?? tile.repeat ?? dirtOptions.repeat ?? resolvedDefaultRepeat,
+        anisotropy: blendOptions.anisotropy ?? tile.dirtOptions?.anisotropy ?? dirtOptions.anisotropy ?? undefined,
+      });
+      if (blendMesh) {
+        blendMesh.name = blendOptions.name ?? `${tile.name ?? `tile:${index}`}:foundationBlend`;
+        blendMesh.position.copy(tile.position);
+        blendMesh.position.y += FOUNDATION_BLEND_RING_OFFSET;
+        foundationLayer.add(blendMesh);
+      }
+    }
+
+    tileInstances.push({
+      index,
+      definition: tile,
+      position: tile.position.clone(),
+      disableUnderBuilding: Boolean(tile.disableUnderBuilding),
+      addFoundationBlendRing: tile.addFoundationBlendRing,
+      dirtGroup,
+      dirtMesh,
+      dirtHeight: baseDirtHeight,
+      dirtSize,
+      coverageSize,
+      surfaceY,
+      bounds,
+    });
+  });
+
+  if (addElevationSkirts) {
+    applyElevationSkirts(tileInstances);
+  }
+
+  dirtLayer.visible = !!showDirt;
+  grassLayer.visible = !!showGrass;
+
+  return { root, dirt: dirtLayer, grass: grassLayer, foundationBlend: foundationLayer };
 }
