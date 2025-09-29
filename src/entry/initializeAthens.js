@@ -20,12 +20,13 @@ import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGro
 import { createCity } from '../buildings/createCity.js';
 import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
-import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
 import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
+
+const DEFAULT_BACKGROUND_HEX = 0x202834;
 
 let stats = null;
 let statsVisible = true;
@@ -304,6 +305,7 @@ export async function initializeAthens(options = {}) {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); // avoid page-white if background=null
   renderer.shadowMap.enabled = true;
+  renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(initialWidth, initialHeight, false);
   renderer.domElement.style.width = '100%';
@@ -316,6 +318,7 @@ export async function initializeAthens(options = {}) {
   }
 
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
 
   // Minimal debug hook for smoke tests / console
@@ -356,26 +359,12 @@ export async function initializeAthens(options = {}) {
       // Ignore stats setup errors.
     });
 
-  await createTimeSky(renderer, scene, 'day');
-  if (typeof attachTimeHotkeys === 'function') {
-    try {
-      attachTimeHotkeys();
-    } catch (error) {
-      console.warn('[Athens] Failed to attach sky hotkeys.', error);
-    }
-  }
-
   const environmentController = {
-    mode: getTimeOfDay() || 'day',
+    mode: 'day',
     async setMode(mode) {
-      try {
-        const resolved = await setTimeOfDay(mode);
-        if (resolved) this.mode = resolved;
-        return this.mode;
-      } catch (error) {
-        console.warn('[Athens] Failed to set time of day.', error);
-        return this.mode;
-      }
+      const normalized = typeof mode === 'string' && mode ? mode : 'day';
+      this.mode = normalized;
+      return this.mode;
     },
     dispose() {
       // placeholder for compatibility
@@ -503,7 +492,7 @@ export async function initializeAthens(options = {}) {
       colliders,
       navMesh,
       pathfinder: navPathfinder,
-      timeSource: getTimeOfDay
+      timeSource: () => environmentController.mode
     });
 
     // Example extra NPC with simple path
