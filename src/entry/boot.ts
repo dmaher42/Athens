@@ -24,7 +24,7 @@ import { chooseSpawn, placeOnGround, ensureFeetAtLocalZero, groundYAt } from '..
 import { createNpcManager } from '../npc/simpleNpcManager.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { AudioManager } from '../audio/AudioManager.js';
-import { initAmbience, setAmbience } from '../audio/ambience.js';
+import { AmbientAPI, AMBIENT_TRACKS, initAmbient } from '../audio/ambient';
 import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
@@ -211,15 +211,30 @@ export async function runAthens(options: RunOptions = {}) {
   camera.aspect = (w > 0 && h > 0) ? (w / h) : (16 / 9);
   camera.updateProjectionMatrix();
 
+  let globalWindow: (typeof window & { __athensDebug?: Record<string, unknown> }) | null = null;
+  let searchParams: URLSearchParams | null = null;
   if (typeof window !== 'undefined') {
-    const globalWindow = window as typeof window & { __athensDebug?: unknown };
+    globalWindow = window as typeof window & { __athensDebug?: Record<string, unknown> };
     globalWindow.THREE = THREE;
-    globalWindow.__athensDebug = { scene, camera, renderer };
+    const existingDebug =
+      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
+        ? globalWindow.__athensDebug
+        : {};
+    globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
 
-    const params = new URLSearchParams(globalWindow.location.search);
-    if (params.get('headlessSmoke') === '1') {
-      (globalWindow as any).__athensDebug = { renderer, scene, camera };
+    searchParams = new URLSearchParams(globalWindow.location.search);
+    if (searchParams.get('headlessSmoke') === '1') {
+      globalWindow.__athensDebug = { renderer, scene, camera };
     }
+  }
+
+  await initAmbient(camera);
+
+  if (globalWindow) {
+    globalWindow.__athensDebug = {
+      ...(globalWindow.__athensDebug || {}),
+      audioAPI: AmbientAPI
+    };
   }
 
   const audio = new AudioManager(camera, { masterVolume: 0.9 });
@@ -319,25 +334,52 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
-  const ambienceMode = ['dawn', 'day', 'dusk', 'night'].includes(environmentMode) ? environmentMode : 'day';
-  try {
-    await initAmbience(audio, ambienceMode);
-  } catch (error) {
-    console.warn('[Athens][Boot] initAmbience failed', error);
-  }
-
-  let currentAmbienceMode = ambienceMode;
-  const applyAmbienceForMode = (mode: string) => {
-    if (!audio) return;
-    const targetMode = ['dawn', 'day', 'dusk', 'night'].includes(mode) ? mode : 'day';
-    currentAmbienceMode = targetMode;
-    setAmbience(audio, targetMode).catch(() => {});
+  const ambientMuted = searchParams?.get('mute') === '1';
+  const ambientOverrideSelected = searchParams?.has('amb') ?? false;
+  const ambientTrackIds = new Set(AMBIENT_TRACKS.map((track) => track.id));
+  const defaultAmbientTrack = AMBIENT_TRACKS[0]?.id ?? null;
+  const MODE_TO_AMBIENT: Record<string, string[]> = {
+    dawn: ['forest', 'coast', 'night'],
+    day: ['forest', 'coast', 'night'],
+    high_noon: ['forest', 'coast', 'night'],
+    dusk: ['coast', 'forest', 'night'],
+    golden_hour: ['coast', 'forest', 'night'],
+    night: ['night', 'coast', 'forest'],
+    midnight: ['night', 'coast', 'forest']
   };
+
+  const selectAmbientTrack = (mode: string) => {
+    const normalized = typeof mode === 'string' ? mode.toLowerCase() : '';
+    const candidates = MODE_TO_AMBIENT[normalized] ?? [];
+    for (const candidate of candidates) {
+      if (ambientTrackIds.has(candidate)) {
+        return candidate;
+      }
+    }
+    for (const trackId of ambientTrackIds) {
+      return trackId;
+    }
+    return defaultAmbientTrack;
+  };
+
+  const applyAmbientForMode = (mode: string, allowPlayback = true) => {
+    if (ambientMuted || ambientTrackIds.size === 0) {
+      return null;
+    }
+    const trackId = selectAmbientTrack(mode);
+    if (trackId && allowPlayback) {
+      AmbientAPI.play(trackId).catch(() => {});
+    }
+    return trackId;
+  };
+
+  if (!ambientOverrideSelected) {
+    applyAmbientForMode(environmentMode, true);
+  }
 
   const handleTimeOfDay = (mode: string) => {
     const fallback = typeof mode === 'string' && mode ? mode : 'day';
-    currentAmbienceMode = fallback;
-    applyAmbienceForMode(fallback);
+    applyAmbientForMode(fallback, true);
     return fallback;
   };
 
@@ -688,7 +730,7 @@ export async function runAthens(options: RunOptions = {}) {
     audio,
     footsteps,
     setAmbience(mode: string) {
-      return setAmbience(audio, mode);
+      return applyAmbientForMode(mode, true);
     },
     dispose() {
       if (frameId !== null && typeof cancelAnimationFrame === 'function') {

@@ -34,6 +34,7 @@ import {
   sanitizeVec3,
   safeSetVec3
 } from '../utils/sanitize.ts';
+import { initAmbient, AmbientAPI, AMBIENT_TRACKS } from '../audio/ambient.ts';
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
@@ -356,17 +357,71 @@ export async function initializeAthens(options = {}) {
   camera.lookAt(initialLookTarget);
   scene.add(camera);
 
+  let globalWindow = null;
+  let searchParams = null;
   if (typeof window !== 'undefined') {
-    const globalWindow = window;
-    const params = new URLSearchParams(globalWindow.location.search);
+    globalWindow = window;
     globalWindow.THREE = THREE;
-    globalWindow.__athensDebug = { scene, camera, renderer };
-    if (params.get('headlessSmoke') === '1') {
+    const existingDebug =
+      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
+        ? globalWindow.__athensDebug
+        : {};
+    globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
+    searchParams = new URLSearchParams(globalWindow.location.search);
+    if (searchParams.get('headlessSmoke') === '1') {
       globalWindow.__athensDebug = { scene, camera, renderer };
     }
   }
 
+  await initAmbient(camera);
+
+  if (globalWindow) {
+    globalWindow.__athensDebug = {
+      ...(globalWindow.__athensDebug || {}),
+      audioAPI: AmbientAPI
+    };
+  }
+
   const skyTask = applySky(scene, renderer);
+
+  const ambientMuted = searchParams ? searchParams.get('mute') === '1' : false;
+  const ambientOverrideSelected = searchParams ? searchParams.has('amb') : false;
+  const ambientTrackIds = new Set(AMBIENT_TRACKS.map((track) => track.id));
+  const defaultAmbientTrack = AMBIENT_TRACKS.length > 0 ? AMBIENT_TRACKS[0].id : null;
+  const MODE_TO_AMBIENT = {
+    dawn: ['forest', 'coast', 'night'],
+    day: ['forest', 'coast', 'night'],
+    high_noon: ['forest', 'coast', 'night'],
+    dusk: ['coast', 'forest', 'night'],
+    golden_hour: ['coast', 'forest', 'night'],
+    night: ['night', 'coast', 'forest'],
+    midnight: ['night', 'coast', 'forest']
+  };
+
+  const selectAmbientTrack = (mode) => {
+    const normalized = typeof mode === 'string' ? mode.toLowerCase() : '';
+    const candidates = MODE_TO_AMBIENT[normalized] || [];
+    for (const candidate of candidates) {
+      if (ambientTrackIds.has(candidate)) {
+        return candidate;
+      }
+    }
+    for (const trackId of ambientTrackIds) {
+      return trackId;
+    }
+    return defaultAmbientTrack;
+  };
+
+  const applyAmbientForMode = (mode, allowPlayback = true) => {
+    if (ambientMuted || ambientTrackIds.size === 0) {
+      return null;
+    }
+    const trackId = selectAmbientTrack(mode);
+    if (trackId && allowPlayback) {
+      AmbientAPI.play(trackId).catch(() => {});
+    }
+    return trackId;
+  };
 
   ensureLights(scene);
 
@@ -394,12 +449,17 @@ export async function initializeAthens(options = {}) {
     async setMode(mode) {
       const normalized = typeof mode === 'string' && mode ? mode : 'day';
       this.mode = normalized;
+      applyAmbientForMode(normalized, true);
       return this.mode;
     },
     dispose() {
       // placeholder for compatibility
     }
   };
+
+  if (!ambientOverrideSelected) {
+    applyAmbientForMode(environmentController.mode, true);
+  }
 
   await skyTask.catch((error) => {
     console.warn('[Athens] applySky failed.', error);
