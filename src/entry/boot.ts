@@ -586,6 +586,8 @@ export async function runAthens(options: RunOptions = {}) {
         }
       }
 
+      keyboard.update?.();
+
       previousPlayerPosition.copy(playerObject.position);
       try {
         playerController.update(delta, camera);

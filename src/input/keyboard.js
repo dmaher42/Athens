@@ -63,8 +63,15 @@ const normalizeCode = (event) => {
 export function createKeyboard(target = typeof window !== 'undefined' ? window : null) {
   const pressed = new Set();
   const listeners = new Map();
-  const axisVector = { x: 0, z: 0, turn: 0 };
-  const lookVector = { x: 0, y: 0 };
+  const axisState = {
+    x: 0,
+    z: 0,
+    turn: 0,
+    running: false,
+    lookX: 0,
+    lookY: 0
+  };
+  const lookState = { x: 0, y: 0 };
 
   const handleKeyDown = (event) => {
     const code = normalizeCode(event);
@@ -73,6 +80,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       return;
     }
     pressed.add(code);
+    updateState();
   };
 
   const handleKeyUp = (event) => {
@@ -82,6 +90,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       return;
     }
     pressed.delete(code);
+    updateState();
   };
 
   if (target && target.addEventListener) {
@@ -93,7 +102,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
   const isDown = (code) => pressed.has(code);
 
-  const computeAxis = () => {
+  const updateState = () => {
     let x = 0;
     let z = 0;
 
@@ -116,70 +125,56 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       z *= INV_SQRT2;
     }
 
-    axisVector.x = x;
-    axisVector.z = z;
-    axisVector.turn = 0;
-    return axisVector;
+    axisState.x = x;
+    axisState.z = z;
+    axisState.turn = 0;
+    axisState.running = MODIFIER_KEYS.some((code) => isDown(code));
+
+    axisState.lookX = (isDown('ArrowRight') ? 1 : 0) - (isDown('ArrowLeft') ? 1 : 0);
+    axisState.lookY = (isDown('ArrowUp') ? 1 : 0) - (isDown('ArrowDown') ? 1 : 0);
+
+    lookState.x = axisState.lookX;
+    lookState.y = axisState.lookY;
   };
 
-  const computeLook = () => {
-    let x = 0;
-    let y = 0;
-
-    if (isDown('ArrowLeft')) {
-      x -= 1;
-    }
-    if (isDown('ArrowRight')) {
-      x += 1;
-    }
-    if (isDown('ArrowUp')) {
-      y += 1;
-    }
-    if (isDown('ArrowDown')) {
-      y -= 1;
-    }
-
-    lookVector.x = x;
-    lookVector.y = y;
-    return lookVector;
-  };
+  updateState();
 
   const axis = {};
   Object.defineProperties(axis, {
     x: {
       enumerable: true,
       get() {
-        return computeAxis().x;
+        return axisState.x;
       }
     },
     z: {
       enumerable: true,
       get() {
-        return computeAxis().z;
+        return axisState.z;
       }
     },
     turn: {
       enumerable: true,
       get() {
-        return computeAxis().turn;
+        return axisState.turn;
       }
     },
     running: {
       enumerable: true,
       get() {
-        return MODIFIER_KEYS.some((code) => isDown(code));
+        return axisState.running;
       }
     },
     lookX: {
       enumerable: true,
       get() {
-        return computeLook().x;
+        return axisState.lookX;
       }
     },
     lookY: {
       enumerable: true,
       get() {
-        return computeLook().y;
+        return axisState.lookY;
       }
     }
   });
@@ -189,16 +184,21 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     x: {
       enumerable: true,
       get() {
-        return computeLook().x;
+        return lookState.x;
       }
     },
     y: {
       enumerable: true,
       get() {
-        return computeLook().y;
+        return lookState.y;
       }
     }
   });
+
+  const update = () => {
+    updateState();
+    return axisState;
+  };
 
   const dispose = () => {
     if (!target || !target.removeEventListener) {
@@ -209,10 +209,12 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     });
     listeners.clear();
     pressed.clear();
+    updateState();
   };
 
   return {
     isDown,
+    update,
     axis,
     look,
     dispose
