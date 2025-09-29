@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "test": "node --test",
     "html:no-ts": "./scripts/check-html-no-ts.sh",
-    "serve:dist": "http-server dist -p 4173 -s"
+    "serve:dist": "http-server dist -p 4173 -s",
+    "tag:checkpoint": "node -e \"const d=new Date();const p=n=>String(n).padStart(2,'0');const v=`v${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-a`;console.log(v)\" | xargs -I {} git tag -a {} -m \"Checkpoint\" && git push --tags"
   },
   "dependencies": {
     "cannon": "^0.6.2",
