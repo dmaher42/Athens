@@ -20,6 +20,7 @@ import {
 } from '../utils/sanitize';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
+import { chooseSpawn, placeOnGround, ensureFeetAtLocalZero, groundYAt } from '../utils/spawn.ts';
 import { createNpcManager } from '../npc/simpleNpcManager.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { AudioManager } from '../audio/AudioManager.js';
@@ -374,6 +375,9 @@ export async function runAthens(options: RunOptions = {}) {
   if (!scene.getObjectByName(playerObject.name)) {
     scene.add(playerObject);
   }
+  ensureFeetAtLocalZero(playerObject);
+
+  const spawnPosition = chooseSpawn(scene, true);
 
   const resolveSavedState = (): SavedState | null => {
     if (options?.savedState) {
@@ -460,7 +464,22 @@ export async function runAthens(options: RunOptions = {}) {
     camera.lookAt(lookTarget);
   };
 
-  restoreCameraAndPlayer(resolveSavedState());
+  const savedState = resolveSavedState();
+  const hasSavedPlayerPos = Boolean(savedState?.player?.pos);
+  const hasSavedCameraPos = Boolean(savedState?.camera?.pos);
+
+  restoreCameraAndPlayer(savedState);
+
+  if (!hasSavedPlayerPos) {
+    playerObject.position.copy(spawnPosition);
+    placeOnGround(playerObject, groundMeshes.length ? groundMeshes : scene, { clearance: 0.02 });
+  }
+
+  if (!hasSavedCameraPos) {
+    const camBack = 6;
+    const camUp = 3;
+    camera.position.set(spawnPosition.x + camBack, spawnPosition.y + camUp, spawnPosition.z + camBack);
+  }
 
   if (groundMeshes.length) {
     const initialState = { vy: 0, lastGoodY: playerObject.position.y };
@@ -571,6 +590,20 @@ export async function runAthens(options: RunOptions = {}) {
         playerController.update(delta, camera);
       } catch (error) {
         console.warn('[Athens][Boot] player update failed', error);
+      }
+
+      const flying = typeof playerController.isFlying === 'function' ? playerController.isFlying() : false;
+      if (!flying) {
+        const groundTargets = groundMeshes.length ? groundMeshes : scene;
+        const gy = groundYAt(playerObject.position.x, playerObject.position.z, groundTargets);
+        if (gy != null) {
+          const targetY = gy + 0.02;
+          const dy = targetY - playerObject.position.y;
+          const maxUp = 1.0;
+          const maxDown = 4.0;
+          const clamped = Math.max(-maxDown, Math.min(maxUp, dy));
+          playerObject.position.y += clamped;
+        }
       }
 
       playerDelta.subVectors(playerObject.position, previousPlayerPosition);
