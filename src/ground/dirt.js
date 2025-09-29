@@ -99,20 +99,7 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
   return texture;
 }
 
-export function createDirtGround({
-  size = 200,
-  repeat = 16,
-  height = 0,
-  receiveShadow = true,
-  anisotropy = 8,
-} = {}) {
-  const group = new THREE.Group();
-  group.name = 'ground:dirt';
-
-  const geo = new THREE.PlaneGeometry(size, size, 1, 1);
-  geo.rotateX(-Math.PI / 2);
-  geo.translate(0, height, 0);
-
+export function createDirtMaterial({ repeat = 16, anisotropy = 8 } = {}) {
   const color = configureTexture(loadBaseTexture(), { repeat, anisotropy });
 
   const mat = new THREE.MeshStandardMaterial({
@@ -132,6 +119,25 @@ export function createDirtGround({
   }
 
   mat.shadowSide = THREE.DoubleSide;
+
+  return mat;
+}
+
+export function createDirtGround({
+  size = 200,
+  repeat = 16,
+  height = 0,
+  receiveShadow = true,
+  anisotropy = 8,
+} = {}) {
+  const group = new THREE.Group();
+  group.name = 'ground:dirt';
+
+  const geo = new THREE.PlaneGeometry(size, size, 1, 1);
+  geo.rotateX(-Math.PI / 2);
+  geo.translate(0, height, 0);
+
+  const mat = createDirtMaterial({ repeat, anisotropy });
   mat.polygonOffset = true;
   mat.polygonOffsetFactor = 1;
   mat.polygonOffsetUnits = 1;

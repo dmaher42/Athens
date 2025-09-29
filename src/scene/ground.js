@@ -51,6 +51,8 @@ export async function loadGround(scene, renderer, options = {}) {
     tileSize = size,
     tileRepeat = repeat,
     tileSpacing = 0,
+    addElevationSkirts = false,
+    addFoundationBlendRing = false,
   } = options;
 
   const hasShowDirtOverride = Object.prototype.hasOwnProperty.call(options, 'showDirt');
@@ -70,6 +72,8 @@ export async function loadGround(scene, renderer, options = {}) {
       tileSize,
       tileRepeat,
       tileSpacing,
+      addElevationSkirts,
+      addFoundationBlendRing,
     });
 
     if (__groundSingleton?.root) {
