@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { installRenderGuard } from '../safety/hardenPositions';
 if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
@@ -325,6 +326,7 @@ export async function initializeAthens(options = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+  // Ensure opaque clear so the canvas never shows the page background
   renderer.setClearAlpha(1.0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(initialWidth, initialHeight, false);
@@ -342,14 +344,10 @@ export async function initializeAthens(options = {}) {
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
   camera.position.set(90, 110, 180);
   sanitizeVec3(camera.position, DEFAULT_CAMERA);
-
-  const canvas = renderer.domElement;
-  const canvasWidth = finiteNumber(canvas?.clientWidth, initialWidth);
-  const canvasHeight = finiteNumber(canvas?.clientHeight, initialHeight);
-  const safeWidth = Math.max(1, canvasWidth);
-  const safeHeight = Math.max(1, canvasHeight);
-  const aspect = safeHeight > 0 ? safeWidth / safeHeight : 16 / 9;
-  camera.aspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 16 / 9;
+  const el = renderer.domElement;
+  const w = el?.clientWidth ?? 0;
+  const h = el?.clientHeight ?? 0;
+  camera.aspect = (w > 0 && h > 0) ? (w / h) : (16 / 9);
   camera.updateProjectionMatrix();
 
   const initialLookTarget = new THREE.Vector3(0, 0, 0);
@@ -612,9 +610,20 @@ export async function initializeAthens(options = {}) {
   });
 
   followCamera.syncImmediate?.();
-  if ((followCamera as any)?.target) {
-    sanitizeVec3((followCamera as any).target, DEFAULT_PLAYER);
+  const initialFollowTarget = followCamera && followCamera.target;
+  if (initialFollowTarget) {
+    sanitizeVec3(initialFollowTarget, DEFAULT_PLAYER);
   }
+
+  // Install per-frame guard so NaNs cannot poison the renderer between frames
+  installRenderGuard({
+    scene,
+    camera,
+    renderer,
+    controls: followCamera,
+    defaults: { player: { x:0, y:1, z:0 }, camera: { x:20, y:12, z:20 } },
+    playerNameCandidates: ['MainCharacter', 'Player']
+  });
 
   const resolveSavedState = () => {
     if (options?.savedState) {
@@ -706,8 +715,8 @@ export async function initializeAthens(options = {}) {
     if (playerObject) {
       followCamera?.setTarget?.(playerObject);
     }
-    if ((followCamera as any)?.target) {
-      const followTarget = (followCamera as any).target;
+    const followTarget = followCamera?.target;
+    if (followTarget) {
       if (!isFiniteVec3(followTarget)) {
         followTarget.copy(playerObject?.position || DEFAULT_PLAYER);
       } else {
@@ -798,7 +807,7 @@ export async function initializeAthens(options = {}) {
       if (!isFiniteVec3(camera.position)) {
         sanitizeVec3(camera.position, DEFAULT_CAMERA);
       }
-      const followTarget = (followCamera as any)?.target;
+      const followTarget = followCamera?.target;
       if (followTarget) {
         if (!isFiniteVec3(followTarget)) {
           followTarget.copy(playerObject?.position || DEFAULT_PLAYER);
@@ -836,7 +845,7 @@ export async function initializeAthens(options = {}) {
         sanitizeVec3(camera.position, DEFAULT_CAMERA);
       }
 
-      const guardTarget = (followCamera as any)?.target;
+      const guardTarget = followCamera?.target;
       if (guardTarget) {
         if (!isFiniteVec3(guardTarget)) {
           guardTarget.copy(activePlayer?.position || playerObject?.position || DEFAULT_PLAYER);
