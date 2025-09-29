@@ -137,15 +137,26 @@ export function createNpcManager(scene, initialGroundMeshes = [], { colliders: i
 
     const { object3d } = npc;
 
+    const pos = object3d.position;
+    if (!pos || !Number.isFinite(pos.x) || !Number.isFinite(pos.y) || !Number.isFinite(pos.z)) {
+      return;
+    }
+
     npc.capsule.setPosition(object3d.position.x, object3d.position.y, object3d.position.z);
 
     let target = npc.waypoints[npc.waypointIndex];
+    if (!target || !Number.isFinite(target.x) || !Number.isFinite(target.y) || !Number.isFinite(target.z)) {
+      return;
+    }
     flatDirection.subVectors(target, object3d.position);
     const flatDistance = Math.sqrt(flatDirection.x * flatDirection.x + flatDirection.z * flatDirection.z);
 
     if (flatDistance < 0.2) {
       npc.waypointIndex = (npc.waypointIndex + 1) % npc.waypoints.length;
       target = npc.waypoints[npc.waypointIndex];
+      if (!target || !Number.isFinite(target.x) || !Number.isFinite(target.y) || !Number.isFinite(target.z)) {
+        return;
+      }
       flatDirection.subVectors(target, object3d.position);
     }
 
@@ -185,10 +196,12 @@ export function createNpcManager(scene, initialGroundMeshes = [], { colliders: i
       const npcA = npcs[i];
       if (!npcA?.object3d) continue;
       const posA = npcA.object3d.position;
+      if (!posA || !Number.isFinite(posA.x) || !Number.isFinite(posA.y) || !Number.isFinite(posA.z)) continue;
       for (let j = i + 1; j < limit; j += 1) {
         const npcB = npcs[j];
         if (!npcB?.object3d) continue;
         const posB = npcB.object3d.position;
+        if (!posB || !Number.isFinite(posB.x) || !Number.isFinite(posB.y) || !Number.isFinite(posB.z)) continue;
         separationOffset.subVectors(posA, posB);
         separationOffset.y = 0;
         const distSq = separationOffset.lengthSq();
