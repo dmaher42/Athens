@@ -12,16 +12,8 @@ export const GroundType = Object.freeze({
 });
 
 const DEFAULT_TILE_GRID = Object.freeze({ columns: 5, rows: 5 });
-
 const BUILDING_NAME_PATTERN = /(foundation|building|pad)/i;
 const BUILDING_USERDATA_KEYS = ['building', 'buildingPad', 'foundation', 'isBuilding', 'isFoundation'];
-
-function hasBuildingFlag(userData) {
-  if (!userData || typeof userData !== 'object') {
-    return false;
-  }
-  return BUILDING_USERDATA_KEYS.some((key) => userData[key]);
-}
 
 function toVector3(position) {
   if (position instanceof THREE.Vector3) {
@@ -141,7 +133,7 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     gridX: typeof gridX === 'number' ? gridX : undefined,
     gridZ: typeof gridZ === 'number' ? gridZ : undefined,
     disableUnderBuilding: Boolean(disableUnderBuilding),
-    addFoundationBlendRing: !!addFoundationBlendRing,
+    addFoundationBlendRing: Boolean(addFoundationBlendRing),
     foundationBlendOptions:
       foundationBlendOptions && typeof foundationBlendOptions === 'object'
         ? { ...foundationBlendOptions }
@@ -191,6 +183,13 @@ function buildTileDefinitions({
   return definitions;
 }
 
+function hasBuildingFlag(userData) {
+  if (!userData || typeof userData !== 'object') {
+    return false;
+  }
+  return BUILDING_USERDATA_KEYS.some((key) => userData[key]);
+}
+
 function shouldDisableTileGround(tile) {
   if (!tile || typeof tile !== 'object') return false;
 
@@ -213,13 +212,12 @@ function shouldDisableTileGround(tile) {
     tile.dirtOptions?.name,
     tile.grassOptions?.name,
   ];
-  if (namesToCheck.some((name) => typeof name === 'string' && BUILDING_NAME_PATTERN.test(name))) {
+  if (namesToCheck.some((value) => typeof value === 'string' && BUILDING_NAME_PATTERN.test(value))) {
     return true;
   }
 
-  const tileObjects = Array.isArray(tile.objects) ? tile.objects : undefined;
-  if (tileObjects) {
-    for (const obj of tileObjects) {
+  if (Array.isArray(tile.objects)) {
+    for (const obj of tile.objects) {
       if (!obj) continue;
       if (hasBuildingFlag(obj.userData)) {
         return true;
@@ -247,9 +245,13 @@ function createFoundationBlendRingMesh({
   }
 
   const outerHalf = baseSize / 2;
-  const ringThickness = typeof thickness === 'number' ? thickness : Math.min(Math.max(baseSize * 0.08, 0.2), outerHalf);
+  const ringThickness = typeof thickness === 'number'
+    ? thickness
+    : Math.min(Math.max(baseSize * 0.08, 0.2), outerHalf);
   const desiredInnerHalf =
-    typeof innerSize === 'number' && innerSize > 0 ? Math.min(innerSize / 2, outerHalf - 0.001) : outerHalf - ringThickness;
+    typeof innerSize === 'number' && innerSize > 0
+      ? Math.min(innerSize / 2, outerHalf - 0.001)
+      : outerHalf - ringThickness;
   const innerHalf = Math.max(0, Math.min(desiredInnerHalf, outerHalf - 0.001));
 
   const shape = new THREE.Shape([
@@ -268,29 +270,29 @@ function createFoundationBlendRingMesh({
   hole.autoClose = true;
   shape.holes.push(hole);
 
-  const geo = new THREE.ShapeGeometry(shape);
-  geo.rotateX(-Math.PI / 2);
-  geo.translate(0, heightOffset, 0);
+  const geometry = new THREE.ShapeGeometry(shape);
+  geometry.rotateX(-Math.PI / 2);
+  geometry.translate(0, heightOffset, 0);
 
   const textureRepeat = typeof repeat === 'number' ? repeat : Math.max(1, baseSize / 32);
   const texture = createSharedDirtTexture({ repeat: textureRepeat, anisotropy });
 
-  const mat = new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshStandardMaterial({
     map: texture,
     roughness: 1.0,
     side: THREE.DoubleSide,
   });
 
-  if (!mat.map) {
-    mat.color.set(0x6b5a45);
+  if (!material.map) {
+    material.color.set(0x6b5a45);
   }
 
-  mat.polygonOffset = true;
-  mat.polygonOffsetFactor = -1;
-  mat.polygonOffsetUnits = -1;
-  mat.shadowSide = THREE.DoubleSide;
+  material.polygonOffset = true;
+  material.polygonOffsetFactor = -1;
+  material.polygonOffsetUnits = -1;
+  material.shadowSide = THREE.DoubleSide;
 
-  const mesh = new THREE.Mesh(geo, mat);
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = false;
   mesh.receiveShadow = false;
   mesh.renderOrder = 2;
@@ -315,8 +317,8 @@ function createFoundationBlendRingMesh({
  * @param {boolean} [options.preventTileSeams=true] - Expand tile geometry slightly to hide seams.
  * @param {boolean} [options.stabilizeTileOverlap=true] - Apply a subtle alternating height bias to dirt tiles.
  *
- * Tile definitions may include `disableUnderBuilding` to skip creating dirt/grass when a foundation pad occupies the tile, and
- * `addFoundationBlendRing` to create a slim blend mesh around the pad. Optional `foundationBlendOptions` control ring sizing.
+ * Tile definitions may specify `disableUnderBuilding` to suppress dirt/grass meshes and `addFoundationBlendRing`
+ * to render a subtle inset ring around pads.
  * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group, foundationBlend: THREE.Group }}
  */
 export function createGroundLayered({
