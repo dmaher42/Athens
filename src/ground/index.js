@@ -43,12 +43,10 @@ function toVector3(position) {
   if (position instanceof THREE.Vector3) {
     return position.clone();
   }
-
   if (Array.isArray(position)) {
     const [x = 0, y = 0, z = 0] = position;
     return new THREE.Vector3(x, y, z);
   }
-
   const source = position && typeof position === 'object' ? position : {};
   const { x = 0, y = 0, z = 0 } = source;
   return new THREE.Vector3(x, y, z);
@@ -58,7 +56,6 @@ function parseSpacing(spacing) {
   if (typeof spacing === 'number') {
     return { x: spacing, z: spacing };
   }
-
   if (spacing && typeof spacing === 'object') {
     const { x = 0, z = 0 } = spacing;
     return {
@@ -66,16 +63,10 @@ function parseSpacing(spacing) {
       z: typeof z === 'number' ? z : 0,
     };
   }
-
   return { x: 0, z: 0 };
 }
 
-function createGridTiles({
-  grid,
-  size,
-  repeat,
-  spacing,
-}) {
+function createGridTiles({ grid, size, repeat, spacing }) {
   const columns = Math.max(1, Math.floor(grid?.columns ?? grid?.x ?? 1));
   const rows = Math.max(1, Math.floor(grid?.rows ?? grid?.z ?? 1));
   const { x: spacingX, z: spacingZ } = parseSpacing(spacing);
@@ -97,10 +88,11 @@ function createGridTiles({
         position: new THREE.Vector3(x, 0, z),
         enableDirt: true,
         enableGrass: true,
+        gridX: col,
+        gridZ: row,
       });
     }
   }
-
   return tiles;
 }
 
@@ -112,6 +104,10 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
       position: new THREE.Vector3(),
       enableDirt: true,
       enableGrass: true,
+      gridX: undefined,
+      gridZ: undefined,
+      disableUnderBuilding: false,
+      addFoundationBlendRing: undefined,
     };
   }
 
@@ -119,9 +115,7 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     size = defaultSize,
     repeat = defaultRepeat,
     position,
-    x,
-    y,
-    z,
+    x, y, z,
     enableDirt,
     enableGrass,
     dirt,
@@ -131,6 +125,8 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     dirtName,
     grassName,
     name,
+    gridX,
+    gridZ,
     disableUnderBuilding,
     addFoundationBlendRing,
   } = tile;
@@ -147,8 +143,11 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     grassOptions: grassOptions && typeof grassOptions === 'object' ? { ...grassOptions } : undefined,
     dirtName: dirtName ?? (name ? `${name}:dirt` : undefined),
     grassName: grassName ?? (name ? `${name}:grass` : undefined),
+    gridX: typeof gridX === 'number' ? gridX : undefined,
+    gridZ: typeof gridZ === 'number' ? gridZ : undefined,
     disableUnderBuilding: Boolean(disableUnderBuilding),
-    addFoundationBlendRing: typeof addFoundationBlendRing === 'boolean' ? addFoundationBlendRing : undefined,
+    addFoundationBlendRing:
+      typeof addFoundationBlendRing === 'boolean' ? addFoundationBlendRing : undefined,
   };
 }
 
@@ -167,7 +166,13 @@ function buildTileDefinitions({
   let definitions = [];
 
   if (Array.isArray(tiles) && tiles.length > 0) {
-    definitions = tiles.map(t => normalizeTile(t, { defaultSize: effectiveSize, defaultRepeat: effectiveRepeat }));
+    definitions = tiles
+      .map(t => normalizeTile(t, { defaultSize: effectiveSize, defaultRepeat: effectiveRepeat }))
+      .map((tile, index) => ({
+        ...tile,
+        gridX: typeof tile.gridX === 'number' ? tile.gridX : index,
+        gridZ: typeof tile.gridZ === 'number' ? tile.gridZ : 0,
+      }));
   } else {
     const gridTiles = createGridTiles({
       grid: tileGrid ?? DEFAULT_TILE_GRID,
@@ -201,6 +206,8 @@ function buildTileDefinitions({
  * @param {number|{x?:number,z?:number}} [options.tileSpacing=0] - Gap/overlap between generated tiles.
  * @param {boolean} [options.addElevationSkirts=false] - Adds skirts between tiles with height differences.
  * @param {boolean} [options.addFoundationBlendRing=false] - Adds optional blend ring when dirt is disabled.
+ * @param {boolean} [options.preventTileSeams=true] - Expand tile geometry slightly to hide seams.
+ * @param {boolean} [options.stabilizeTileOverlap=true] - Apply a subtle alternating height bias to dirt tiles.
  * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group }}
  */
 export function createGroundLayered({
@@ -215,6 +222,8 @@ export function createGroundLayered({
   tileSpacing = 0,
   addElevationSkirts = false,
   addFoundationBlendRing = false,
+  preventTileSeams = true,
+  stabilizeTileOverlap = true,
 } = {}) {
   const root = new THREE.Group();
   root.name = 'ground:root';
@@ -254,11 +263,24 @@ export function createGroundLayered({
     const fallbackSize = tile.size ?? resolvedDefaultSize;
     const fallbackRepeat = tile.repeat ?? resolvedDefaultRepeat;
 
+    // Stabilization bias alternates based on grid position to reduce coplanar z-fighting
+    const ix = Math.floor(typeof tile.gridX === 'number' ? tile.gridX : index);
+    const iz = Math.floor(typeof tile.gridZ === 'number' ? tile.gridZ : 0);
+    const stabilizationBias = ((ix + iz) & 1) ? 0.001 : 0;
+
     const dirtConfig = {
       ...dirtOptions,
       ...(tile.dirtOptions ?? {}),
       size: tile.dirtOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
       repeat: tile.dirtOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
+      expandForSeams:
+        tile.dirtOptions?.expandForSeams ??
+        dirtOptions.expandForSeams ??
+        !!preventTileSeams,
+      heightBias:
+        tile.dirtOptions?.heightBias ??
+        dirtOptions.heightBias ??
+        (stabilizeTileOverlap ? stabilizationBias : 0),
     };
 
     const grassConfig = {
@@ -266,6 +288,10 @@ export function createGroundLayered({
       ...(tile.grassOptions ?? {}),
       size: tile.grassOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
       repeat: tile.grassOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
+      expandForSeams:
+        tile.grassOptions?.expandForSeams ??
+        grassOptions.expandForSeams ??
+        !!preventTileSeams,
     };
 
     const baseDirtHeight = typeof dirtConfig.height === 'number' ? dirtConfig.height : 0;
@@ -361,50 +387,10 @@ function computeTileBounds(position, size) {
 }
 
 const SKIRT_DIRECTIONS = [
-  {
-    key: 'east',
-    axis: 'x',
-    dir: 1,
-    axisCoord: 'x',
-    perpCoord: 'z',
-    axisMin: 'minX',
-    axisMax: 'maxX',
-    perpMin: 'minZ',
-    perpMax: 'maxZ',
-  },
-  {
-    key: 'west',
-    axis: 'x',
-    dir: -1,
-    axisCoord: 'x',
-    perpCoord: 'z',
-    axisMin: 'minX',
-    axisMax: 'maxX',
-    perpMin: 'minZ',
-    perpMax: 'maxZ',
-  },
-  {
-    key: 'south',
-    axis: 'z',
-    dir: 1,
-    axisCoord: 'z',
-    perpCoord: 'x',
-    axisMin: 'minZ',
-    axisMax: 'maxZ',
-    perpMin: 'minX',
-    perpMax: 'maxX',
-  },
-  {
-    key: 'north',
-    axis: 'z',
-    dir: -1,
-    axisCoord: 'z',
-    perpCoord: 'x',
-    axisMin: 'minZ',
-    axisMax: 'maxZ',
-    perpMin: 'minX',
-    perpMax: 'maxX',
-  },
+  { key: 'east',  axis: 'x', dir:  1, axisCoord: 'x', perpCoord: 'z', axisMin: 'minX', axisMax: 'maxX', perpMin: 'minZ', perpMax: 'maxZ' },
+  { key: 'west',  axis: 'x', dir: -1, axisCoord: 'x', perpCoord: 'z', axisMin: 'minX', axisMax: 'maxX', perpMin: 'minZ', perpMax: 'maxZ' },
+  { key: 'south', axis: 'z', dir:  1, axisCoord: 'z', perpCoord: 'x', axisMin: 'minZ', axisMax: 'maxZ', perpMin: 'minX', perpMax: 'maxX' },
+  { key: 'north', axis: 'z', dir: -1, axisCoord: 'z', perpCoord: 'x', axisMin: 'minZ', axisMax: 'maxZ', perpMin: 'minX', perpMax: 'maxX' },
 ];
 
 function getSkirtMaterial(baseMaterial) {

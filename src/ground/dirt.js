@@ -9,6 +9,7 @@ import { applyDoubleSidedGroundSupport } from './double-sided.js';
 const textureLoader = new THREE.TextureLoader();
 let cachedBaseTexture = null;
 const pendingTextureUpdates = new Set();
+const TILE_SEAM_EPSILON = 0.01;
 
 function flushPendingTextureUpdates(baseTexture) {
   if (pendingTextureUpdates.size === 0) return;
@@ -74,6 +75,7 @@ function loadBaseTexture() {
 function configureTexture(baseTexture, { repeat, anisotropy }) {
   const texture = baseTexture.clone();
   const isFallback = Boolean(baseTexture?.userData?.isFallbackTexture);
+
   if (baseTexture?.image) {
     texture.image = baseTexture.image;
   }
@@ -106,7 +108,7 @@ export function createDirtMaterial({ repeat = 16, anisotropy = 8 } = {}) {
     map: color,
     roughness: 1.0,
     side: THREE.DoubleSide,
-    transparent: false,
+    transparent: false
   });
 
   mat.opacity = 1;
@@ -129,15 +131,24 @@ export function createDirtGround({
   height = 0,
   receiveShadow = true,
   anisotropy = 8,
+  expandForSeams = false,
+  heightBias = 0
 } = {}) {
   const group = new THREE.Group();
   group.name = 'ground:dirt';
 
-  const geo = new THREE.PlaneGeometry(size, size, 1, 1);
+  const baseSize = Math.max(typeof size === 'number' ? size : 200, 0);
+  const geometrySize = expandForSeams ? baseSize + TILE_SEAM_EPSILON * 2 : baseSize;
+
+  const geo = new THREE.PlaneGeometry(geometrySize, geometrySize, 1, 1);
   geo.rotateX(-Math.PI / 2);
-  geo.translate(0, height, 0);
+
+  const finalHeight = typeof height === 'number' ? height : 0;
+  const finalBias = typeof heightBias === 'number' ? heightBias : 0;
+  geo.translate(0, finalHeight + finalBias, 0);
 
   const mat = createDirtMaterial({ repeat, anisotropy });
+  // Avoid z-fighting with other coplanar layers
   mat.polygonOffset = true;
   mat.polygonOffsetFactor = 1;
   mat.polygonOffsetUnits = 1;
