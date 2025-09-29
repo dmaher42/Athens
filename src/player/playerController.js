@@ -170,7 +170,7 @@ export function createPlayerController(
         viewDirection.normalize();
       }
 
-      moveDirection.copy(viewDirection).negate();
+      moveDirection.copy(viewDirection);
       if (moveDirection.lengthSq() < 1e-6) {
         moveDirection.set(0, 0, 1);
       } else {
