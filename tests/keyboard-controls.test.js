@@ -52,9 +52,11 @@ test('keyboard normalizes events without code to maintain controls', () => {
   keydown({ key: 'ArrowLeft', code: 'Unidentified' });
   assert.strictEqual(keyboard.isDown('ArrowLeft'), true);
   assert.strictEqual(keyboard.look.x, -1);
+  assert.strictEqual(keyboard.axis.lookX, -1);
 
   keydown({ key: 'ArrowUp', code: undefined });
   assert.strictEqual(keyboard.look.y, 1);
+  assert.strictEqual(keyboard.axis.lookY, 1);
 
   keyup({ key: 'ArrowLeft', code: '' });
   keyup({ key: 'ArrowUp', code: '' });
@@ -66,6 +68,8 @@ test('keyboard normalizes events without code to maintain controls', () => {
   assert.strictEqual(keyboard.axis.running, false);
   assert.strictEqual(keyboard.look.x, 0);
   assert.strictEqual(keyboard.look.y, 0);
+  assert.strictEqual(keyboard.axis.lookX, 0);
+  assert.strictEqual(keyboard.axis.lookY, 0);
 
   keyboard.dispose();
 });

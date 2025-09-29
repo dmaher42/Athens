@@ -7,10 +7,12 @@ const desiredPosition = new THREE.Vector3();
 const lookOffset = new THREE.Vector3();
 const cameraForward = new THREE.Vector3();
 
-const MIN_PITCH = THREE.MathUtils.degToRad(-45);
-const MAX_PITCH = THREE.MathUtils.degToRad(70);
-const DEFAULT_YAW_SPEED = 1.6; // radians per second
-const DEFAULT_PITCH_SPEED = 1.2; // radians per second
+const MIN_PITCH = THREE.MathUtils.degToRad(-85);
+const MAX_PITCH = THREE.MathUtils.degToRad(85);
+const DEFAULT_YAW_SPEED = 1.8; // radians per second
+const DEFAULT_PITCH_SPEED = 1.4; // radians per second
+const MAX_DT = 0.25;
+const DEFAULT_DT = 1 / 60;
 
 function computeBaseParameters(offset) {
   const offsetVector = offset.clone();
@@ -102,14 +104,51 @@ export function createFollowCamera(
     return THREE.MathUtils.clamp(scaled, 0, 1);
   };
 
-  const update = (keyboard, deltaSeconds = 0) => {
+  const update = (keyboardState, deltaSeconds = 0) => {
     if (!camera || !currentTarget) {
       return;
     }
 
-    const dt = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
-    const lookX = keyboard?.look?.x ?? 0;
-    const lookY = keyboard?.look?.y ?? 0;
+    const dtRaw = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : NaN;
+    const dt = Number.isFinite(dtRaw) ? Math.min(dtRaw, MAX_DT) : DEFAULT_DT;
+
+    let lookX = 0;
+    let lookY = 0;
+
+    const axis = keyboardState?.axis && Object.prototype.hasOwnProperty.call(keyboardState.axis, 'lookX')
+      ? keyboardState.axis
+      : null;
+    const axisLookX = axis ? axis.lookX : undefined;
+    const axisLookY = axis ? axis.lookY : undefined;
+
+    if (Number.isFinite(axisLookX)) {
+      lookX += axisLookX;
+    }
+    if (Number.isFinite(axisLookY)) {
+      lookY += axisLookY;
+    }
+
+    if (keyboardState?.look) {
+      const fallbackLookX = keyboardState.look.x;
+      const fallbackLookY = keyboardState.look.y;
+      if (Number.isFinite(fallbackLookX)) {
+        if (!Number.isFinite(axisLookX) || Math.abs(fallbackLookX - axisLookX) > 1e-6) {
+          lookX += fallbackLookX;
+        }
+      }
+      if (Number.isFinite(fallbackLookY)) {
+        if (!Number.isFinite(axisLookY) || Math.abs(fallbackLookY - axisLookY) > 1e-6) {
+          lookY += fallbackLookY;
+        }
+      }
+    }
+
+    if (!Number.isFinite(yawOffset)) {
+      yawOffset = 0;
+    }
+    if (!Number.isFinite(pitchOffset)) {
+      pitchOffset = 0;
+    }
 
     yawOffset += lookX * options.yawSpeed * dt;
     pitchOffset += lookY * options.pitchSpeed * dt;
