@@ -508,6 +508,7 @@ export async function runAthens(options: RunOptions = {}) {
     lerp: 0.12,
     lookAtOffset: new THREE.Vector3(0, 1.5, 0)
   });
+  followCamera.setPointerLockElement?.(renderer.domElement);
   followCamera.syncImmediate?.();
   if ((followCamera as any)?.target) {
     sanitizeVec3((followCamera as any).target, DEFAULT_PLAYER);
@@ -708,6 +709,7 @@ export async function runAthens(options: RunOptions = {}) {
       footsteps.dispose?.();
       audio.stopAll?.();
       renderer.dispose?.();
+      followCamera.setPointerLockElement?.(null);
     }
   };
 

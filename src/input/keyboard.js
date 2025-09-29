@@ -97,19 +97,18 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     let x = 0;
     let z = 0;
 
-    if (isDown('KeyA')) {
-      x -= 1;
-    }
     if (isDown('KeyD')) {
       x += 1;
     }
-    const turn = x;
-
-    if (isDown('KeyW')) {
-      z -= 1;
+    if (isDown('KeyA')) {
+      x -= 1;
     }
+
     if (isDown('KeyS')) {
       z += 1;
+    }
+    if (isDown('KeyW')) {
+      z -= 1;
     }
 
     if (x !== 0 && z !== 0) {
@@ -119,7 +118,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
     axisVector.x = x;
     axisVector.z = z;
-    axisVector.turn = turn;
+    axisVector.turn = 0;
     return axisVector;
   };
 

@@ -9,10 +9,11 @@ const cameraForward = new THREE.Vector3();
 
 const MIN_PITCH = THREE.MathUtils.degToRad(-85);
 const MAX_PITCH = THREE.MathUtils.degToRad(85);
-const DEFAULT_YAW_SPEED = 1.8; // radians per second
-const DEFAULT_PITCH_SPEED = 1.4; // radians per second
+const DEFAULT_YAW_SPEED = 2.0; // radians per second
+const DEFAULT_PITCH_SPEED = 1.6; // radians per second
 const MAX_DT = 0.25;
 const DEFAULT_DT = 1 / 60;
+const MOUSE_SENSITIVITY = 0.0018;
 
 function computeBaseParameters(offset) {
   const offsetVector = offset.clone();
@@ -57,6 +58,15 @@ export function createFollowCamera(
   let yawOffset = 0;
   let pitchOffset = 0;
   let cachedTargetYaw = 0;
+  let pointerElement = null;
+  let accumulatedMouseDX = 0;
+  let accumulatedMouseDY = 0;
+  let handlePointerMove = null;
+  let handlePointerLockChange = null;
+  let handleClick = null;
+
+  const browserWindow = typeof window !== 'undefined' ? window : null;
+  const browserDocument = typeof document !== 'undefined' ? document : null;
 
   const getTargetYaw = () => {
     if (!currentTarget) {
@@ -104,6 +114,66 @@ export function createFollowCamera(
     return THREE.MathUtils.clamp(scaled, 0, 1);
   };
 
+  const detachPointerLock = () => {
+    if (pointerElement && handleClick && pointerElement.removeEventListener) {
+      pointerElement.removeEventListener('click', handleClick);
+    }
+    if (browserWindow && handlePointerMove) {
+      browserWindow.removeEventListener('mousemove', handlePointerMove);
+    }
+    if (browserDocument && handlePointerLockChange) {
+      browserDocument.removeEventListener('pointerlockchange', handlePointerLockChange);
+    }
+    pointerElement = null;
+    handleClick = null;
+    handlePointerMove = null;
+    handlePointerLockChange = null;
+    accumulatedMouseDX = 0;
+    accumulatedMouseDY = 0;
+  };
+
+  const applyPointerLockElement = (element) => {
+    if (pointerElement === element) {
+      return;
+    }
+    detachPointerLock();
+    if (!element || typeof element.addEventListener !== 'function') {
+      return;
+    }
+    pointerElement = element;
+    handleClick = () => {
+      if (pointerElement && typeof pointerElement.requestPointerLock === 'function') {
+        pointerElement.requestPointerLock();
+      } else if (pointerElement && pointerElement.requestPointerLock) {
+        try {
+          pointerElement.requestPointerLock();
+        } catch {
+          // ignore errors from browsers without pointer lock
+        }
+      }
+    };
+    pointerElement.addEventListener('click', handleClick);
+
+    handlePointerMove = (event) => {
+      if (!browserDocument || browserDocument.pointerLockElement !== pointerElement) {
+        return;
+      }
+      const movementX = Number.isFinite(event?.movementX) ? event.movementX : 0;
+      const movementY = Number.isFinite(event?.movementY) ? event.movementY : 0;
+      if (movementX) accumulatedMouseDX += movementX;
+      if (movementY) accumulatedMouseDY += movementY;
+    };
+    browserWindow?.addEventListener?.('mousemove', handlePointerMove);
+
+    handlePointerLockChange = () => {
+      if (!browserDocument || browserDocument.pointerLockElement !== pointerElement) {
+        accumulatedMouseDX = 0;
+        accumulatedMouseDY = 0;
+      }
+    };
+    browserDocument?.addEventListener?.('pointerlockchange', handlePointerLockChange);
+  };
+
   const update = (keyboardState, deltaSeconds = 0) => {
     if (!camera || !currentTarget) {
       return;
@@ -111,6 +181,7 @@ export function createFollowCamera(
 
     const dtRaw = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : NaN;
     const dt = Number.isFinite(dtRaw) ? Math.min(dtRaw, MAX_DT) : DEFAULT_DT;
+    const dtSafe = Number.isFinite(dt) ? dt : DEFAULT_DT;
 
     let lookX = 0;
     let lookY = 0;
@@ -150,9 +221,17 @@ export function createFollowCamera(
       pitchOffset = 0;
     }
 
-    yawOffset += lookX * options.yawSpeed * dt;
-    pitchOffset += lookY * options.pitchSpeed * dt;
+    if (accumulatedMouseDX !== 0 || accumulatedMouseDY !== 0) {
+      yawOffset += accumulatedMouseDX * MOUSE_SENSITIVITY;
+      pitchOffset -= accumulatedMouseDY * MOUSE_SENSITIVITY;
+      accumulatedMouseDX = 0;
+      accumulatedMouseDY = 0;
+    }
+
+    yawOffset += lookX * options.yawSpeed * dtSafe;
+    pitchOffset += lookY * options.pitchSpeed * dtSafe;
     pitchOffset = THREE.MathUtils.clamp(pitchOffset, pitchMin, pitchMax);
+    yawOffset = wrapAngle(yawOffset);
 
     const lerpAlpha = computeLerpAlpha(dt);
     computeDesired(desiredPosition);
@@ -202,7 +281,13 @@ export function createFollowCamera(
     update,
     setTarget,
     syncImmediate,
-    options
+    options,
+    setPointerLockElement(element) {
+      applyPointerLockElement(element);
+    },
+    get target() {
+      return currentTarget;
+    }
   };
 }
 
