@@ -139,6 +139,7 @@ export function createDirtGround({
   const mesh = new THREE.Mesh(geo, mat);
   applyDoubleSidedGroundSupport(mesh);
   mesh.receiveShadow = receiveShadow;
+  mesh.renderOrder = 0;
 
   group.add(mesh);
   return group;
