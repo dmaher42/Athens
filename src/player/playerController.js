@@ -49,6 +49,8 @@ export function createPlayerController(
 
   let desiredYaw = deriveYaw(controlledObject);
   let runningState = false;
+  let isFlying = false;
+  let prevFlyKeyDown = false;
 
   if (controlledObject) {
     capsule.setPosition(
@@ -87,6 +89,14 @@ export function createPlayerController(
     if (!controlledObject || !currentKeyboard || !camera) return;
 
     const position = controlledObject.position;
+    const flyKeyDown = Boolean(currentKeyboard.isDown?.('KeyX'));
+    if (flyKeyDown && !prevFlyKeyDown) {
+      isFlying = !isFlying;
+      if (isFlying) {
+        physicsState.vy = 0;
+      }
+    }
+    prevFlyKeyDown = flyKeyDown;
     if (
       !position ||
       !Number.isFinite(position.x) ||
@@ -131,6 +141,25 @@ export function createPlayerController(
       targetVelocity.set(0, 0, 0);
     }
 
+    if (isFlying) {
+      const verticalSpeed = baseSpeed * effectiveRunMultiplier;
+      const ascend = Boolean(
+        currentKeyboard.isDown?.('Space') || currentKeyboard.isDown?.('KeyE')
+      );
+      const descend = Boolean(
+        currentKeyboard.isDown?.('ControlLeft') ||
+          currentKeyboard.isDown?.('ControlRight') ||
+          currentKeyboard.isDown?.('KeyC') ||
+          currentKeyboard.isDown?.('KeyQ')
+      );
+      let vy = 0;
+      if (ascend) vy += verticalSpeed;
+      if (descend) vy -= verticalSpeed;
+      targetVelocity.y = vy;
+    } else {
+      targetVelocity.y = 0;
+    }
+
     // Accel/lerp velocity
     const accel = Number.isFinite(acceleration) ? Math.max(acceleration, 0) : 10;
     const lerpAlpha = accel > 0 && dt > 0 ? 1 - Math.exp(-accel * dt) : 1;
@@ -146,7 +175,9 @@ export function createPlayerController(
     actualMove.set(0, 0, 0);
     if (dt > 0) {
       moveDelta.copy(velocity).multiplyScalar(dt);
-      moveDelta.y = 0;
+      if (!isFlying) {
+        moveDelta.y = 0;
+      }
       if (moveDelta.lengthSq() > 1e-10) {
         const result = resolveCapsuleVsAABBs(capsule, moveDelta, colliderAabbs, {
           maxIters: 3,
@@ -166,7 +197,9 @@ export function createPlayerController(
     }
 
     // Ground & upright stabilization
-    snapToGround(controlledObject, groundMeshes, physicsState, dt);
+    if (!isFlying) {
+      snapToGround(controlledObject, groundMeshes, physicsState, dt);
+    }
     capsule.setPosition(
       controlledObject.position.x,
       controlledObject.position.y,
@@ -183,6 +216,9 @@ export function createPlayerController(
     setColliders,
     isRunning() {
       return runningState;
+    },
+    isFlying() {
+      return isFlying;
     }
   };
 }
