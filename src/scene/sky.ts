@@ -9,26 +9,44 @@ export type SkyChoice = {
   file?: string;
 };
 
-// Auto-discovered JPG panoramas available in this repo (scanned under public/assets/sky).
+// Auto-discovered JPG panoramas available in this repo (scanned under assets/sky).
 // These provide ready-to-use photographic skies when served from GitHub Pages or local builds.
 export const SKY_CHOICES: SkyChoice[] = [
   {
-    id: 'night-sky',
+    id: 'day',
     type: 'equirect',
-    label: 'Night Sky',
-    file: 'assets/sky/night_sky.jpg'
+    label: 'Daytime',
+    file: 'assets/sky/day.jpg'
   },
   {
-    id: 'high-noon',
+    id: 'dawn',
     type: 'equirect',
-    label: 'High Noon',
-    file: 'assets/sky/high_noon.jpg'
+    label: 'Dawn',
+    file: 'assets/sky/dawn.jpg'
   },
   {
-    id: 'golden-hour',
+    id: 'dusk',
     type: 'equirect',
-    label: 'Golden Hour',
-    file: 'assets/sky/golden_hour.jpg'
+    label: 'Dusk',
+    file: 'assets/sky/dusk.jpg'
+  },
+  {
+    id: 'blue-hour',
+    type: 'equirect',
+    label: 'Blue Hour',
+    file: 'assets/sky/blue_hour.jpg'
+  },
+  {
+    id: 'night',
+    type: 'equirect',
+    label: 'Night',
+    file: 'assets/sky/night.jpg'
+  },
+  {
+    id: 'night-4k',
+    type: 'equirect',
+    label: 'Night (4K)',
+    file: 'assets/sky/night_sky_4k.jpg'
   }
 ];
 
