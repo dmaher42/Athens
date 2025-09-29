@@ -5,7 +5,7 @@ const tempQuaternion = new THREE.Quaternion();
 const targetWorldPosition = new THREE.Vector3();
 const desiredPosition = new THREE.Vector3();
 const lookOffset = new THREE.Vector3();
-const cameraForward = new THREE.Vector3();
+const spherical = new THREE.Spherical();
 
 const MIN_PITCH = THREE.MathUtils.degToRad(-85);
 const MAX_PITCH = THREE.MathUtils.degToRad(85);
@@ -22,13 +22,6 @@ function computeBaseParameters(offset) {
   const basePitch = horizontal > 1e-5 ? Math.atan2(offsetVector.y, horizontal) : 0;
   const baseYaw = Math.atan2(offsetVector.x, offsetVector.z);
   return { radius, basePitch, baseYaw };
-}
-
-function wrapAngle(angle) {
-  if (!Number.isFinite(angle)) {
-    return 0;
-  }
-  return THREE.MathUtils.euclideanModulo(angle + Math.PI, Math.PI * 2) - Math.PI;
 }
 
 export function createFollowCamera(
@@ -52,12 +45,22 @@ export function createFollowCamera(
 
   let currentTarget = target || null;
   const base = computeBaseParameters(options.offset);
-  const pitchMin = MIN_PITCH - base.basePitch;
-  const pitchMax = MAX_PITCH - base.basePitch;
+  const rigState = (() => {
+    if (!camera || typeof camera !== 'object') {
+      return { yaw: 0, pitch: 0, distance: base.radius };
+    }
+    const existing = (camera).__rigState;
+    if (existing && typeof existing === 'object') {
+      if (!Number.isFinite(existing.distance) || existing.distance <= 0) {
+        existing.distance = base.radius;
+      }
+      return existing;
+    }
+    const state = { yaw: 0, pitch: 0, distance: base.radius };
+    (camera).__rigState = state;
+    return state;
+  })();
 
-  let yawOffset = 0;
-  let pitchOffset = 0;
-  let cachedTargetYaw = 0;
   let pointerElement = null;
   let accumulatedMouseDX = 0;
   let accumulatedMouseDY = 0;
@@ -68,17 +71,18 @@ export function createFollowCamera(
   const browserWindow = typeof window !== 'undefined' ? window : null;
   const browserDocument = typeof document !== 'undefined' ? document : null;
 
-  const getTargetYaw = () => {
-    if (!currentTarget) {
-      return cachedTargetYaw;
+  const sanitizeYaw = (value) => {
+    if (!Number.isFinite(value)) {
+      return 0;
     }
-    currentTarget.getWorldDirection(cameraForward);
-    cameraForward.y = 0;
-    if (cameraForward.lengthSq() > 1e-6) {
-      cameraForward.normalize();
-      cachedTargetYaw = Math.atan2(cameraForward.x, cameraForward.z);
+    return THREE.MathUtils.euclideanModulo(value + Math.PI, Math.PI * 2) - Math.PI;
+  };
+
+  const sanitizePitch = (value) => {
+    if (!Number.isFinite(value)) {
+      return 0;
     }
-    return cachedTargetYaw;
+    return THREE.MathUtils.clamp(value, MIN_PITCH, MAX_PITCH);
   };
 
   const computeDesired = (out = desiredPosition) => {
@@ -86,19 +90,18 @@ export function createFollowCamera(
       return out.set(0, 0, 0);
     }
 
-    const targetYaw = getTargetYaw();
-    const finalYaw = targetYaw + yawOffset + base.baseYaw;
-    const finalPitch = THREE.MathUtils.clamp(base.basePitch + pitchOffset, MIN_PITCH, MAX_PITCH);
-    const radius = base.radius;
-    const horizontal = Math.cos(finalPitch) * radius;
-
-    out.set(
-      Math.sin(finalYaw) * horizontal,
-      Math.sin(finalPitch) * radius,
-      Math.cos(finalYaw) * horizontal
-    );
+    const yaw = sanitizeYaw(rigState.yaw);
+    const pitch = sanitizePitch(rigState.pitch);
+    const radius = Number.isFinite(rigState.distance) && rigState.distance > 1e-3
+      ? rigState.distance
+      : base.radius;
 
     currentTarget.getWorldPosition(targetWorldPosition);
+
+    spherical.radius = radius;
+    spherical.theta = yaw;
+    spherical.phi = Math.PI / 2 - pitch;
+    out.setFromSpherical(spherical);
     out.add(targetWorldPosition);
     return out;
   };
@@ -214,24 +217,25 @@ export function createFollowCamera(
       }
     }
 
-    if (!Number.isFinite(yawOffset)) {
-      yawOffset = 0;
+    if (!Number.isFinite(rigState.yaw)) {
+      rigState.yaw = 0;
     }
-    if (!Number.isFinite(pitchOffset)) {
-      pitchOffset = 0;
+    if (!Number.isFinite(rigState.pitch)) {
+      rigState.pitch = 0;
     }
 
     if (accumulatedMouseDX !== 0 || accumulatedMouseDY !== 0) {
-      yawOffset += accumulatedMouseDX * MOUSE_SENSITIVITY;
-      pitchOffset -= accumulatedMouseDY * MOUSE_SENSITIVITY;
+      rigState.yaw += accumulatedMouseDX * MOUSE_SENSITIVITY;
+      rigState.pitch -= accumulatedMouseDY * MOUSE_SENSITIVITY;
       accumulatedMouseDX = 0;
       accumulatedMouseDY = 0;
     }
 
-    yawOffset += lookX * options.yawSpeed * dtSafe;
-    pitchOffset += lookY * options.pitchSpeed * dtSafe;
-    pitchOffset = THREE.MathUtils.clamp(pitchOffset, pitchMin, pitchMax);
-    yawOffset = wrapAngle(yawOffset);
+    rigState.yaw += lookX * options.yawSpeed * dtSafe;
+    rigState.pitch += lookY * options.pitchSpeed * dtSafe;
+
+    rigState.pitch = sanitizePitch(rigState.pitch);
+    rigState.yaw = sanitizeYaw(rigState.yaw);
 
     const lerpAlpha = computeLerpAlpha(dt);
     computeDesired(desiredPosition);
@@ -241,6 +245,9 @@ export function createFollowCamera(
     currentTarget.getWorldQuaternion(tempQuaternion);
     lookOffset.applyQuaternion(tempQuaternion);
     tempPosition.copy(targetWorldPosition).add(lookOffset);
+    if (tempPosition.distanceToSquared(camera.position) < 1e-9) {
+      tempPosition.y += 0.001;
+    }
     camera.lookAt(tempPosition);
   };
 
@@ -254,6 +261,9 @@ export function createFollowCamera(
     currentTarget.getWorldQuaternion(tempQuaternion);
     lookOffset.applyQuaternion(tempQuaternion);
     tempPosition.copy(targetWorldPosition).add(lookOffset);
+    if (tempPosition.distanceToSquared(camera.position) < 1e-9) {
+      tempPosition.y += 0.001;
+    }
     camera.lookAt(tempPosition);
   };
 
@@ -264,12 +274,15 @@ export function createFollowCamera(
     currentTarget = nextTarget;
     currentTarget.getWorldPosition(targetWorldPosition);
     tempPosition.copy(camera.position).sub(targetWorldPosition);
+    const distance = tempPosition.length();
     const horizontal = Math.sqrt(tempPosition.x * tempPosition.x + tempPosition.z * tempPosition.z);
     const worldPitch = horizontal > 1e-6 ? Math.atan2(tempPosition.y, horizontal) : 0;
     const worldYaw = Math.atan2(tempPosition.x, tempPosition.z);
-    const targetYaw = getTargetYaw();
-    yawOffset = wrapAngle(worldYaw - targetYaw - base.baseYaw);
-    pitchOffset = THREE.MathUtils.clamp(worldPitch - base.basePitch, pitchMin, pitchMax);
+    if (!Number.isFinite(rigState.distance) || rigState.distance <= 0) {
+      rigState.distance = distance > 1e-6 ? distance : base.radius;
+    }
+    rigState.pitch = sanitizePitch(worldPitch);
+    rigState.yaw = sanitizeYaw(worldYaw);
     syncImmediate();
   };
 

@@ -8,6 +8,7 @@ import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
 import { loadPlayerAvatar, PlayerAvatar } from '../player/playerAvatar.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
+import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { installRenderGuard } from '../safety/hardenPositions';
 import {
   DEFAULT_CAMERA,
@@ -532,15 +533,13 @@ export async function runAthens(options: RunOptions = {}) {
     placeOnGround(playerObject, groundMeshes.length ? groundMeshes : scene, { clearance: 0.02 });
   }
 
-  if (!hasSavedCameraPos) {
-    const camBack = 6;
-    const camUp = 3;
-    camera.position.set(spawnPosition.x + camBack, spawnPosition.y + camUp, spawnPosition.z + camBack);
-  }
-
   if (groundMeshes.length) {
     const initialState = { vy: 0, lastGoodY: playerObject.position.y };
     snapToGround(playerObject, groundMeshes, initialState, 0);
+  }
+
+  if (!hasSavedCameraPos) {
+    seedCameraBehindPlayer(playerObject, camera, { followDistance: 6, shoulderHeight: 1.6, pitchDeg: -15 });
   }
 
   sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
