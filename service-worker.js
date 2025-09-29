@@ -1,91 +1,81 @@
-const CACHE_NAME = 'athens-static-v1';
-const INDEX_URL = new URL('index.html', self.registration.scope).toString();
+// ---- service-worker.js (drop-in) ----
 
-function isCacheable(response) {
-  return (
-    response &&
-    response.status === 200 &&
-    (response.type === 'basic' || response.type === 'default')
-  );
-}
+// Bump this whenever you ship SW changes (forces update)
+const CACHE_NAME = 'athens-static-v2';
+
+// Precache (optional). You can add core assets here if you want offline.
+// For GH Pages, keeping this empty is fine; we’ll cache on first fetch.
+const PRECACHE_URLS = [];
 
 self.addEventListener('install', (event) => {
-  const precacheUrls = [INDEX_URL, self.registration.scope];
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(precacheUrls))
-  );
+  // Immediately activate the new SW
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)).catch(() => {})
+  );
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-        )
-      )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    // Clean up old caches
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
+    // Control all pages without reload
+    await self.clients.claim();
+  })());
 });
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  const requestUrl = new URL(event.request.url);
-  if (requestUrl.origin !== self.location.origin) {
-    // Allow the browser to handle cross-origin requests (e.g. CDN assets).
-    return;
-  }
-
-  event.respondWith(handleRequest(event.request));
-});
-
-async function handleRequest(request) {
-  let cache;
-  let cachedResponse;
-  let cacheAvailable = true;
-
+// Helper: always return a Response object (never let respondWith reject)
+async function safeNetwork(req) {
   try {
-    cache = await caches.open(CACHE_NAME);
-    cachedResponse = await cache.match(request);
-  } catch (cacheError) {
-    cacheAvailable = false;
-    console.error('Service Worker cache access failed, falling back to network only.', cacheError);
-  }
-
-  try {
-    const networkResponse = await fetch(request);
-    if (cacheAvailable && cache && isCacheable(networkResponse)) {
-      cache.put(request, networkResponse.clone()).catch((putError) => {
-        console.error('Service Worker failed to update cache entry.', putError);
-      });
-    }
-    return networkResponse;
-  } catch (error) {
-    console.error('Service Worker fetch failed, attempting to serve from cache.', error);
-
-    if (cacheAvailable && cachedResponse) {
-      return cachedResponse;
-    }
-
-    if (cacheAvailable && cache && request.mode === 'navigate') {
-      try {
-        const offlineShell = await cache.match(INDEX_URL);
-        if (offlineShell) {
-          return offlineShell;
-        }
-      } catch (shellError) {
-        console.error('Service Worker failed to retrieve offline shell.', shellError);
-      }
-    }
-
-    return new Response('Offline', {
-      status: 503,
-      statusText: 'Service Unavailable'
+    return await fetch(req);
+  } catch (err) {
+    // Non-document fallback: JSON 502 so the promise resolves
+    return new Response(JSON.stringify({ ok: false, error: 'network-error' }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' }
     });
   }
 }
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+  const isSameOrigin = url.origin === self.location.origin;
+
+  // Only cache same-origin GETs. Let cross-origin & non-GET go straight to network.
+  if (req.method !== 'GET' || !isSameOrigin) {
+    event.respondWith(safeNetwork(req));
+    return;
+  }
+
+  event.respondWith((async () => {
+    try {
+      // 1) Cache-first for same-origin GETs
+      const cached = await caches.match(req);
+      if (cached) return cached;
+
+      // 2) Network, then populate cache
+      const res = await fetch(req);
+      // Only cache successful/basic responses
+      if (res && res.ok && res.type === 'basic') {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(req, res.clone());
+      }
+      return res;
+    } catch (err) {
+      // 3) Final fallback — always return a Response (no rejected promise)
+      const acceptsHtml = req.destination === 'document' || req.headers.get('accept')?.includes('text/html');
+      if (acceptsHtml) {
+        return new Response(
+          '<!doctype html><meta charset="utf-8"><title>Offline</title><h1>Offline</h1><p>Network error.</p>',
+          { status: 503, headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+      return new Response(JSON.stringify({ ok: false, error: 'offline' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  })());
+});
