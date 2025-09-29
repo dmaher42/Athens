@@ -21,6 +21,8 @@
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.2.1",
+    "http-server": "^14.1.1",
+    "puppeteer": "^24.22.3",
     "rimraf": "^6.0.1",
     "vite": "^5.4.0"
   }
