@@ -1,3 +1,4 @@
+import './block-remote-guard.js';
 import * as THREE from 'three';
 import initializeAthens from './initializeAthens.js';
 import boot, { whenBootReady } from '../core/bootstrap.js';
