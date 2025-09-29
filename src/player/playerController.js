@@ -86,6 +86,16 @@ export function createPlayerController(
   const update = (deltaSeconds, camera) => {
     if (!controlledObject || !currentKeyboard || !camera) return;
 
+    const position = controlledObject.position;
+    if (
+      !position ||
+      !Number.isFinite(position.x) ||
+      !Number.isFinite(position.y) ||
+      !Number.isFinite(position.z)
+    ) {
+      return;
+    }
+
     const dt = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
 
     // Camera basis (flat)

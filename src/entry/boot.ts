@@ -397,7 +397,8 @@ export async function runAthens(options: RunOptions = {}) {
     const activeStats = stats;
     activeStats?.begin();
     try {
-      const delta = clock.getDelta();
+      let delta = clock.getDelta();
+      if (!Number.isFinite(delta) || delta <= 0 || delta > 0.25) delta = 1 / 60;
       if (typeof updateTrees === 'function') {
         try {
           updateTrees(delta);
@@ -452,11 +453,10 @@ export async function runAthens(options: RunOptions = {}) {
           safeNumber(camera.position.z, 20)
         );
 
-        // If you have a follow-camera lookAt each frame, ensure the target is finite
-        const target = player?.position ?? { x: 0, y: 0, z: 0 };
-        const tx = safeNumber(target.x, 0);
-        const ty = safeNumber(target.y, 1);
-        const tz = safeNumber(target.z, 0);
+        const t = player?.position ?? { x: 0, y: 1, z: 0 };
+        const tx = safeNumber(t.x, 0);
+        const ty = safeNumber(t.y, 1);
+        const tz = safeNumber(t.z, 0);
         camera.lookAt(tx, ty, tz);
       }
 
