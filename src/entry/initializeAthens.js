@@ -615,6 +615,7 @@ export async function initializeAthens(options = {}) {
     lerp: 0.12,
     lookAtOffset: new THREE.Vector3(0, 1.5, 0)
   });
+  followCamera.setPointerLockElement?.(renderer.domElement);
 
   followCamera.syncImmediate?.();
   const initialFollowTarget = followCamera && followCamera.target;
@@ -951,6 +952,7 @@ export async function initializeAthens(options = {}) {
       keyboard?.dispose?.();
       city?.dispose?.();
       extendedCity?.dispose?.();
+      followCamera.setPointerLockElement?.(null);
     }
   };
 

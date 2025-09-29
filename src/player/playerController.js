@@ -11,10 +11,12 @@ const horizontalVector = new THREE.Vector3();
 const FORWARD = new THREE.Vector3(0, 0, 1);
 const moveDelta = new THREE.Vector3();
 const actualMove = new THREE.Vector3();
+const rightVector = new THREE.Vector3();
+const viewDirection = new THREE.Vector3();
+const desiredMove = new THREE.Vector3();
+const UP = new THREE.Vector3(0, 1, 0);
 
-const TURN_SPEED = 2.2;
 const TURN_ACCEL = 12;
-const TURN_DAMP = 10;
 
 function deriveYaw(object3d) {
   if (!object3d) return 0;
@@ -49,7 +51,6 @@ export function createPlayerController(
   };
 
   let yaw = deriveYaw(controlledObject);
-  let angularVelocity = 0;
   let runningState = false;
   let isFlying = false;
   let prevFlyKeyDown = false;
@@ -87,7 +88,6 @@ export function createPlayerController(
     physicsState.vy = 0;
     physicsState.lastGoodY = controlledObject.position?.y ?? 0;
     yaw = deriveYaw(controlledObject);
-    angularVelocity = 0;
     capsule.setPosition(
       controlledObject.position.x,
       controlledObject.position.y,
@@ -140,44 +140,75 @@ export function createPlayerController(
     const dt = Number.isFinite(dtRaw) ? Math.min(dtRaw, 0.25) : 0;
     const dtSafe = Number.isFinite(dtRaw) ? dt : 1 / 60;
 
-    // Turn control (yaw)
-    const turnInputRaw = currentKeyboard.axis?.turn;
-    const turnInput = Number.isFinite(turnInputRaw) ? turnInputRaw : 0;
-    const targetAngularVelocity = turnInput * TURN_SPEED;
-    const turnLerpAlpha = 1 - Math.exp(-TURN_ACCEL * dtSafe);
-    angularVelocity += (targetAngularVelocity - angularVelocity) * turnLerpAlpha;
-    angularVelocity *= Math.exp(-TURN_DAMP * dtSafe);
-    if (!Number.isFinite(angularVelocity)) angularVelocity = 0;
-
-    yaw += angularVelocity * dtSafe;
-    if (!Number.isFinite(yaw)) {
-      yaw = 0;
-    } else {
-      yaw = THREE.MathUtils.euclideanModulo(yaw + Math.PI, Math.PI * 2) - Math.PI;
-    }
-
-    // Input (forward/back)
-    const axisZ = currentKeyboard.axis?.z || 0;
-    const hasMoveInput = axisZ !== 0;
+    const axisXRaw = currentKeyboard.axis?.x;
+    const axisZRaw = currentKeyboard.axis?.z;
+    const axisX = Number.isFinite(axisXRaw) ? axisXRaw : 0;
+    const axisZ = Number.isFinite(axisZRaw) ? axisZRaw : 0;
+    const hasMoveInput = Math.abs(axisX) > 1e-3 || Math.abs(axisZ) > 1e-3;
 
     // Speed target
     const shiftDown = Boolean(currentKeyboard.axis?.running);
     const effectiveRunMultiplier = shiftDown ? Math.max(runMultiplier, 1) : 1;
     const baseSpeed = Number.isFinite(walkSpeed) ? walkSpeed : 4.0;
-    const targetSpeed = hasMoveInput ? baseSpeed * effectiveRunMultiplier : 0;
-    const verticalSpeed = baseSpeed * effectiveRunMultiplier;
-    runningState = hasMoveInput && shiftDown && targetSpeed > baseSpeed;
+    const speed = baseSpeed * effectiveRunMultiplier;
+    const targetSpeed = hasMoveInput ? speed : 0;
+    const verticalSpeed = speed;
+    runningState = hasMoveInput && shiftDown && speed > baseSpeed;
 
     targetVelocity.set(0, 0, 0);
+    let desiredYaw = yaw;
     if (hasMoveInput) {
-      moveDirection.set(Math.sin(yaw), 0, Math.cos(yaw));
+      if (typeof camera.getWorldDirection === 'function') {
+        camera.getWorldDirection(viewDirection);
+      } else {
+        viewDirection.set(0, 0, -1);
+      }
+      viewDirection.y = 0;
+      if (viewDirection.lengthSq() < 1e-6) {
+        viewDirection.set(0, 0, -1);
+      } else {
+        viewDirection.normalize();
+      }
+
+      moveDirection.copy(viewDirection).negate();
       if (moveDirection.lengthSq() < 1e-6) {
         moveDirection.set(0, 0, 1);
       } else {
         moveDirection.normalize();
       }
-      const forwardMagnitude = THREE.MathUtils.clamp(-axisZ, -1, 1);
-      targetVelocity.addScaledVector(moveDirection, forwardMagnitude * targetSpeed);
+
+      rightVector.crossVectors(UP, moveDirection);
+      if (rightVector.lengthSq() < 1e-6) {
+        rightVector.set(1, 0, 0);
+      } else {
+        rightVector.normalize();
+      }
+
+      desiredMove.set(0, 0, 0);
+      const forwardInput = THREE.MathUtils.clamp(-axisZ, -1, 1);
+      const strafeInput = THREE.MathUtils.clamp(axisX, -1, 1);
+      desiredMove
+        .addScaledVector(moveDirection, forwardInput)
+        .addScaledVector(rightVector, strafeInput);
+
+      const desiredLengthSq = desiredMove.lengthSq();
+      if (desiredLengthSq > 1e-6) {
+        desiredMove.normalize().multiplyScalar(targetSpeed);
+        targetVelocity.copy(desiredMove);
+        desiredYaw = Math.atan2(desiredMove.x, desiredMove.z);
+      }
+    }
+
+    if (Number.isFinite(desiredYaw)) {
+      const yawDelta = THREE.MathUtils.euclideanModulo(desiredYaw - yaw + Math.PI, Math.PI * 2) - Math.PI;
+      const yawLerp = 1 - Math.exp(-TURN_ACCEL * dtSafe);
+      yaw += yawDelta * yawLerp;
+    }
+
+    if (!Number.isFinite(yaw)) {
+      yaw = 0;
+    } else {
+      yaw = THREE.MathUtils.euclideanModulo(yaw + Math.PI, Math.PI * 2) - Math.PI;
     }
 
     let flyVerticalVelocity = 0;
@@ -237,10 +268,9 @@ export function createPlayerController(
       debugLogTime += dtSafe;
       if (debugLogTime <= 2) {
         console.log('[controls]', {
-          turn: turnInput,
+          x: axisX,
           z: axisZ,
-          yaw,
-          angVel: angularVelocity
+          yaw
         });
       }
     }
