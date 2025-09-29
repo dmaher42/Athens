@@ -5,8 +5,10 @@ import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
 import { loadGLTF } from '../loaders/safeGltf.js';
 import { logOnce } from '../utils/logOnce.js';
+import { ensureFeetAtLocalZero, placeOnGround } from '../utils/spawn.ts';
 
-const SNAP_OPTIONS = { gravity: 12, stepMax: 0.6, hover: 0.03 };
+const SNAP_OPTIONS = { gravity: 12, maxStepUp: 0.6, maxDrop: 4, hover: 0.03, rayStart: 1000 };
+const GROUND_CLEARANCE = typeof SNAP_OPTIONS.hover === 'number' ? SNAP_OPTIONS.hover : 0.03;
 const DEFAULT_WALK_SPEED = 1.5;
 const DEFAULT_RUN_SPEED = 3.0;
 const DEFAULT_ACCEL = 6.0;
@@ -411,7 +413,7 @@ function disposeNpcEntity(npc) {
   disposeObject3D(npc.object3d);
 }
 
-function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) {
+function createNpcEntity(config = {}, { scene = null, navContext = null, groundMeshes = [] } = {}) {
   const {
     object3d: providedObject = null,
     modelUrl = null,
@@ -428,8 +430,18 @@ function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) 
   object3d.rotation.x = 0;
   object3d.rotation.z = 0;
 
-  const startPosition = toVector3(initialPosition) || object3d.position.clone();
+  let startPosition = toVector3(initialPosition) || object3d.position.clone();
   object3d.position.copy(startPosition);
+
+  ensureFeetAtLocalZero(object3d);
+
+  const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
+  const groundTarget = surfaces.length ? surfaces : scene;
+  if (groundTarget) {
+    placeOnGround(object3d, groundTarget, { clearance: GROUND_CLEARANCE, rayStart: SNAP_OPTIONS.rayStart });
+  }
+
+  startPosition = object3d.position.clone();
 
   if (scene && !object3d.parent) {
     scene.add(object3d);
@@ -449,7 +461,7 @@ function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) 
     speed: 0,
     state: {
       vy: 0,
-      lastGoodY: object3d.position.y || 0,
+      lastGoodY: (object3d.position.y || 0) - GROUND_CLEARANCE,
       yaw: object3d.rotation.y || 0
     },
     modelRoot: null,
@@ -553,8 +565,9 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
 }
 
 export function createNpc(options = {}) {
-  const { navContext = null, ...npcOptions } = options || {};
-  const npc = createNpcEntity(npcOptions, { navContext });
+  const { navContext = null, groundMeshes: initialGroundMeshes = [], ...npcOptions } = options || {};
+  const defaultGround = Array.isArray(initialGroundMeshes) ? initialGroundMeshes : [];
+  const npc = createNpcEntity(npcOptions, { navContext, groundMeshes: defaultGround });
   return {
     object3d: npc.object3d,
     update(deltaSeconds, context = {}) {
@@ -562,7 +575,8 @@ export function createNpc(options = {}) {
         return;
       }
       const nav = context.navContext || navContext || npc.navContext || null;
-      stepNpc(npc, deltaSeconds, context.groundMeshes, nav);
+      const ground = Array.isArray(context.groundMeshes) ? context.groundMeshes : defaultGround;
+      stepNpc(npc, deltaSeconds, ground, nav);
     },
     dispose() {
       npc.dispose();
@@ -581,7 +595,7 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
   let activeSchedule = mapModeToSchedule(lastTimeMode);
 
   function spawn(config = {}) {
-    const npc = createNpcEntity(config, { scene, navContext });
+    const npc = createNpcEntity(config, { scene, navContext, groundMeshes: surfaces });
     npcs.push(npc);
     const originalDispose = npc.dispose;
     npc.dispose = () => {
