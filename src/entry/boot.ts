@@ -221,8 +221,6 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
-  const skyTask = applySky(scene, renderer);
-
   const audio = new AudioManager(camera, { masterVolume: 0.9 });
 
   const resumeAudioContext = () => {
@@ -306,9 +304,11 @@ export async function runAthens(options: RunOptions = {}) {
     }
   }
 
-  await skyTask.catch((error) => {
+  try {
+    await applySky(scene, renderer);
+  } catch (error) {
     console.warn('[Athens][Boot] applySky failed', error);
-  });
+  }
 
   if (typeof setupGround === 'function') {
     try {
