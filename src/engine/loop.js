@@ -15,9 +15,8 @@ export function startGameLoop({ update, render, onResume } = {}) {
   let frameId = null;
 
   const visibilityHandler = () => {
-    if (typeof document === 'undefined' || document.hidden) {
-      return;
-    }
+    if (typeof document === 'undefined' || document.hidden) return;
+    // Reset clock so we don't get a huge dt after tab becomes visible
     clock.getDelta();
     if (typeof onResume === 'function') {
       try {
@@ -29,12 +28,12 @@ export function startGameLoop({ update, render, onResume } = {}) {
   };
 
   const step = () => {
-    if (!running) {
-      return;
-    }
+    if (!running) return;
 
+    // Schedule next frame first (avoids missing frames if update throws)
     frameId = requestAnimationFrame(step);
 
+    // Compute dt with clamping
     let dt = clock.getDelta();
     if (!Number.isFinite(dt) || dt <= 0) {
       dt = MIN_DT;
@@ -46,6 +45,7 @@ export function startGameLoop({ update, render, onResume } = {}) {
       skippedLargeDt = true;
     }
 
+    // Update
     if (typeof update === 'function') {
       try {
         update(dt, { skippedLargeDt });
@@ -55,6 +55,7 @@ export function startGameLoop({ update, render, onResume } = {}) {
       }
     }
 
+    // Render
     if (typeof render === 'function') {
       try {
         render();
@@ -75,9 +76,7 @@ export function startGameLoop({ update, render, onResume } = {}) {
 
   return {
     stop() {
-      if (!running) {
-        return;
-      }
+      if (!running) return;
       running = false;
       if (frameId !== null) {
         cancelAnimationFrame(frameId);
@@ -88,6 +87,7 @@ export function startGameLoop({ update, render, onResume } = {}) {
       }
     },
     resetClock() {
+      // Flush the clock to avoid large next dt
       clock.getDelta();
     },
     isRunning() {
@@ -109,9 +109,7 @@ export function createGameLoop(update, render) {
   let disposed = false;
 
   const handleUpdate = (dt, meta) => {
-    if (paused || disposed) {
-      return;
-    }
+    if (paused || disposed) return;
     try {
       update(dt, meta || {});
     } catch (error) {
@@ -121,9 +119,7 @@ export function createGameLoop(update, render) {
   };
 
   const handleRender = () => {
-    if (paused || disposed) {
-      return;
-    }
+    if (paused || disposed) return;
     try {
       render();
     } catch (error) {
@@ -133,24 +129,18 @@ export function createGameLoop(update, render) {
   };
 
   const handleResume = () => {
-    if (disposed) {
-      return;
-    }
+    if (disposed) return;
     runner?.resetClock?.();
   };
 
   const ensureRunner = () => {
-    if (runner || disposed) {
-      return;
-    }
+    if (runner || disposed) return;
     runner = startGameLoop({ update: handleUpdate, render: handleRender, onResume: handleResume });
   };
 
   const api = {
     start() {
-      if (disposed) {
-        return;
-      }
+      if (disposed) return;
       paused = false;
       ensureRunner();
     },
@@ -164,9 +154,7 @@ export function createGameLoop(update, render) {
       paused = true;
     },
     resume() {
-      if (disposed) {
-        return;
-      }
+      if (disposed) return;
       paused = false;
       if (runner) {
         runner.resetClock?.();
@@ -175,9 +163,7 @@ export function createGameLoop(update, render) {
       }
     },
     dispose() {
-      if (disposed) {
-        return;
-      }
+      if (disposed) return;
       disposed = true;
       api.stop();
     },

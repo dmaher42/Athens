@@ -13,6 +13,7 @@ import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
+import { runIdle } from '../utils/idle.js';
 import { createGameLoop } from '../engine/loop.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
@@ -24,6 +25,7 @@ import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '..
 import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
 import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
+import { buildNavGridChunked } from '../nav/navgrid.js';
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
@@ -115,6 +117,24 @@ function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
     const angle = (index / modelUrls.length) * Math.PI * 2;
     const waypoints = buildNpcPatrolPath(radius, angle);
     return { modelUrl, initialPosition: waypoints[0], waypoints };
+  });
+}
+
+function scheduleIdleTask(task, { label, fallback = null } = {}) {
+  return new Promise((resolve) => {
+    runIdle(() => {
+      Promise.resolve()
+        .then(task)
+        .then(resolve)
+        .catch((error) => {
+          if (label) {
+            console.warn(label, error);
+          } else {
+            console.warn('[Athens] Deferred task failed.', error);
+          }
+          resolve(fallback);
+        });
+    });
   });
 }
 
@@ -300,6 +320,8 @@ export async function initializeAthens(options = {}) {
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
 
+  let contextRef = null;
+
   const { width: initialWidth, height: initialHeight } = computeContainerSize(container);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); // avoid page-white if background=null
@@ -337,6 +359,8 @@ export async function initializeAthens(options = {}) {
 
   ensureLights(scene);
 
+  renderer.render(scene, camera);
+
   statsReady
     .then((created) => {
       if (!created?.dom) {
@@ -365,6 +389,8 @@ export async function initializeAthens(options = {}) {
     }
   }
 
+  renderer.render(scene, camera);
+
   const environmentController = {
     mode: getTimeOfDay() || 'day',
     async setMode(mode) {
@@ -384,7 +410,10 @@ export async function initializeAthens(options = {}) {
 
   await setupGround(scene, renderer);
 
-  const city = await createCity({ renderer, scene });
+  const city = await scheduleIdleTask(
+    () => createCity({ renderer, scene }),
+    { label: '[Athens] Failed to create city.', fallback: null }
+  );
 
   // Grass material application for main ground
   const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
@@ -404,7 +433,10 @@ export async function initializeAthens(options = {}) {
   }
 
   // Extended city (provides root + shared materials)
-  const extendedRes = await createCityExtended({ renderer, scene });
+  const extendedRes = await scheduleIdleTask(
+    () => createCityExtended({ renderer, scene }),
+    { label: '[Athens] Failed to create extended city.', fallback: null }
+  );
   const extendedCity = extendedRes?.root ?? null;
   const sharedMaterials = extendedRes?.materials ?? null;
 
@@ -457,42 +489,81 @@ export async function initializeAthens(options = {}) {
   // Roads built from collected points (use extended/shared materials if available)
   let roadNetwork = null;
   if (options.enableRoads !== false) {
-    const roadPoints = collectRoadPoints(scene);
-    if (roadPoints.length >= 2) {
-      const roadGroup = buildRoadNetwork({
-        scene,
-        points: roadPoints,
-        materials: sharedMaterials || city?.materials || {},
-        options: { width: 3.0, tileScale: 6.0 }
-      });
-      roadGroup.name = 'RoadNetwork';
-      scene.add(roadGroup);
-      roadNetwork = roadGroup;
-    }
+    roadNetwork = await scheduleIdleTask(
+      () => {
+        const roadPoints = collectRoadPoints(scene);
+        if (roadPoints.length < 2) {
+          return null;
+        }
+        const roadGroup = buildRoadNetwork({
+          scene,
+          points: roadPoints,
+          materials: sharedMaterials || city?.materials || {},
+          options: { width: 3.0, tileScale: 6.0 }
+        });
+        roadGroup.name = 'RoadNetwork';
+        scene.add(roadGroup);
+        return roadGroup;
+      },
+      { label: '[Athens] Failed to build road network.', fallback: null }
+    );
   }
 
   // Navmesh
   let navMesh = null;
   let navPathfinder = null;
-  if (groundMeshes.length) {
-    const navSources = [...groundMeshes];
-    if (roadNetwork?.traverse) {
-      roadNetwork.traverse((child) => {
-        if (child && (child.isMesh || child instanceof THREE.Mesh)) {
-          navSources.push(child);
-        }
-      });
-    }
-    try {
-      navMesh = buildNavMeshFromMeshes(navSources);
-      if (navMesh) {
-        navPathfinder = createNavMeshPathfinder(navMesh);
+  let navGrid = null;
+  let navGridPromise = null;
+
+  const navResult = await scheduleIdleTask(
+    () => {
+      if (!groundMeshes.length) {
+        return { navMesh: null, navPathfinder: null };
       }
-    } catch (error) {
-      console.warn('[Athens][NavMesh] Failed to build navmesh.', error);
-      navMesh = null;
-      navPathfinder = null;
+      const navSources = [...groundMeshes];
+      if (roadNetwork?.traverse) {
+        roadNetwork.traverse((child) => {
+          if (child && (child.isMesh || child instanceof THREE.Mesh)) {
+            navSources.push(child);
+          }
+        });
+      }
+      try {
+        const built = buildNavMeshFromMeshes(navSources);
+        if (!built) {
+          return { navMesh: null, navPathfinder: null };
+        }
+        return { navMesh: built, navPathfinder: createNavMeshPathfinder(built) };
+      } catch (error) {
+        console.warn('[Athens][NavMesh] Failed to build navmesh.', error);
+        return { navMesh: null, navPathfinder: null };
+      }
+    },
+    { fallback: { navMesh: null, navPathfinder: null } }
+  );
+
+  navMesh = navResult.navMesh;
+  navPathfinder = navResult.navPathfinder;
+
+  const applyNavGridToNpcs = (grid) => {
+    navGrid = grid;
+    if (contextRef) {
+      contextRef.navGrid = grid;
     }
+    if (grid && npcManager?.setNavGrid) {
+      npcManager.setNavGrid(grid);
+    }
+    return grid;
+  };
+
+  if (navMesh) {
+    navGridPromise = buildNavGridChunked({ navMesh })
+      .then(applyNavGridToNpcs)
+      .catch((error) => {
+        console.warn('[Athens][NavGrid] Failed to build navigation grid.', error);
+        applyNavGridToNpcs(null);
+        return null;
+      });
   }
 
   // NPCs
@@ -503,8 +574,13 @@ export async function initializeAthens(options = {}) {
       colliders,
       navMesh,
       pathfinder: navPathfinder,
-      timeSource: getTimeOfDay
+      timeSource: getTimeOfDay,
+      navGrid
     });
+
+    if (navGrid && typeof npcManager?.setNavGrid === 'function') {
+      npcManager.setNavGrid(navGrid);
+    }
 
     // Example extra NPC with simple path
     const p0 = new THREE.Vector3(5, 0, 5);
@@ -685,6 +761,8 @@ export async function initializeAthens(options = {}) {
     roadNetwork,
     navMesh,
     navPathfinder,
+    navGrid,
+    navGridPromise,
     npcManager,
     mainCharacter,
     environmentController,
@@ -720,8 +798,11 @@ export async function initializeAthens(options = {}) {
       keyboard?.dispose?.();
       city?.dispose?.();
       extendedCity?.dispose?.();
+      contextRef = null;
     }
   };
+
+  contextRef = context;
 
   if (typeof window !== 'undefined') {
     window.__athens = window.__athens || {};
@@ -731,6 +812,8 @@ export async function initializeAthens(options = {}) {
     window.__athens.city = context.city;
     window.__athens.extendedCity = context.extendedCity;
     window.__athens.ui = context.ui;
+    window.__athens.navGrid = context.navGrid;
+    window.__athens.navGridPromise = context.navGridPromise;
   }
 
   return context;
