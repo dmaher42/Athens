@@ -157,36 +157,43 @@ export function createPlayerController(
 
     targetVelocity.set(0, 0, 0);
     let desiredYaw = yaw;
+
+    const cameraRigState = camera && typeof camera === 'object' ? camera.__rigState : null;
+    const rigYawRaw = cameraRigState && Number.isFinite(cameraRigState.yaw) ? cameraRigState.yaw : NaN;
+    const rigYaw = Number.isFinite(rigYawRaw)
+      ? THREE.MathUtils.euclideanModulo(rigYawRaw + Math.PI, Math.PI * 2) - Math.PI
+      : (() => {
+          if (typeof camera.getWorldDirection === 'function') {
+            camera.getWorldDirection(viewDirection);
+            const yawFromCamera = Math.atan2(viewDirection.x, viewDirection.z);
+            return Number.isFinite(yawFromCamera) ? yawFromCamera : 0;
+          }
+          return 0;
+        })();
+
+    if (cameraRigState && Number.isFinite(rigYaw)) {
+      cameraRigState.yaw = rigYaw;
+    }
+
+    moveDirection.set(Math.sin(rigYaw), 0, Math.cos(rigYaw));
+    if (moveDirection.lengthSq() < 1e-6) {
+      moveDirection.set(0, 0, 1);
+    } else {
+      moveDirection.normalize();
+    }
+
+    rightVector.crossVectors(UP, moveDirection);
+    if (rightVector.lengthSq() < 1e-6) {
+      rightVector.set(1, 0, 0);
+    } else {
+      rightVector.normalize();
+    }
+
+    const forwardInput = THREE.MathUtils.clamp(-axisZ, -1, 1);
+    const strafeInput = THREE.MathUtils.clamp(axisX, -1, 1);
+
     if (hasMoveInput) {
-      if (typeof camera.getWorldDirection === 'function') {
-        camera.getWorldDirection(viewDirection);
-      } else {
-        viewDirection.set(0, 0, -1);
-      }
-      viewDirection.y = 0;
-      if (viewDirection.lengthSq() < 1e-6) {
-        viewDirection.set(0, 0, -1);
-      } else {
-        viewDirection.normalize();
-      }
-
-      moveDirection.copy(viewDirection);
-      if (moveDirection.lengthSq() < 1e-6) {
-        moveDirection.set(0, 0, 1);
-      } else {
-        moveDirection.normalize();
-      }
-
-      rightVector.crossVectors(UP, moveDirection);
-      if (rightVector.lengthSq() < 1e-6) {
-        rightVector.set(1, 0, 0);
-      } else {
-        rightVector.normalize();
-      }
-
       desiredMove.set(0, 0, 0);
-      const forwardInput = THREE.MathUtils.clamp(-axisZ, -1, 1);
-      const strafeInput = THREE.MathUtils.clamp(axisX, -1, 1);
       desiredMove
         .addScaledVector(moveDirection, forwardInput)
         .addScaledVector(rightVector, strafeInput);
