@@ -5,6 +5,7 @@ import boot, { whenBootReady } from '../core/bootstrap.js';
 import { startGameLoop, setLoopWatchdog } from '../engine/loop.js';
 import { createSafeScene } from '../engine/safeEntry.js';
 import { attachWatchdog } from '../ui/watchdog.js';
+import { maybeRemoteInit } from '../services/remote.js';
 
 /**
  * @typedef {ReturnType<typeof initializeAthens> extends Promise<infer T> ? T : never} AthensContext
@@ -172,6 +173,7 @@ async function runAthens(options = {}) {
     }
 
     teardownFallback();
+    maybeRemoteInit(context);
     initializedContext = context;
     return context;
   })();
