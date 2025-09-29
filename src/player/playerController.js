@@ -110,6 +110,9 @@ export function createPlayerController(
       if (isFlying) {
         physicsState.vy = 0;
       }
+      if (typeof console !== 'undefined' && typeof console.info === 'function') {
+        console.info(`[playerController] KeyX pressed. Fly mode ${isFlying ? 'enabled' : 'disabled'}.`);
+      }
     }
     prevFlyKeyDown = flyKeyDown;
     if (
@@ -181,6 +184,7 @@ export function createPlayerController(
       if (ascend) vy += verticalSpeed;
       if (descend) vy -= verticalSpeed;
       targetVelocity.y = vy;
+      physicsState.vy = 0;
     } else {
       targetVelocity.y = 0;
     }
@@ -189,6 +193,9 @@ export function createPlayerController(
     const accel = Number.isFinite(acceleration) ? Math.max(acceleration, 0) : 10;
     const lerpAlpha = accel > 0 && dt > 0 ? 1 - Math.exp(-accel * dt) : 1;
     velocity.lerp(targetVelocity, THREE.MathUtils.clamp(lerpAlpha, 0, 1));
+    if (isFlying) {
+      velocity.y = targetVelocity.y;
+    }
 
     // Integrate horizontal motion
     capsule.setPosition(
