@@ -1,25 +1,53 @@
 import * as THREE from 'three';
 
-const DEFAULT_POSITION = { x: 0, y: 1, z: 0 } as const;
+export const DEFAULT_PLAYER = new THREE.Vector3(0, 1, 0);
+export const DEFAULT_CAMERA = new THREE.Vector3(20, 12, 20);
 
-export function safeNumber(n: number, fallback = 0): number {
-  return Number.isFinite(n) ? n : fallback;
+export function finiteNumber(n: any, def = 0): number {
+  return Number.isFinite(n) ? n : def;
+}
+
+export function isFiniteVec3(v: THREE.Vector3): boolean {
+  return Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
 }
 
 export function sanitizeVec3(
   v: THREE.Vector3,
-  def: { x: number; y: number; z: number } = DEFAULT_POSITION
-) {
+  def: { x: number; y: number; z: number }
+): THREE.Vector3 {
   if (!Number.isFinite(v.x)) v.x = def.x;
   if (!Number.isFinite(v.y)) v.y = def.y;
   if (!Number.isFinite(v.z)) v.z = def.z;
+  const CLAMP = 1e6; // avoid absurd values
+  v.x = Math.max(-CLAMP, Math.min(CLAMP, v.x));
+  v.y = Math.max(-CLAMP, Math.min(CLAMP, v.y));
+  v.z = Math.max(-CLAMP, Math.min(CLAMP, v.z));
   return v;
 }
 
-export function sanitizeObjectPosition(
-  obj: { position?: THREE.Vector3 | undefined } | null | undefined,
-  def: { x: number; y: number; z: number } = DEFAULT_POSITION
+export function sanitizeEuler(e: THREE.Euler, def = { x: 0, y: 0, z: 0 }) {
+  e.x = finiteNumber(e.x, def.x);
+  e.y = finiteNumber(e.y, def.y);
+  e.z = finiteNumber(e.z, def.z);
+  return e;
+}
+
+export function sanitizeQuaternion(q: THREE.Quaternion) {
+  if (![q.x, q.y, q.z, q.w].every(Number.isFinite)) q.set(0, 0, 0, 1);
+  if (q.lengthSq() === 0) q.set(0, 0, 0, 1);
+  else q.normalize();
+  return q;
+}
+
+export function safeSetVec3(
+  v: THREE.Vector3,
+  src: any,
+  def: { x: number; y: number; z: number }
 ) {
-  if (!obj?.position) return;
-  sanitizeVec3(obj.position, def);
+  v.set(
+    finiteNumber(src?.x, def.x),
+    finiteNumber(src?.y, def.y),
+    finiteNumber(src?.z, def.z),
+  );
+  sanitizeVec3(v, def);
 }
