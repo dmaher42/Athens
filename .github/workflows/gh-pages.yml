@@ -1,4 +1,11 @@
 name: gh-pages
+
+# Set top-level permissions for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+  pages: write
+
 on:
   push:
     branches: [ main ]
@@ -7,10 +14,9 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,6 +28,7 @@ jobs:
         with:
           path: dist
       - uses: actions/deploy-pages@v4
+        id: deployment
 
 # Notes:
 # - We set GH_PAGES=1 so vite.config uses base '/athens/'.
