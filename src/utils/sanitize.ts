@@ -4,7 +4,8 @@ export const DEFAULT_PLAYER = new THREE.Vector3(0, 1, 0);
 export const DEFAULT_CAMERA = new THREE.Vector3(20, 12, 20);
 
 export function finiteNumber(n: any, def = 0): number {
-  return Number.isFinite(n) ? n : def;
+  const parsed = typeof n === 'number' ? n : Number(n);
+  return Number.isFinite(parsed) ? parsed : def;
 }
 
 export function isFiniteVec3(v: THREE.Vector3): boolean {
@@ -45,9 +46,9 @@ export function safeSetVec3(
   def: { x: number; y: number; z: number }
 ) {
   v.set(
-    finiteNumber(src?.x, def.x),
-    finiteNumber(src?.y, def.y),
-    finiteNumber(src?.z, def.z),
+    Number.isFinite(+src?.x) ? +src.x : def.x,
+    Number.isFinite(+src?.y) ? +src.y : def.y,
+    Number.isFinite(+src?.z) ? +src.z : def.z,
   );
   sanitizeVec3(v, def);
 }
