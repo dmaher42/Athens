@@ -75,6 +75,7 @@ function loadBaseTexture() {
 function configureTexture(baseTexture, { repeat, anisotropy }) {
   const texture = baseTexture.clone();
   const isFallback = Boolean(baseTexture?.userData?.isFallbackTexture);
+
   if (baseTexture?.image) {
     texture.image = baseTexture.image;
   }
@@ -100,33 +101,14 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
   return texture;
 }
 
-export function createDirtGround({
-  size = 200,
-  repeat = 16,
-  height = 0,
-  receiveShadow = true,
-  anisotropy = 8,
-  expandForSeams = false,
-  heightBias = 0,
-} = {}) {
-  const group = new THREE.Group();
-  group.name = 'ground:dirt';
-
-  const baseSize = Math.max(typeof size === 'number' ? size : 200, 0);
-  const geometrySize = expandForSeams ? baseSize + TILE_SEAM_EPSILON * 2 : baseSize;
-  const geo = new THREE.PlaneGeometry(geometrySize, geometrySize, 1, 1);
-  geo.rotateX(-Math.PI / 2);
-  const finalHeight = typeof height === 'number' ? height : 0;
-  const finalBias = typeof heightBias === 'number' ? heightBias : 0;
-  geo.translate(0, finalHeight + finalBias, 0);
-
+export function createDirtMaterial({ repeat = 16, anisotropy = 8 } = {}) {
   const color = configureTexture(loadBaseTexture(), { repeat, anisotropy });
 
   const mat = new THREE.MeshStandardMaterial({
     map: color,
     roughness: 1.0,
     side: THREE.DoubleSide,
-    transparent: false,
+    transparent: false
   });
 
   mat.opacity = 1;
@@ -139,6 +121,34 @@ export function createDirtGround({
   }
 
   mat.shadowSide = THREE.DoubleSide;
+
+  return mat;
+}
+
+export function createDirtGround({
+  size = 200,
+  repeat = 16,
+  height = 0,
+  receiveShadow = true,
+  anisotropy = 8,
+  expandForSeams = false,
+  heightBias = 0
+} = {}) {
+  const group = new THREE.Group();
+  group.name = 'ground:dirt';
+
+  const baseSize = Math.max(typeof size === 'number' ? size : 200, 0);
+  const geometrySize = expandForSeams ? baseSize + TILE_SEAM_EPSILON * 2 : baseSize;
+
+  const geo = new THREE.PlaneGeometry(geometrySize, geometrySize, 1, 1);
+  geo.rotateX(-Math.PI / 2);
+
+  const finalHeight = typeof height === 'number' ? height : 0;
+  const finalBias = typeof heightBias === 'number' ? heightBias : 0;
+  geo.translate(0, finalHeight + finalBias, 0);
+
+  const mat = createDirtMaterial({ repeat, anisotropy });
+  // Avoid z-fighting with other coplanar layers
   mat.polygonOffset = true;
   mat.polygonOffsetFactor = 1;
   mat.polygonOffsetUnits = 1;
