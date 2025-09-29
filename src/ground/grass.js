@@ -9,6 +9,7 @@ import { applyDoubleSidedGroundSupport } from './double-sided.js';
 const textureLoader = new THREE.TextureLoader();
 let cachedBaseTexture = null;
 const pendingTextureUpdates = new Set();
+const TILE_SEAM_EPSILON = 0.01;
 
 function flushPendingTextureUpdates(baseTexture) {
   if (pendingTextureUpdates.size === 0) return;
@@ -105,11 +106,14 @@ export function createGrassGround({
   height = 0.02,           // slight offset so it doesn’t z-fight with dirt if overlapped
   receiveShadow = true,
   anisotropy = 8,
+  expandForSeams = false,
 } = {}) {
   const group = new THREE.Group();
   group.name = 'ground:grass';
 
-  const geo = new THREE.PlaneGeometry(size, size, 1, 1);
+  const baseSize = Math.max(typeof size === 'number' ? size : 200, 0);
+  const geometrySize = expandForSeams ? baseSize + TILE_SEAM_EPSILON * 2 : baseSize;
+  const geo = new THREE.PlaneGeometry(geometrySize, geometrySize, 1, 1);
   geo.rotateX(-Math.PI / 2);
   const finalHeight = Math.max(typeof height === 'number' ? height : 0.02, 0.02);
   geo.translate(0, finalHeight, 0);
