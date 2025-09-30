@@ -10,14 +10,13 @@ import { createLandmarkPlacer } from '../dev/landmarkPlacer.js';
 // PLACER_END
 import { buildRoadNetwork } from '../roads/roadNetwork.js';
 import { collectRoadPoints } from '../roads/collectRoadPoints.js';
-import { createNpcManager } from '../npc/npcSystem.js';
+import { createNpcSystem } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
 import { installFlyBypass } from '../dev/flyBypass.js';
-import { assetUrl } from '../utils/assetUrl.js';
 import { createGameLoop } from '../engine/loop.js';
 import { movementConfig } from '../config/movement.ts';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
@@ -221,36 +220,6 @@ const formatEnvironmentLabel = (mode) => {
 const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
 const DEFAULT_GEOJSON_URL = 'data/athens_places.geojson';
-
-const DEFAULT_NPC_MODEL_URLS = [
-  'models/Adventurer1.glb',
-  'models/brokenCHar.glb',
-  'models/character3.glb',
-  assetUrl('assets/models/hoplite_npc.glb'),
-  assetUrl('assets/models/npc_athenian.glb')
-];
-
-function buildNpcPatrolPath(radius, angle, height = 0) {
-  const baseX = Math.cos(angle) * radius;
-  const baseZ = Math.sin(angle) * radius;
-  const offset = Math.max(2, radius * 0.25);
-  const waypoint = (x, z) => ({ x, y: height, z });
-  return [
-    waypoint(baseX, baseZ),
-    waypoint(baseX + Math.cos(angle + Math.PI / 4) * offset, baseZ + Math.sin(angle + Math.PI / 4) * offset),
-    waypoint(baseX + Math.cos(angle - Math.PI / 4) * offset, baseZ + Math.sin(angle - Math.PI / 4) * offset)
-  ];
-}
-
-function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
-  if (!Array.isArray(modelUrls) || modelUrls.length === 0) return [];
-  const radius = 18;
-  return modelUrls.map((modelUrl, index) => {
-    const angle = (index / modelUrls.length) * Math.PI * 2;
-    const waypoints = buildNpcPatrolPath(radius, angle);
-    return { modelUrl, initialPosition: waypoints[0], waypoints };
-  });
-}
 
 const DEFAULT_PLAYER_START = new THREE.Vector3(6, 0, -12);
 const PLAYER_SEARCH_STEP = 4;
@@ -1021,43 +990,15 @@ export async function initializeAthens(options = {}) {
   }
 
   // NPCs
-  let npcManager = null;
+  let npcSystem = null;
   if (options.enableNpcs !== false) {
-    // merged: pass both navmesh/timeSource and colliders
-    npcManager = createNpcManager(scene, groundMeshes, {
-      colliders,
-      navMesh,
-      pathfinder: navPathfinder,
-      timeSource: () => environmentController.mode
+    npcSystem = createNpcSystem({
+      groundMeshes,
+      timeSource: () => environmentController.mode,
+      npcModelUrls: options.npcModelUrls,
+      npcConfigs: options.npcConfigs
     });
-
-    // Example extra NPC with simple path
-    const p0 = new THREE.Vector3(5, 0, 5);
-    const p1 = new THREE.Vector3(20, 0, 5);
-    const npcRoot = scene.getObjectByName('NPC_1') || new THREE.Object3D();
-    npcRoot.name = 'NPC_1';
-    if (!npcRoot.parent) scene.add(npcRoot);
-    npcManager.spawn({
-      object3d: npcRoot,
-      waypoints: [p0, p1],
-      walkSpeed: 1.6,
-      accel: 5.0,
-      turn: 0.18
-    });
-
-    const defaultNpcConfigs = createDefaultNpcConfigs(
-      Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
-        ? options.npcModelUrls
-        : DEFAULT_NPC_MODEL_URLS
-    );
-    const npcConfigs = Array.isArray(options.npcConfigs) && options.npcConfigs.length
-      ? options.npcConfigs
-      : defaultNpcConfigs;
-
-    npcConfigs.forEach((config) => {
-      if (!config || typeof config !== 'object') return;
-      npcManager.spawn(config);
-    });
+    npcSystem.initializeNpcs(scene, { navMesh, pathfinder: navPathfinder });
   }
 
   // Main character
@@ -1374,7 +1315,7 @@ export async function initializeAthens(options = {}) {
 
       const npcContext = { groundMeshes, skippedLargeDt: Boolean(skippedLargeDt) };
       mainCharacter?.update?.(delta, npcContext);
-      npcManager?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
+      npcSystem?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
       landmarks.update?.(camera);
 
       if (!skippedLargeDt) {
@@ -1490,7 +1431,7 @@ export async function initializeAthens(options = {}) {
     roadNetwork,
     navMesh,
     navPathfinder,
-    npcManager,
+    npcSystem,
     mainCharacter,
     environmentController,
     city,
@@ -1513,7 +1454,7 @@ export async function initializeAthens(options = {}) {
         overlayCanvas.parentNode.removeChild(overlayCanvas);
       }
       mainCharacter?.dispose?.();
-      npcManager?.dispose?.();
+      npcSystem?.dispose?.();
       roadNetwork?.dispose?.();
       landmarks?.dispose?.();
       environmentController?.dispose?.();
