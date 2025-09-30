@@ -327,6 +327,11 @@ export async function initializeAthens(options = {}) {
 
   const { width: initialWidth, height: initialHeight } = computeContainerSize(container);
 
+  // CITYPLAN_START
+  const layout = options?.layout === 'athensPlan' ? 'athensPlan' : 'classic';
+  const layoutConfig = options?.layoutConfig ?? {};
+  // CITYPLAN_END
+
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
@@ -467,9 +472,13 @@ export async function initializeAthens(options = {}) {
     console.warn('[Athens] applySky failed.', error);
   });
 
-  await setupGround(scene, renderer);
+  // CITYPLAN_START
+  await setupGround(scene, renderer, { layout, layoutConfig });
+  // CITYPLAN_END
 
-  const city = await createCity({ renderer, scene });
+  // CITYPLAN_START
+  const city = await createCity({ renderer, scene, layout, layoutConfig });
+  // CITYPLAN_END
 
   // Grass material application for main ground
   const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
@@ -489,7 +498,9 @@ export async function initializeAthens(options = {}) {
   }
 
   // Extended city (provides root + shared materials)
-  const extendedRes = await createCityExtended({ renderer, scene });
+  // CITYPLAN_START
+  const extendedRes = await createCityExtended({ renderer, scene, layout, layoutConfig });
+  // CITYPLAN_END
   const extendedCity = extendedRes?.root ?? null;
   const sharedMaterials = extendedRes?.materials ?? null;
 
@@ -527,7 +538,11 @@ export async function initializeAthens(options = {}) {
   const landmarks = await loadLandmarks({
     scene,
     geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
-    groundMeshes
+    groundMeshes,
+    // CITYPLAN_START
+    layout,
+    layoutConfig
+    // CITYPLAN_END
   });
 
   const overlayCanvasId = options.overlayCanvasId ?? DEFAULT_OVERLAY_ID;
@@ -543,7 +558,9 @@ export async function initializeAthens(options = {}) {
   // Roads built from collected points (use extended/shared materials if available)
   let roadNetwork = null;
   if (options.enableRoads !== false) {
-    const roadPoints = collectRoadPoints(scene);
+    // CITYPLAN_START
+    const roadPoints = collectRoadPoints(scene, { layout, layoutConfig });
+    // CITYPLAN_END
     if (roadPoints.length >= 2) {
       const roadGroup = buildRoadNetwork({
         scene,
