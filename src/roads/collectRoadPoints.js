@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export function collectRoadPoints(scene) {
+export function collectRoadPoints(scene, options = {}) {
   const points = [];
   const addPoint = (vector) => {
     if (!vector) return;
@@ -33,6 +33,29 @@ export function collectRoadPoints(scene) {
       }
     }
   });
+
+  if ((options?.layout ?? 'classic') === 'athensPlan') {
+    // CITYPLAN_START
+    const anchorNames = [
+      'Agora',
+      'Stoa_of_Attalos',
+      'Tholos',
+      'Theater_of_Dionysus',
+      'Stadium',
+      'CityGate_South',
+      'Port_Quay_A',
+      'AcropolisGroup'
+    ];
+    anchorNames.forEach((anchorName) => {
+      const object = scene.getObjectByName(anchorName);
+      if (!object) {
+        return;
+      }
+      const worldPos = object.getWorldPosition(new THREE.Vector3());
+      addPoint(new THREE.Vector3(worldPos.x, 0, worldPos.z));
+    });
+    // CITYPLAN_END
+  }
 
   const deduped = [];
   const thresholdSq = 9;

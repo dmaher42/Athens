@@ -441,6 +441,74 @@
         "license": "CC BY 4.0",
         "kind": "wall_corridor"
       }
+    },
+    {
+      "type": "Feature",
+      "name": "Agora",
+      "geometry": { "type": "Point", "coordinates": [23.7229, 37.9753] },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "Stoa of Attalos",
+      "geometry": { "type": "Point", "coordinates": [23.7249, 37.975] },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "Tholos",
+      "geometry": { "type": "Point", "coordinates": [23.7224, 37.9742] },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "Theater of Dionysus",
+      "geometry": { "type": "Point", "coordinates": [23.726, 37.9705] },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "Stadium",
+      "geometry": { "type": "Point", "coordinates": [23.7416, 37.9681] },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "CityGate South",
+      "geometry": { "type": "Point", "coordinates": [23.7255, 37.9665] },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "Port Quay A",
+      "geometry": { "type": "Point", "coordinates": [23.6436, 37.9412] },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "Long Walls - Western",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [23.7255, 37.9665],
+          [23.706, 37.9515],
+          [23.6436, 37.9412]
+        ]
+      },
+      "properties": { "category": "landmark" }
+    },
+    {
+      "type": "Feature",
+      "name": "Long Walls - Eastern",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [23.7255, 37.9665],
+          [23.71, 37.953],
+          [23.6488, 37.9418]
+        ]
+      },
+      "properties": { "category": "landmark" }
     }
   ],
   "note": "Representative points for visualization; temple offsets approximate to align with Agora overlays."
