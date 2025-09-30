@@ -57,10 +57,26 @@ export const DEFAULT_CHARACTER_SCALE = 1;
 
 export function resolveCharacterScale(config: MovementConfig = movementConfig): number {
   const value = config?.character?.scale;
-  const numericScale = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(numericScale) && numericScale > 0
-    ? numericScale
-    : DEFAULT_CHARACTER_SCALE;
+  let numericScale: number;
+  if (typeof value === 'number') {
+    numericScale = value;
+  } else if (typeof value === 'string' && value.trim() !== '') {
+    numericScale = Number(value);
+    if (!Number.isFinite(numericScale) || numericScale <= 0) {
+      console.warn(
+        `[movement] Invalid character scale value "${value}" in config; falling back to default (${DEFAULT_CHARACTER_SCALE}).`
+      );
+      return DEFAULT_CHARACTER_SCALE;
+    }
+  } else if (value !== undefined) {
+    console.warn(
+      `[movement] Invalid character scale type (${typeof value}) in config; falling back to default (${DEFAULT_CHARACTER_SCALE}).`
+    );
+    return DEFAULT_CHARACTER_SCALE;
+  } else {
+    numericScale = DEFAULT_CHARACTER_SCALE;
+  }
+  return numericScale;
 }
 
 export const movementConfig: MovementConfig = {
