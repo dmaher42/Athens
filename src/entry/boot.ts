@@ -21,7 +21,7 @@ import {
 } from '../utils/sanitize';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapToGround } from '../physics/groundSnap.js';
-import { chooseSpawn, placeOnGround, ensureFeetAtLocalZero, groundYAt } from '../utils/spawn.ts';
+import { ensureFeetAtLocalZero, groundYAt } from '../utils/spawn.ts';
 import { createNpcManager } from '../npc/simpleNpcManager.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { AudioManager } from '../audio/AudioManager.js';
@@ -31,6 +31,7 @@ import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
 import { createMountainRim as createHorizonMountainRim } from '../horizon/mountainRim.js';
 import { movementConfig } from '../config/movement.ts';
+import { spawnPlayerOutsideWalls } from '../player/spawnPlayerOutsideWalls.ts';
 
 type TransformState = {
   pos?: Partial<THREE.Vector3> | { x?: number | null; y?: number | null; z?: number | null } | null;
@@ -565,8 +566,6 @@ export async function runAthens(options: RunOptions = {}) {
   }
   ensureFeetAtLocalZero(playerObject);
 
-  const spawnPosition = chooseSpawn(scene, true);
-
   const resolveSavedState = (): SavedState | null => {
     if (options?.savedState) {
       return options.savedState;
@@ -658,14 +657,23 @@ export async function runAthens(options: RunOptions = {}) {
 
   restoreCameraAndPlayer(savedState);
 
+  const groundSnapSkip = { value: 0 };
+
   if (!hasSavedPlayerPos) {
-    playerObject.position.copy(spawnPosition);
-    placeOnGround(playerObject, groundMeshes.length ? groundMeshes : scene, { clearance: 0.02 });
+    await spawnPlayerOutsideWalls({
+      scene,
+      player: playerObject,
+      groundObjects: groundMeshes.length ? groundMeshes : null,
+      margin: 6,
+      skipSnapFramesFlag: groundSnapSkip
+    });
   }
 
   if (groundMeshes.length) {
     const initialState = { vy: 0, lastGoodY: playerObject.position.y };
-    snapToGround(playerObject, groundMeshes, initialState, 0);
+    if (!(groundSnapSkip.value > 0)) {
+      snapToGround(playerObject, groundMeshes, initialState, 0);
+    }
   }
 
   const cameraSettings = movementConfig?.camera ?? {};
@@ -696,7 +704,8 @@ export async function runAthens(options: RunOptions = {}) {
     runMultiplier: Number.isFinite(movementConfig?.runMultiplier) ? movementConfig.runMultiplier : 1.7,
     acceleration: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : 10,
     turnLerp: 0.18,
-    colliders
+    colliders,
+    groundSnapSkipRef: groundSnapSkip
   });
   playerController.setGroundMeshes?.(groundMeshes);
   playerController.setColliders?.(colliders);

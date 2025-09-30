@@ -107,7 +107,8 @@ export function createPlayerController(
     runMultiplier = Number.isFinite(movementConfig?.runMultiplier) ? movementConfig.runMultiplier : 1.7,
     acceleration = Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : 10,
     turnLerp = 0.18, // kept for API compatibility
-    colliders: initialColliders = []
+    colliders: initialColliders = [],
+    groundSnapSkipRef = null
   } = {}
 ) {
   let controlledObject = object3d || null;
@@ -116,6 +117,8 @@ export function createPlayerController(
   let colliderAabbs = Array.isArray(initialColliders) ? initialColliders : [];
 
   const capsule = new Capsule(0.45, 1.6);
+
+  let groundSnapSkip = typeof groundSnapSkipRef === 'object' ? groundSnapSkipRef : null;
 
   const physicsState = {
     vy: 0,
@@ -438,7 +441,11 @@ export function createPlayerController(
 
     // Ground & upright stabilization
     if (!isFlying) {
-      snapToGround(controlledObject, groundMeshes, physicsState, dt);
+      if (groundSnapSkip && Number.isFinite(groundSnapSkip.value) && groundSnapSkip.value > 0) {
+        groundSnapSkip.value = Math.max(0, Math.floor(groundSnapSkip.value) - 1);
+      } else {
+        snapToGround(controlledObject, groundMeshes, physicsState, dt);
+      }
     }
     sanitizePosition(controlledObject.position);
     capsule.setPosition(controlledObject.position.x, controlledObject.position.y, controlledObject.position.z);
@@ -451,6 +458,9 @@ export function createPlayerController(
     setKeyboard,
     setGroundMeshes,
     setColliders,
+    setGroundSnapSkipRef(nextRef) {
+      groundSnapSkip = typeof nextRef === 'object' ? nextRef : null;
+    },
     isRunning() {
       return runningState;
     },
