@@ -14,6 +14,7 @@ export const GroundType = Object.freeze({
 const DEFAULT_TILE_GRID = Object.freeze({ columns: 5, rows: 5 });
 const BUILDING_NAME_PATTERN = /(foundation|building|pad)/i;
 const BUILDING_USERDATA_KEYS = ['building', 'buildingPad', 'foundation', 'isBuilding', 'isFoundation'];
+const CORNER_KEYS = ['nw', 'ne', 'sw', 'se'];
 
 // Skirt tuning values (world units).
 const SKIRT_MIN_DELTA = 0.03;
@@ -220,15 +221,87 @@ function computeTileBounds(position, size) {
   };
 }
 
-function averageCornerHeight(cornerHeights) {
-  if (!cornerHeights || typeof cornerHeights !== 'object') return 0;
-  const corners = ['nw', 'ne', 'se', 'sw'];
-  let total = 0;
-  for (const key of corners) {
-    const value = cornerHeights[key];
-    total += typeof value === 'number' ? value : 0;
+function normalizeCornerHeights(value) {
+  if (!value) return null;
+
+  let source = null;
+  if (Array.isArray(value)) {
+    const [nw, ne, sw, se] = value;
+    source = { nw, ne, sw, se };
+  } else if (typeof value === 'object') {
+    source = value;
+  } else {
+    return null;
   }
-  return total / corners.length;
+
+  const result = { nw: 0, ne: 0, sw: 0, se: 0 };
+  let hasData = false;
+
+  CORNER_KEYS.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      hasData = true;
+    }
+    const valueForKey = source[key];
+    if (typeof valueForKey === 'number' && Number.isFinite(valueForKey)) {
+      result[key] = valueForKey;
+      hasData = true;
+    }
+  });
+
+  return hasData ? result : null;
+}
+
+function combineCornerHeights(...values) {
+  let combined = null;
+  values.forEach((value) => {
+    const normalized = normalizeCornerHeights(value);
+    if (!normalized) return;
+    if (!combined) {
+      combined = { nw: 0, ne: 0, sw: 0, se: 0 };
+    }
+    CORNER_KEYS.forEach((key) => {
+      combined[key] += normalized[key] ?? 0;
+    });
+  });
+  return combined;
+}
+
+function cornerHeightsToArray(value) {
+  const normalized = normalizeCornerHeights(value);
+  if (!normalized) return null;
+  return [
+    normalized.nw ?? 0,
+    normalized.ne ?? 0,
+    normalized.sw ?? 0,
+    normalized.se ?? 0,
+  ];
+}
+
+function safeSampleHeight(fn, x, z) {
+  if (typeof fn !== 'function') return 0;
+  try {
+    const value = fn(x, z);
+    return (typeof value === 'number' && Number.isFinite(value)) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function averageCornerHeight(cornerHeights) {
+  const normalized = normalizeCornerHeights(cornerHeights);
+  if (!normalized) return 0;
+
+  let total = 0;
+  let count = 0;
+  CORNER_KEYS.forEach((key) => {
+    const value = normalized[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      total += value;
+      count += 1;
+    }
+  });
+
+  return count > 0 ? total / count : 0;
 }
 
 const SKIRT_DIRECTIONS = [
@@ -435,6 +508,7 @@ function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
  * @param {boolean} [options.addFoundationBlendRing=false] - Adds optional blend ring when dirt is disabled.
  * @param {boolean} [options.preventTileSeams=true] - Expand tile geometry slightly to hide seams.
  * @param {boolean} [options.stabilizeTileOverlap=true] - Apply a subtle alternating height bias to dirt tiles.
+ * @param {(x:number, z:number)=>number} [options.heightFn] - Optional sampler returning additional height per world X/Z corner.
  *
  * Tile definitions may specify `disableUnderBuilding` to suppress dirt/grass meshes and
  * `addFoundationBlendRing` to render a subtle inset ring around pads.
@@ -464,6 +538,7 @@ export function createGroundLayered({
   addFoundationBlendRing = false,
   preventTileSeams = true,
   stabilizeTileOverlap = true,
+  heightFn,
 } = {}) {
   const root = new THREE.Group();
   root.name = 'ground:root';
@@ -503,6 +578,7 @@ export function createGroundLayered({
 
   const enableSeamPrevention = !!preventTileSeams;
   const enableTileStabilization = !!stabilizeTileOverlap;
+  const sampleHeightFn = typeof heightFn === 'function' ? heightFn : null;
 
   const tileInstances = [];
 
@@ -534,6 +610,47 @@ export function createGroundLayered({
       expandForSeams: tile.grassOptions?.expandForSeams ?? grassOptions.expandForSeams ?? enableSeamPrevention,
     };
 
+    const sizeForSampling = typeof dirtConfig.size === 'number'
+      ? dirtConfig.size
+      : (typeof grassConfig.size === 'number' ? grassConfig.size : fallbackSize ?? resolvedDefaultSize);
+
+    let coverageSize = typeof sizeForSampling === 'number' ? sizeForSampling : resolvedDefaultSize;
+    let bounds = computeTileBounds(tile.position, coverageSize);
+
+    let sampledCorners = null;
+    if (sampleHeightFn) {
+      sampledCorners = {
+        nw: safeSampleHeight(sampleHeightFn, bounds.minX, bounds.maxZ),
+        ne: safeSampleHeight(sampleHeightFn, bounds.maxX, bounds.maxZ),
+        sw: safeSampleHeight(sampleHeightFn, bounds.minX, bounds.minZ),
+        se: safeSampleHeight(sampleHeightFn, bounds.maxX, bounds.minZ),
+      };
+    }
+
+    const existingDirtCorners = dirtConfig.cornerHeights;
+    const existingGrassCorners = grassConfig.cornerHeights;
+
+    const combinedDirtCorners = combineCornerHeights(sampledCorners, existingDirtCorners);
+    const combinedGrassCorners = combineCornerHeights(sampledCorners, existingGrassCorners);
+
+    const finalDirtCornerArray = combinedDirtCorners
+      ? cornerHeightsToArray(combinedDirtCorners)
+      : cornerHeightsToArray(existingDirtCorners);
+    if (finalDirtCornerArray) {
+      dirtConfig.cornerHeights = finalDirtCornerArray;
+    } else {
+      delete dirtConfig.cornerHeights;
+    }
+
+    const finalGrassCornerArray = combinedGrassCorners
+      ? cornerHeightsToArray(combinedGrassCorners)
+      : cornerHeightsToArray(existingGrassCorners);
+    if (finalGrassCornerArray) {
+      grassConfig.cornerHeights = finalGrassCornerArray;
+    } else {
+      delete grassConfig.cornerHeights;
+    }
+
     const baseDirtHeight = typeof dirtConfig.height === 'number' ? dirtConfig.height : 0;
     const baseDirtBias = typeof dirtConfig.heightBias === 'number' ? dirtConfig.heightBias : 0;
     const baseCornerAverage = averageCornerHeight(dirtConfig.cornerHeights);
@@ -562,8 +679,13 @@ export function createGroundLayered({
       grassLayer.add(grass);
     }
 
-    const coverageSize = dirtSize ?? fallbackSize ?? resolvedDefaultSize;
-    const bounds = computeTileBounds(tile.position, coverageSize);
+    if (typeof dirtSize === 'number' && Number.isFinite(dirtSize)) {
+      coverageSize = dirtSize;
+    }
+    if (!(coverageSize > 0)) {
+      coverageSize = fallbackSize ?? resolvedDefaultSize;
+    }
+    bounds = computeTileBounds(tile.position, coverageSize);
 
     // Optional foundation blend ring around disabled (building pad) tiles
     if (addFoundationBlendRing && tile.addFoundationBlendRing && disableForBuilding) {
