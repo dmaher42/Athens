@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createProceduralTree } from './procTree.js';
-import { assetUrl } from '../utils/assetUrl.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { applyCompressionToVector3 } from '../world/scale.js';
 import { loadGLTF } from '../loaders/safeGltf.js';
 import { logOnce } from '../utils/logOnce.js';

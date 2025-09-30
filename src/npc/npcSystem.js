@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
-import { assetUrl } from '../utils/assetUrl.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
 import { loadGLTF } from '../loaders/safeGltf.js';

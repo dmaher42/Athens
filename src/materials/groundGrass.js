@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { assetUrl } from '../utils/assetUrl.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { logger } from '../utils/logger.ts';
 
 const FALLBACK_COLOR = 0x5a8f3a;
-const GRASS_URL = 'assets/textures/grass.jpg';
+const GRASS_URL = assetUrl('assets/textures/grass.jpg');
 const textureLoader = new THREE.TextureLoader();
 let cachedPromise = null;
 
@@ -33,7 +33,7 @@ async function loadGrassTexture() {
   if (cachedPromise) {
     return cachedPromise;
   }
-  const url = assetUrl(GRASS_URL);
+  const url = GRASS_URL;
   cachedPromise = new Promise((resolve, reject) => {
     textureLoader.load(
       url,

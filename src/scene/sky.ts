@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { logger } from '../utils/logger';
 
 export type SkyChoice =
@@ -23,73 +24,90 @@ export const SKY_CHOICES: SkyChoice[] = [
     id: 'day',
     type: 'equirect',
     label: 'Sunny Day',
-    file: 'assets/sky/day.jpg',
+    file: assetUrl('assets/sky/day.jpg'),
     aliases: ['sunny-day', 'daytime', 'high-noon', 'noon', 'midday']
   },
   {
     id: 'dawn',
     type: 'equirect',
     label: 'Dawn',
-    file: 'assets/sky/dawn.jpg',
+    file: assetUrl('assets/sky/dawn.jpg'),
     aliases: ['sunrise']
   },
   {
     id: 'dusk',
     type: 'equirect',
     label: 'Dusk',
-    file: 'assets/sky/dusk.jpg',
+    file: assetUrl('assets/sky/dusk.jpg'),
     aliases: ['golden-hour', 'sunset', 'evening', 'goldenhour']
   },
   {
     id: 'blue-hour',
     type: 'equirect',
     label: 'Blue Hour',
-    file: 'assets/sky/blue_hour.jpg'
+    file: assetUrl('assets/sky/blue_hour.jpg')
   },
   {
     id: 'night',
     type: 'equirect',
     label: 'Night',
-    file: 'assets/sky/night.jpg',
+    file: assetUrl('assets/sky/night.jpg'),
     aliases: ['night-sky', 'starlit-night', 'midnight']
   },
   {
     id: 'night-4k',
     type: 'equirect',
     label: 'Night (4K)',
-    file: 'assets/sky/night_sky_4k.jpg',
+    file: assetUrl('assets/sky/night_sky_4k.jpg'),
     aliases: ['night-hires', 'night_sky_4k']
   },
   // Optional test HDRIs retained from codex branch:
-  { id: 'dirt', type: 'equirect', label: 'Dirt (Test HDRI)', file: 'assets/sky/dirt.jpg' },
-  { id: 'marble', type: 'equirect', label: 'Marble (Test HDRI)', file: 'assets/sky/marble.jpg' },
-  { id: 'roof-tiles', type: 'equirect', label: 'Roof Tiles (Test HDRI)', file: 'assets/sky/roof_tiles.jpg' }
+  { id: 'dirt', type: 'equirect', label: 'Dirt (Test HDRI)', file: assetUrl('assets/sky/dirt.jpg') },
+  { id: 'marble', type: 'equirect', label: 'Marble (Test HDRI)', file: assetUrl('assets/sky/marble.jpg') },
+  { id: 'roof-tiles', type: 'equirect', label: 'Roof Tiles (Test HDRI)', file: assetUrl('assets/sky/roof_tiles.jpg') }
 ];
 
-function baseURL(rel: string) {
-  if (/^https?:\/\//.test(rel)) return rel;
+const ABSOLUTE_URL_PATTERN = /^[a-zA-Z][a-zA-Z\d+\-.]*:/;
 
-  const sanitized = rel.replace(/^\/+/, '');
-
-  if (typeof document !== 'undefined' && typeof document.baseURI === 'string') {
-    return new URL(sanitized, document.baseURI).toString();
+function resolveSkyPath(segment: string, base?: string) {
+  const value = `${segment ?? ''}`.trim();
+  if (!value) {
+    return assetUrl('');
   }
 
-  const baseFromImport = (import.meta as any)?.env?.BASE_URL;
-  if (typeof baseFromImport === 'string' && baseFromImport.length > 0) {
-    if (/^https?:\/\//.test(baseFromImport)) {
-      return new URL(sanitized, baseFromImport).toString();
+  if (ABSOLUTE_URL_PATTERN.test(value)) {
+    return value;
+  }
+
+  const baseRoot = assetUrl('');
+  const baseRootNoSlash = baseRoot.replace(/^\/+/, '');
+  const normalizedValue = value.replace(/^\/+/, '');
+
+  if (base) {
+    const baseValue = `${base}`.trim();
+    if (ABSOLUTE_URL_PATTERN.test(baseValue)) {
+      const normalizedBase = baseValue.endsWith('/') ? baseValue : `${baseValue}/`;
+      return `${normalizedBase}${normalizedValue}`.replace(/\/{2,}/g, '/');
     }
-    const normalized = baseFromImport.endsWith('/') ? baseFromImport : `${baseFromImport}/`;
-    return `${normalized}${sanitized}`.replace(/^\/+/, '/');
+
+    let normalizedBase = baseValue.replace(/^\/+/, '');
+    if (baseRootNoSlash && normalizedBase.startsWith(baseRootNoSlash)) {
+      normalizedBase = normalizedBase.slice(baseRootNoSlash.length);
+    }
+    normalizedBase = normalizedBase.endsWith('/') ? normalizedBase : `${normalizedBase}/`;
+
+    if (baseRootNoSlash && normalizedValue.startsWith(baseRootNoSlash)) {
+      return assetUrl(normalizedValue.slice(baseRootNoSlash.length));
+    }
+
+    return assetUrl(`${normalizedBase}${normalizedValue}`);
   }
 
-  if (typeof window !== 'undefined') {
-    const root = window.location.pathname.replace(/[^/]*$/, '');
-    return new URL(sanitized, window.location.origin + root).toString();
+  if (baseRootNoSlash && normalizedValue.startsWith(baseRootNoSlash)) {
+    return assetUrl(normalizedValue.slice(baseRootNoSlash.length));
   }
 
-  return sanitized;
+  return assetUrl(normalizedValue);
 }
 
 function disposeExistingEnvironment(scene: THREE.Scene) {
@@ -157,7 +175,7 @@ export async function applySky(
         pick.faces.ny,
         pick.faces.pz,
         pick.faces.nz
-      ].map((n) => baseURL(`${pick.dir}${n}`));
+      ].map((n) => resolveSkyPath(n, pick.dir));
 
       const tex = await new Promise<THREE.CubeTexture>((resolve, reject) =>
         loader.load(order, resolve, undefined, reject)
@@ -181,7 +199,7 @@ export async function applySky(
       }
     } else if (pick.type === 'equirect' && pick.file) {
       const loader = new THREE.TextureLoader();
-      const url = baseURL(pick.file);
+      const url = resolveSkyPath(pick.file);
 
       const tex = await new Promise<THREE.Texture>((resolve, reject) =>
         loader.load(url, resolve, undefined, reject)

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { loadTextureAsyncWithFallback } from '../utils/fail-soft-loaders.js';
 
 const textureLoader = new THREE.TextureLoader();
@@ -382,7 +383,7 @@ async function loadRoadTexture(texturePath) {
 }
 
 export async function createRoadSegment(
-  texturePath = 'assets/textures/athens_dust.jpg',
+  texturePath = assetUrl('assets/textures/athens_dust.jpg'),
   start,
   end,
   width = DEFAULT_PROPS_CONFIG.roadWidth

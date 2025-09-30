@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { assetUrl } from '../src/utils/assetUrl.js';
+import { assetUrl } from '../src/utils/assetUrl.ts';
 
 function withBaseUrl(value, fn) {
   const previous = process.env.BASE_URL;

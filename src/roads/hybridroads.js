@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import {
   loadTextureWithFallback,
   loadGltfWithFallback,
@@ -9,7 +10,12 @@ import {
 import { logger } from '../utils/logger.ts';
 
 // Load a texture and create a road mesh
-export function createRoadSegment(texturePath, start, end, width = 6) {
+export function createRoadSegment(
+  texturePath = assetUrl('assets/roads/road_texture.jpg'),
+  start,
+  end,
+  width = 6
+) {
   const loader = new THREE.TextureLoader();
   const resolvedTexture = resolveAssetUrl(texturePath);
   let material = null;
@@ -103,21 +109,21 @@ window.scatterTest = async function () {
   const start = new THREE.Vector3(0, 0, 0);
   const end = new THREE.Vector3(50, 0, 0);
 
-  const road = createRoadSegment('assets/roads/road_texture.jpg', start, end);
+  const road = createRoadSegment(assetUrl('assets/roads/road_texture.jpg'), start, end);
   window.scene.add(road);
 
   const config = {
     torch: {
-      model: 'assets/props/torch.glb',
+      model: assetUrl('assets/props/torch.glb'),
       interval: 15
     },
     rock: {
-      model: 'assets/props/rock.glb',
+      model: assetUrl('assets/props/rock.glb'),
       interval: 6,
       randomScale: [0.8, 1.5]
     },
     grass: {
-      model: 'assets/props/grass.glb',
+      model: assetUrl('assets/props/grass.glb'),
       interval: 3,
       randomScale: [0.5, 1.2]
     }
