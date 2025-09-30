@@ -22,4 +22,4 @@ Development builds now launch straight into the main experience at `/`. For trou
 
 ## Entry points
 
-The legacy bootstrap at `src/entry/boot.ts` has been removed. Use `src/entry/initializeAthens.js` as the runtime entry point for embedding Athens into other experiences.
+Use `src/entry/initializeAthens.js` as the runtime entry point for embedding Athens into other experiences.
