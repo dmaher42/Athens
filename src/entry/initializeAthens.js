@@ -562,6 +562,22 @@ export async function initializeAthens(options = {}) {
   const extendedCity = extendedRes?.root ?? null;
   const sharedMaterials = extendedRes?.materials ?? null;
 
+  // LANDMARK_OVERRIDE_START
+  // Apply runtime landmark overrides (world-space), if provided
+  _applyLandmarkOverrides(scene, options);
+
+  // Dev convenience: allow re-applying from console
+  if (typeof window !== 'undefined') {
+    window.dev = window.dev || {};
+    window.dev.landmarks = window.dev.landmarks || {};
+    window.dev.landmarks.applyPositions = (positions) => {
+      const opts = { layoutConfig: { positions } };
+      _applyLandmarkOverrides(scene, opts);
+    };
+    console.info('[LandmarkOverride] dev.landmarks.applyPositions({ Agora:{x,y,z} }) is available');
+  }
+  // LANDMARK_OVERRIDE_END
+
   // Ground registry + snapping
   markGround(scene);
   const groundMeshes = collectGround(scene);
@@ -1344,5 +1360,54 @@ export async function initializeAthens(options = {}) {
 
   return context;
 }
+
+// LANDMARK_OVERRIDE_START
+function _findByNameCI(scene, name){
+  const target = name.toLowerCase();
+  let hit = scene.getObjectByName(name);
+  if (hit) return hit;
+  let fallback = null;
+  scene.traverse(obj => {
+    if (!obj || !obj.name) return;
+    const n = obj.name.toLowerCase();
+    if (n === target) { hit = obj; }
+    else if (!fallback && n.includes(target)) { fallback = obj; }
+  });
+  return hit || fallback;
+}
+
+function _setWorldPosition(object, x, y, z){
+  if (!object) return false;
+  object.updateMatrixWorld(true);
+  const parent = object.parent;
+  if (parent) {
+    parent.updateMatrixWorld(true);
+    const worldPos = new THREE.Vector3(x, y, z);
+    object.position.copy(parent.worldToLocal(worldPos));
+  } else {
+    object.position.set(x, y, z);
+  }
+  object.updateMatrixWorld(true);
+  return true;
+}
+
+function _applyLandmarkOverrides(scene, options){
+  const pos = options?.layoutConfig?.positions;
+  if (!pos) return;
+
+  const log = (...args)=>{ try{ console.info('[LandmarkOverride]', ...args); }catch{} }
+
+  // AGORA override only (expand later)
+  if (pos.Agora && Number.isFinite(pos.Agora.x) && Number.isFinite(pos.Agora.y) && Number.isFinite(pos.Agora.z)) {
+    const agora = _findByNameCI(scene, 'Agora');
+    if (!agora) {
+      log('Agora not found in scene graph; available top-level children:', scene.children.map(c=>c.name).filter(Boolean));
+    } else {
+      const ok = _setWorldPosition(agora, pos.Agora.x, pos.Agora.y, pos.Agora.z);
+      log('Applied Agora override to', agora.name, '->', pos.Agora, 'success:', ok);
+    }
+  }
+}
+// LANDMARK_OVERRIDE_END
 
 export default initializeAthens;
