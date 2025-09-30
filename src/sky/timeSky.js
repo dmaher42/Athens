@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assetUrl } from '../utils/assetUrl.js';
+import { initSky, setSky, reapplySky } from './SkyManager.ts';
 
 const DEFAULT_BACKGROUND_COLOR = 0x202834;
 
@@ -33,18 +33,16 @@ const MODE_ALIASES = new Map(
   })
 );
 
-const loader = new THREE.TextureLoader();
-const cache = new Map();
-const loadTasks = new Map();
 const loggedFailures = new Set();
-let pmremGenerator = null;
 let activeRenderer = null;
 let activeScene = null;
 let currentMode = null;
-let currentEntry = null;
 let skyEnabled = true;
 let hotkeyAttached = false;
 let manualSkyOverride = null;
+let hasLoadedSkyTexture = false;
+let lastSuccessfulMode = null;
+let lastSuccessfulPath = null;
 
 function resolveMode(mode) {
   if (!mode) {
@@ -65,7 +63,9 @@ function resolveMode(mode) {
   return null;
 }
 
-const DEFAULT_BACKGROUND = new THREE.Color(DEFAULT_BACKGROUND_COLOR);
+function normalizeMode(mode) {
+  return resolveMode(mode) ?? 'day';
+}
 
 function detectSkyOverride() {
   if (typeof window === 'undefined') {
@@ -82,123 +82,23 @@ function detectSkyOverride() {
 
 manualSkyOverride = detectSkyOverride();
 
-function applyDefaultBackground() {
-  if (!activeScene) {
+function applySolidBackground(hex) {
+  if (activeScene) {
+    activeScene.background = new THREE.Color(hex);
+    activeScene.environment = null;
+  }
+  if (activeRenderer) {
+    activeRenderer.setClearColor(hex, 1);
+  }
+}
+
+function applyFallbackForMode(mode) {
+  if (hasLoadedSkyTexture) {
     return;
   }
-  activeScene.background = DEFAULT_BACKGROUND.clone();
-  activeScene.environment = null;
-}
-
-function ensureColorSpace(texture) {
-  if (!texture) {
-    return;
-  }
-  if ('colorSpace' in texture) {
-    texture.colorSpace = THREE.SRGBColorSpace;
-  } else if ('encoding' in texture) {
-    texture.encoding = THREE.sRGBEncoding;
-  }
-}
-
-function ensurePmrem(renderer) {
-  if (!pmremGenerator && renderer) {
-    pmremGenerator = new THREE.PMREMGenerator(renderer);
-    pmremGenerator.compileEquirectangularShader();
-  }
-  return pmremGenerator;
-}
-
-function normalizeMode(mode) {
-  return resolveMode(mode) ?? 'day';
-}
-
-function fallbackEntry(mode) {
   const config = MODE_CONFIG[mode] || {};
-  const color = new THREE.Color(config.fallbackColor ?? DEFAULT_BACKGROUND_COLOR);
-  return { background: color, envMap: null, mode };
-}
-
-async function loadSky(mode) {
-  if (cache.has(mode)) {
-    return cache.get(mode);
-  }
-  if (loadTasks.has(mode)) {
-    return loadTasks.get(mode);
-  }
-
-  const task = new Promise((resolve) => {
-    const config = MODE_CONFIG[mode];
-    if (!config?.path) {
-      const entry = fallbackEntry(mode);
-      cache.set(mode, entry);
-      resolve(entry);
-      return;
-    }
-
-    const url = assetUrl(config.path);
-
-    loader.load(
-      url,
-      (texture) => {
-        ensureColorSpace(texture);
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        texture.needsUpdate = true;
-
-        const generator = ensurePmrem(activeRenderer);
-        let envTarget = null;
-        let envMap = null;
-        if (generator) {
-          envTarget = generator.fromEquirectangular(texture);
-          envMap = envTarget.texture;
-        }
-
-        const entry = {
-          background: texture,
-          envMap,
-          envTarget,
-          mode
-        };
-        cache.set(mode, entry);
-        resolve(entry);
-      },
-      undefined,
-      () => {
-        if (!loggedFailures.has(mode)) {
-          console.warn(`[timeSky] Failed to load sky texture for "${mode}" (${url}). Falling back to solid color.`);
-          loggedFailures.add(mode);
-        }
-        const entry = fallbackEntry(mode);
-        cache.set(mode, entry);
-        resolve(entry);
-      }
-    );
-  }).finally(() => {
-    loadTasks.delete(mode);
-  });
-
-  loadTasks.set(mode, task);
-  return task;
-}
-
-function applySky(entry) {
-  if (!activeScene || !entry) {
-    return;
-  }
-  currentEntry = entry;
-  currentMode = entry.mode;
-  if (!skyEnabled) {
-    applyDefaultBackground();
-    return;
-  }
-  if (entry.background?.isTexture) {
-    activeScene.background = entry.background;
-  } else if (entry.background instanceof THREE.Color) {
-    activeScene.background = entry.background;
-  } else {
-    activeScene.background = null;
-  }
-  activeScene.environment = entry.envMap || null;
+  const color = config.fallbackColor ?? DEFAULT_BACKGROUND_COLOR;
+  applySolidBackground(color);
 }
 
 function notifySkyEnabledChange() {
@@ -212,22 +112,59 @@ function notifySkyEnabledChange() {
   }
 }
 
+async function loadSkyForMode(mode) {
+  const config = MODE_CONFIG[mode] || null;
+  if (!config?.path) {
+    applyFallbackForMode(mode);
+    return false;
+  }
+  if (!activeRenderer || !activeScene) {
+    return false;
+  }
+
+  initSky(activeRenderer);
+
+  try {
+    const resource = await setSky(activeScene, config.path);
+    if (resource) {
+      hasLoadedSkyTexture = true;
+      lastSuccessfulMode = mode;
+      lastSuccessfulPath = config.path;
+      return true;
+    }
+  } catch (error) {
+    if (!loggedFailures.has(mode)) {
+      console.warn(`[timeSky] Failed to load sky texture for "${mode}" (${config.path}).`, error);
+      loggedFailures.add(mode);
+    }
+  }
+
+  if (!hasLoadedSkyTexture) {
+    applyFallbackForMode(mode);
+  }
+  return false;
+}
+
 export async function createTimeSky(renderer, scene, initial = 'day') {
   activeRenderer = renderer || activeRenderer;
   activeScene = scene || activeScene;
-  ensurePmrem(activeRenderer);
+  if (activeRenderer) {
+    initSky(activeRenderer);
+  }
+  if (activeScene && skyEnabled && hasLoadedSkyTexture) {
+    reapplySky(activeScene);
+  }
+
   const hasOverride = Boolean(manualSkyOverride);
   const normalized = hasOverride ? manualSkyOverride : normalizeMode(initial);
-  const entry = await loadSky(normalized);
-  applySky(entry);
+  currentMode = normalized;
 
-  // Prefetch other modes without blocking.
-  Object.keys(MODE_CONFIG).forEach((mode) => {
-    if (mode !== normalized) {
-      loadSky(mode).catch(() => {});
-    }
-  });
+  if (!skyEnabled) {
+    applySolidBackground(DEFAULT_BACKGROUND_COLOR);
+    return { mode: currentMode };
+  }
 
+  await loadSkyForMode(normalized);
   return { mode: currentMode };
 }
 
@@ -236,13 +173,18 @@ export async function setTimeOfDay(mode) {
     return currentMode ?? manualSkyOverride;
   }
   const normalized = normalizeMode(mode);
-  const entry = await loadSky(normalized);
-  applySky(entry);
-  return currentMode;
+  const previousMode = currentMode;
+  const success = skyEnabled ? await loadSkyForMode(normalized) : false;
+  if (success) {
+    currentMode = normalized;
+  } else if (previousMode == null) {
+    currentMode = normalized;
+  }
+  return currentMode ?? previousMode ?? normalized;
 }
 
 export function getTimeOfDay() {
-  return currentMode;
+  return currentMode ?? lastSuccessfulMode;
 }
 
 export function isSkyEnabled() {
@@ -260,17 +202,15 @@ export function setSkyEnabled(enabled) {
     return skyEnabled;
   }
   if (!skyEnabled) {
-    applyDefaultBackground();
-  } else if (currentEntry) {
-    applySky(currentEntry);
+    applySolidBackground(DEFAULT_BACKGROUND_COLOR);
+  } else if (hasLoadedSkyTexture && lastSuccessfulPath) {
+    reapplySky(activeScene);
   } else if (currentMode) {
-    loadSky(currentMode)
-      .then((entry) => {
-        if (skyEnabled) {
-          applySky(entry);
-        }
-      })
-      .catch(() => {});
+    loadSkyForMode(currentMode).catch(() => {});
+  } else if (lastSuccessfulMode) {
+    loadSkyForMode(lastSuccessfulMode).catch(() => {});
+  } else {
+    applyFallbackForMode('day');
   }
   notifySkyEnabledChange();
   return skyEnabled;

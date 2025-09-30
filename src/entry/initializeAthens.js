@@ -18,7 +18,7 @@ import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { createGameLoop } from '../engine/loop.js';
-import { applySky } from '../scene/sky.ts';
+import { initSky, setSky, reapplySky } from '../sky/SkyManager.ts';
 import { movementConfig } from '../config/movement.ts';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
@@ -392,7 +392,17 @@ export async function initializeAthens(options = {}) {
     };
   }
 
-  const skyTask = applySky(scene, renderer);
+  initSky(renderer);
+  let initialSkyApplied = false;
+  try {
+    const result = await setSky(scene, 'assets/sky/day.jpg');
+    initialSkyApplied = Boolean(result);
+  } catch (error) {
+    console.warn('[Athens] setSky failed during initializeAthens.', error);
+  }
+  if (!initialSkyApplied) {
+    reapplySky(scene);
+  }
 
   const ambientMuted = searchParams ? searchParams.get('mute') === '1' : false;
   const ambientOverrideSelected = searchParams ? searchParams.has('amb') : false;
@@ -471,9 +481,6 @@ export async function initializeAthens(options = {}) {
     applyAmbientForMode(environmentController.mode, true);
   }
 
-  await skyTask.catch((error) => {
-    console.warn('[Athens] applySky failed.', error);
-  });
 
   // CITYPLAN_START
   await setupGround(scene, renderer, { layout, layoutConfig });
