@@ -527,8 +527,8 @@ export async function runAthens(options: RunOptions = {}) {
           return;
         }
       }
-      const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
-      if (key === 'k') {
+      const code = typeof event.code === 'string' ? event.code : '';
+      if (code === 'KeyK') {
         handleSkyEnabled(!skyEnabled);
       }
     };
@@ -825,7 +825,7 @@ export async function runAthens(options: RunOptions = {}) {
       const moveDistance = playerDelta.length();
       const currentSpeed = delta > 1e-6 ? moveDistance / Math.max(delta, 1e-6) : 0;
 
-      const jumpDown = Boolean(keyboard.isDown?.('Space'));
+      const jumpDown = !flying && Boolean(keyboard.isDown?.('Space'));
       const jumpRequested = jumpDown && !previousJumpDown;
       previousJumpDown = jumpDown;
 

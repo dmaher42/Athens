@@ -77,6 +77,15 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const handleKeyDown = (event) => {
     const code = normalizeCode(event);
 
+    if (code === 'Space') {
+      if (typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      if (typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+    }
+
     if (!RELEVANT_KEYS.has(code)) {
       return;
     }
