@@ -110,7 +110,7 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
   };
 
   const namedTargets = new Set();
-  ['Parthenon', 'Acropolis', 'AcropolisGroup'].forEach((name) => {
+  ['Parthenon', 'Acropolis'].forEach((name) => {
     const rootTarget = ensureNamedObject(root, name);
     const sceneTarget = ensureNamedObject(scene, name);
     if (rootTarget) {
