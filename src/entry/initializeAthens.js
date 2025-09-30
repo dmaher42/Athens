@@ -84,8 +84,8 @@ function __applyScaleMult(char, mult) {
 }
 
 function __enforceMainCharacterHeight(scene, options) {
-  const unitsPerMeter = options?.movementConfig?.character?.unitsPerMeter ?? 50;
-  const desiredMeters = options?.movementConfig?.character?.height ?? 1.8;
+  const unitsPerMeter = options?.movementConfig?.character?.unitsPerMeter ?? 100;
+  const desiredMeters = options?.movementConfig?.character?.height ?? 1.7;
   const targetUnits = desiredMeters * unitsPerMeter;
 
   const char = scene?.getObjectByName?.('MainCharacter');
@@ -115,18 +115,18 @@ function __enforceMainCharacterHeight(scene, options) {
   if (typeof window !== 'undefined') {
     window.dev = window.dev || {};
     window.dev.character = Object.assign(window.dev.character || {}, {
-      setHeightMeters: (m = 1.8, upm = unitsPerMeter) => {
+      status: () => {
+        const c = scene?.getObjectByName?.('MainCharacter');
+        if (!c) return console.log('[CharHeight] no MainCharacter');
+        console.log('[CharHeight] measured≈', __measure(c).toFixed(2), 'scale=', c.scale);
+      },
+      setHeightMeters: (m = desiredMeters, upm = unitsPerMeter) => {
         const c = scene?.getObjectByName?.('MainCharacter');
         if (!c) return;
         const base = (__measure(c)) / (c.scale?.y || 1) || 1;
         const k = (m * upm) / base;
         __applyScaleMult(c, k);
         requestAnimationFrame(() => __applyScaleMult(c, k));
-      },
-      status: () => {
-        const c = scene?.getObjectByName?.('MainCharacter');
-        if (!c) return console.log('[CharHeight] no MainCharacter');
-        console.log('[CharHeight] measured≈', __measure(c).toFixed(2), 'scale=', c.scale);
       }
     });
   }
