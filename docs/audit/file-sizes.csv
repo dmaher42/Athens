@@ -11598,9 +11598,10 @@
 ./src/dev/skyDebugHooks.js,515
 ./src/engine/loop.js,3893
 ./src/engine/safeEntry.js,2597
+./src/app/lifecycle.ts,7766
+./src/app/runApp.ts,57436
+./src/entry/app.ts,1176
 ./src/entry/block-remote-guard.js,816
-./src/entry/initializeAthens.js,54322
-./src/entry/landing.js,6835
 ./src/geo/__tests__/featureOffsets.test.js,1221
 ./src/geo/__tests__/projection.test.js,1902
 ./src/geo/featureOffsets.js,2043

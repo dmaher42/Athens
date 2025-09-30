@@ -1,34 +1,38 @@
-// @ts-nocheck
-
 import * as THREE from 'three';
 import boot, { whenBootReady } from '../core/bootstrap.js';
 import { startGameLoop, setLoopWatchdog } from '../engine/loop.js';
 import { createSafeScene } from '../engine/safeEntry.js';
 import { attachWatchdog } from '../ui/watchdog.js';
 import { maybeRemoteInit } from '../services/remote.js';
-import { runApp } from './runApp.ts';
+import { runApp, type RunAppOptions, type AthensContext } from './runApp.ts';
 
-export function createAthensApp() {
-  /** @type {ReturnType<typeof runApp> | null} */
-  let initializedContext = null;
-  /** @type {Promise<ReturnType<typeof runApp>> | null} */
-  let initializationTask = null;
-  /** @type {Promise<unknown> | null} */
-  let bootPromise = null;
+type SafeScene = Awaited<ReturnType<typeof createSafeScene>>;
+type GameLoopHandle = ReturnType<typeof startGameLoop> | null;
+
+export interface AthensApp {
+  run: (options?: RunAppOptions) => Promise<AthensContext>;
+  getContext: () => Promise<AthensContext | undefined>;
+  ensureFallback: () => Promise<void> | null;
+  teardownFallback: () => void;
+  watchdog: ReturnType<typeof attachWatchdog>;
+}
+
+export function createAthensApp(): AthensApp {
+  let initializedContext: AthensContext | null = null;
+  let initializationTask: Promise<AthensContext> | null = null;
+  let bootPromise: Promise<unknown> | null = null;
   let bootLogEmitted = false;
 
   const watchdog = attachWatchdog();
   setLoopWatchdog(watchdog);
 
   let fallbackActive = false;
-  let fallbackLoop = null;
-  let fallbackScene = null;
-  /** @type {HTMLElement | null} */
-  let fallbackRoot = null;
-  /** @type {Promise<void> | null} */
-  let fallbackInitTask = null;
+  let fallbackLoop: GameLoopHandle = null;
+  let fallbackScene: SafeScene | null = null;
+  let fallbackRoot: HTMLElement | null = null;
+  let fallbackInitTask: Promise<void> | null = null;
 
-  const ensureFallback = () => {
+  const ensureFallback = (): Promise<void> | null => {
     if (fallbackActive || fallbackInitTask || typeof document === 'undefined') {
       return fallbackInitTask;
     }
@@ -61,7 +65,7 @@ export function createAthensApp() {
         return;
       }
 
-      const canvas = fallbackScene.renderer?.domElement;
+      const canvas = fallbackScene.renderer?.domElement ?? null;
       if (canvas) {
         canvas.style.width = '100%';
         canvas.style.height = '100%';
@@ -70,7 +74,7 @@ export function createAthensApp() {
       }
 
       fallbackLoop = startGameLoop({
-        update: (dt) => {
+        update: (dt: number) => {
           fallbackScene?.update?.(dt);
         },
         render: () => {
@@ -88,7 +92,7 @@ export function createAthensApp() {
     return fallbackInitTask;
   };
 
-  const teardownFallback = () => {
+  const teardownFallback = (): void => {
     if (fallbackInitTask) {
       fallbackInitTask
         .catch(() => {})
@@ -116,14 +120,14 @@ export function createAthensApp() {
     initialFallbackTask.catch(() => {});
   }
 
-  const waitForDomReady = async () => {
+  const waitForDomReady = async (): Promise<void> => {
     if (typeof document === 'undefined') {
       return;
     }
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       return;
     }
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       const handleReady = () => {
         document.removeEventListener('DOMContentLoaded', handleReady);
         resolve();
@@ -134,7 +138,7 @@ export function createAthensApp() {
 
   const ensureBootStarted = () => {
     if (typeof boot !== 'function') {
-      return null;
+      return null as const;
     }
 
     let started = false;
@@ -153,15 +157,22 @@ export function createAthensApp() {
         });
     }
 
-    return { promise: bootPromise, started };
+    return { promise: bootPromise, started } as const;
   };
 
-  const resolveContainer = (options = {}) => {
+  const resolveContainer = (options: RunAppOptions = {}): HTMLElement => {
     if (typeof document === 'undefined') {
       throw new Error('Missing document for Athens renderer.');
     }
-    if (options.container instanceof HTMLElement) {
-      return options.container;
+    const containerOption = options.container;
+    if (containerOption instanceof HTMLElement) {
+      return containerOption;
+    }
+    if (typeof containerOption === 'string') {
+      const fromSelector = document.querySelector<HTMLElement>(containerOption);
+      if (fromSelector) {
+        return fromSelector;
+      }
     }
     if (typeof options.containerId === 'string') {
       const byId = document.getElementById(options.containerId);
@@ -176,7 +187,7 @@ export function createAthensApp() {
     return fallback;
   };
 
-  const run = async (options = {}) => {
+  const run = async (options: RunAppOptions = {}): Promise<AthensContext> => {
     if (initializedContext) {
       return initializedContext;
     }
@@ -221,14 +232,14 @@ export function createAthensApp() {
     try {
       return await initializationTask;
     } catch (error) {
-      watchdog?.error?.(error?.message || 'boot failed');
+      watchdog?.error?.((error as Error)?.message || 'boot failed');
       throw error;
     } finally {
       initializationTask = null;
     }
   };
 
-  const getContext = async () => {
+  const getContext = async (): Promise<AthensContext | undefined> => {
     if (initializedContext) {
       return initializedContext;
     }

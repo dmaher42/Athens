@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import * as THREE from 'three';
 import { installRenderGuard } from '../safety/hardenPositions';
 if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only
@@ -47,6 +45,108 @@ import { initAmbient, AmbientAPI, AMBIENT_TRACKS } from '../audio/ambient.ts';
 import { createProceduralSky, createHorizonMountains } from '../visual/skyAndHorizon.js';
 import { installSkyDev } from '../dev/skyDebugHooks.js';
 // SKYSYS_END
+
+type LandmarkPosition = {
+  x?: number;
+  y?: number | 'ground';
+  z?: number;
+};
+
+export interface RunAppOptions {
+  container?: HTMLElement | string | null;
+  containerId?: string;
+  overlayCanvasId?: string;
+  stats?: boolean;
+  layout?: string;
+  layoutConfig?: {
+    positions?: Record<string, LandmarkPosition>;
+  };
+  landmarkDev?: {
+    toggleKey?: string;
+  };
+  enableLandmarkDev?: boolean;
+  mainCharacter?: Record<string, unknown> | null;
+  mainCharacterConfig?: Record<string, unknown> | null;
+  mainCharacterSavedState?: Record<string, unknown> | null;
+  geoJsonUrl?: string;
+  enableRoads?: boolean;
+  enableNpcs?: boolean;
+  npcModelUrls?: string[];
+  npcConfigs?: Array<Record<string, unknown>>;
+  enableMainCharacter?: boolean;
+  enableTreeWind?: boolean;
+  enableNavMesh?: boolean;
+  navMeshUrl?: string | null;
+  navMeshZones?: string[];
+  navMeshRegionId?: string;
+  enableNpc?: boolean;
+  enableFly?: boolean;
+  flySpeedMultiplier?: number;
+  initialState?: Record<string, unknown> | null;
+  savedState?: Record<string, unknown> | null;
+  initialEnvironment?: string;
+  environment?: string;
+  environmentConfig?: Record<string, unknown> | null;
+  skyOverride?: string;
+  suppressSky?: boolean;
+  lighting?: Record<string, unknown> | null;
+  proceduralSky?: {
+    horizon?: boolean;
+    mountains?: boolean;
+  } | null;
+  npcAssetsBaseUrl?: string;
+  overlayMount?: HTMLElement | null;
+  [key: string]: unknown;
+}
+
+export interface EnvironmentControllerLike {
+  mode?: string;
+  setMode?: (mode: string, envOptions?: Record<string, unknown>) => Promise<string | undefined> | string | undefined;
+  dispose?: () => void;
+}
+
+type StatsPanel = {
+  dom?: HTMLElement;
+  update?: () => void;
+  begin?: () => void;
+  end?: () => void;
+};
+
+export interface AthensContext {
+  renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene;
+  camera: THREE.Camera;
+  stats: StatsPanel | null;
+  overlay: Record<string, unknown> | null;
+  overlayCanvas: HTMLCanvasElement;
+  landmarks: Record<string, unknown> | null;
+  roadNetwork: Record<string, unknown> | null;
+  navMesh: Record<string, unknown> | null;
+  navPathfinder: Record<string, unknown> | null;
+  npcManager: Record<string, unknown> | null;
+  mainCharacter: Record<string, unknown> | null;
+  environmentController: EnvironmentControllerLike | null;
+  city: Record<string, unknown> | null;
+  extendedCity: Record<string, unknown> | null;
+  container: HTMLElement;
+  ui: Record<string, unknown> | null;
+  setEnvironmentMode: (mode: string, envOptions?: Record<string, unknown>) => Promise<string | undefined>;
+  dispose: () => void;
+}
+
+type RunAppResult = Promise<AthensContext>;
+
+declare global {
+  interface Window {
+    __athens?: Record<string, unknown>;
+    __athensLandmarkToggleHandler?: (event: KeyboardEvent) => void;
+    getStats?: () => StatsPanel | null;
+    toggleStatsVisibility?: (forceVisible?: boolean) => boolean;
+    dev?: Record<string, any>;
+  }
+}
+
+declare const raycastGroundY: ((pos: THREE.Vector3) => number | null | undefined) | undefined;
 
 // LANDMARK_SPREAD_START
 const _LANDMARK_MATCH = {
@@ -164,7 +264,7 @@ const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
 const DEFAULT_BACKGROUND_HEX = 0x202834;
 
-let stats = null;
+let stats: StatsPanel | null = null;
 let statsVisible = true;
 
 const updateStatsVisibility = () => {
@@ -194,7 +294,7 @@ const registerGlobalStatsHelpers = () => {
   };
 };
 
-const statsReady = (async () => {
+const statsReady: Promise<StatsPanel | null> = (async () => {
   stats = await createStats();
   if (stats.dom && typeof document !== 'undefined' && document.body) {
     stats.dom.style.cssText = DEFAULT_STATS_STYLE;
@@ -487,7 +587,7 @@ function createPlaceholderPlayer() {
   return group;
 }
 
-export async function runApp(options = {}) {
+export async function runApp(options: RunAppOptions = {}): RunAppResult {
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
 
