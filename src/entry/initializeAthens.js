@@ -538,6 +538,37 @@ export async function initializeAthens(options = {}) {
   const city = await createCity({ renderer, scene, layout, layoutConfig });
   // CITYPLAN_END
 
+  // LANDMARK_OVERRIDE_START
+  (function applyAgoraOverride(scene, options) {
+    const p = options?.layoutConfig?.positions?.Agora;
+    if (!p) return;
+    function get(name) {
+      return scene.getObjectByName(name);
+    }
+    function setWorldPosition(obj, x, y, z) {
+      if (!obj) return false;
+      obj.updateMatrixWorld(true);
+      const parent = obj.parent;
+      if (parent) {
+        parent.updateMatrixWorld(true);
+        const v = new THREE.Vector3(x, y, z);
+        obj.position.copy(parent.worldToLocal(v));
+      } else {
+        obj.position.set(x, y, z);
+      }
+      obj.updateMatrixWorld(true);
+      return true;
+    }
+    const agora = get('AgoraGroup') || get('Agora');
+    if (agora) {
+      setWorldPosition(agora, p.x, p.y, p.z);
+      console.info('[LandmarkOverride] Agora ->', p);
+    } else {
+      console.warn('[LandmarkOverride] Agora object not found');
+    }
+  })(scene, options);
+  // LANDMARK_OVERRIDE_END
+
   // Grass material application for main ground
   const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
   if (mainGround?.isMesh) {
