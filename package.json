@@ -6,7 +6,7 @@
   "scripts": {
     "predev": "npm run generate:assets && node ./scripts/generate-favicon.js",
     "dev": "vite",
-    "dev:clean": "rimraf node_modules/.vite node_modules/.vite-* .vite || true",
+    "dev:clean": "node ./scripts/dev-clean.js",
     "dev:force": "vite --force --open --port 4173",
     "generate:assets": "node ./scripts/generate-static-assets.js",
     "build": "npm run generate:assets && node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
@@ -14,20 +14,16 @@
     "test": "tsx --test",
     "html:no-ts": "./scripts/check-html-no-ts.sh",
     "serve:dist": "http-server dist -p 4173 -s",
+    "depcheck": "npx depcheck --ignores='vite,three'",
     "tag:checkpoint": "node -e \"const d=new Date();const p=n=>String(n).padStart(2,'0');const v=`v${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-a`;console.log(v)\" | xargs -I {} git tag -a {} -m \"Checkpoint\" && git push --tags"
   },
   "dependencies": {
-    "cannon": "^0.6.2",
-    "three": "^0.180.0",
-    "tone": "^14.7.77"
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.2.1",
     "http-server": "^14.1.1",
-    "puppeteer": "^22.15.0",
-    "rimraf": "^6.0.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.6.3",
     "vite": "^5.4.0"
   }
 }
