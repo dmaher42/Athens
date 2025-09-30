@@ -962,7 +962,7 @@ export async function initializeAthens(options = {}) {
     hint: spawnHint,
     groundMeshes,
     colliders,
-    hover: 0.05,
+    hover: CHARACTER_HOVER,
     fromY: 400
   });
   sanitizeVec3(playerSpawn, SAFE_PLAYER_FALLBACK);

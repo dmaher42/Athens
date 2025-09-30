@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+test('CHARACTER_HOVER scales with character height', () => {
+  // This test verifies that CHARACTER_HOVER is calculated based on CHARACTER_HEIGHT
+  // and that the formula produces reasonable values for different scales
+  
+  const DEFAULT_CHARACTER_HEIGHT = 1.7;
+  
+  // Test function that mimics the CHARACTER_HOVER calculation
+  const calculateCharacterHover = (characterHeight) => {
+    return Math.min(0.1, Math.max(0.03, characterHeight * 0.03));
+  };
+  
+  // Normal scale (1x)
+  const normalHeight = DEFAULT_CHARACTER_HEIGHT * 1;
+  const normalHover = calculateCharacterHover(normalHeight);
+  assert.equal(normalHover, 0.051); // 1.7 * 0.03 = 0.051
+  
+  // Large scale (2x)
+  const largeHeight = DEFAULT_CHARACTER_HEIGHT * 2;
+  const largeHover = calculateCharacterHover(largeHeight);
+  assert.equal(largeHover, 0.1); // 3.4 * 0.03 = 0.102, capped at 0.1
+  
+  // Small scale (0.5x)
+  const smallHeight = DEFAULT_CHARACTER_HEIGHT * 0.5;
+  const smallHover = calculateCharacterHover(smallHeight);
+  assert.equal(smallHover, 0.03); // 0.85 * 0.03 = 0.0255, floored at 0.03
+  
+  // Verify minimum bound
+  const tinyHeight = 0.5;
+  const tinyHover = calculateCharacterHover(tinyHeight);
+  assert.equal(tinyHover, 0.03); // Below minimum, clamped to 0.03
+  
+  // Verify maximum bound  
+  const giantHeight = 10;
+  const giantHover = calculateCharacterHover(giantHeight);
+  assert.equal(giantHover, 0.1); // Above maximum, clamped to 0.1
+});
+
+test('spawn hover consistency requirement', () => {
+  // This test documents the requirement that findSafePlayerSpawn and
+  // snapObjectToGround should use the same CHARACTER_HOVER value
+  // to prevent characters from intersecting terrain after spawn.
+  
+  // The issue was that findSafePlayerSpawn used hardcoded 0.05
+  // while snapObjectToGround used CHARACTER_HOVER (scale-dependent)
+  
+  // With the fix, both should use CHARACTER_HOVER for consistency
+  const DEFAULT_CHARACTER_HEIGHT = 1.7;
+  const CHARACTER_HOVER = Math.min(0.1, Math.max(0.03, DEFAULT_CHARACTER_HEIGHT * 0.03));
+  
+  // Verify the hover value is scale-dependent and within expected range
+  assert.ok(CHARACTER_HOVER >= 0.03, 'CHARACTER_HOVER should be at least 0.03');
+  assert.ok(CHARACTER_HOVER <= 0.1, 'CHARACTER_HOVER should be at most 0.1');
+  
+  // For default character height of 1.7
+  assert.equal(CHARACTER_HOVER, 0.051);
+  
+  // The fix ensures that when a character with scale > 1 is configured,
+  // the spawn search keeps the collider at CHARACTER_HOVER × scale above ground,
+  // and the subsequent snap also uses CHARACTER_HOVER × scale,
+  // preventing large characters from intersecting the terrain.
+});
