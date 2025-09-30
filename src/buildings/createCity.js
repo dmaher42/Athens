@@ -8,6 +8,7 @@ import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { snapGroupToGround } from '../physics/groundProject.js';
 
 export async function createCity({ renderer, scene, ground: groundOverrides } = {}) {
+  const options = arguments[0] ?? {};
   const materials = await loadMaterials(renderer);
   const root = new THREE.Group();
   root.name = 'AthensCity';
@@ -130,6 +131,12 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
 
   const agoraPosition = new THREE.Vector3(80, 0, -40);
   const agora = createAgora(materials, { position: agoraPosition });
+  // AGORA_OVERRIDE_START
+  if (options?.layoutConfig?.positions?.Agora) {
+    const p = options.layoutConfig.positions.Agora;
+    agora.position.set(p.x, p.y, p.z);
+  }
+  // AGORA_OVERRIDE_END
   addAndSnap(agora);
 
   const wallsPath = [
