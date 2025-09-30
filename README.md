@@ -19,3 +19,7 @@ Development builds now launch straight into the main experience at `/`. For trou
 - Press `K` to toggle the sky background if you need to inspect lighting without the skybox.
 - Call `window.toggleStatsVisibility()` in the browser console to show or hide the FPS panel (visible automatically on localhost).
 - Watch the console for boot milestones (asset base detection, renderer sizing) and initialization errors.
+
+## Entry points
+
+The legacy bootstrap at `src/entry/boot.ts` has been removed. Use `src/entry/initializeAthens.js` as the runtime entry point for embedding Athens into other experiences.

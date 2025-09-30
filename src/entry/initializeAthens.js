@@ -1524,21 +1524,6 @@ function _findByNameCI(scene, name){
   return hit || fallback;
 }
 
-function _setWorldPosition(object, x, y, z){
-  if (!object) return false;
-  object.updateMatrixWorld(true);
-  const parent = object.parent;
-  if (parent) {
-    parent.updateMatrixWorld(true);
-    const worldPos = new THREE.Vector3(x, y, z);
-    object.position.copy(parent.worldToLocal(worldPos));
-  } else {
-    object.position.set(x, y, z);
-  }
-  object.updateMatrixWorld(true);
-  return true;
-}
-
 function _applyLandmarkOverrides(scene, options){
   const pos = options?.layoutConfig?.positions;
   if (!pos) return;
