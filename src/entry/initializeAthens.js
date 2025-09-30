@@ -4,6 +4,7 @@ if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppetee
 import { createStats } from '../debug/statsShim.js';
 import { logger } from '../utils/logger.ts';
 import { setupGround, updateTrees } from '../main.js';
+import { disposeAll } from '../utils/disposable.ts';
 import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
 // PLACER_START
@@ -504,6 +505,32 @@ export async function initializeAthens(options = {}) {
 
   const environmentManager = new EnvironmentController(scene, renderer);
 
+  const trackedDisposables = new Set();
+  const registerDisposables = (...items) => {
+    for (const item of items) {
+      if (!item) continue;
+      if (typeof item.dispose === 'function') {
+        trackedDisposables.add(item);
+        continue;
+      }
+      if (
+        item instanceof THREE.Object3D ||
+        item instanceof THREE.Material ||
+        item instanceof THREE.Texture ||
+        item instanceof THREE.BufferGeometry
+      ) {
+        trackedDisposables.add(item);
+      }
+    }
+  };
+  const disposeTracked = () => {
+    if (!trackedDisposables.size) return;
+    disposeAll(...trackedDisposables);
+  };
+  let beforeUnloadCleanup = null;
+
+  registerDisposables(renderer, environmentManager);
+
   if (typeof window !== 'undefined') {
     window.scene = window.scene || scene;
     window.renderer = window.renderer || renderer;
@@ -639,6 +666,7 @@ export async function initializeAthens(options = {}) {
       environmentManager.dispose();
     }
   };
+  registerDisposables(environmentController);
 
   if (!ambientOverrideSelected) {
     setEnvironmentMode(environmentController.mode, { allowAmbient: true });
@@ -646,11 +674,13 @@ export async function initializeAthens(options = {}) {
 
 
   // CITYPLAN_START
-  await setupGround(scene, renderer, { layout, layoutConfig });
+  const ground = await setupGround(scene, renderer, { layout, layoutConfig });
+  registerDisposables(ground);
   // CITYPLAN_END
 
   // CITYPLAN_START
   const city = await createCity({ renderer, scene, layout, layoutConfig });
+  registerDisposables(city);
   // CITYPLAN_END
 
   // LANDMARK_SPREAD_START
@@ -711,6 +741,7 @@ export async function initializeAthens(options = {}) {
   const extendedRes = await createCityExtended({ renderer, scene, layout, layoutConfig });
   // CITYPLAN_END
   const extendedCity = extendedRes?.root ?? null;
+  registerDisposables(extendedCity);
   const sharedMaterials = extendedRes?.materials ?? null;
 
   // LANDMARK_OVERRIDE_START
@@ -801,6 +832,7 @@ export async function initializeAthens(options = {}) {
       groundSampler,
       onSave: handleSave
     });
+    registerDisposables(landmarkPlacer);
     if (typeof landmarkPlacer?.setList === 'function') {
       landmarkPlacer.setList(activeList);
     }
@@ -936,6 +968,7 @@ export async function initializeAthens(options = {}) {
     layoutConfig
     // CITYPLAN_END
   });
+  registerDisposables(landmarks);
 
   const overlayCanvasId = options.overlayCanvasId ?? DEFAULT_OVERLAY_ID;
   const overlayCanvas = ensureOverlayCanvas(container, overlayCanvasId);
@@ -946,6 +979,7 @@ export async function initializeAthens(options = {}) {
 
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
+  registerDisposables(ui);
 
   // Roads built from collected points (use extended/shared materials if available)
   let roadNetwork = null;
@@ -963,6 +997,7 @@ export async function initializeAthens(options = {}) {
       roadGroup.name = 'RoadNetwork';
       scene.add(roadGroup);
       roadNetwork = roadGroup;
+      registerDisposables(roadNetwork);
     }
   }
 
@@ -982,6 +1017,7 @@ export async function initializeAthens(options = {}) {
       navMesh = buildNavMeshFromMeshes(navSources);
       if (navMesh) {
         navPathfinder = createNavMeshPathfinder(navMesh);
+        registerDisposables(navMesh, navPathfinder);
       }
     } catch (error) {
       logger.warn('[Athens][NavMesh] Failed to build navmesh.', error);
@@ -1000,6 +1036,7 @@ export async function initializeAthens(options = {}) {
       npcConfigs: options.npcConfigs
     });
     npcSystem.initializeNpcs(scene, { navMesh, pathfinder: navPathfinder });
+    registerDisposables(npcSystem);
   }
 
   // Main character
@@ -1009,6 +1046,7 @@ export async function initializeAthens(options = {}) {
         ...(mainCharacterOptions || {}),
         initialPosition: playerSpawn
       });
+  registerDisposables(mainCharacter);
 
   const findPlayerObject = () => scene.getObjectByName('Player') || scene.getObjectByName('Hero');
 
@@ -1053,6 +1091,7 @@ export async function initializeAthens(options = {}) {
   const cameraFollowConfig = cameraSettings?.follow ?? {};
   const cameraSeedConfig = cameraSettings?.seed ?? {};
   const keyboard = createKeyboard();
+  registerDisposables(keyboard);
   const controller = createPlayerController(playerObject, keyboard, {
     walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
     runMultiplier: Number.isFinite(movementConfig?.runMultiplier) ? movementConfig.runMultiplier : 1.7,
@@ -1393,6 +1432,7 @@ export async function initializeAthens(options = {}) {
   };
 
   const gameLoop = createGameLoop(updateFrame, renderFrame);
+  registerDisposables(gameLoop);
 
   const flyBypassInput = {
     held(code) {
@@ -1448,28 +1488,30 @@ export async function initializeAthens(options = {}) {
     dispose() {
       if (disposed) return;
       disposed = true;
-      gameLoop?.dispose?.();
       window.removeEventListener('resize', resizeHandler);
+      beforeUnloadCleanup?.();
       overlay?.destroy?.();
       if (overlayCanvas.parentNode) {
         overlayCanvas.parentNode.removeChild(overlayCanvas);
       }
-      mainCharacter?.dispose?.();
-      npcSystem?.dispose?.();
-      roadNetwork?.dispose?.();
-      landmarks?.dispose?.();
-      environmentController?.dispose?.();
-      ui?.dispose?.();
+      disposeTracked();
+      trackedDisposables.clear();
       if (stats?.dom && stats.dom.parentNode === container) {
         container.removeChild(stats.dom);
       }
-      renderer.dispose();
-      keyboard?.dispose?.();
-      city?.dispose?.();
-      extendedCity?.dispose?.();
       followCamera.setPointerLockElement?.(null);
     }
   };
+
+  if (typeof window !== 'undefined' && import.meta?.env?.DEV) {
+    const beforeUnloadHandler = () => {
+      disposeTracked();
+    };
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+    beforeUnloadCleanup = () => {
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+    };
+  }
 
   if (typeof window !== 'undefined') {
     window.__athens = window.__athens || {};
