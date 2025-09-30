@@ -1,0 +1,47 @@
+name: Release on Tag
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: GH_PAGES=1 npm run build
+
+      - name: Zip source snapshot
+        run: |
+          git archive -o site-src-${GITHUB_REF_NAME}.zip HEAD
+
+      - name: Zip built site
+        run: |
+          cd dist
+          zip -r ../site-dist-${GITHUB_REF_NAME}.zip .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            site-src-${{ github.ref_name }}.zip
+            site-dist-${{ github.ref_name }}.zip
