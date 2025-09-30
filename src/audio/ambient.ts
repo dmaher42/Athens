@@ -8,9 +8,9 @@ export type AmbEntry = {
 };
 
 export const AMBIENT_TRACKS: AmbEntry[] = [
-  { id: 'forest', file: 'assets/audio/forest-day.wav', label: 'Forest Day', volume: 0.38 },
-  { id: 'night', file: 'assets/audio/night-crickets.wav', label: 'Night Crickets', volume: 0.28 },
-  { id: 'coast', file: 'assets/audio/wind-coast.wav', label: 'Coastal Wind', volume: 0.32 }
+  { id: 'forest', file: 'assets/audio/forest-day.mp3', label: 'Forest Day', volume: 0.38 },
+  { id: 'night', file: 'assets/audio/night-crickets.mp3', label: 'Night Crickets', volume: 0.28 },
+  { id: 'coast', file: 'assets/audio/wind-coast.mp3', label: 'Coastal Wind', volume: 0.32 }
 ];
 
 function baseURL(rel: string) {
