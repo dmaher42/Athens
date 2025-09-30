@@ -80,13 +80,6 @@ async function ensureTrees(scene, renderer) {
 export async function setupGround(scene, renderer) {
   const ground = await loadGround(scene, renderer, groundOptions);
 
-  // Optionally integrate tree initialization here (if present on main):
-  // if (!treesInitialized) {
-  //   const { initTrees } = await import('./trees/init.js');
-  //   ({ treeLibraryState, groveGroup } = await initTrees(scene, ground));
-  //   treesInitialized = true;
-  // }
-
   await ensureTrees(scene, renderer);
   return ground;
 }
