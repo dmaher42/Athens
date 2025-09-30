@@ -40,6 +40,10 @@ import {
   safeSetVec3
 } from '../utils/sanitize.ts';
 import { initAmbient, AmbientAPI, AMBIENT_TRACKS } from '../audio/ambient.ts';
+// SKYSYS_START
+import { createProceduralSky, createHorizonMountains } from '../visual/skyAndHorizon.js';
+import { installSkyDev } from '../dev/skyDebugHooks.js';
+// SKYSYS_END
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
@@ -366,6 +370,49 @@ export async function initializeAthens(options = {}) {
   sanitizeVec3(initialLookTarget, DEFAULT_PLAYER);
   camera.lookAt(initialLookTarget);
   scene.add(camera);
+
+// SKYSYS_START
+// Ensure we can actually see distant background
+  if (camera.far < 50000) { camera.far = 50000; camera.updateProjectionMatrix(); }
+
+// Add procedural sky if not present
+  if (!scene.getObjectByName('ProceduralSky')) {
+    createProceduralSky(scene, renderer, { elevation: 35, azimuth: 180 });
+  }
+
+// Add horizon mountains ring if not present
+  if (!scene.getObjectByName('HorizonMountains')) {
+    const mountains = createHorizonMountains({ radius: 12000, height: 1200, segments: 128, noise: 0.4 });
+    scene.add(mountains);
+  }
+
+// Optional: keep a nice blue clear in case no background is set by env
+  renderer.setClearAlpha(1);
+
+// Dev helpers
+  if (typeof window !== 'undefined') {
+    window.scene = window.scene || scene;
+    window.renderer = window.renderer || renderer;
+    window.camera = window.camera || camera;
+    installSkyDev({ scene, renderer, camera });
+
+    // Convenience toggles
+    window.dev = window.dev || {};
+    window.dev.sky = window.dev.sky || {};
+    window.dev.sky.on = () => { createProceduralSky(scene, renderer, {}); };
+    window.dev.sky.off = () => { scene.background = null; };
+    window.dev.sky.mountains = () => {
+      if (!scene.getObjectByName('HorizonMountains')) {
+        scene.add(createHorizonMountains({}));
+      }
+    };
+    window.dev.sky.color = (hex = 0x87ceeb) => {
+      renderer.setClearAlpha(1);
+      renderer.setClearColor(hex, 1);
+      // leave scene.background as-is; this sets clear color only
+    };
+  }
+// SKYSYS_END
 
   let globalWindow = null;
   let searchParams = null;
