@@ -122,7 +122,9 @@ function createTileWireframe(tile, minHeight, maxHeight) {
     depthTest: true,
   });
   const wire = new THREE.LineSegments(geometry, material);
-  wire.position.copy(tile.position);
+  if (tile.position) {
+    wire.position.copy(tile.position);
+  }
   wire.position.y = height + 0.02;
   wire.name = `ground:debug:tile:${tile.index}`;
   return wire;
@@ -162,6 +164,9 @@ function createLabelSprite(text) {
 
 function createSkirtMarker(tile, skirt) {
   if (!tile?.dirtGroup || !skirt) return null;
+  if (!skirt.topLocal || !skirt.bottomLocal) return null;
+  if (typeof skirt.height !== 'number') return null;
+  
   const group = new THREE.Group();
   group.name = `ground:debug:skirt:${tile.index}:${skirt.direction}`;
 
