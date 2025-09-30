@@ -17,6 +17,7 @@ const rightVector = new THREE.Vector3();
 const viewDirection = new THREE.Vector3();
 const desiredMove = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
+const verticalMoveDelta = new THREE.Vector3();
 
 const TURN_ACCEL = 12;
 
@@ -128,6 +129,21 @@ export function createPlayerController(
   let isFlying = false;
   let prevToggleDown = false;
   let flyGraceFrames = 0;
+  const flightColliderCache = [];
+
+  function getFlightColliders() {
+    flightColliderCache.length = 0;
+    if (!Array.isArray(colliderAabbs) || colliderAabbs.length === 0) {
+      return flightColliderCache;
+    }
+    for (let i = 0; i < colliderAabbs.length; i += 1) {
+      const entry = colliderAabbs[i];
+      if (!entry || !entry.mesh || !entry.box) continue;
+      if (entry.mesh.userData?.isGround === true) continue;
+      flightColliderCache.push(entry);
+    }
+    return flightColliderCache;
+  }
 
   function alignCapsuleToObject() {
     if (!controlledObject || !controlledObject.position) {
@@ -364,16 +380,23 @@ export function createPlayerController(
     actualMove.set(0, 0, 0);
     if (dt > 0) {
       moveDelta.copy(velocity).multiplyScalar(dt);
+      let verticalDelta = 0;
       if (!isFlying) {
         moveDelta.y = 0;
-      } else if (flyGraceFrames > 0) {
-        moveDelta.y += FLIGHT_NUDGE_UP * 0.5;
-        flyGraceFrames--;
+      } else {
+        verticalDelta = moveDelta.y;
+        moveDelta.y = 0;
+        if (flyGraceFrames > 0) {
+          verticalDelta += FLIGHT_NUDGE_UP * 0.5;
+          flyGraceFrames--;
+        }
       }
       sanitizeVec3(moveDelta, ZERO_VECTOR);
 
+      const activeColliders = isFlying ? getFlightColliders() : colliderAabbs;
+
       if (moveDelta.lengthSq() > 1e-10) {
-        const result = resolveCapsuleVsAABBs(capsule, moveDelta, colliderAabbs, {
+        const result = resolveCapsuleVsAABBs(capsule, moveDelta, activeColliders, {
           maxIters: 3,
           skin: 0.01
         });
@@ -382,6 +405,23 @@ export function createPlayerController(
         sanitizePosition(controlledObject.position);
         actualMove.copy(result.moved);
         sanitizeVec3(actualMove, ZERO_VECTOR);
+      }
+
+      if (isFlying && Number.isFinite(verticalDelta) && Math.abs(verticalDelta) > 1e-6) {
+        verticalMoveDelta.set(0, verticalDelta, 0);
+        sanitizeVec3(verticalMoveDelta, ZERO_VECTOR);
+        const resultVertical = resolveCapsuleVsAABBs(capsule, verticalMoveDelta, activeColliders, {
+          maxIters: 3,
+          skin: 0.01
+        });
+        sanitizeVec3(capsule.position, SAFE_POSITION);
+        controlledObject.position.copy(capsule.position);
+        sanitizePosition(controlledObject.position);
+        actualMove.add(resultVertical.moved);
+        sanitizeVec3(actualMove, ZERO_VECTOR);
+      } else if (isFlying && !Number.isFinite(verticalDelta)) {
+        controlledObject.position.y = SAFE_POSITION.y;
+        capsule.setPosition(controlledObject.position.x, controlledObject.position.y, controlledObject.position.z);
       }
     }
 
