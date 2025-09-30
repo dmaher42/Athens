@@ -6,7 +6,7 @@ import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
 import { loadPlayerAvatar, PlayerAvatar } from '../player/playerAvatar.ts';
-import { AnimationController } from '../player/animationController';
+import { AnimationController, scaleObjectToHeight } from '../player/animationController';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { installRenderGuard } from '../safety/hardenPositions';
@@ -546,6 +546,7 @@ export async function runAthens(options: RunOptions = {}) {
   if (!scene.getObjectByName(playerObject.name)) {
     scene.add(playerObject);
   }
+  scaleObjectToHeight(playerObject, 1.8);
   ensureFeetAtLocalZero(playerObject);
 
   if (playerAvatar) {
@@ -553,9 +554,16 @@ export async function runAthens(options: RunOptions = {}) {
       (clip): clip is THREE.AnimationClip => clip instanceof THREE.AnimationClip
     );
     (playerObject as THREE.Object3D & { animations?: THREE.AnimationClip[] }).animations = clips;
-    animController = new AnimationController(
-      playerObject as THREE.Object3D & { animations?: THREE.AnimationClip[] }
-    );
+  }
+
+  if (!animController) {
+    const playerWithAnimations = playerObject as THREE.Object3D & { animations?: THREE.AnimationClip[] };
+    const animations = playerWithAnimations.animations;
+    if (Array.isArray(animations) && animations.length > 0) {
+      animController = new AnimationController(playerWithAnimations);
+      animController.autoUpdate = false;
+      animController.update(0, { immediate: true });
+    }
   }
 
   const resolveSavedState = (): SavedState | null => {
@@ -702,7 +710,9 @@ export async function runAthens(options: RunOptions = {}) {
   playerController.setGroundMeshes?.(groundMeshes);
   playerController.setColliders?.(colliders);
 
-  const state = (playerController as { state?: { anim?: AnimationController | null } }).state;
+  const state = (
+    playerController as { state?: { anim?: AnimationController | null; velocity?: THREE.Vector3 | null } }
+  ).state;
   if (state && animController) {
     state.anim = animController;
   }
@@ -866,6 +876,29 @@ export async function runAthens(options: RunOptions = {}) {
         } catch (error) {
           console.warn('[Athens][Boot] player avatar update failed', error);
         }
+      }
+
+      if (animController) {
+        const usesControllerState = Boolean(state && state.anim === animController);
+        const velocityVec = (state?.velocity ?? null) as THREE.Vector3 | null;
+        let planarSpeed = Number.NaN;
+        if (velocityVec && Number.isFinite(velocityVec.x) && Number.isFinite(velocityVec.z)) {
+          planarSpeed = Math.hypot(velocityVec.x, velocityVec.z);
+        }
+        if (!Number.isFinite(planarSpeed)) {
+          const safeDelta = delta > 1e-6 ? delta : 1 / 60;
+          const denom = Math.max(safeDelta, 1e-6);
+          planarSpeed = denom > 0 ? Math.hypot(playerDelta.x, playerDelta.z) / denom : 0;
+        }
+        if (!usesControllerState) {
+          let desired: 'idle' | 'walk' | 'run' = 'idle';
+          if (planarSpeed >= 2.5) desired = 'run';
+          else if (planarSpeed >= 0.1) desired = 'walk';
+          if (animController.current !== desired) {
+            animController.set(desired);
+          }
+        }
+        animController.update(usesControllerState ? 0 : delta, { immediate: true });
       }
 
       footstepInterval = footsteps.setIntervalBySpeed(currentSpeed);
