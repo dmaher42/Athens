@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { getAssetBase, resolveAssetUrl } from './utils/asset-paths.js';
+import { getAssetBase } from './utils/asset-paths.js';
 import { loadTextureWithFallback } from './utils/fail-soft-loaders.js';
+import { assetUrl } from './utils/assetUrl.ts';
 import { logger } from './utils/logger.ts';
 
 /** Lightweight materials (one-time) */
@@ -55,8 +56,7 @@ const createWallFallbackMaterial = () =>
 MAT.wall = createWallFallbackMaterial();
 
 const texLoader = new THREE.TextureLoader();
-const WALL_TEXTURE_PATH = 'assets/textures/city_wall.jpg';
-const wallURL = resolveAssetUrl(WALL_TEXTURE_PATH);
+const wallURL = assetUrl('assets/textures/city_wall.jpg');
 
 const isDevBuild =
   typeof import.meta !== 'undefined' &&

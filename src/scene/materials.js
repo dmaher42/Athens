@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { loadTextureWithFallback } from '../utils/fail-soft-loaders.js';
 
 const fallbackMaterial = new THREE.MeshStandardMaterial({
@@ -21,7 +21,7 @@ export function loadBuildingTextures() {
     marbleMat.color.set(0xdedede);
     marbleMat.needsUpdate = true;
   };
-  loadTextureWithFallback(resolveAssetUrl('assets/textures/marble.jpg'), {
+  loadTextureWithFallback(assetUrl('assets/textures/marble.jpg'), {
     loader,
     label: 'marble texture',
     fallbackColor: 0xdedede,
@@ -51,7 +51,7 @@ export function loadBuildingTextures() {
     roofMat.color.set(0x8b3a2f);
     roofMat.needsUpdate = true;
   };
-  loadTextureWithFallback(resolveAssetUrl('assets/textures/roof_tiles.jpg'), {
+  loadTextureWithFallback(assetUrl('assets/textures/roof_tiles.jpg'), {
     loader,
     label: 'roof texture',
     fallbackColor: 0x8b3a2f,
@@ -81,7 +81,7 @@ export function loadBuildingTextures() {
     cityWallMat.color.set(0xb8a27c);
     cityWallMat.needsUpdate = true;
   };
-  loadTextureWithFallback(resolveAssetUrl('assets/textures/city_wall.jpg'), {
+  loadTextureWithFallback(assetUrl('assets/textures/city_wall.jpg'), {
     loader,
     label: 'city wall texture',
     fallbackColor: 0xb8a27c,

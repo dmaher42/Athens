@@ -1,14 +1,6 @@
 import * as THREE from 'three';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { logger } from '../utils/logger.ts';
-
-export function assetUrl(rel) {
-  const base = (typeof import.meta !== 'undefined' && import.meta.env && typeof import.meta.env.BASE_URL === 'string')
-    ? import.meta.env.BASE_URL
-    : '/';
-  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
-  const normalizedRel = String(rel || '').replace(/^\/+/, '');
-  return `${normalizedBase}${normalizedRel}`;
-}
 
 export class AudioManager {
   constructor(camera, { masterVolume = 0.9 } = {}) {

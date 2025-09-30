@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { resolveAssetUrl } from '../utils/asset-paths.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import {
   loadTextureWithFallback,
   ensureColorSpace as ensureTextureColorSpace
@@ -31,7 +31,7 @@ function applySharedSettings(texture) {
 
 function loadBaseTexture() {
   if (!cachedBaseTexture) {
-    const url = resolveAssetUrl('assets/textures/grass.jpg');
+    const url = assetUrl('assets/textures/grass.jpg');
     cachedBaseTexture = loadTextureWithFallback(url, {
       loader: textureLoader,
       label: 'ground grass texture',

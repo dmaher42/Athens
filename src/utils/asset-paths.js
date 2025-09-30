@@ -1,4 +1,4 @@
-import { assetUrl } from './assetUrl.js';
+import { assetUrl } from './assetUrl.ts';
 import { logger } from './logger.ts';
 
 function ensureTrailingSlash(value) {
@@ -164,6 +164,21 @@ export function resolveAssetUrl(path = '') {
   }
 
   sanitized = sanitized.replace(/^\/+/, '');
+
+  try {
+    const absoluteCandidate = new URL(sanitized);
+    if (absoluteCandidate.protocol) {
+      return sanitized;
+    }
+  } catch (_) {
+    // ignore parsing errors, the path is not an absolute URL
+  }
+
+  const baseRoot = assetUrl('');
+  const baseWithoutLeadingSlash = baseRoot.replace(/^\/+/, '');
+  if (baseWithoutLeadingSlash && sanitized.startsWith(baseWithoutLeadingSlash)) {
+    sanitized = sanitized.slice(baseWithoutLeadingSlash.length);
+  }
 
   if (sanitized.startsWith('public/')) {
     sanitized = sanitized.slice('public/'.length);
