@@ -1,6 +1,16 @@
 node_modules/
 dist/
 .vite/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+coverage/
 
 # Generated glTF models are produced by scripts/generate-static-assets.js.
 public/assets/models/*
