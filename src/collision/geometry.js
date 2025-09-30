@@ -453,7 +453,6 @@ export class CollisionGeometry {
         }
         const cityCandidates = [];
         for (const [name, location] of this.namedLocations.entries()) {
-            const properties = { name };
             const distance = Math.sqrt(squaredDistance(location, fallbackOrigin));
             const withinWallsFlag = features.find(
                 (feature) =>
@@ -541,12 +540,6 @@ export class CollisionGeometry {
             }
         }
     }
-}
-
-export async function createCollisionGeometry(options = {}) {
-    const collisionGeometry = new CollisionGeometry(options);
-    await collisionGeometry.load(options);
-    return collisionGeometry;
 }
 
 export { DEFAULT_CITY_WALL_BUFFER_METERS, DEFAULT_LONG_WALL_BUFFER_METERS };

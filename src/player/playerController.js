@@ -137,7 +137,7 @@ export function createPlayerController(
     walkSpeed = Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4.0,
     runMultiplier = Number.isFinite(movementConfig?.runMultiplier) ? movementConfig.runMultiplier : 1.7,
     acceleration = Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : 10,
-    turnLerp = 0.18, // kept for API compatibility
+    _turnLerp = 0.18, // kept for API compatibility
     colliders: initialColliders = [],
     groundSnapSkipRef = null
   } = {}

@@ -93,12 +93,6 @@ function configureTexture(baseTexture, { repeat, anisotropy }) {
   return texture;
 }
 
-/** Optional helper: get a configured, shared dirt texture (cloned from cached base). */
-export function createSharedDirtTexture({ repeat, anisotropy } = {}) {
-  const baseTexture = loadBaseTexture();
-  return configureTexture(baseTexture, { repeat, anisotropy });
-}
-
 function normalizeCornerHeightsInput(input) {
   if (!input) return null;
 

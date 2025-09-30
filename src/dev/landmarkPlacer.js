@@ -170,7 +170,6 @@ export function createLandmarkPlacer({
   camera,
   renderer,
   groundSampler,
-  input,
   onSave
 } = {}) {
   if (!scene || !camera || !renderer) {

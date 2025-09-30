@@ -15,15 +15,22 @@
     "html:no-ts": "./scripts/check-html-no-ts.sh",
     "serve:dist": "http-server dist -p 4173 -s",
     "depcheck": "npx depcheck --ignores='vite,three'",
-    "tag:checkpoint": "node -e \"const d=new Date();const p=n=>String(n).padStart(2,'0');const v=`v${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-a`;console.log(v)\" | xargs -I {} git tag -a {} -m \"Checkpoint\" && git push --tags"
+    "tag:checkpoint": "node -e \"const d=new Date();const p=n=>String(n).padStart(2,'0');const v=`v${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-a`;console.log(v)\" | xargs -I {} git tag -a {} -m \"Checkpoint\" && git push --tags",
+    "lint:unused": "eslint 'src/**/*.{ts,tsx,js}' --max-warnings=0",
+    "reachability": "node ./scripts/reachability.mjs"
   },
   "dependencies": {
     "three": "^0.180.0"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.2.1",
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.17.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-unused-imports": "^3.2.0",
     "http-server": "^14.1.1",
     "tsx": "^4.20.6",
+    "typescript": "~5.5.4",
     "vite": "^5.4.0"
   }
 }

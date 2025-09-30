@@ -12,7 +12,7 @@ if (typeof window !== 'undefined' && !USE_REMOTE) {
     if (typeof origFetch !== 'function') {
       return;
     }
-    window.fetch = async function (input, init) {
+    window.fetch = async function (input, _init) {
       const url = String(input instanceof Request ? input.url : input);
       if (blocked.some((p) => url.includes(p))) {
         logger.warn('[remote blocked]', url);
