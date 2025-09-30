@@ -7,6 +7,7 @@ import { loadGLTF } from '../loaders/safeGltf.js';
 import { logOnce } from '../utils/logOnce.js';
 import { ensureFeetAtLocalZero, placeOnGround } from '../utils/spawn.ts';
 import { logger } from '../utils/logger.ts';
+import { disposeAll } from '../utils/disposable.ts';
 
 const SNAP_OPTIONS = { gravity: 12, maxStepUp: 0.6, maxDrop: 4, hover: 0.03, rayStart: 1000 };
 const GROUND_CLEARANCE = typeof SNAP_OPTIONS.hover === 'number' ? SNAP_OPTIONS.hover : 0.03;
@@ -277,24 +278,6 @@ function fixModelTilt(object3d) {
   }
 }
 
-function disposeObject3D(object) {
-  if (!object) return;
-  object.traverse((child) => {
-    if (child.isMesh || child.isSkinnedMesh) {
-      child.geometry?.dispose?.();
-      if (Array.isArray(child.material)) {
-        child.material.forEach((mat) => mat?.dispose?.());
-      } else {
-        child.material?.dispose?.();
-      }
-    }
-    if (child.isSprite) {
-      child.material?.map?.dispose?.();
-      child.material?.dispose?.();
-    }
-  });
-}
-
 function normalizeModelUrl(input) {
   if (!input) return null;
   if (typeof input !== 'string') return resolveAssetUrl(input);
@@ -370,7 +353,7 @@ function attachModelToNpc(npc, model) {
     object3d.remove(npc.modelRoot);
   }
   if (npc.modelRoot && npc.modelRoot !== model) {
-    disposeObject3D(npc.modelRoot);
+    disposeAll(npc.modelRoot);
   }
   npc.modelRoot = model || null;
   if (model) {
@@ -435,13 +418,13 @@ function disposeNpcEntity(npc) {
   npc.mixer = null;
   if (npc.modelRoot) {
     if (npc.modelRoot.parent === npc.object3d) npc.object3d.remove(npc.modelRoot);
-    disposeObject3D(npc.modelRoot);
+    disposeAll(npc.modelRoot);
     npc.modelRoot = null;
   }
   if (npc.object3d?.parent) {
     npc.object3d.parent.remove(npc.object3d);
   }
-  disposeObject3D(npc.object3d);
+  disposeAll(npc.object3d);
 }
 
 function createNpcEntity(config = {}, { scene = null, navContext = null, groundMeshes = [] } = {}) {

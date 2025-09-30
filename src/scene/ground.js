@@ -4,6 +4,13 @@ import { updateGroundDebugOverlay, clearGroundDebugOverlay } from '../ground/deb
 
 let __groundSingleton = null;
 
+export function disposeGround() {
+  if (__groundSingleton?.dispose) {
+    __groundSingleton.dispose();
+  }
+  __groundSingleton = null;
+}
+
 function hideLegacyGroundPlanes(scene, layeredGroundRoot) {
   if (!scene) return;
 
@@ -115,7 +122,15 @@ export async function loadGround(scene, renderer, options = {}) {
       layeredOptions.stabilizeTileOverlap = stabilizeTileOverlap;
     }
 
-    __groundSingleton = createGroundLayered(layeredOptions);
+    const layered = createGroundLayered(layeredOptions);
+    const originalDispose = layered?.dispose?.bind(layered);
+    layered.dispose = () => {
+      originalDispose?.();
+      if (__groundSingleton === layered) {
+        __groundSingleton = null;
+      }
+    };
+    __groundSingleton = layered;
 
     if (__groundSingleton?.root) {
       __groundSingleton.root.userData.layeredGround = true;

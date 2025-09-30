@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { applySky } from '../scene/sky.ts';
+import { disposeAll } from '../utils/disposable.ts';
 
 export type SkyMode = 'procedural';
 
@@ -33,6 +34,16 @@ export class EnvironmentController {
   }
 
   dispose(): void {
+    if (this.disposed) return;
     this.disposed = true;
+    const environment = this.scene.environment as THREE.Texture | null;
+    const background = this.scene.background;
+    const backgroundTexture =
+      background instanceof THREE.Texture || background instanceof THREE.CubeTexture
+        ? background
+        : null;
+    disposeAll(environment, backgroundTexture);
+    this.scene.environment = null;
+    this.scene.background = null;
   }
 }

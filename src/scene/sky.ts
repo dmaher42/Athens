@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { logger } from '../utils/logger';
+import { disposeAll } from '../utils/disposable.ts';
 
 export type SkyChoice =
   | {
@@ -94,11 +95,7 @@ function baseURL(rel: string) {
 
 function disposeExistingEnvironment(scene: THREE.Scene) {
   const current = scene.environment as THREE.Texture | THREE.CubeTexture | null;
-  if (current && typeof (current as THREE.Texture).dispose === 'function') {
-    try {
-      (current as THREE.Texture).dispose();
-    } catch {}
-  }
+  disposeAll(current);
 }
 
 function setTextureColorSpace(tex: THREE.Texture | THREE.CubeTexture) {
@@ -214,14 +211,9 @@ export async function applySky(
     logger.warn('[sky] Failed to apply sky environment.', error);
   } finally {
     // Dispose the previous background texture if it was replaced
-    const backgroundDisposable = previousBackground as unknown as { dispose?: () => void };
-    if (
-      previousBackground &&
-      previousBackground !== scene.background &&
-      typeof backgroundDisposable?.dispose === 'function'
-    ) {
+    if (previousBackground && previousBackground !== scene.background) {
       try {
-        backgroundDisposable.dispose();
+        disposeAll(previousBackground as THREE.Texture | THREE.CubeTexture | null);
       } catch (e) {
         logger.warn('[sky] Failed to dispose previous background texture.', e);
       }

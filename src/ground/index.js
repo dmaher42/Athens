@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { createDirtGround, createDirtMaterial } from './dirt.js';
 import { createGrassGround } from './grass.js';
+import { disposeAll } from '../utils/disposable.ts';
 
 /**
  * Enumerates available ground types.
@@ -736,6 +737,15 @@ export function createGroundLayered({
   root.userData.tileInstances = tileInstances;
   root.userData.groundConfig = config;
 
+  function dispose() {
+    if (root.parent) {
+      root.parent.remove(root);
+    }
+    disposeAll(root);
+    tileInstances.length = 0;
+    skirts.length = 0;
+  }
+
   return {
     root,
     dirt: dirtLayer,
@@ -744,5 +754,6 @@ export function createGroundLayered({
     tiles: tileInstances,
     skirts: skirtRecords,
     config,
+    dispose,
   };
 }
