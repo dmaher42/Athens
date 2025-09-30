@@ -120,6 +120,11 @@ export function createPlayerController(
 
   let groundSnapSkip = typeof groundSnapSkipRef === 'object' ? groundSnapSkipRef : null;
 
+  const state = {
+    velocity: new THREE.Vector3(),
+    anim: null
+  };
+
   const physicsState = {
     vy: 0,
     lastGoodY: Number.isFinite(controlledObject?.position?.y)
@@ -375,6 +380,17 @@ export function createPlayerController(
       velocity.y = 0;
     }
     sanitizeVec3(velocity, ZERO_VECTOR);
+    state.velocity.copy(velocity);
+
+    // ANIM_START
+    if (state.anim) {
+      const speed = Math.sqrt(state.velocity.x ** 2 + state.velocity.z ** 2);
+      if (speed < 0.1) state.anim.set('idle');
+      else if (speed < 2.5) state.anim.set('walk');
+      else state.anim.set('run');
+      state.anim.update(dt);
+    }
+    // ANIM_END
 
     // Integrate motion with collisions
     sanitizePosition(position);
@@ -466,7 +482,8 @@ export function createPlayerController(
     },
     isFlying() {
       return isFlying;
-    }
+    },
+    state
   };
 }
 

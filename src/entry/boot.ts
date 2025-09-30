@@ -6,6 +6,7 @@ import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
 import { loadPlayerAvatar, PlayerAvatar } from '../player/playerAvatar.ts';
+import { AnimationController } from '../player/animationController';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { installRenderGuard } from '../safety/hardenPositions';
@@ -524,6 +525,7 @@ export async function runAthens(options: RunOptions = {}) {
   const colliders = buildAABBs(colliderMeshes);
 
   let playerAvatar: PlayerAvatar | null = null;
+  let animController: AnimationController | null = null;
   const existingPlayer =
     scene.getObjectByName('MainCharacter') || scene.getObjectByName('Player');
 
@@ -545,6 +547,16 @@ export async function runAthens(options: RunOptions = {}) {
     scene.add(playerObject);
   }
   ensureFeetAtLocalZero(playerObject);
+
+  if (playerAvatar) {
+    const clips = Object.values(playerAvatar.clips).filter(
+      (clip): clip is THREE.AnimationClip => clip instanceof THREE.AnimationClip
+    );
+    (playerObject as THREE.Object3D & { animations?: THREE.AnimationClip[] }).animations = clips;
+    animController = new AnimationController(
+      playerObject as THREE.Object3D & { animations?: THREE.AnimationClip[] }
+    );
+  }
 
   const resolveSavedState = (): SavedState | null => {
     if (options?.savedState) {
@@ -689,6 +701,11 @@ export async function runAthens(options: RunOptions = {}) {
   });
   playerController.setGroundMeshes?.(groundMeshes);
   playerController.setColliders?.(colliders);
+
+  const state = (playerController as { state?: { anim?: AnimationController | null } }).state;
+  if (state && animController) {
+    state.anim = animController;
+  }
 
   const footsteps = createFootsteps(audio);
 
