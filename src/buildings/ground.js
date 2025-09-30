@@ -107,7 +107,7 @@ function buildAcropolisMesa(scene, materials, options) {
     const geometry = new THREE.CylinderGeometry(radius, radius, stepHeight, 48, 1, false);
     const mesh = new THREE.Mesh(geometry, terraceMaterial);
     mesh.name = `AcropolisTerrace:${terraces - i}`;
-    mesh.castShadow = false;
+    mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.position.y = stepBottom + stepHeight / 2;
     acropolisGroup.add(mesh);
