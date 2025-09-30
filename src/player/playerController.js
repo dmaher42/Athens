@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
 import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
-import { movementConfig, FLIGHT as FLIGHT_DEFAULTS } from '../config/movement.ts';
+import { movementConfig, FLIGHT as FLIGHT_DEFAULTS, resolveCharacterScale } from '../config/movement.ts';
 import { sanitizeVec3, DEFAULT_PLAYER } from '../utils/sanitize.ts';
 
 const moveDirection = new THREE.Vector3();
@@ -21,10 +21,22 @@ const verticalMoveDelta = new THREE.Vector3();
 
 const TURN_ACCEL = 12;
 
+const CHARACTER_SCALE = resolveCharacterScale();
+const DEFAULT_SAFE_POSITION = {
+  x: DEFAULT_PLAYER.x,
+  y: DEFAULT_PLAYER.y * CHARACTER_SCALE,
+  z: DEFAULT_PLAYER.z
+};
+
+const configuredSafe = movementConfig?.safePosition ?? {};
 const SAFE_POSITION = {
-  x: Number.isFinite(movementConfig?.safePosition?.x) ? movementConfig.safePosition.x : DEFAULT_PLAYER.x,
-  y: Number.isFinite(movementConfig?.safePosition?.y) ? movementConfig.safePosition.y : DEFAULT_PLAYER.y,
-  z: Number.isFinite(movementConfig?.safePosition?.z) ? movementConfig.safePosition.z : DEFAULT_PLAYER.z
+  x: Number.isFinite(configuredSafe?.x) ? configuredSafe.x : DEFAULT_SAFE_POSITION.x,
+  y: Number.isFinite(configuredSafe?.y)
+    ? configuredSafe.y === DEFAULT_PLAYER.y
+      ? DEFAULT_SAFE_POSITION.y
+      : configuredSafe.y
+    : DEFAULT_SAFE_POSITION.y,
+  z: Number.isFinite(configuredSafe?.z) ? configuredSafe.z : DEFAULT_SAFE_POSITION.z
 };
 const ZERO_VECTOR = { x: 0, y: 0, z: 0 };
 
@@ -116,7 +128,9 @@ export function createPlayerController(
   let groundMeshes = [];
   let colliderAabbs = Array.isArray(initialColliders) ? initialColliders : [];
 
-  const capsule = new Capsule(0.45, 1.6);
+  const capsuleRadius = 0.45 * CHARACTER_SCALE;
+  const capsuleHeight = 1.6 * CHARACTER_SCALE;
+  const capsule = new Capsule(capsuleRadius, capsuleHeight);
 
   let groundSnapSkip = typeof groundSnapSkipRef === 'object' ? groundSnapSkipRef : null;
 

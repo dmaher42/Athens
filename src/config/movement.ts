@@ -30,6 +30,14 @@ export interface MovementCameraConfig {
   seed?: CameraSeedConfig;
 }
 
+export interface CharacterConfig {
+  /**
+   * Uniform scale applied to the controllable character.
+   * The value is a dimensionless multiplier where `1` keeps the default asset size.
+   */
+  scale?: number;
+}
+
 export interface MovementConfig {
   walkSpeed?: number;
   runMultiplier?: number;
@@ -37,6 +45,7 @@ export interface MovementConfig {
   safePosition?: { x: number; y: number; z: number };
   flight?: FlightConfig;
   camera?: MovementCameraConfig;
+  character?: CharacterConfig;
 }
 
 export const FLIGHT = {
@@ -44,11 +53,24 @@ export const FLIGHT = {
   horizontalSpeed: 8
 } as const;
 
+export const DEFAULT_CHARACTER_SCALE = 1;
+
+export function resolveCharacterScale(config: MovementConfig = movementConfig): number {
+  const value = config?.character?.scale;
+  const numericScale = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numericScale) && numericScale > 0
+    ? numericScale
+    : DEFAULT_CHARACTER_SCALE;
+}
+
 export const movementConfig: MovementConfig = {
   walkSpeed: 4,
   runMultiplier: 1.7,
   acceleration: 10,
   safePosition: { x: 0, y: 1, z: 0 },
+  character: {
+    scale: DEFAULT_CHARACTER_SCALE
+  },
   flight: {
     toggleKey: 'KeyF',
     toggleKeys: ['KeyF', 'KeyX'],

@@ -20,7 +20,7 @@ import { installFlyBypass } from '../dev/flyBypass.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { createGameLoop } from '../engine/loop.js';
 import { initSky, setSky, reapplySky } from '../sky/SkyManager.ts';
-import { movementConfig } from '../config/movement.ts';
+import { movementConfig, resolveCharacterScale } from '../config/movement.ts';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
@@ -253,10 +253,17 @@ function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
   });
 }
 
+const CHARACTER_SCALE = resolveCharacterScale();
 const DEFAULT_PLAYER_START = new THREE.Vector3(6, 0, -12);
 const PLAYER_SEARCH_STEP = 4;
 const PLAYER_SEARCH_RINGS = 10;
-const PLAYER_COLLIDER_MARGIN = 1.5;
+const PLAYER_COLLIDER_MARGIN = 1.5 * CHARACTER_SCALE;
+const PLAYER_SPAWN_HOVER = 0.05 * CHARACTER_SCALE;
+const PLAYER_SAFE_FALLBACK = {
+  x: DEFAULT_PLAYER.x,
+  y: DEFAULT_PLAYER.y * CHARACTER_SCALE,
+  z: DEFAULT_PLAYER.z
+};
 
 const _spawnCandidate = new THREE.Vector3();
 
@@ -304,7 +311,7 @@ function findSafePlayerSpawn({
   hint,
   groundMeshes,
   colliders,
-  hover = 0.05,
+  hover = PLAYER_SPAWN_HOVER,
   fromY = 400
 } = {}) {
   const base = toVector3(hint, DEFAULT_PLAYER_START);
@@ -918,10 +925,10 @@ export async function initializeAthens(options = {}) {
     hint: spawnHint,
     groundMeshes,
     colliders,
-    hover: 0.05,
+    hover: PLAYER_SPAWN_HOVER,
     fromY: 400
   });
-  sanitizeVec3(playerSpawn, DEFAULT_PLAYER);
+  sanitizeVec3(playerSpawn, PLAYER_SAFE_FALLBACK);
 
   // Landmarks & overlay
   const landmarks = await loadLandmarks({

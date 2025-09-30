@@ -1,4 +1,5 @@
 import { createNpc } from './npcSystem.js';
+import { resolveCharacterScale } from '../config/movement.ts';
 
 function sanitizeVector(input) {
   if (!input) {
@@ -49,7 +50,7 @@ export function createMainCharacter(scene, options = {}) {
     modelUrl = 'models/character.glb',
     initialPosition = { x: 0, y: 0, z: 0 },
     headingRadians = 0,
-    scale = 1
+    scale = resolveCharacterScale()
   } = options;
 
   const start = sanitizeVector(initialPosition);
