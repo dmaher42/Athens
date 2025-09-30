@@ -1,15 +1,19 @@
 node_modules/
 dist/
 .vite/
-public/assets/models/cypress.glb
-public/assets/models/plane.glb
-public/assets/models/hoplite_npc.glb
-public/assets/models/npc_athenian.glb
-public/assets/models/Adventurer1.glb
-public/assets/models/brokenCHar.glb
-public/assets/models/character3.glb
-public/assets/models/Adventurer.glb
-public/assets/models/character2.glb
+
+# Generated glTF models are produced by scripts/generate-static-assets.js.
+public/assets/models/*
+!public/assets/models/README.txt
+
+# Runtime audio clips are supplied locally and kept out of git.
+public/assets/audio/*
+!public/assets/audio/README.md
+
+# Vendored bundles should live in npm dependencies instead.
+public/assets/vendor/*
+!public/assets/vendor/README.md
+
 # Development gradient placeholders (not tracked)
 assets/sky/dawn.jpg
 assets/sky/day.jpg
@@ -20,4 +24,3 @@ public/assets/sky/day.jpg
 public/assets/sky/dusk.jpg
 public/assets/sky/night.jpg
 public/favicon.ico
-public/assets/audio/*.mp3
