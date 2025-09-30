@@ -16,6 +16,7 @@ import { createKeyboard } from '../input/keyboard.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
+import { installFlyBypass } from '../dev/flyBypass.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { createGameLoop } from '../engine/loop.js';
 import { initSky, setSky, reapplySky } from '../sky/SkyManager.ts';
@@ -901,6 +902,13 @@ export async function initializeAthens(options = {}) {
     sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
   }
 
+  const flyBypassFallbackPosition = new THREE.Vector3();
+  const flyBypassVelocity = { y: 0 };
+  const flyBypassState = {
+    position: playerObject?.position || flyBypassFallbackPosition,
+    velocity: flyBypassVelocity
+  };
+
   // Controls & camera
   const cameraSettings = movementConfig?.camera ?? {};
   const cameraFollowConfig = cameraSettings?.follow ?? {};
@@ -1083,6 +1091,7 @@ export async function initializeAthens(options = {}) {
         controller.setObject?.(resolvedPlayer);
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
+        flyBypassState.position = playerObject?.position || flyBypassFallbackPosition;
         if (savedState) {
           restoreCameraAndPlayer(savedState);
         } else {
@@ -1163,6 +1172,9 @@ export async function initializeAthens(options = {}) {
 
       keyboard?.update?.();
 
+      flyBypassState.position = playerObject?.position || flyBypassFallbackPosition;
+      flyBypass?.tick?.(delta);
+
       const npcContext = { groundMeshes, skippedLargeDt: Boolean(skippedLargeDt) };
       mainCharacter?.update?.(delta, npcContext);
       npcManager?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
@@ -1242,6 +1254,31 @@ export async function initializeAthens(options = {}) {
   };
 
   const gameLoop = createGameLoop(updateFrame, renderFrame);
+
+  const flyBypassInput = {
+    held(code) {
+      if (!keyboard || typeof keyboard.isDown !== 'function') {
+        return false;
+      }
+      switch (code) {
+        case 'flyUp':
+          return keyboard.isDown('Space') || keyboard.isDown('KeyE');
+        case 'flyDown':
+          return (
+            keyboard.isDown('ShiftLeft') ||
+            keyboard.isDown('ShiftRight') ||
+            keyboard.isDown('ControlLeft') ||
+            keyboard.isDown('ControlRight') ||
+            keyboard.isDown('KeyQ') ||
+            keyboard.isDown('KeyC')
+          );
+        default:
+          return keyboard.isDown(code);
+      }
+    }
+  };
+
+  const flyBypass = installFlyBypass({ state: flyBypassState, input: flyBypassInput });
   gameLoop.start();
 
   // Context / teardown
