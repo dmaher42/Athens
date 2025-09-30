@@ -46,138 +46,92 @@ import { installSkyDev } from '../dev/skyDebugHooks.js';
 import { EnvironmentController } from '../environment/EnvironmentController.ts';
 // SKYSYS_END
 
-// CHAR_HEIGHT_START
-function _boxHeightOf(obj) {
+// CHAR_MAIN_HEIGHT_START
+function __measure(obj) {
   if (!obj) return 0;
   const box = new THREE.Box3().setFromObject(obj);
   const size = new THREE.Vector3();
   box.getSize(size);
-  return size.y;
+  return size.y || 0;
 }
 
-function _findMainCharacter(scene) {
-  // Try common globals (if exposed)
-  if (typeof window !== 'undefined') {
-    if (window.mainCharacter) return window.mainCharacter;
-    if (window.player) return window.player;
-    if (window.state?.character) return window.state.character;
-  }
-  // Try by name
-  const candidates = ['mainCharacter', 'MainCharacter', 'Player', 'Character', 'Avatar', 'Hero'];
-  for (const n of candidates) {
-    const hit = scene.getObjectByName(n);
-    if (hit) return hit;
-  }
-  // Fallback: first object that looks like a skinned character
-  let pick = null;
-  scene.traverse((o) => {
-    if (pick) return;
-    if (o?.isSkinnedMesh || /character|player|avatar|hero/i.test(o?.name || '')) {
-      pick = o.isSkinnedMesh ? (o.parent || o) : o;
-    }
-  });
-  return pick;
-}
-
-function _setWorldPosition(object, x, y, z) {
-  if (!object) return false;
-  object.updateMatrixWorld(true);
-  const parent = object.parent;
-  if (parent) {
-    parent.updateMatrixWorld(true);
-    const wp = new THREE.Vector3(x, y, z);
-    object.position.copy(parent.worldToLocal(wp));
-  } else {
-    object.position.set(x, y, z);
-  }
-  object.updateMatrixWorld(true);
-  return true;
-}
-
-function _raycastGroundYSafe(pos) {
-  try {
-    if (typeof window.raycastGroundY === 'function') {
-      const gy = window.raycastGroundY(pos);
-      if (Number.isFinite(gy)) return gy;
-    }
-  } catch {}
-  return null;
-}
-
-/**
- * Ensure character visual + collider match a desired height (meters).
- * - Measures baseline (unscaled) height once, caches it on userData.
- * - Applies uniform mesh scale.
- * - Scales capsule and navAgent metrics if present.
- */
-function _applyCharacterHeight(scene, options, desiredMeters = 1.8) {
-  const char = _findMainCharacter(scene);
-  if (!char) { try { console.warn('[CharHeight] character not found'); } catch {} return; }
-
-  // Cache original scale & baseline height once
+function __applyScaleMult(char, mult) {
+  if (!char) return;
   char.userData._origScale ??= char.scale.clone();
-  if (!char.userData._baselineHeight) {
-    const s = char.scale.clone();
-    char.scale.set(1, 1, 1);
-    char.updateMatrixWorld(true);
-    char.userData._baselineHeight = _boxHeightOf(char) || 1;
-    char.scale.copy(s);
-    char.updateMatrixWorld(true);
-  }
-  const baseline = char.userData._baselineHeight || 1;
-  const factor = desiredMeters / baseline;
-
-  // Apply visual scale idempotently (relative to original)
-  char.scale.set(
-    char.userData._origScale.x * factor,
-    char.userData._origScale.y * factor,
-    char.userData._origScale.z * factor
-  );
+  const base = char.userData._origScale;
+  char.scale.set(base.x * mult, base.y * mult, base.z * mult);
   char.updateMatrixWorld(true);
 
-  // Collider/controller alignment if state is global
   const st = (typeof window !== 'undefined' ? window.state : undefined) || {};
   if (typeof st.capsuleHalfHeight === 'number') {
     st._origCapsuleHalfHeight ??= st.capsuleHalfHeight;
-    st.capsuleHalfHeight = st._origCapsuleHalfHeight * factor;
+    st.capsuleHalfHeight = st._origCapsuleHalfHeight * mult;
   }
   if (typeof st.radius === 'number') {
     st._origRadius ??= st.radius;
-    st.radius = st._origRadius * factor;
+    st.radius = st._origRadius * mult;
   }
   if (st.navAgent) {
     if (typeof st.navAgent.height === 'number') {
       st._origAgentHeight ??= st.navAgent.height;
-      st.navAgent.height = st._origAgentHeight * factor;
+      st.navAgent.height = st._origAgentHeight * mult;
     }
     if (typeof st.navAgent.radius === 'number') {
       st._origAgentRadius ??= st.navAgent.radius;
-      st.navAgent.radius = st._origAgentRadius * factor;
+      st.navAgent.radius = st._origAgentRadius * mult;
     }
   }
-
-  // Optional snap-to-ground if available
-  const wp = char.getWorldPosition(new THREE.Vector3());
-  const gy = _raycastGroundYSafe(wp);
-  if (gy !== null) _setWorldPosition(char, wp.x, gy + 0.02, wp.z);
-
-  try { console.info('[CharHeight] applied', { desiredMeters, factor }); } catch {}
 }
 
-function _installCharHeightDev(scene, options) {
-  if (typeof window === 'undefined') return;
-  window.dev = window.dev || {};
-  window.dev.character = window.dev.character || {};
-  window.dev.character.setHeight = (m = 1.8) => _applyCharacterHeight(scene, options, m);
-  // convenience alias
-  window.dev.character.status = () => {
-    const char = _findMainCharacter(scene);
-    if (!char) return console.log('[CharHeight] no character found');
-    const h = _boxHeightOf(char);
-    console.log('[CharHeight] measuredHeight≈', h.toFixed(2), 'scale=', char.scale);
-  };
+function __enforceMainCharacterHeight(scene, options) {
+  const unitsPerMeter = options?.movementConfig?.character?.unitsPerMeter ?? 50;
+  const desiredMeters = options?.movementConfig?.character?.height ?? 1.8;
+  const targetUnits = desiredMeters * unitsPerMeter;
+
+  const char = scene?.getObjectByName?.('MainCharacter');
+  if (!char) {
+    try { console.warn('[CharHeight] MainCharacter not found'); } catch {}
+    return;
+  }
+
+  const measured = __measure(char);
+  const scaleY = char.scale?.y || 1;
+  const baselineUnits = measured / scaleY || 1;
+  const mult = targetUnits / baselineUnits;
+
+  __applyScaleMult(char, mult);
+  requestAnimationFrame(() => __applyScaleMult(char, mult));
+
+  try {
+    console.info('[CharHeight/MainCharacter]', {
+      desiredMeters,
+      unitsPerMeter,
+      targetUnits,
+      baselineUnits,
+      mult
+    });
+  } catch {}
+
+  if (typeof window !== 'undefined') {
+    window.dev = window.dev || {};
+    window.dev.character = Object.assign(window.dev.character || {}, {
+      setHeightMeters: (m = 1.8, upm = unitsPerMeter) => {
+        const c = scene?.getObjectByName?.('MainCharacter');
+        if (!c) return;
+        const base = (__measure(c)) / (c.scale?.y || 1) || 1;
+        const k = (m * upm) / base;
+        __applyScaleMult(c, k);
+        requestAnimationFrame(() => __applyScaleMult(c, k));
+      },
+      status: () => {
+        const c = scene?.getObjectByName?.('MainCharacter');
+        if (!c) return console.log('[CharHeight] no MainCharacter');
+        console.log('[CharHeight] measured≈', __measure(c).toFixed(2), 'scale=', c.scale);
+      }
+    });
+  }
 }
-// CHAR_HEIGHT_END
+// CHAR_MAIN_HEIGHT_END
 
 // LANDMARK_SPREAD_START
 const _LANDMARK_MATCH = {
@@ -1197,17 +1151,9 @@ export async function initializeAthens(options = {}) {
     sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
   }
 
-  // CHAR_HEIGHT_START
-  // Determine desired height (meters): options.movementConfig.character.height OR default 1.8
-  const desiredCharHeight =
-    options?.movementConfig?.character?.height ??
-    options?.character?.height ??
-    1.8;
-
-  // Apply height once everything is constructed
-  _applyCharacterHeight(scene, options, desiredCharHeight);
-  _installCharHeightDev(scene, options);
-  // CHAR_HEIGHT_END
+  // CHAR_MAIN_HEIGHT_START
+  __enforceMainCharacterHeight(scene, options);
+  // CHAR_MAIN_HEIGHT_END
 
   const flyBypassFallbackPosition = new THREE.Vector3();
   const flyBypassVelocity = { y: 0 };
