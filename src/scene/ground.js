@@ -45,6 +45,15 @@ function isGroundDebugEnabled() {
   }
 }
 
+function isSlopeDemoEnabled() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location.search).get('slopeDemo') === '1';
+  } catch {
+    return false;
+  }
+}
+
 // Signature stays the same as your current code expects.
 export async function loadGround(scene, renderer, options = {}) {
   const {
@@ -66,6 +75,7 @@ export async function loadGround(scene, renderer, options = {}) {
     addFoundationBlendRing = false,
     preventTileSeams,
     stabilizeTileOverlap,
+    heightFn,
   } = options;
 
   const hasShowDirtOverride = Object.prototype.hasOwnProperty.call(options, 'showDirt');
@@ -75,6 +85,11 @@ export async function loadGround(scene, renderer, options = {}) {
   const initialShowGrass = hasShowGrassOverride ? !!showGrass : true;
 
   if (!__groundSingleton) {
+    let effectiveHeightFn = typeof heightFn === 'function' ? heightFn : undefined;
+    if (!effectiveHeightFn && isSlopeDemoEnabled()) {
+      effectiveHeightFn = (x) => 0.002 * x;
+    }
+
     const layeredOptions = {
       dirtOptions: { size, repeat, height: 0, ...dirtOptions },
       grassOptions: { size, repeat, height: 0.02, ...grassOptions },
@@ -88,6 +103,10 @@ export async function loadGround(scene, renderer, options = {}) {
       addElevationSkirts,
       addFoundationBlendRing,
     };
+
+    if (effectiveHeightFn) {
+      layeredOptions.heightFn = effectiveHeightFn;
+    }
 
     if (typeof preventTileSeams === 'boolean') {
       layeredOptions.preventTileSeams = preventTileSeams;
