@@ -1,3 +1,4 @@
+import { movementConfig } from '../config/movement.ts';
 import { createNpc } from './npcSystem.js';
 
 function sanitizeVector(input) {
@@ -45,12 +46,15 @@ function applyScale(object3d, scale) {
  * @returns {{ object3d: import('three').Object3D; update(deltaSeconds: number): void; dispose(): void; ready: Promise<any>; }}
  */
 export function createMainCharacter(scene, options = {}) {
+  const characterConfig = movementConfig?.character ?? {};
   const {
     modelUrl = 'models/character.glb',
     initialPosition = { x: 0, y: 0, z: 0 },
     headingRadians = 0,
-    scale = 1
+    scale: overrideScale
   } = options;
+
+  const scale = overrideScale ?? characterConfig.scale ?? 1;
 
   const start = sanitizeVector(initialPosition);
 
