@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { assetUrl } from '../utils/assetUrl.js';
 
 export type AmbEntry = {
   id: string;
@@ -8,17 +9,15 @@ export type AmbEntry = {
 };
 
 export const AMBIENT_TRACKS: AmbEntry[] = [
+  { id: 'dawn', file: 'assets/audio/ambience_dawn.mp3', label: 'Ambience – Dawn', volume: 0.55 },
+  { id: 'day', file: 'assets/audio/ambience_day.mp3', label: 'Ambience – Day', volume: 0.58 },
+  { id: 'dusk', file: 'assets/audio/ambience_dusk.mp3', label: 'Ambience – Dusk', volume: 0.56 },
+  { id: 'night', file: 'assets/audio/ambience_night.mp3', label: 'Ambience – Night', volume: 0.5 },
   { id: 'forest', file: 'assets/audio/forest-day.mp3', label: 'Forest Day', volume: 0.38 },
-  { id: 'night', file: 'assets/audio/night-crickets.mp3', label: 'Night Crickets', volume: 0.28 },
-  { id: 'coast', file: 'assets/audio/wind-coast.mp3', label: 'Coastal Wind', volume: 0.32 }
+  { id: 'coast', file: 'assets/audio/wind-coast.mp3', label: 'Coastal Wind', volume: 0.32 },
+  { id: 'market', file: 'assets/audio/market_chatter.mp3', label: 'Market Chatter', volume: 0.35 },
+  { id: 'night_crickets', file: 'assets/audio/night-crickets.mp3', label: 'Night Crickets', volume: 0.28 }
 ];
-
-function baseURL(rel: string) {
-  if (typeof document === 'undefined') {
-    return rel;
-  }
-  return new URL(rel, document.baseURI).toString();
-}
 
 type Running = {
   listener: THREE.AudioListener;
@@ -82,7 +81,7 @@ export async function playAmbient(id: string, fadeSeconds = 1.0) {
   const entry = AMBIENT_TRACKS.find((t) => t.id === id) || AMBIENT_TRACKS[0];
   installAutoplayUnlock();
 
-  const srcUrl = baseURL(entry.file);
+  const srcUrl = assetUrl(entry.file);
   let buffer: AudioBuffer;
   try {
     buffer = await loadBuffer(srcUrl);

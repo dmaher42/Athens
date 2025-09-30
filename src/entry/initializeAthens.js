@@ -396,13 +396,13 @@ export async function initializeAthens(options = {}) {
   const ambientTrackIds = new Set(AMBIENT_TRACKS.map((track) => track.id));
   const defaultAmbientTrack = AMBIENT_TRACKS.length > 0 ? AMBIENT_TRACKS[0].id : null;
   const MODE_TO_AMBIENT = {
-    dawn: ['forest', 'coast', 'night'],
-    day: ['forest', 'coast', 'night'],
-    high_noon: ['forest', 'coast', 'night'],
-    dusk: ['coast', 'forest', 'night'],
-    golden_hour: ['coast', 'forest', 'night'],
-    night: ['night', 'coast', 'forest'],
-    midnight: ['night', 'coast', 'forest']
+    dawn: ['dawn', 'forest', 'coast', 'night_crickets'],
+    day: ['day', 'forest', 'coast', 'market'],
+    high_noon: ['day', 'forest', 'coast', 'market'],
+    dusk: ['dusk', 'forest', 'coast', 'night_crickets'],
+    golden_hour: ['dusk', 'forest', 'coast', 'market'],
+    night: ['night', 'night_crickets', 'coast', 'forest'],
+    midnight: ['night', 'night_crickets', 'coast', 'forest']
   };
 
   const selectAmbientTrack = (mode) => {
