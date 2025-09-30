@@ -662,15 +662,19 @@ export async function initializeAthens(options = {}) {
       if (!landmarkPlacer) return;
       if (typeof event?.key !== 'string') return;
       if (shouldIgnoreEvent(event)) return;
-      if (event.key.toLowerCase() !== toggleKey) return;
+      const keyLower = event.key.toLowerCase();
+      if (keyLower !== toggleKey) return;
       event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.repeat) return;
       devApi.toggle();
     };
     if (window.__athensLandmarkToggleHandler) {
+      window.removeEventListener('keydown', window.__athensLandmarkToggleHandler, true);
       window.removeEventListener('keydown', window.__athensLandmarkToggleHandler);
     }
     window.__athensLandmarkToggleHandler = toggleHandler;
-    window.addEventListener('keydown', toggleHandler);
+    window.addEventListener('keydown', toggleHandler, { capture: true });
   }
   if (!scene.userData.landmarkPlacer) {
     scene.userData.landmarkPlacer = landmarkPlacer;
