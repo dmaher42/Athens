@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as THREE from 'three';
 import { installRenderGuard } from '../safety/hardenPositions';
 if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only

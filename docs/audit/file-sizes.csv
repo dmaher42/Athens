@@ -11599,8 +11599,9 @@
 ./src/engine/loop.js,3893
 ./src/engine/safeEntry.js,2597
 ./src/entry/block-remote-guard.js,816
-./src/entry/initializeAthens.js,54322
-./src/entry/landing.js,6835
+./src/entry/app.ts,749
+./src/runtime/initializeAthens.ts,53949
+./src/runtime/runApp.ts,6419
 ./src/geo/__tests__/featureOffsets.test.js,1221
 ./src/geo/__tests__/projection.test.js,1902
 ./src/geo/featureOffsets.js,2043

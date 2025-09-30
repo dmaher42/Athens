@@ -22,4 +22,4 @@ Development builds now launch straight into the main experience at `/`. For trou
 
 ## Entry points
 
-Use `src/entry/initializeAthens.js` as the runtime entry point for embedding Athens into other experiences.
+Use `src/entry/app.ts` as the runtime entry point for embedding Athens into other experiences.

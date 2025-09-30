@@ -37,11 +37,11 @@
 - Two separate sky managers coexist (`src/scene/sky.js` vs `src/scene/sky.ts`) in addition to `src/sky/SkyManager.ts`, each duplicating loader/color-space logic.【F:src/scene/sky.js†L1-L120】【F:src/scene/sky.ts†L1-L200】【F:src/sky/SkyManager.ts†L1-L156】
 
 ### Debug / console noise
-- Production entrypoints log heavily (`console.info`, `console.warn`, `console.error`) within `src/main.js`, `src/entry/landing.js`, `src/entry/initializeAthens.js`, and `src/roads/hybridroads.js` debug helpers.【F:src/main.js†L224-L299】【F:src/entry/landing.js†L139-L209】【F:src/entry/initializeAthens.js†L139-L157】【F:src/roads/hybridroads.js†L95-L126】
+- Production entrypoints log heavily (`console.info`, `console.warn`, `console.error`) within `src/main.js`, `src/entry/app.ts`, `src/runtime/initializeAthens.ts`, and `src/roads/hybridroads.js` debug helpers.【F:src/main.js†L224-L299】【F:src/entry/app.ts†L13-L24】【F:src/runtime/initializeAthens.ts†L139-L759】【F:src/roads/hybridroads.js†L95-L126】
 
 ### Incomplete refactors & TODO hotspots
 - Footstep audio renaming was never reflected in code, leaving default clip names wrong.【F:src/audio/footsteps.js†L24-L56】【F:public/assets/audio/README.md†L12-L13】
-- `AmbientAPI` exposes track IDs that no longer exist, so mode-to-track mapping silently fails.【F:src/audio/ambient.ts†L11-L19】【F:src/entry/initializeAthens.js†L611-L647】
+- `AmbientAPI` exposes track IDs that no longer exist, so mode-to-track mapping silently fails.【F:src/audio/ambient.ts†L11-L19】【F:src/runtime/initializeAthens.ts†L601-L655】
 
 ### Unused dependencies
 - `depcheck` reports `cannon`, `tone`, `rimraf`, and `puppeteer` unused; no references exist in `src/` to those packages.【fd27ba†L1-L6】【F:package.json†L19-L29】
@@ -77,13 +77,13 @@
 - Replace ad-hoc BASE URL logic with a single helper (e.g., keep `asset-paths` and migrate consumers) to simplify GitHub Pages compatibility.【F:src/utils/assetUrl.js†L1-L34】【F:src/utils/asset-paths.js†L68-L107】
 - Normalize audio asset handling: rename files to match `footstep_*` expectations, supply the missing ambience tracks, or degrade gracefully by pruning IDs from `AMBIENT_TRACKS`.【F:src/audio/ambient.ts†L11-L19】【F:src/audio/footsteps.js†L24-L55】
 - Consolidate sky selection into one module (likely `SkyManager.ts`) and migrate all callers, removing `scene/sky.js` and `scene/sky.ts` duplication.【F:src/scene/sky.js†L1-L198】【F:src/scene/sky.ts†L1-L200】【F:src/sky/SkyManager.ts†L1-L156】
-- Strip or gate debug `console.*` calls behind environment checks to keep production logs clean.【F:src/main.js†L224-L299】【F:src/entry/landing.js†L139-L209】
+- Strip or gate debug `console.*` calls behind environment checks to keep production logs clean.【F:src/main.js†L224-L299】【F:src/entry/app.ts†L13-L24】
 
 ## Cleanup plan
 1. **Asset consolidation** – Decide on authoritative asset directories (e.g., keep `models/` as source, ignore generated output) and remove redundant trees from git. Update `.gitignore` to cover entire generated folders.【F:scripts/generate-static-assets.js†L12-L23】【F:.gitignore†L4-L23】
 2. **Audio alignment** – Rename or replace MP3 files to match code expectations, remove unused clips, and update README to reflect the tracked/ignored policy.【F:src/audio/ambient.ts†L11-L19】【F:src/audio/footsteps.js†L24-L55】【F:public/assets/audio/README.md†L7-L16】
 3. **Code pruning** – Delete obsolete modules (`ambience.js`, disabled ground files, duplicate sky modules) after verifying no imports remain, then update references to the canonical implementations.【F:src/audio/ambience.js†L1-L95】【F:src/scene/index1.js†L1-L28】【F:src/scene/sky.ts†L1-L200】
 4. **Memory management** – Add explicit `dispose()` routines for tree libraries and sky environments to prevent GPU leaks during hot reloads or scene swaps.【F:src/vegetation/trees.js†L327-L610】【F:src/sky/SkyManager.ts†L109-L156】
-5. **Logging hygiene** – Guard console usage with environment flags or remove verbose info/debug logs in production entry points.【F:src/main.js†L224-L299】【F:src/entry/initializeAthens.js†L139-L157】
+5. **Logging hygiene** – Guard console usage with environment flags or remove verbose info/debug logs in production entry points.【F:src/main.js†L224-L299】【F:src/runtime/initializeAthens.ts†L139-L759】
 6. **GitHub Pages prep** – Ensure all asset URL helpers use the same base resolution logic and audit `public/` so only necessary, non-generated assets ship to Pages.【F:vite.config.js†L1-L28】【F:src/utils/asset-paths.js†L68-L107】
 

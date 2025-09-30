@@ -1,15 +1,13 @@
-import './block-remote-guard.js';
+// @ts-nocheck
 import * as THREE from 'three';
-import initializeAthens from './initializeAthens.js';
+import initializeAthens from './initializeAthens.ts';
 import boot, { whenBootReady } from '../core/bootstrap.js';
 import { startGameLoop, setLoopWatchdog } from '../engine/loop.js';
 import { createSafeScene } from '../engine/safeEntry.js';
 import { attachWatchdog } from '../ui/watchdog.js';
 import { maybeRemoteInit } from '../services/remote.js';
 
-/**
- * @typedef {ReturnType<typeof initializeAthens> extends Promise<infer T> ? T : never} AthensContext
- */
+export type AthensContext = Awaited<ReturnType<typeof initializeAthens>>;
 
 let initializationTask = null;
 let initializedContext = null;
@@ -225,10 +223,9 @@ async function runAthens(options = {}) {
   }
 }
 
-const globalWindow = /** @type {Window & { runAthens?: typeof runAthens; getAthensContext?: () => Promise<AthensContext | undefined>; }} */ (window);
+export const getInitializationState = () => ({ initializationTask, initializedContext });
 
-globalWindow.runAthens = runAthens;
-globalWindow.getAthensContext = async () => {
+export async function getAthensContext() {
   if (initializedContext) {
     return initializedContext;
   }
@@ -240,17 +237,6 @@ globalWindow.getAthensContext = async () => {
     }
   }
   return undefined;
-};
-
-window.dispatchEvent(
-  new CustomEvent('athens:initializer-ready', {
-    detail: { initializer: runAthens, source: 'landing.js' }
-  })
-);
-console.log('[Athens] initializer ready');
-
-try {
-  await runAthens();
-} catch (error) {
-  console.error('[Athens] Failed to initialize.', error);
 }
+
+export default runAthens;
