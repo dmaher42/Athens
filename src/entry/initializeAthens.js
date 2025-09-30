@@ -5,6 +5,9 @@ import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
 import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
+// PLACER_START
+import { createLandmarkPlacer } from '../dev/landmarkPlacer.js';
+// PLACER_END
 import { buildRoadNetwork } from '../roads/roadNetwork.js';
 import { collectRoadPoints } from '../roads/collectRoadPoints.js';
 import { createNpcManager } from '../npc/npcSystem.js';
@@ -510,6 +513,169 @@ export async function initializeAthens(options = {}) {
   if (!groundMeshes.length) {
     console.warn('[npc] no ground meshes');
   }
+  // PLACER_START
+  const landmarkSequence = [
+    'Agora',
+    'Stoa_of_Attalos',
+    'Tholos',
+    'Theater_of_Dionysus',
+    'Stadium',
+    'CityGate_South',
+    'Port_Quay_A'
+  ];
+  const devLandmarkOptions = options?.dev?.landmarkPlacer;
+  const shouldAttachLandmarkPlacer = devLandmarkOptions !== false;
+  let landmarkPlacer = null;
+  if (typeof window !== 'undefined' && shouldAttachLandmarkPlacer) {
+    const activeList = Array.isArray(devLandmarkOptions?.landmarks) && devLandmarkOptions.landmarks.length
+      ? [...devLandmarkOptions.landmarks]
+      : landmarkSequence;
+    const groundSampler = (x, z) => sampleGroundY(x, z, groundMeshes, { fromY: 400 });
+    const ensureDevNamespace = () => {
+      window.dev = window.dev || {};
+      window.dev.landmarks = window.dev.landmarks || {};
+      return window.dev.landmarks;
+    };
+    const handleSave = (positions = {}) => {
+      const devApi = ensureDevNamespace();
+      const payload = {
+        layout: 'athensPlan',
+        layoutConfig: { positions: {} }
+      };
+      const parseNumber = (value) => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+      const names = typeof landmarkPlacer?.list === 'function' ? landmarkPlacer.list() : activeList;
+      names.forEach((name) => {
+        const entry = positions?.[name];
+        if (entry && typeof entry === 'object') {
+          const x = parseNumber(entry.x);
+          const y = parseNumber(entry.y);
+          const z = parseNumber(entry.z);
+          if (x != null && y != null && z != null) {
+            payload.layoutConfig.positions[name] = { x, y, z };
+          }
+        }
+      });
+      const exportString = JSON.stringify(payload, null, 2);
+      devApi.lastExport = exportString;
+      devApi.lastPayload = payload;
+      // eslint-disable-next-line no-console
+      console.log('[Athens][Landmarks] Exported landmark positions:', exportString);
+      if (typeof devApi.onSave === 'function') {
+        try {
+          devApi.onSave(payload);
+        } catch (error) {
+          console.warn('[Athens][Landmarks] onSave handler error.', error);
+        }
+      }
+    };
+
+    landmarkPlacer = createLandmarkPlacer({
+      scene,
+      camera,
+      renderer,
+      groundSampler,
+      onSave: handleSave
+    });
+    if (typeof landmarkPlacer?.setList === 'function') {
+      landmarkPlacer.setList(activeList);
+    }
+    scene.userData.landmarkPlacer = landmarkPlacer;
+
+    const devApi = ensureDevNamespace();
+    devApi.enable = () => {
+      landmarkPlacer.enable?.();
+      return landmarkPlacer.isEnabled?.() ?? false;
+    };
+    devApi.disable = () => {
+      landmarkPlacer.disable?.();
+      return landmarkPlacer.isEnabled?.() ?? false;
+    };
+    devApi.toggle = () => {
+      if (landmarkPlacer.isEnabled?.()) {
+        landmarkPlacer.disable?.();
+      } else {
+        landmarkPlacer.enable?.();
+      }
+      return landmarkPlacer.isEnabled?.() ?? false;
+    };
+    devApi.next = () => landmarkPlacer.next?.();
+    devApi.prev = () => landmarkPlacer.prev?.();
+    devApi.save = () => {
+      landmarkPlacer.save?.();
+      return devApi.lastExport ?? null;
+    };
+    devApi.set = (name, position) => landmarkPlacer.set?.(name, position);
+    devApi.setList = (list) => landmarkPlacer.setList?.(list);
+    devApi.list = () => (typeof landmarkPlacer.list === 'function' ? landmarkPlacer.list() : [...activeList]);
+    devApi.export = () => {
+      const positions = landmarkPlacer.export?.() || {};
+      const payload = {
+        layout: 'athensPlan',
+        layoutConfig: { positions: {} }
+      };
+      devApi.list().forEach((name) => {
+        const entry = positions?.[name];
+        if (entry && typeof entry === 'object') {
+          payload.layoutConfig.positions[name] = { ...entry };
+        }
+      });
+      return payload;
+    };
+    devApi.positions = () => landmarkPlacer.export?.() || {};
+    devApi.getState = () => landmarkPlacer.getState?.();
+    devApi.refreshGround = () => landmarkPlacer.refreshGround?.();
+    devApi.lastExport = devApi.lastExport ?? null;
+    devApi.lastPayload = devApi.lastPayload ?? null;
+    if (typeof devApi.saveToFile !== 'function') {
+      devApi.saveToFile = () => {
+        console.info('[Athens][Landmarks] saveToFile hook not implemented.');
+      };
+    }
+
+    const toggleKey = typeof devLandmarkOptions?.toggleKey === 'string'
+      ? devLandmarkOptions.toggleKey.toLowerCase()
+      : 'l';
+    const shouldIgnoreEvent = (event) => {
+      const target = event?.target;
+      if (!target || typeof target !== 'object') {
+        return false;
+      }
+      if (target.isContentEditable) {
+        return true;
+      }
+      const element = typeof HTMLElement !== 'undefined' && target instanceof HTMLElement ? target : null;
+      if (!element) {
+        return false;
+      }
+      const tag = element.tagName;
+      if (!tag) return false;
+      const normalized = tag.toLowerCase();
+      if (normalized === 'input' || normalized === 'textarea' || normalized === 'select') {
+        return true;
+      }
+      return Boolean(element.closest?.('input, textarea, select, [contenteditable="true"]'));
+    };
+    const toggleHandler = (event) => {
+      if (!landmarkPlacer) return;
+      if (typeof event?.key !== 'string') return;
+      if (shouldIgnoreEvent(event)) return;
+      if (event.key.toLowerCase() !== toggleKey) return;
+      event.preventDefault();
+      devApi.toggle();
+    };
+    if (window.__athensLandmarkToggleHandler) {
+      window.removeEventListener('keydown', window.__athensLandmarkToggleHandler);
+    }
+    window.__athensLandmarkToggleHandler = toggleHandler;
+    window.addEventListener('keydown', toggleHandler);
+  }
+  if (!scene.userData.landmarkPlacer) {
+    scene.userData.landmarkPlacer = landmarkPlacer;
+  }
+  // PLACER_END
   if (city?.root && groundMeshes.length) {
     const snapOpts = { hover: 0.03, fromY: 300 };
     snapChildrenToGround(city.root, groundMeshes, snapOpts);
