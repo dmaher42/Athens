@@ -2,6 +2,7 @@ export interface FlightConfig {
   toggleKey?: string;
   toggleKeys?: string[];
   horizontalSpeed?: number;
+  verticalSpeed?: number;
   verticalAcceleration?: number;
   verticalMaxSpeed?: number;
   verticalDamping?: number;
@@ -38,6 +39,11 @@ export interface MovementConfig {
   camera?: MovementCameraConfig;
 }
 
+export const FLIGHT = {
+  verticalSpeed: 6,
+  horizontalSpeed: 8
+} as const;
+
 export const movementConfig: MovementConfig = {
   walkSpeed: 4,
   runMultiplier: 1.7,
@@ -46,7 +52,8 @@ export const movementConfig: MovementConfig = {
   flight: {
     toggleKey: 'KeyF',
     toggleKeys: ['KeyF', 'KeyX'],
-    horizontalSpeed: 8,
+    horizontalSpeed: FLIGHT.horizontalSpeed,
+    verticalSpeed: FLIGHT.verticalSpeed,
     verticalAcceleration: 20,
     verticalMaxSpeed: 12,
     verticalDamping: 8,

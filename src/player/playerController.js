@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
 import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
-import { movementConfig } from '../config/movement.ts';
+import { movementConfig, FLIGHT as FLIGHT_DEFAULTS } from '../config/movement.ts';
 import { sanitizeVec3, DEFAULT_PLAYER } from '../utils/sanitize.ts';
 
 const moveDirection = new THREE.Vector3();
@@ -43,16 +43,18 @@ const defaultToggleKeys = (() => {
 const toggleKeySet = new Set(defaultToggleKeys.length ? defaultToggleKeys : [FLIGHT_TOGGLE_KEY]);
 const FLIGHT_HORIZONTAL_SPEED = Number.isFinite(flightOptions.horizontalSpeed)
   ? flightOptions.horizontalSpeed
-  : 8;
-const FLIGHT_VERTICAL_ACCEL = Number.isFinite(flightOptions.verticalAcceleration)
-  ? flightOptions.verticalAcceleration
-  : 20;
-const FLIGHT_VERTICAL_MAX_SPEED = Number.isFinite(flightOptions.verticalMaxSpeed)
-  ? flightOptions.verticalMaxSpeed
-  : 12;
-const FLIGHT_VERTICAL_DAMPING = Number.isFinite(flightOptions.verticalDamping)
-  ? Math.max(0, flightOptions.verticalDamping)
-  : 8;
+  : FLIGHT_DEFAULTS.horizontalSpeed;
+const FLIGHT_VERTICAL_SPEED = (() => {
+  const configured = Number.isFinite(flightOptions.verticalSpeed)
+    ? flightOptions.verticalSpeed
+    : Number.isFinite(flightOptions.verticalMaxSpeed)
+    ? flightOptions.verticalMaxSpeed
+    : FLIGHT_DEFAULTS.verticalSpeed;
+  if (!Number.isFinite(configured)) {
+    return FLIGHT_DEFAULTS.verticalSpeed;
+  }
+  return Math.max(0, configured);
+})();
 const FLIGHT_NUDGE_UP = Number.isFinite(flightOptions.nudgeUp) ? flightOptions.nudgeUp : 0.25;
 const FLIGHT_EXIT_HOVER = Number.isFinite(flightOptions.exitHover) ? flightOptions.exitHover : 0.05;
 const FLIGHT_GRACE_FRAMES = Number.isFinite(flightOptions.startGraceFrames)
@@ -325,10 +327,8 @@ export function createPlayerController(
 
     if (isFlying) {
       physicsState.vy = 0;
-      targetVelocity.y = Number.isFinite(velocity.y) ? velocity.y : 0;
-    } else {
-      targetVelocity.y = 0;
     }
+    targetVelocity.y = 0;
 
     // Accel/lerp velocity
     const accel = Number.isFinite(acceleration) ? Math.max(acceleration, 0) : 10;
@@ -340,27 +340,16 @@ export function createPlayerController(
       const ascendHeld = isAnyKeyDown(currentKeyboard, ascendKeySet);
       const descendHeld = isAnyKeyDown(currentKeyboard, descendKeySet);
       const verticalInput = (ascendHeld ? 1 : 0) - (descendHeld ? 1 : 0);
-      const verticalAccel = Math.max(0, Number.isFinite(FLIGHT_VERTICAL_ACCEL) ? FLIGHT_VERTICAL_ACCEL : 0);
-      const maxVertical = Math.max(
-        0,
-        Number.isFinite(FLIGHT_VERTICAL_MAX_SPEED) ? FLIGHT_VERTICAL_MAX_SPEED : Number.isFinite(flightSpeed) ? flightSpeed : 12
-      );
-      if (verticalInput !== 0 && verticalAccel > 0 && dtSafe > 0) {
-        velocity.y = THREE.MathUtils.clamp(
-          velocity.y + verticalInput * verticalAccel * dtSafe,
-          -maxVertical,
-          maxVertical
-        );
-      } else if (FLIGHT_VERTICAL_DAMPING > 0 && dtSafe > 0) {
-        const dampingDelta = FLIGHT_VERTICAL_DAMPING * dtSafe;
-        if (velocity.y > 0) {
-          velocity.y = Math.max(0, velocity.y - dampingDelta);
-        } else if (velocity.y < 0) {
-          velocity.y = Math.min(0, velocity.y + dampingDelta);
-        }
-        if (Math.abs(velocity.y) < 1e-3) {
-          velocity.y = 0;
-        }
+      const verticalSpeed = Number.isFinite(FLIGHT_VERTICAL_SPEED)
+        ? Math.max(0, FLIGHT_VERTICAL_SPEED)
+        : FLIGHT_DEFAULTS.verticalSpeed;
+      if (verticalInput !== 0 && verticalSpeed > 0) {
+        velocity.y = verticalInput * verticalSpeed;
+      } else {
+        velocity.y = 0;
+      }
+      if (!Number.isFinite(velocity.y)) {
+        velocity.y = 0;
       }
       sanitizeVec3(velocity, ZERO_VECTOR);
     } else {
