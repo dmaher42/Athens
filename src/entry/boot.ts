@@ -30,6 +30,7 @@ import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
 import { createMountainRim as createHorizonMountainRim } from '../horizon/mountainRim.js';
+import { movementConfig } from '../config/movement.ts';
 
 type TransformState = {
   pos?: Partial<THREE.Vector3> | { x?: number | null; y?: number | null; z?: number | null } | null;
@@ -667,8 +668,22 @@ export async function runAthens(options: RunOptions = {}) {
     snapToGround(playerObject, groundMeshes, initialState, 0);
   }
 
+  const cameraSettings = movementConfig?.camera ?? {};
+  const cameraFollowConfig = cameraSettings?.follow ?? {};
+  const cameraSeedConfig = cameraSettings?.seed ?? {};
+
   if (!hasSavedCameraPos) {
-    seedCameraBehindPlayer(playerObject, camera, { followDistance: 6, shoulderHeight: 1.6, pitchDeg: -15 });
+    seedCameraBehindPlayer(playerObject, camera, {
+      followDistance: Number.isFinite(cameraSeedConfig?.followDistance)
+        ? cameraSeedConfig.followDistance
+        : 6,
+      shoulderHeight: Number.isFinite(cameraSeedConfig?.shoulderHeight)
+        ? cameraSeedConfig.shoulderHeight
+        : 1.6,
+      pitchDeg: Number.isFinite(cameraSeedConfig?.pitchDeg)
+        ? cameraSeedConfig.pitchDeg
+        : -15
+    });
   }
 
   sanitizeVec3(playerObject.position, DEFAULT_PLAYER);
@@ -677,9 +692,9 @@ export async function runAthens(options: RunOptions = {}) {
 
   const keyboard = createKeyboard();
   const playerController = createPlayerController(playerObject, keyboard, {
-    walkSpeed: 4.0,
-    runMultiplier: 1.7,
-    acceleration: 10,
+    walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4.0,
+    runMultiplier: Number.isFinite(movementConfig?.runMultiplier) ? movementConfig.runMultiplier : 1.7,
+    acceleration: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : 10,
     turnLerp: 0.18,
     colliders
   });
@@ -688,10 +703,21 @@ export async function runAthens(options: RunOptions = {}) {
 
   const footsteps = createFootsteps(audio);
 
+  const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 2.2, z: -6 };
+  const followLookOffset = cameraFollowConfig?.lookAtOffset ?? { x: 0, y: 1.5, z: 0 };
+  const followLerp = Number.isFinite(cameraFollowConfig?.lerp) ? cameraFollowConfig.lerp : 0.12;
   const followCamera = createFollowCamera(camera, playerObject, {
-    offset: new THREE.Vector3(0, 2.2, -6),
-    lerp: 0.12,
-    lookAtOffset: new THREE.Vector3(0, 1.5, 0)
+    offset: new THREE.Vector3(
+      Number.isFinite(followOffset?.x) ? followOffset.x : 0,
+      Number.isFinite(followOffset?.y) ? followOffset.y : 2.2,
+      Number.isFinite(followOffset?.z) ? followOffset.z : -6
+    ),
+    lerp: followLerp,
+    lookAtOffset: new THREE.Vector3(
+      Number.isFinite(followLookOffset?.x) ? followLookOffset.x : 0,
+      Number.isFinite(followLookOffset?.y) ? followLookOffset.y : 1.5,
+      Number.isFinite(followLookOffset?.z) ? followLookOffset.z : 0
+    )
   });
   followCamera.setPointerLockElement?.(renderer.domElement);
   followCamera.syncImmediate?.();

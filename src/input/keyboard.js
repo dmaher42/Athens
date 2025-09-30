@@ -16,7 +16,7 @@ const LOOK_KEYS = [
 
 const MODIFIER_KEYS = ['ShiftLeft', 'ShiftRight'];
 
-const EXTRA_KEYS = ['Space', 'KeyX', 'KeyC', 'KeyE', 'KeyQ', 'KeyZ', 'ControlLeft', 'ControlRight'];
+const EXTRA_KEYS = ['Space', 'KeyX', 'KeyC', 'KeyE', 'KeyQ', 'KeyZ', 'KeyF', 'ControlLeft', 'ControlRight'];
 
 const RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
 
@@ -35,6 +35,7 @@ const KEY_FALLBACK_MAP = new Map([
   ['space', 'Space'],
   ['spacebar', 'Space'],
   ['x', 'KeyX'],
+  ['f', 'KeyF'],
   ['c', 'KeyC'],
   ['e', 'KeyE'],
   ['shift', 'ShiftLeft'],
