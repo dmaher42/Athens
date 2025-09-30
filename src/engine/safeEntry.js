@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { initSky, setSky, reapplySky } from '../sky/SkyManager.ts';
+import { applySky } from '../scene/sky.ts';
 
 export async function createSafeScene(canvasSelector = 'canvas') {
   const canvas = typeof document !== 'undefined' ? document.querySelector(canvasSelector) : null;
@@ -19,12 +19,11 @@ export async function createSafeScene(canvasSelector = 'canvas') {
   camera.position.set(0, 3.5, 7);
   scene.add(camera);
 
-  initSky(renderer);
   try {
-    await setSky(scene, 'assets/sky/day.jpg');
+    await applySky(scene, renderer, 'day');
   } catch (error) {
-    console.warn('[safeEntry] setSky failed.', error);
-    reapplySky(scene);
+    console.warn('[safeEntry] applySky failed.', error);
+    renderer.setClearColor(0x202834, 1);
   }
 
   const ambient = new THREE.AmbientLight(0xffffff, 0.35);

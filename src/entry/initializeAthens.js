@@ -19,7 +19,6 @@ import { createPlayerController } from '../player/playerController.js';
 import { installFlyBypass } from '../dev/flyBypass.js';
 import { assetUrl } from '../utils/assetUrl.js';
 import { createGameLoop } from '../engine/loop.js';
-import { initSky, setSky, reapplySky } from '../sky/SkyManager.ts';
 import { movementConfig } from '../config/movement.ts';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
@@ -42,8 +41,8 @@ import {
 } from '../utils/sanitize.ts';
 import { initAmbient, AmbientAPI, AMBIENT_TRACKS } from '../audio/ambient.ts';
 // SKYSYS_START
-import { createProceduralSky, createHorizonMountains } from '../visual/skyAndHorizon.js';
 import { installSkyDev } from '../dev/skyDebugHooks.js';
+import { EnvironmentController } from '../environment/EnvironmentController.ts';
 // SKYSYS_END
 
 // LANDMARK_SPREAD_START
@@ -528,48 +527,28 @@ export async function initializeAthens(options = {}) {
   camera.lookAt(initialLookTarget);
   scene.add(camera);
 
-// SKYSYS_START
 // Ensure we can actually see distant background
   if (camera.far < 50000) { camera.far = 50000; camera.updateProjectionMatrix(); }
 
-// Add procedural sky if not present
-  if (!scene.getObjectByName('ProceduralSky')) {
-    createProceduralSky(scene, renderer, { elevation: 35, azimuth: 180 });
-  }
-
-// Add horizon mountains ring if not present
-  if (!scene.getObjectByName('HorizonMountains')) {
-    const mountains = createHorizonMountains({ radius: 12000, height: 1200, segments: 128, noise: 0.4 });
-    scene.add(mountains);
-  }
-
-// Optional: keep a nice blue clear in case no background is set by env
   renderer.setClearAlpha(1);
 
-// Dev helpers
+  const environmentManager = new EnvironmentController(scene, renderer);
+
   if (typeof window !== 'undefined') {
     window.scene = window.scene || scene;
     window.renderer = window.renderer || renderer;
     window.camera = window.camera || camera;
     installSkyDev({ scene, renderer, camera });
 
-    // Convenience toggles
     window.dev = window.dev || {};
     window.dev.sky = window.dev.sky || {};
-    window.dev.sky.on = () => { createProceduralSky(scene, renderer, {}); };
-    window.dev.sky.off = () => { scene.background = null; };
-    window.dev.sky.mountains = () => {
-      if (!scene.getObjectByName('HorizonMountains')) {
-        scene.add(createHorizonMountains({}));
-      }
-    };
+    window.dev.sky.on = (mode = 'day') => environmentManager.applySky(mode);
+    window.dev.sky.off = () => { scene.background = null; scene.environment = null; };
     window.dev.sky.color = (hex = 0x87ceeb) => {
       renderer.setClearAlpha(1);
       renderer.setClearColor(hex, 1);
-      // leave scene.background as-is; this sets clear color only
     };
   }
-// SKYSYS_END
 
   let globalWindow = null;
   let searchParams = null;
@@ -596,16 +575,12 @@ export async function initializeAthens(options = {}) {
     };
   }
 
-  initSky(renderer);
-  let initialSkyApplied = false;
   try {
-    const result = await setSky(scene, 'assets/sky/day.jpg');
-    initialSkyApplied = Boolean(result);
+    await environmentManager.applySky('day');
+    environmentManager.setMode('procedural');
   } catch (error) {
-    console.warn('[Athens] setSky failed during initializeAthens.', error);
-  }
-  if (!initialSkyApplied) {
-    reapplySky(scene);
+    console.warn('[Athens] applySky failed during initializeAthens.', error);
+    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
   }
 
   const ambientMuted = searchParams ? searchParams.get('mute') === '1' : false;
@@ -668,21 +643,35 @@ export async function initializeAthens(options = {}) {
       // Ignore stats setup errors.
     });
 
-  const environmentController = {
-    mode: 'day',
-    async setMode(mode) {
-      const normalized = typeof mode === 'string' && mode ? mode : 'day';
-      this.mode = normalized;
+  let environmentMode = 'day';
+
+  const setEnvironmentMode = (mode, { allowAmbient = true } = {}) => {
+    const normalized = typeof mode === 'string' && mode ? mode : 'day';
+    environmentMode = normalized;
+    if (allowAmbient) {
       applyAmbientForMode(normalized, true);
-      return this.mode;
+    }
+    return environmentMode;
+  };
+
+  const environmentController = {
+    get mode() {
+      return environmentMode;
+    },
+    async setMode(mode, envOptions = {}) {
+      const allowAmbient = envOptions?.playAmbient !== false;
+      return setEnvironmentMode(mode, { allowAmbient });
+    },
+    applySky(mode) {
+      return environmentManager.applySky(mode);
     },
     dispose() {
-      // placeholder for compatibility
+      environmentManager.dispose();
     }
   };
 
   if (!ambientOverrideSelected) {
-    applyAmbientForMode(environmentController.mode, true);
+    setEnvironmentMode(environmentController.mode, { allowAmbient: true });
   }
 
 
