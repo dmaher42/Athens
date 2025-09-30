@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createStats } from '../debug/statsShim.js';
 import { setupGround, updateTrees } from '../main.js';
-import { applySky } from '../scene/sky.ts';
+import { initSky, setSky, reapplySky } from '../sky/SkyManager.ts';
 import boot from '../core/bootstrap.js';
 import createKeyboard from '../input/keyboard.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -29,6 +29,7 @@ import { AmbientAPI, AMBIENT_TRACKS, initAmbient } from '../audio/ambient';
 import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
+import { createTimeSky, setTimeOfDay, setSkyEnabled, isSkyEnabled, getTimeOfDay } from '../sky/timeSky.js';
 import { createMountainRim as createHorizonMountainRim } from '../horizon/mountainRim.js';
 import { movementConfig } from '../config/movement.ts';
 
@@ -360,86 +361,23 @@ export async function runAthens(options: RunOptions = {}) {
   };
 
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
-  let currentSkyMode = typeof environmentMode === 'string' && environmentMode ? environmentMode : 'day';
-  let skyEnabled = true;
-  let cachedSky: {
-    background: THREE.Texture | THREE.Color | null;
-    environment: THREE.Texture | THREE.CubeTexture | null;
-  } = {
-    background: (scene.background as THREE.Texture | THREE.Color | null) ?? null,
-    environment: (scene.environment as THREE.Texture | THREE.CubeTexture | null) ?? null
-  };
+  const initialSkyMode =
+    typeof environmentMode === 'string' && environmentMode ? environmentMode : 'day';
 
-  const updateSkyCache = () => {
-    cachedSky = {
-      background: (scene.background as THREE.Texture | THREE.Color | null) ?? null,
-      environment: (scene.environment as THREE.Texture | THREE.CubeTexture | null) ?? null
-    };
-  };
+  initSky(renderer);
+  let bootSkyApplied = false;
+  try {
+    const result = await setSky(scene, 'assets/sky/day.jpg');
+    bootSkyApplied = Boolean(result);
+  } catch (error) {
+    console.warn('[Athens][Boot] setSky failed for initial load.', error);
+  }
+  if (!bootSkyApplied) {
+    reapplySky(scene);
+  }
 
-  const applyDefaultSkyBackground = () => {
-    scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
-    scene.environment = null;
-    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
-  };
-
-  const restoreCachedSky = () => {
-    if (cachedSky.background) {
-      scene.background = cachedSky.background;
-    } else {
-      scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
-    }
-    scene.environment = cachedSky.environment ?? null;
-    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
-  };
-
-  const notifySkyEnabledChange = (enabled: boolean) => {
-    if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
-      return;
-    }
-    try {
-      window.dispatchEvent(new CustomEvent('athens:sky-enabled-changed', { detail: { enabled } }));
-    } catch (_) {
-      // ignored
-    }
-  };
-
-  const applySkyForMode = async (mode: string) => {
-    const normalized = typeof mode === 'string' && mode ? mode : 'day';
-    currentSkyMode = normalized;
-    try {
-      await applySky(scene, renderer, normalized);
-    } catch (error) {
-      console.warn('[Athens][Boot] applySky failed', error);
-    }
-    updateSkyCache();
-    if (!skyEnabled) {
-      applyDefaultSkyBackground();
-    }
-    return normalized;
-  };
-
-  const setSkyEnabledInternal = (enabled: boolean) => {
-    const normalized = Boolean(enabled);
-    if (skyEnabled === normalized) {
-      return skyEnabled;
-    }
-    skyEnabled = normalized;
-    if (skyEnabled) {
-      if (!cachedSky.background && !cachedSky.environment) {
-        applySkyForMode(currentSkyMode).catch(() => {});
-      } else {
-        restoreCachedSky();
-      }
-    } else {
-      applyDefaultSkyBackground();
-    }
-    applyHorizonVisibility(skyEnabled || resolveHorizonEnabled());
-    notifySkyEnabledChange(skyEnabled);
-    return skyEnabled;
-  };
-
-  await applySkyForMode(environmentMode);
+  await createTimeSky(renderer, scene, initialSkyMode);
+  applyHorizonVisibility(isSkyEnabled() || resolveHorizonEnabled());
 
   if (typeof setupGround === 'function') {
     try {
@@ -488,14 +426,17 @@ export async function runAthens(options: RunOptions = {}) {
     return trackId;
   };
 
+  const initialAmbientMode = getTimeOfDay() ?? initialSkyMode;
+
   if (!ambientOverrideSelected) {
-    applyAmbientForMode(environmentMode, true);
+    applyAmbientForMode(initialAmbientMode, true);
   }
 
   const handleTimeOfDay = async (mode: string) => {
-    const appliedMode = await applySkyForMode(mode);
-    applyAmbientForMode(appliedMode, true);
-    return appliedMode;
+    const appliedMode = await setTimeOfDay(mode);
+    const effectiveMode = appliedMode ?? getTimeOfDay() ?? initialSkyMode;
+    applyAmbientForMode(effectiveMode, true);
+    return effectiveMode;
   };
 
   const handleVolume = (value: number) => {
@@ -503,7 +444,11 @@ export async function runAthens(options: RunOptions = {}) {
     audio.setMasterVolume(value);
   };
 
-  const handleSkyEnabled = (enabled: boolean) => setSkyEnabledInternal(enabled);
+  const handleSkyEnabled = (enabled: boolean) => {
+    const result = setSkyEnabled(enabled);
+    applyHorizonVisibility(result || resolveHorizonEnabled());
+    return result;
+  };
 
   applyQualityPreset('high');
 
@@ -515,6 +460,7 @@ export async function runAthens(options: RunOptions = {}) {
   });
 
   let removeSkyHotkey: (() => void) | null = null;
+  let removeSkyEnabledListener: (() => void) | null = null;
   if (typeof window !== 'undefined' && window.addEventListener) {
     const handleSkyToggleKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.altKey || event.metaKey || event.ctrlKey) {
@@ -529,11 +475,20 @@ export async function runAthens(options: RunOptions = {}) {
       }
       const code = typeof event.code === 'string' ? event.code : '';
       if (code === 'KeyK') {
-        handleSkyEnabled(!skyEnabled);
+        handleSkyEnabled(!isSkyEnabled());
       }
     };
     window.addEventListener('keydown', handleSkyToggleKey);
     removeSkyHotkey = () => window.removeEventListener('keydown', handleSkyToggleKey);
+
+    const handleSkyStateChanged = (event: Event) => {
+      const detail = (event as CustomEvent)?.detail;
+      const enabled = typeof detail?.enabled === 'boolean' ? detail.enabled : isSkyEnabled();
+      applyHorizonVisibility(enabled || resolveHorizonEnabled());
+    };
+    window.addEventListener('athens:sky-enabled-changed', handleSkyStateChanged as EventListener);
+    removeSkyEnabledListener = () =>
+      window.removeEventListener('athens:sky-enabled-changed', handleSkyStateChanged as EventListener);
   }
 
   markGround(scene);
@@ -938,6 +893,7 @@ export async function runAthens(options: RunOptions = {}) {
         window.removeEventListener('keydown', resumeAudioContext);
       }
       removeSkyHotkey?.();
+      removeSkyEnabledListener?.();
       const panel = stats?.dom;
       if (panel && panel.parentNode === container) {
         container.removeChild(panel);
