@@ -239,8 +239,4 @@ export class AgoraLayer {
     }
 }
 
-export function createAgoraLayer(options) {
-    return new AgoraLayer(options);
-}
-
 export { DEFAULT_DATA_URL as AGORA_LAYER_DATA_URL };

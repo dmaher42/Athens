@@ -325,7 +325,7 @@ function getTreeDefinition(name) {
   return definition;
 }
 
-export async function loadTreeLibrary(renderer) {
+export async function loadTreeLibrary(_renderer) {
   if (libraryHandle) {
     return libraryHandle;
   }

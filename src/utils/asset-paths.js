@@ -141,10 +141,6 @@ export function getAssetBase() {
   return ASSET_BASE;
 }
 
-export function getAssetBaseSource() {
-  return assetBaseSource;
-}
-
 export function resolveAssetUrl(path = '') {
   if (!path) {
     return assetUrl('');

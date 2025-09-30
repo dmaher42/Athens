@@ -91,7 +91,6 @@ function createAssemblyBuffer(context) {
     let value = 0;
 
     drones.forEach((tone, index) => {
-      const modulation = 0.07 + index * 0.02;
       const amp = 0.07 + index * 0.03;
       value += Math.sin(tone.phase) * amp * (0.8 + 0.2 * Math.sin(time * 2 * Math.PI * 0.1));
       tone.phase += (2 * Math.PI * tone.freq) / sampleRate;

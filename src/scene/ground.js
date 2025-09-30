@@ -4,13 +4,6 @@ import { updateGroundDebugOverlay, clearGroundDebugOverlay } from '../ground/deb
 
 let __groundSingleton = null;
 
-export function disposeGround() {
-  if (__groundSingleton?.dispose) {
-    __groundSingleton.dispose();
-  }
-  __groundSingleton = null;
-}
-
 function hideLegacyGroundPlanes(scene, layeredGroundRoot) {
   if (!scene) return;
 

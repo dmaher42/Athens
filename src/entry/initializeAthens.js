@@ -369,10 +369,6 @@ const CHARACTER_SCALE = deriveScaleFactor(characterConfig?.scale);
 const CHARACTER_HEIGHT = Number.isFinite(characterConfig?.height)
   ? Math.max(0.5, characterConfig.height)
   : Math.max(0.5, DEFAULT_CHARACTER_HEIGHT * CHARACTER_SCALE);
-const DEFAULT_CAPSULE_HEIGHT = 1.6;
-const DEFAULT_CAPSULE_RADIUS = 0.45;
-const CAPSULE_HEIGHT_RATIO = DEFAULT_CAPSULE_HEIGHT / DEFAULT_CHARACTER_HEIGHT;
-const CAPSULE_RADIUS_RATIO = DEFAULT_CAPSULE_RADIUS / DEFAULT_CHARACTER_HEIGHT;
 const CHARACTER_HOVER = Math.min(0.1, Math.max(0.03, CHARACTER_HEIGHT * 0.03));
 const SAFE_PLAYER_FALLBACK = {
   x: Number.isFinite(movementConfig?.safePosition?.x) ? movementConfig.safePosition.x : DEFAULT_PLAYER.x,

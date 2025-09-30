@@ -238,11 +238,6 @@ function patchCameraProjection(updateResolution) {
   camera[PATCHED_CAMERA_FLAG] = true;
 }
 
-export function toPoints(coords, projector, worldCompressionFn) {
-  const positions = computePositions(coords, projector, worldCompressionFn);
-  return new Float32Array(positions);
-}
-
 export function createFeatureLines({ features = [], projector, worldCompressionFn } = {}) {
   const root = new THREE.Group();
   root.name = 'FeatureLines';
