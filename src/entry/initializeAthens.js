@@ -46,6 +46,118 @@ import { createProceduralSky, createHorizonMountains } from '../visual/skyAndHor
 import { installSkyDev } from '../dev/skyDebugHooks.js';
 // SKYSYS_END
 
+// LANDMARK_SPREAD_START
+const _LANDMARK_MATCH = {
+  Agora:            ['Agora','AgoraGroup'],
+  Stoa_of_Attalos:  ['Stoa_of_Attalos','Stoa','StoaAttalos'],
+  Tholos:           ['Tholos'],
+  Theater_of_Dionysus: ['Theater_of_Dionysus','Theatre_of_Dionysus','Theater','Theatre'],
+  Stadium:          ['Stadium','Stadion'],
+  CityGate_South:   ['CityGate_South','CityGate','SouthGate','Gate_South'],
+  Port_Quay_A:      ['Port_Quay_A','Port','Harbor','Harbour','Quay']
+};
+
+const _SPREAD_DEFAULTS = {
+  // spread with clear separation, tweak freely later
+  Agora:                 { x:    0, y: 'ground', z:    0 },
+  Stoa_of_Attalos:       { x:  220, y: 'ground', z:   40 },
+  Tholos:                { x: -220, y: 'ground', z:  -20 },
+  Theater_of_Dionysus:   { x:  180, y: 'ground', z:  260 },
+  Stadium:               { x: -180, y: 'ground', z: -260 },
+  CityGate_South:        { x:   40, y: 'ground', z: -520 },
+  Port_Quay_A:           { x:   80, y: 'ground', z: -900 }
+};
+
+function _findByNames(scene, names) {
+  // try exact first
+  for (const n of names) {
+    const hit = scene.getObjectByName(n);
+    if (hit) return hit;
+  }
+  // then case-insensitive / fuzzy
+  const lowers = names.map(n => n.toLowerCase());
+  let best = null;
+  scene.traverse(o => {
+    if (!o || !o.name) return;
+    const nm = o.name.toLowerCase();
+    for (const needle of lowers) {
+      if (nm === needle || nm.includes(needle)) { best = best || o; break; }
+    }
+  });
+  return best;
+}
+
+function _setWorldPosition(obj, x, y, z) {
+  if (!obj) return false;
+  obj.updateMatrixWorld(true);
+  const parent = obj.parent;
+  if (parent) {
+    parent.updateMatrixWorld(true);
+    const wp = new THREE.Vector3(x, y, z);
+    obj.position.copy(parent.worldToLocal(wp));
+  } else {
+    obj.position.set(x, y, z);
+  }
+  obj.updateMatrixWorld(true);
+  return true;
+}
+
+function _groundYAt(pos, fallbackY) {
+  try {
+    if (typeof raycastGroundY === 'function') {
+      const gy = raycastGroundY(pos);
+      if (Number.isFinite(gy)) return gy;
+    }
+  } catch {}
+  return fallbackY;
+}
+
+function _applyLandmarkSpread(scene, options, {force=false} = {}) {
+  // Only act when explicitly requested, or when options.layout === 'athensPlan'
+  const shouldRun = force || options?.layout === 'athensPlan';
+  if (!shouldRun) return;
+
+  const overrides = options?.layoutConfig?.positions || {};
+  const results = {};
+
+  for (const key of Object.keys(_LANDMARK_MATCH)) {
+    const target = _findByNames(scene, _LANDMARK_MATCH[key]);
+    if (!target) { results[key] = 'not-found'; continue; }
+
+    const src = overrides[key] ?? _SPREAD_DEFAULTS[key];
+    if (!src) { results[key] = 'no-default'; continue; }
+
+    // determine desired y
+    const wp = target.getWorldPosition(new THREE.Vector3());
+    let y = (src.y === 'ground') ? _groundYAt(new THREE.Vector3(src.x ?? wp.x, wp.y, src.z ?? wp.z), wp.y)
+                                 : (Number.isFinite(src.y) ? src.y : wp.y);
+
+    const ok = _setWorldPosition(target, src.x ?? wp.x, y, src.z ?? wp.z);
+    results[key] = ok ? 'moved' : 'failed';
+  }
+
+  try { console.info('[LandmarkSpread]', results); } catch {}
+}
+
+function _installLandmarkDev(scene, options) {
+  if (typeof window === 'undefined') return;
+  window.dev = window.dev || {};
+  window.dev.landmarks = window.dev.landmarks || {};
+  window.dev.landmarks.spread = (customPositions) => {
+    const opts = customPositions ? { layoutConfig: { positions: customPositions } } : options;
+    _applyLandmarkSpread(scene, opts, { force: true });
+  };
+  // convenience: show names containing a token
+  window.dev.landmarks.find = (token='agora') => {
+    token = String(token).toLowerCase();
+    const hits = [];
+    scene.traverse(o => { if (o?.name && o.name.toLowerCase().includes(token)) hits.push(o.name); });
+    console.log('[find]', token, hits);
+    return hits;
+  };
+}
+// LANDMARK_SPREAD_END
+
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
 const DEFAULT_BACKGROUND_HEX = 0x202834;
@@ -537,6 +649,11 @@ export async function initializeAthens(options = {}) {
   // CITYPLAN_START
   const city = await createCity({ renderer, scene, layout, layoutConfig });
   // CITYPLAN_END
+
+  // LANDMARK_SPREAD_START
+  _applyLandmarkSpread(scene, options);
+  _installLandmarkDev(scene, options);
+  // LANDMARK_SPREAD_END
 
   // LANDMARK_OVERRIDE_START
   (function applyAgoraOverride(scene, options) {
