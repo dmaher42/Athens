@@ -21,9 +21,39 @@ const verticalMoveDelta = new THREE.Vector3();
 
 const TURN_ACCEL = 12;
 
+function deriveScaleFactor(scaleConfig) {
+  if (typeof scaleConfig === 'number' && Number.isFinite(scaleConfig) && scaleConfig > 0) {
+    return scaleConfig;
+  }
+  if (scaleConfig && typeof scaleConfig === 'object') {
+    const { y, x, z } = scaleConfig;
+    if (Number.isFinite(y) && y > 0) {
+      return y;
+    }
+    const candidates = [x, z].filter((value) => Number.isFinite(value) && value > 0);
+    if (candidates.length) {
+      return candidates.reduce((sum, value) => sum + value, 0) / candidates.length;
+    }
+  }
+  return 1;
+}
+
+const characterConfig = movementConfig?.character ?? {};
+const DEFAULT_CHARACTER_HEIGHT = 1.7;
+const CHARACTER_SCALE = deriveScaleFactor(characterConfig?.scale);
+const CHARACTER_HEIGHT = Number.isFinite(characterConfig?.height)
+  ? Math.max(0.5, characterConfig.height)
+  : Math.max(0.5, DEFAULT_CHARACTER_HEIGHT * CHARACTER_SCALE);
+const DEFAULT_CAPSULE_HEIGHT = 1.6;
+const DEFAULT_CAPSULE_RADIUS = 0.45;
+const CAPSULE_HEIGHT_RATIO = DEFAULT_CAPSULE_HEIGHT / DEFAULT_CHARACTER_HEIGHT;
+const CAPSULE_RADIUS_RATIO = DEFAULT_CAPSULE_RADIUS / DEFAULT_CHARACTER_HEIGHT;
+
 const SAFE_POSITION = {
   x: Number.isFinite(movementConfig?.safePosition?.x) ? movementConfig.safePosition.x : DEFAULT_PLAYER.x,
-  y: Number.isFinite(movementConfig?.safePosition?.y) ? movementConfig.safePosition.y : DEFAULT_PLAYER.y,
+  y: Number.isFinite(movementConfig?.safePosition?.y)
+    ? movementConfig.safePosition.y
+    : Math.max(DEFAULT_PLAYER.y, CHARACTER_HEIGHT * 0.55),
   z: Number.isFinite(movementConfig?.safePosition?.z) ? movementConfig.safePosition.z : DEFAULT_PLAYER.z
 };
 const ZERO_VECTOR = { x: 0, y: 0, z: 0 };
@@ -116,7 +146,9 @@ export function createPlayerController(
   let groundMeshes = [];
   let colliderAabbs = Array.isArray(initialColliders) ? initialColliders : [];
 
-  const capsule = new Capsule(0.45, 1.6);
+  const capsuleRadius = Math.max(0.2, CHARACTER_HEIGHT * CAPSULE_RADIUS_RATIO);
+  const capsuleHeight = Math.max(capsuleRadius * 2, CHARACTER_HEIGHT * CAPSULE_HEIGHT_RATIO);
+  const capsule = new Capsule(capsuleRadius, capsuleHeight);
 
   let groundSnapSkip = typeof groundSnapSkipRef === 'object' ? groundSnapSkipRef : null;
 

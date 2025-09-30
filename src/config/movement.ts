@@ -30,6 +30,24 @@ export interface MovementCameraConfig {
   seed?: CameraSeedConfig;
 }
 
+export interface CharacterScaleConfig {
+  x?: number;
+  y?: number;
+  z?: number;
+}
+
+export interface CharacterConfig {
+  /**
+   * Character height in world units (meters) within the scene. When omitted, the
+   * default height is multiplied by the configured {@link scale}.
+   */
+  height?: number;
+  /**
+   * Optional scalar or axis scale applied to the character model.
+   */
+  scale?: number | CharacterScaleConfig;
+}
+
 export interface MovementConfig {
   walkSpeed?: number;
   runMultiplier?: number;
@@ -37,6 +55,7 @@ export interface MovementConfig {
   safePosition?: { x: number; y: number; z: number };
   flight?: FlightConfig;
   camera?: MovementCameraConfig;
+  character?: CharacterConfig;
 }
 
 export const FLIGHT = {
@@ -49,6 +68,10 @@ export const movementConfig: MovementConfig = {
   runMultiplier: 1.7,
   acceleration: 10,
   safePosition: { x: 0, y: 1, z: 0 },
+  character: {
+    height: 1.7,
+    scale: 1
+  },
   flight: {
     toggleKey: 'KeyF',
     toggleKeys: ['KeyF', 'KeyX'],
