@@ -3,6 +3,7 @@ import { applyFeatureOffset } from './geo/featureOffsets.js';
 import { createFeatureLines } from './scene/feature-lines.js';
 import { applyCompressionToVector3 } from './world/scale.js';
 import { resolveAssetUrl } from './utils/asset-paths.js';
+import { logger } from './utils/logger.ts';
 import { snapObjectToGround } from './physics/groundProject.js';
 
 /**
@@ -172,7 +173,7 @@ export async function loadLandmarks({
       try {
         featureLines.root.userData.onDisposeFeatureLines();
       } catch (error) {
-        console.warn('[landmarks] Failed to dispose feature line listeners.', error);
+        logger.warn('[landmarks] Failed to dispose feature line listeners.', error);
       }
     }
     if (featureLines?.root) {

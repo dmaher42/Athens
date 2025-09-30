@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { logger } from './logger.ts';
 
 const DEFAULT_TEXTURE_FALLBACK_COLOR = 0x999999;
 const DEFAULT_MODEL_FALLBACK_COLOR = 0xff4477;
@@ -110,7 +111,7 @@ function loadTextureWithFallback(url, options = {}) {
       try {
         onFallback(texture, error ?? null);
       } catch (callbackError) {
-        console.warn('[asset-loader] onFallback callback threw an error.', callbackError);
+        logger.warn('[asset-loader] onFallback callback threw an error.', callbackError);
       }
     }
     if (typeof onLoad === 'function') {
@@ -122,13 +123,13 @@ function loadTextureWithFallback(url, options = {}) {
           fallbackTexture: texture
         });
       } catch (callbackError) {
-        console.warn('[asset-loader] onLoad callback threw an error.', callbackError);
+        logger.warn('[asset-loader] onLoad callback threw an error.', callbackError);
       }
     }
   };
 
   if (!url) {
-    console.warn(
+    logger.warn(
       `[asset-loader] ${label} 404/failed: ${url ?? '<missing>'}; using fallback #${formatHex(
         fallbackColor
       )}`
@@ -164,7 +165,7 @@ function loadTextureWithFallback(url, options = {}) {
           console.debug(`[asset-loader] applied texture ${label}`);
         }
       } catch (error) {
-        console.warn(
+        logger.warn(
           `[asset-loader] Texture post-processing failed for ${label} at ${url}; retaining fallback.`,
           error
         );
@@ -179,7 +180,7 @@ function loadTextureWithFallback(url, options = {}) {
         sourceUrl: url,
         isFallbackTexture: true
       };
-      console.warn(
+      logger.warn(
         `[asset-loader] ${label} 404/failed: ${url}; using fallback #${formatHex(fallbackColor)}`
       );
       notifyFallback(error);
@@ -197,7 +198,7 @@ async function loadTextureAsyncWithFallback(url, options = {}) {
   } = options;
 
   if (!url) {
-    console.warn(
+    logger.warn(
       `[asset-loader] ${label} 404/failed: ${url ?? '<missing>'}; using fallback #${formatHex(
         fallbackColor
       )}`
@@ -216,7 +217,7 @@ async function loadTextureAsyncWithFallback(url, options = {}) {
     texture.needsUpdate = true;
     return texture;
   } catch (error) {
-    console.warn(
+    logger.warn(
       `[asset-loader] ${label} 404/failed: ${url}; using fallback #${formatHex(fallbackColor)}`
     );
     const fallback = createSolidColorTexture({ color: fallbackColor, name: `${label}::fallback` });
@@ -269,7 +270,7 @@ async function loadGltfWithFallback(loader, url, options = {}) {
   }
 
   if (!url) {
-    console.warn(
+    logger.warn(
       `[asset-loader] Missing URL for ${label}; substituting fallback primitive #${formatHex(
         fallbackColor
       )}.`
@@ -293,7 +294,7 @@ async function loadGltfWithFallback(loader, url, options = {}) {
     }
     return gltf;
   } catch (error) {
-    console.warn(
+    logger.warn(
       `[asset-loader] Failed to load ${label} at ${url}; substituting fallback primitive #${formatHex(
         fallbackColor
       )}.`,

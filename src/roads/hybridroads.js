@@ -6,6 +6,7 @@ import {
   loadGltfWithFallback,
   applyLoadedTexture
 } from '../utils/fail-soft-loaders.js';
+import { logger } from '../utils/logger.ts';
 
 // Load a texture and create a road mesh
 export function createRoadSegment(texturePath, start, end, width = 6) {
@@ -123,5 +124,5 @@ window.scatterTest = async function () {
   };
 
   await scatterPropsAlongRoad(window.scene, start, end, config);
-  console.log('Scatter test complete!');
+  logger.info('Scatter test complete!');
 };

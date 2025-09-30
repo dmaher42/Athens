@@ -1,4 +1,5 @@
 import { assetUrl } from './assetUrl.js';
+import { logger } from './logger.ts';
 
 function ensureTrailingSlash(value) {
   if (typeof value !== 'string' || value.length === 0) {
@@ -24,7 +25,7 @@ function normalizeBaseCandidate(candidate) {
       const absolute = new URL(trimmed);
       return ensureTrailingSlash(absolute.pathname || '/');
     } catch (error) {
-      console.warn('[asset-paths] Invalid absolute BASE_URL candidate.', error);
+      logger.warn('[asset-paths] Invalid absolute BASE_URL candidate.', error);
       return null;
     }
   }
@@ -36,7 +37,7 @@ function normalizeBaseCandidate(candidate) {
         const relative = new URL(trimmed, location.href);
         return ensureTrailingSlash(relative.pathname || '/');
       } catch (error) {
-        console.warn('[asset-paths] Unable to resolve relative BASE_URL candidate.', error);
+        logger.warn('[asset-paths] Unable to resolve relative BASE_URL candidate.', error);
       }
     }
     const sanitized = trimmed.replace(/^\.\//, '/');
@@ -103,7 +104,7 @@ function computeFromModuleUrl() {
       return ensureTrailingSlash(pathname.slice(0, lastSlash + 1) || '/');
     }
   } catch (error) {
-    console.warn('[asset-paths] Unable to infer base from module URL.', error);
+    logger.warn('[asset-paths] Unable to infer base from module URL.', error);
   }
 
   return null;

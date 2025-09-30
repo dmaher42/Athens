@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { applySky } from '../scene/sky.ts';
+import { logger } from '../utils/logger.ts';
 
 export async function createSafeScene(canvasSelector = 'canvas') {
   const canvas = typeof document !== 'undefined' ? document.querySelector(canvasSelector) : null;
@@ -22,7 +23,7 @@ export async function createSafeScene(canvasSelector = 'canvas') {
   try {
     await applySky(scene, renderer, 'day');
   } catch (error) {
-    console.warn('[safeEntry] applySky failed.', error);
+    logger.warn('[safeEntry] applySky failed.', error);
     renderer.setClearColor(0x202834, 1);
   }
 

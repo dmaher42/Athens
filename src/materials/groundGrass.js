@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { assetUrl } from '../utils/assetUrl.js';
+import { logger } from '../utils/logger.ts';
 
 const FALLBACK_COLOR = 0x5a8f3a;
 const GRASS_URL = 'assets/textures/grass.jpg';
@@ -23,7 +24,7 @@ function computeAnisotropy(renderer) {
       return renderer.capabilities.getMaxAnisotropy() || 1;
     }
   } catch (error) {
-    console.warn('[groundGrass] Failed to determine renderer anisotropy.', error);
+    logger.warn('[groundGrass] Failed to determine renderer anisotropy.', error);
   }
   return 1;
 }
@@ -52,7 +53,7 @@ async function loadGrassTexture() {
       }
     );
   }).catch((error) => {
-    console.warn('[groundGrass] Failed to load grass texture.', error);
+    logger.warn('[groundGrass] Failed to load grass texture.', error);
     return null;
   });
   return cachedPromise;

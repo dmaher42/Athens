@@ -2,6 +2,7 @@ import { loadGeoJson, DEFAULT_GEOJSON_PATH } from '../geo/geoLoader.js';
 import { LocalEquirectangularProjection } from '../geo/projection.js';
 import { applyFeatureOffset } from '../geo/featureOffsets.js';
 import { AgoraLayer } from './agoraLayer.js';
+import { logger } from '../utils/logger.ts';
 
 const LANDMARK_LABELS = {
     'Acropolis of Athens': 'Acropolis',
@@ -262,7 +263,7 @@ export class LandmarkOverlay {
             try {
                 await this.agoraLayer.load();
             } catch (error) {
-                console.warn('Failed to load Agora plan overlay data:', error);
+                logger.warn('Failed to load Agora plan overlay data:', error);
             }
         }
         this._fitView(this.options.fitPadding ?? CITY_PADDING_PX);

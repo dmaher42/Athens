@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { logger } from '../utils/logger.ts';
 
 export function assetUrl(rel) {
   const base = (typeof import.meta !== 'undefined' && import.meta.env && typeof import.meta.env.BASE_URL === 'string')
@@ -72,7 +73,7 @@ export class AudioManager {
         () => {
           this._loading.delete(key);
           if (!this._missing.has(relativePath)) {
-            console.warn(`[audio] missing ${relativePath}, skipping`);
+            logger.warn(`[audio] missing ${relativePath}, skipping`);
             this._missing.add(relativePath);
           }
           resolve(null);

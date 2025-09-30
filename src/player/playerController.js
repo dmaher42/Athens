@@ -4,6 +4,7 @@ import { keepUpright } from '../physics/upright.js';
 import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
 import { movementConfig, FLIGHT as FLIGHT_DEFAULTS } from '../config/movement.ts';
 import { sanitizeVec3, DEFAULT_PLAYER } from '../utils/sanitize.ts';
+import { logger } from '../utils/logger.ts';
 
 const moveDirection = new THREE.Vector3();
 
@@ -290,9 +291,7 @@ export function createPlayerController(
       } else {
         enterFlight();
       }
-      if (typeof console !== 'undefined' && typeof console.info === 'function') {
-        console.info(`[playerController] Fly ${isFlying ? 'ON' : 'OFF'}`);
-      }
+      logger.info(`[playerController] Fly ${isFlying ? 'ON' : 'OFF'}`);
     }
     prevToggleDown = toggleDown;
 
@@ -479,7 +478,7 @@ export function createPlayerController(
     if (debugControlsEnabled && dtSafe > 0 && debugLogTime <= 2) {
       debugLogTime += dtSafe;
       if (debugLogTime <= 2) {
-        console.log('[controls]', {
+        logger.info('[controls]', {
           x: axisX,
           z: axisZ,
           yaw

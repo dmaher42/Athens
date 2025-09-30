@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { getAssetBase, resolveAssetUrl } from './utils/asset-paths.js';
 import { loadTextureWithFallback } from './utils/fail-soft-loaders.js';
+import { logger } from './utils/logger.ts';
 
 /** Lightweight materials (one-time) */
 const MAT = {
@@ -64,7 +65,7 @@ const isDevBuild =
   import.meta.env.DEV;
 
 if (isDevBuild) {
-  console.log('[Athens][assets]', {
+  logger.info('[Athens][assets]', {
     base: getAssetBase(),
     cityWallTexture: wallURL
   });
@@ -105,7 +106,7 @@ loadTextureWithFallback(wallURL, {
   },
   onFallback: (error) => {
     if (error) {
-      console.warn('Wall texture failed to load, using fallback material:', error);
+      logger.warn('Wall texture failed to load, using fallback material:', error);
     }
     applyWallTextureFallback();
   }

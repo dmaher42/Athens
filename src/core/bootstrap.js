@@ -1,4 +1,5 @@
 import { main } from '../main.js';
+import { logger } from '../utils/logger.ts';
 
 let bootReadyResolve;
 let bootReadyReject;
@@ -71,14 +72,14 @@ export default async function boot(opts = {}) {
     options.preset = 'High Noon';
   }
 
-  console.info('[Athens][Bootstrap] Booting', {
+  logger.info('[Athens][Bootstrap] Booting', {
     entrypoint: describeBootstrapEntrypoint(main),
     options
   });
 
   try {
     await main(options);
-    console.info('[Athens][Bootstrap] Boot complete', {
+    logger.info('[Athens][Bootstrap] Boot complete', {
       elapsedMs: Date.now() - startedAt
     });
     bootReadyResolve?.(true);

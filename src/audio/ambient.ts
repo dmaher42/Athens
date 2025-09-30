@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { assetUrl } from '../utils/assetUrl.js';
+import { logger } from '../utils/logger';
 
 export type AmbEntry = {
   id: string;
@@ -74,7 +75,7 @@ function nowMs() {
 
 export async function playAmbient(id: string, fadeSeconds = 1.0) {
   if (!AMBIENT_TRACKS.length) {
-    console.warn('[ambient] No tracks configured');
+    logger.warn('[ambient] No tracks configured');
     return;
   }
 
@@ -86,7 +87,7 @@ export async function playAmbient(id: string, fadeSeconds = 1.0) {
   try {
     buffer = await loadBuffer(srcUrl);
   } catch (error) {
-    console.warn(`[ambient] Failed to load ${srcUrl}`, error);
+    logger.warn(`[ambient] Failed to load ${srcUrl}`, error);
     return;
   }
 
@@ -97,7 +98,7 @@ export async function playAmbient(id: string, fadeSeconds = 1.0) {
   try {
     next.play();
   } catch (error) {
-    console.warn('[ambient] Unable to start playback', error);
+    logger.warn('[ambient] Unable to start playback', error);
   }
 
   const targetVol = typeof entry.volume === 'number' ? THREE.MathUtils.clamp(entry.volume, 0, 1) : 0.3;
@@ -130,7 +131,7 @@ export async function playAmbient(id: string, fadeSeconds = 1.0) {
     try {
       prev.stop();
     } catch (error) {
-      console.warn('[ambient] Failed to stop previous track', error);
+      logger.warn('[ambient] Failed to stop previous track', error);
     }
   }
   R.fading = true;
@@ -153,7 +154,7 @@ export async function playAmbient(id: string, fadeSeconds = 1.0) {
       try {
         prev.stop();
       } catch (error) {
-        console.warn('[ambient] Failed to stop old track', error);
+        logger.warn('[ambient] Failed to stop old track', error);
       }
       R.fading = false;
     }

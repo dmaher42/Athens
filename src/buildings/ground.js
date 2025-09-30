@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
+import { logger } from '../utils/logger.ts';
 
 function cloneMaterial(source, fallbackColor = 0xffffff) {
   if (source && typeof source.clone === 'function') {
@@ -255,7 +256,7 @@ export async function createGround(sceneOrMaterials = {}, materialsOrOptions = {
       }
       return groundPlane.material;
     } catch (error) {
-      console.warn('[Ground] Failed to apply grass material.', error);
+      logger.warn('[Ground] Failed to apply grass material.', error);
       return groundPlane.material;
     }
   };
@@ -263,7 +264,7 @@ export async function createGround(sceneOrMaterials = {}, materialsOrOptions = {
 
   if (options.renderer) {
     groundPlane.userData.applyGrassMaterial(options.renderer, { repeat }).catch((error) => {
-      console.warn('[Ground] Grass material application deferred.', error);
+      logger.warn('[Ground] Grass material application deferred.', error);
     });
   }
 

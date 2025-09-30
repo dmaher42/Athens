@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.ts';
+
 // SKYSYS_START
 export function installSkyDev({ scene, renderer, camera }) {
   if (typeof window === 'undefined') return;
@@ -5,7 +7,7 @@ export function installSkyDev({ scene, renderer, camera }) {
   window.dev.sky = window.dev.sky || {};
 
   window.dev.sky.status = () => {
-    console.info('[sky] status', {
+    logger.info('[sky] status', {
       hasBackground: !!scene.background,
       hasEnvironment: !!scene.environment,
       clearAlpha: renderer.getClearAlpha?.(),
