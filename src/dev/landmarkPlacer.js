@@ -12,11 +12,47 @@ const DEFAULT_LANDMARKS = [
 ];
 
 const KEY_BINDINGS = {
-  next: 'n',
-  prev: 'p',
-  save: 's',
-  cancel: 'Escape'
+  next: { key: ']', code: 'BracketRight' },
+  prev: { key: '[', code: 'BracketLeft' },
+  exit: { key: 'l', code: 'KeyL' },
+  saveCode: 'F9'
 };
+
+function matchesKey(event, binding) {
+  if (!event || !binding) return false;
+  const key = typeof event.key === 'string' ? event.key : '';
+  if (binding.key && key.toLowerCase() === String(binding.key).toLowerCase()) {
+    return true;
+  }
+  const code = typeof event.code === 'string' ? event.code : '';
+  if (binding.code && code === binding.code) {
+    return true;
+  }
+  return false;
+}
+
+function shouldIgnoreKeyEvent(event) {
+  const target = event?.target;
+  if (!target || typeof target !== 'object') {
+    return false;
+  }
+  if (target.isContentEditable) {
+    return true;
+  }
+  if (typeof HTMLElement !== 'undefined' && target instanceof HTMLElement) {
+    const tag = target.tagName ? target.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+      return true;
+    }
+    if (typeof target.closest === 'function') {
+      const editable = target.closest('input, textarea, select, [contenteditable="true"]');
+      if (editable) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 const POINTER_BUTTON_PRIMARY = 0;
 
@@ -205,7 +241,7 @@ export function createLandmarkPlacer({
     hud.innerHTML = `
       <div style="font-weight:600;margin-bottom:4px;">Landmark Placer</div>
       <div>Landmark: <span style="color:#facc15;">${name}</span>${saved}</div>
-      <div style="margin-top:6px;opacity:0.8;">Hotkeys: Next [N], Prev [P], Save [S], Cancel [Esc/L]</div>
+      <div style="margin-top:6px;opacity:0.8;">Hotkeys: Prev [ [ ] Next | Save Ctrl/Cmd+S or F9 | Exit L/Esc</div>
     `;
     hud.style.display = 'block';
   }
@@ -286,24 +322,45 @@ export function createLandmarkPlacer({
 
   function handleKeyDown(event) {
     if (!state.enabled) return;
-    const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-    if (key === KEY_BINDINGS.next) {
+    if (shouldIgnoreKeyEvent(event)) return;
+    const keyLower = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+    const code = typeof event.code === 'string' ? event.code : '';
+
+    if ((event.ctrlKey || event.metaKey) && keyLower === 's') {
       event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!event.repeat) {
+        triggerSave();
+      }
+      return;
+    }
+
+    if (code === KEY_BINDINGS.saveCode || event.key === KEY_BINDINGS.saveCode) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!event.repeat) {
+        triggerSave();
+      }
+      return;
+    }
+
+    if (matchesKey(event, KEY_BINDINGS.next)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
       selectNext(1);
       return;
     }
-    if (key === KEY_BINDINGS.prev) {
+
+    if (matchesKey(event, KEY_BINDINGS.prev)) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       selectPrev();
       return;
     }
-    if (key === KEY_BINDINGS.save) {
+
+    if (keyLower === 'escape' || matchesKey(event, KEY_BINDINGS.exit)) {
       event.preventDefault();
-      triggerSave();
-      return;
-    }
-    if (event.key === KEY_BINDINGS.cancel || key === KEY_BINDINGS.cancel.toLowerCase()) {
-      event.preventDefault();
+      event.stopImmediatePropagation();
       api.disable();
     }
   }
@@ -323,7 +380,7 @@ export function createLandmarkPlacer({
     renderer.domElement.addEventListener('pointermove', listeners.pointermove);
     renderer.domElement.addEventListener('pointerdown', listeners.pointerdown);
     if (typeof window !== 'undefined') {
-      window.addEventListener('keydown', listeners.keydown);
+      window.addEventListener('keydown', listeners.keydown, true);
     }
   }
 
@@ -335,7 +392,7 @@ export function createLandmarkPlacer({
       renderer.domElement.removeEventListener('pointerdown', listeners.pointerdown);
     }
     if (listeners.keydown && typeof window !== 'undefined') {
-      window.removeEventListener('keydown', listeners.keydown);
+      window.removeEventListener('keydown', listeners.keydown, true);
     }
     listeners.pointermove = null;
     listeners.pointerdown = null;
