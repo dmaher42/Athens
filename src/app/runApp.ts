@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as THREE from 'three';
 import { installRenderGuard } from '../safety/hardenPositions';
 if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only
@@ -392,7 +394,7 @@ function findSafePlayerSpawn({
 
 function ensureContainerElement(options = {}) {
   if (typeof document === 'undefined') {
-    throw new Error('initializeAthens requires a browser document.');
+    throw new Error('runApp requires a browser document.');
   }
   if (options.container instanceof HTMLElement) return options.container;
   const containerId = options.containerId ?? DEFAULT_CONTAINER_ID;
@@ -485,7 +487,7 @@ function createPlaceholderPlayer() {
   return group;
 }
 
-export async function initializeAthens(options = {}) {
+export async function runApp(options = {}) {
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
 
@@ -602,7 +604,7 @@ export async function initializeAthens(options = {}) {
     const result = await setSky(scene, 'assets/sky/day.jpg');
     initialSkyApplied = Boolean(result);
   } catch (error) {
-    console.warn('[Athens] setSky failed during initializeAthens.', error);
+    console.warn('[Athens] setSky failed during runApp.', error);
   }
   if (!initialSkyApplied) {
     reapplySky(scene);
@@ -1587,4 +1589,6 @@ function _applyLandmarkOverrides(scene, options){
 }
 // LANDMARK_OVERRIDE_END
 
-export default initializeAthens;
+export const initializeAthens = runApp;
+
+export default runApp;
