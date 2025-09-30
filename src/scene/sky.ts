@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { logger } from '../utils/logger';
 
 export type SkyChoice =
   | {
@@ -142,7 +143,7 @@ export async function applySky(
     }) || SKY_CHOICES[0];
 
   if (!pick) {
-    console.warn('[sky] No sky choices found.');
+    logger.warn('[sky] No sky choices found.');
     return;
   }
 
@@ -204,13 +205,13 @@ export async function applySky(
         };
       }
     } else {
-      console.warn(
+      logger.warn(
         `[sky] Choice "${pick.id}" is missing required properties for type "${pick.type}".`
       );
       return;
     }
   } catch (error) {
-    console.warn('[sky] Failed to apply sky environment.', error);
+    logger.warn('[sky] Failed to apply sky environment.', error);
   } finally {
     // Dispose the previous background texture if it was replaced
     const backgroundDisposable = previousBackground as unknown as { dispose?: () => void };
@@ -222,7 +223,7 @@ export async function applySky(
       try {
         backgroundDisposable.dispose();
       } catch (e) {
-        console.warn('[sky] Failed to dispose previous background texture.', e);
+        logger.warn('[sky] Failed to dispose previous background texture.', e);
       }
     }
   }

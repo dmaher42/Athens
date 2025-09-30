@@ -8,6 +8,7 @@ import { getDistrictAt, getDistricts } from './scene/districts.js';
 import { defaultPlacementOptions } from './scene/placement-options.js';
 import { estimateAABB, GridIndex } from './scene/placement-grid.js';
 import { applyCompressionToVector3 } from './world/scale.js';
+import { logger } from './utils/logger.ts';
 
 const deg = (d)=> THREE.MathUtils.degToRad(d);
 
@@ -838,11 +839,11 @@ export async function buildFromGeoJSON({ scene, geoJsonUrl, projector, placement
     const skippedInfo = report.skippedOverlap ?? 0;
     const alignedInfo = report.pathAligned ?? 0;
     const exceededCount = report.exceededAdjustRadius?.length ?? 0;
-    console.info(
+    logger.info(
       `[placement] placed ${report.placed}/${report.total}; moved ${movedInfo}; skipped ${skippedInfo}; aligned ${alignedInfo}; exceeded radius ${exceededCount}.`
     );
     if (exceededCount > 0) {
-      console.info('[placement] adjustment radius exceeded for:', report.exceededAdjustRadius.join(', '));
+      logger.info('[placement] adjustment radius exceeded for:', report.exceededAdjustRadius.join(', '));
     }
   }
 

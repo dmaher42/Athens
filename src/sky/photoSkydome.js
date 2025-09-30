@@ -1,6 +1,7 @@
 // src/sky/photoSkydome.js
 import * as THREE from 'three';
 import { loadTextureAsyncWithFallback } from '../utils/fail-soft-loaders.js';
+import { logger } from '../utils/logger.ts';
 
 const sharedTextureLoader = new THREE.TextureLoader();
 const textureCache = new Map();
@@ -80,7 +81,7 @@ async function loadTextureSequence(sources, loader, options = {}) {
 
       if (texture?.userData?.isFallbackTexture) {
         fallbackResult = fallbackResult ?? { texture, source };
-        console.warn(
+        logger.warn(
           `PhotoSkydome: ${label} unavailable at ${source.url}; using fallback placeholder.`
         );
         continue;
@@ -89,7 +90,7 @@ async function loadTextureSequence(sources, loader, options = {}) {
       return { texture, source };
     } catch (error) {
       lastError = error;
-      console.warn(`PhotoSkydome: failed to load ${label} from ${source.url}`, error);
+      logger.warn(`PhotoSkydome: failed to load ${label} from ${source.url}`, error);
     }
   }
 

@@ -6,6 +6,7 @@ import { keepUpright } from '../physics/upright.js';
 import { loadGLTF } from '../loaders/safeGltf.js';
 import { logOnce } from '../utils/logOnce.js';
 import { ensureFeetAtLocalZero, placeOnGround } from '../utils/spawn.ts';
+import { logger } from '../utils/logger.ts';
 
 const SNAP_OPTIONS = { gravity: 12, maxStepUp: 0.6, maxDrop: 4, hover: 0.03, rayStart: 1000 };
 const GROUND_CLEARANCE = typeof SNAP_OPTIONS.hover === 'number' ? SNAP_OPTIONS.hover : 0.03;
@@ -652,7 +653,7 @@ function createNpcManager(scene, groundMeshes, options = {}) {
     if (dt === 0) return;
 
     if (!warnedGround && surfaces.length === 0) {
-      console.warn('[npc] no ground meshes');
+      logger.warn('[npc] no ground meshes');
       warnedGround = true;
     }
 
@@ -723,7 +724,7 @@ export function createNpcSystem(options = {}) {
 
   function spawnNpcAt(position, { patrol = null, ...config } = {}) {
     if (!manager) {
-      console.warn('[npc] Attempted to spawn NPC before initialization.');
+      logger.warn('[npc] Attempted to spawn NPC before initialization.');
       return null;
     }
 
@@ -781,7 +782,7 @@ export function createNpcSystem(options = {}) {
 
   function initializeNpcs(scene, navmesh) {
     if (!scene) {
-      console.warn('[npc] Cannot initialize NPCs without a scene.');
+      logger.warn('[npc] Cannot initialize NPCs without a scene.');
       return;
     }
 

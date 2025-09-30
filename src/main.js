@@ -1,6 +1,7 @@
 import { loadGround } from './scene/ground.js';
 import { loadTreeLibrary, scatterTrees, updateTrees as updateTreeAnimations } from './vegetation/trees.js';
 import { getAssetBase } from './utils/asset-paths.js';
+import { logger } from './utils/logger.ts';
 
 const ATHENS_MAIN_SENTINEL = Symbol.for('athens.main.entrypoint');
 const isAthensMainEntrypoint = (fn) => typeof fn === 'function' && fn[ATHENS_MAIN_SENTINEL];
@@ -69,7 +70,7 @@ async function ensureTrees(scene, renderer) {
       scene.add(groveGroup);
     }
   } catch (error) {
-    console.warn('[trees] Unable to initialize tree library.', error);
+    logger.warn('[trees] Unable to initialize tree library.', error);
   }
 
   treesInitialized = true;
@@ -168,7 +169,7 @@ async function waitForAthensInitializer({ timeoutMs, pollIntervalMs = 50, warnAf
 
       if (!hasWarned && normalizedWarnAfter !== null && Date.now() - start >= normalizedWarnAfter) {
         hasWarned = true;
-        console.warn('[Athens] Waiting for initializer to become available…');
+        logger.warn('[Athens] Waiting for initializer to become available…');
       }
 
       if (hasTimeout && Date.now() - start >= normalizedTimeout) {
@@ -221,11 +222,11 @@ export async function main(opts = {}) {
       ? opts
       : {};
 
-  console.info('[Athens][Main] Resolving entry point');
+  logger.info('[Athens][Main] Resolving entry point');
   reportDevLog('Resolving entry point…');
 
   const assetBase = getAssetBase();
-  console.info(`[Athens][Main] Assets base: ${assetBase}`);
+  logger.info(`[Athens][Main] Assets base: ${assetBase}`);
 
   const initializerResult = await waitForAthensInitializer({
     timeoutMs: typeof waitForInitializerMs === 'number' ? waitForInitializerMs : undefined,
@@ -263,7 +264,7 @@ export async function main(opts = {}) {
     }
   }
 
-  console.info('[Athens][Main] Invoking initializer…', {
+  logger.info('[Athens][Main] Invoking initializer…', {
     initializer: describeInitializer(initializer),
     source: initializerSource
   });
@@ -291,11 +292,11 @@ if (typeof window !== 'undefined') {
   try {
     if (typeof window.initializeAthens !== 'function') {
       window.initializeAthens = main;
-      console.info('[Athens][Main] Exposed module main() as window.initializeAthens');
+      logger.info('[Athens][Main] Exposed module main() as window.initializeAthens');
     } else {
-      console.info('[Athens][Main] Detected existing window.initializeAthens');
+      logger.info('[Athens][Main] Detected existing window.initializeAthens');
     }
   } catch (error) {
-    console.warn('[Athens][Main] Unable to coordinate window.initializeAthens', error);
+    logger.warn('[Athens][Main] Unable to coordinate window.initializeAthens', error);
   }
 }

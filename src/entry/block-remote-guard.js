@@ -1,4 +1,5 @@
 import { USE_REMOTE } from '../config/flags';
+import { logger } from '../utils/logger.ts';
 
 if (typeof window !== 'undefined' && !USE_REMOTE) {
   (function () {
@@ -14,7 +15,7 @@ if (typeof window !== 'undefined' && !USE_REMOTE) {
     window.fetch = async function (input, init) {
       const url = String(input instanceof Request ? input.url : input);
       if (blocked.some((p) => url.includes(p))) {
-        console.warn('[remote blocked]', url);
+        logger.warn('[remote blocked]', url);
         return new Response(JSON.stringify({ ok: false, blocked: true }), {
           status: 499,
           headers: { 'Content-Type': 'application/json' }

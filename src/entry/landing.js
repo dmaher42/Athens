@@ -6,6 +6,7 @@ import { startGameLoop, setLoopWatchdog } from '../engine/loop.js';
 import { createSafeScene } from '../engine/safeEntry.js';
 import { attachWatchdog } from '../ui/watchdog.js';
 import { maybeRemoteInit } from '../services/remote.js';
+import { logger } from '../utils/logger.ts';
 
 /**
  * @typedef {ReturnType<typeof initializeAthens> extends Promise<infer T> ? T : never} AthensContext
@@ -49,7 +50,7 @@ const ensureFallback = () => {
     try {
       fallbackScene = await createSafeScene();
     } catch (error) {
-      console.warn('[Athens] Failed to initialize fallback scene.', error);
+      logger.warn('[Athens] Failed to initialize fallback scene.', error);
       fallbackActive = false;
       if (fallbackRoot?.parentNode) {
         fallbackRoot.parentNode.removeChild(fallbackRoot);
@@ -76,7 +77,7 @@ const ensureFallback = () => {
     });
   })()
     .catch((error) => {
-      console.warn('[Athens] Fallback initialization failed.', error);
+      logger.warn('[Athens] Fallback initialization failed.', error);
     })
     .finally(() => {
       fallbackInitTask = null;
@@ -139,7 +140,7 @@ function ensureBootStarted() {
   if (!bootPromise) {
     started = true;
     if (!bootLogEmitted) {
-      console.log('[Athens] boot starting');
+      logger.info('[Athens] boot starting');
       bootLogEmitted = true;
     }
     bootPromise = Promise.resolve()
@@ -205,7 +206,7 @@ async function runAthens(options = {}) {
       try {
         context.scene.background = new THREE.Color(0x202834);
       } catch (error) {
-        console.warn('[Athens] Unable to set scene background color.', error);
+        logger.warn('[Athens] Unable to set scene background color.', error);
       }
     }
 
@@ -247,7 +248,7 @@ window.dispatchEvent(
     detail: { initializer: runAthens, source: 'landing.js' }
   })
 );
-console.log('[Athens] initializer ready');
+logger.info('[Athens] initializer ready');
 
 try {
   await runAthens();

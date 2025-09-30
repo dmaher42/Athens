@@ -1,4 +1,5 @@
 import { resolvePreset as resolvePresetSafe, getDefaultPreset as getDefaultPresetSafe } from '../core/presetResolver.js';
+import { logger } from '../utils/logger.ts';
 
 export const KNOWN_PRESETS = [
   'Golden Dawn',
@@ -41,7 +42,7 @@ export function resolvePreset(inputName) {
   }
   const fallback = getDefaultPresetSafe();
   if (inputName && !warnedUnknownPreset) {
-    console.warn('[Athens] Unknown sky preset:', inputName, '→ using', fallback);
+    logger.warn('[Athens] Unknown sky preset:', inputName, '→ using', fallback);
     warnedUnknownPreset = true;
   }
   return fallback;

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { logger } from '../utils/logger.ts';
 
 let districtsGroup = null;
 let districtFillGroup = null;
@@ -172,7 +173,7 @@ function notifyDistrictsChanged() {
     try {
       handler(snapshot);
     } catch (error) {
-      console.warn('[districts] change handler error', error);
+      logger.warn('[districts] change handler error', error);
     }
   });
 }
@@ -320,7 +321,7 @@ export function onDistrictsChanged(handler) {
     try {
       handler(currentDistricts.map((district) => ({ ...district })));
     } catch (error) {
-      console.warn('[districts] change handler error', error);
+      logger.warn('[districts] change handler error', error);
     }
   }
 

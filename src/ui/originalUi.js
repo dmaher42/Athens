@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.ts';
+
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
   day: 'High Noon',
@@ -447,7 +449,7 @@ export function createOriginalUi({
         try {
           fn();
         } catch (error) {
-          console.warn('[Athens][UI] Failed to run cleanup handler.', error);
+          logger.warn('[Athens][UI] Failed to run cleanup handler.', error);
         }
       });
       cleanupFns.length = 0;

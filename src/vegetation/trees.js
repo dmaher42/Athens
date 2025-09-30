@@ -4,6 +4,7 @@ import { assetUrl } from '../utils/assetUrl.js';
 import { applyCompressionToVector3 } from '../world/scale.js';
 import { loadGLTF } from '../loaders/safeGltf.js';
 import { logOnce } from '../utils/logOnce.js';
+import { logger } from '../utils/logger.ts';
 
 const TREE_MODEL_FILES = {
   olive: 'olive.glb',
@@ -550,7 +551,7 @@ export function scatterTrees({
   maxLod = 32
 } = {}) {
   if (!treeLibrary.size) {
-    console.warn('[trees] Tree library not loaded before scatterTrees call');
+    logger.warn('[trees] Tree library not loaded before scatterTrees call');
   }
 
   const definition = getTreeDefinition(name);

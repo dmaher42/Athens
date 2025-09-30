@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { logger } from '../utils/logger.ts';
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -326,7 +327,7 @@ export class AmbientZoneManager {
 
     zone.loading = loadBuffer()
       .catch((error) => {
-        console.warn(`[ambient-zones] Unable to create buffer for ${zone.id}`, error);
+        logger.warn(`[ambient-zones] Unable to create buffer for ${zone.id}`, error);
         if (zone.audio) {
           zone.audio.removeFromParent();
         }

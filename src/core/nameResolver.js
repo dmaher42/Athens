@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.ts';
+
 const KNOWN_NAMES = [
   'High Noon',
   'Golden Dawn',
@@ -38,7 +40,7 @@ export function resolveName(input) {
   }
 
   if (!warnedUnknownName) {
-    console.warn('[Athens] Unknown preset name provided:', input, '→ using', defaultName);
+    logger.warn('[Athens] Unknown preset name provided:', input, '→ using', defaultName);
     warnedUnknownName = true;
   }
 

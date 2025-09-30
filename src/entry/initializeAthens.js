@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { installRenderGuard } from '../safety/hardenPositions';
 if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only
 import { createStats } from '../debug/statsShim.js';
+import { logger } from '../utils/logger.ts';
 import { setupGround, updateTrees } from '../main.js';
 import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
@@ -134,7 +135,7 @@ function _applyLandmarkSpread(scene, options, {force=false} = {}) {
     results[key] = ok ? 'moved' : 'failed';
   }
 
-  try { console.info('[LandmarkSpread]', results); } catch {}
+  try { logger.info('[LandmarkSpread]', results); } catch {}
 }
 
 function _installLandmarkDev(scene, options) {
@@ -150,7 +151,7 @@ function _installLandmarkDev(scene, options) {
     token = String(token).toLowerCase();
     const hits = [];
     scene.traverse(o => { if (o?.name && o.name.toLowerCase().includes(token)) hits.push(o.name); });
-    console.log('[find]', token, hits);
+    logger.info('[find]', token, hits);
     return hits;
   };
 }
@@ -548,7 +549,7 @@ export async function initializeAthens(options = {}) {
     await environmentManager.applySky('day');
     environmentManager.setMode('procedural');
   } catch (error) {
-    console.warn('[Athens] applySky failed during initializeAthens.', error);
+    logger.warn('[Athens] applySky failed during initializeAthens.', error);
     renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
   }
 
@@ -681,9 +682,9 @@ export async function initializeAthens(options = {}) {
     const agora = get('AgoraGroup') || get('Agora');
     if (agora) {
       setWorldPosition(agora, p.x, p.y, p.z);
-      console.info('[LandmarkOverride] Agora ->', p);
+      logger.info('[LandmarkOverride] Agora ->', p);
     } else {
-      console.warn('[LandmarkOverride] Agora object not found');
+      logger.warn('[LandmarkOverride] Agora object not found');
     }
   })(scene, options);
   // LANDMARK_OVERRIDE_END
@@ -701,7 +702,7 @@ export async function initializeAthens(options = {}) {
         }
       }
     } catch (error) {
-      console.warn('[Athens] Unable to apply grass material to main ground plane.', error);
+      logger.warn('[Athens] Unable to apply grass material to main ground plane.', error);
     }
   }
 
@@ -724,7 +725,7 @@ export async function initializeAthens(options = {}) {
       const opts = { layoutConfig: { positions } };
       _applyLandmarkOverrides(scene, opts);
     };
-    console.info('[LandmarkOverride] dev.landmarks.applyPositions({ Agora:{x,y,z} }) is available');
+    logger.info('[LandmarkOverride] dev.landmarks.applyPositions({ Agora:{x,y,z} }) is available');
   }
   // LANDMARK_OVERRIDE_END
 
@@ -732,7 +733,7 @@ export async function initializeAthens(options = {}) {
   markGround(scene);
   const groundMeshes = collectGround(scene);
   if (!groundMeshes.length) {
-    console.warn('[npc] no ground meshes');
+    logger.warn('[npc] no ground meshes');
   }
   // PLACER_START
   const landmarkSequence = [
@@ -783,12 +784,12 @@ export async function initializeAthens(options = {}) {
       devApi.lastExport = exportString;
       devApi.lastPayload = payload;
       // eslint-disable-next-line no-console
-      console.log('[Athens][Landmarks] Exported landmark positions:', exportString);
+      logger.info('[Athens][Landmarks] Exported landmark positions:', exportString);
       if (typeof devApi.onSave === 'function') {
         try {
           devApi.onSave(payload);
         } catch (error) {
-          console.warn('[Athens][Landmarks] onSave handler error.', error);
+          logger.warn('[Athens][Landmarks] onSave handler error.', error);
         }
       }
     };
@@ -852,7 +853,7 @@ export async function initializeAthens(options = {}) {
     devApi.lastPayload = devApi.lastPayload ?? null;
     if (typeof devApi.saveToFile !== 'function') {
       devApi.saveToFile = () => {
-        console.info('[Athens][Landmarks] saveToFile hook not implemented.');
+        logger.info('[Athens][Landmarks] saveToFile hook not implemented.');
       };
     }
 
@@ -983,7 +984,7 @@ export async function initializeAthens(options = {}) {
         navPathfinder = createNavMeshPathfinder(navMesh);
       }
     } catch (error) {
-      console.warn('[Athens][NavMesh] Failed to build navmesh.', error);
+      logger.warn('[Athens][NavMesh] Failed to build navmesh.', error);
       navMesh = null;
       navPathfinder = null;
     }
@@ -1290,7 +1291,7 @@ export async function initializeAthens(options = {}) {
       try {
         updateTrees?.(delta);
       } catch (error) {
-        console.warn('[Athens] Tree animation update failed.', error);
+        logger.warn('[Athens] Tree animation update failed.', error);
       }
 
       if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
@@ -1359,7 +1360,7 @@ export async function initializeAthens(options = {}) {
       sanitizeVec3(lookTarget, SAFE_PLAYER_FALLBACK);
       camera.lookAt(lookTarget);
     } catch (error) {
-      console.warn('[Athens] Frame update failed.', error);
+      logger.warn('[Athens] Frame update failed.', error);
     }
   };
 
@@ -1502,7 +1503,7 @@ function _applyLandmarkOverrides(scene, options){
   const pos = options?.layoutConfig?.positions;
   if (!pos) return;
 
-  const log = (...args)=>{ try{ console.info('[LandmarkOverride]', ...args); }catch{} }
+  const log = (...args)=>{ try{ logger.info('[LandmarkOverride]', ...args); }catch{} }
 
   // AGORA override only (expand later)
   if (pos.Agora && Number.isFinite(pos.Agora.x) && Number.isFinite(pos.Agora.y) && Number.isFinite(pos.Agora.z)) {

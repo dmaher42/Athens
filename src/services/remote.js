@@ -1,4 +1,5 @@
 import { USE_REMOTE } from '../config/flags.ts';
+import { logger } from '../utils/logger.ts';
 
 /**
  * Initialize optional remote integrations without blocking rendering.
@@ -12,6 +13,6 @@ export async function maybeRemoteInit(context) {
     void context;
     // Remote integrations are currently disabled. Add guarded logic here when needed.
   } catch (error) {
-    console.warn('[remote disabled]', error);
+    logger.warn('[remote disabled]', error);
   }
 }

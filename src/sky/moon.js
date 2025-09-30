@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { logger } from '../utils/logger.ts';
 
 const ORIGIN = new THREE.Vector3();
 
@@ -49,7 +50,7 @@ export function createMoon({
       material.map = texture;
       material.needsUpdate = true;
     }, undefined, (error) => {
-      console.warn('[moon] Failed to load moon texture.', error);
+      logger.warn('[moon] Failed to load moon texture.', error);
     });
   }
 
