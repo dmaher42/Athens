@@ -35,27 +35,61 @@ export async function createCityExtended({ renderer, scene, layout = 'classic', 
       Port_Quay_A: { x: 10, y: 'ground', z: 160 }
     };
 
+    // PLACER_START
+    const placerOverrides = layoutConfig?.positions && typeof layoutConfig.positions === 'object'
+      ? layoutConfig.positions
+      : null;
+
+    const applyConfigOverride = (current, override) => {
+      if (override instanceof THREE.Vector3) {
+        return { x: override.x, y: override.y, z: override.z };
+      }
+      if (Array.isArray(override)) {
+        const [ox, oy, oz] = override;
+        return {
+          x: Number.isFinite(ox) ? ox : current.x,
+          y: Number.isFinite(oy) ? oy : current.y,
+          z: Number.isFinite(oz) ? oz : current.z
+        };
+      }
+      if (override && typeof override === 'object') {
+        const next = { ...current };
+        if ('x' in override && override.x !== undefined) {
+          next.x = Number.isFinite(override.x) ? override.x : Number.isFinite(Number(override.x)) ? Number(override.x) : override.x;
+        }
+        if ('y' in override && override.y !== undefined) {
+          next.y = Number.isFinite(override.y) ? override.y : Number.isFinite(Number(override.y)) ? Number(override.y) : override.y;
+        }
+        if ('z' in override && override.z !== undefined) {
+          next.z = Number.isFinite(override.z) ? override.z : Number.isFinite(Number(override.z)) ? Number(override.z) : override.z;
+        }
+        return next;
+      }
+      if (typeof override === 'number') {
+        return { ...current, y: override };
+      }
+      return current;
+    };
+    // PLACER_END
+
     const plateauHeight = typeof scene?.userData?.acropolis?.plateauHeight === 'number'
       ? scene.userData.acropolis.plateauHeight
       : null;
 
     const resolveConfigEntry = (key) => {
       const preset = PRESET[key] ? { ...PRESET[key] } : {};
-      const override = layoutConfig?.[key];
-      if (override instanceof THREE.Vector3) {
-        return { x: override.x, y: override.y, z: override.z };
+      const sources = [];
+      if (layoutConfig?.[key] !== undefined) {
+        sources.push(layoutConfig[key]);
       }
-      if (Array.isArray(override)) {
-        const [ox = preset.x ?? 0, oy = preset.y ?? 0, oz = preset.z ?? 0] = override;
-        return { x: ox, y: oy, z: oz };
+      if (placerOverrides?.[key] !== undefined) {
+        sources.push(placerOverrides[key]);
       }
-      if (override && typeof override === 'object') {
-        return { ...preset, ...override };
+      let resolved = { ...preset };
+      for (const source of sources) {
+        resolved = applyConfigOverride(resolved, source);
       }
-      if (typeof override === 'number') {
-        return { ...preset, y: override };
-      }
-      return preset;
+      return resolved;
     };
 
     const resolvePosition = (key, fallback = new THREE.Vector3()) => {
