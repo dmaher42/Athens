@@ -16,7 +16,20 @@ const LOOK_KEYS = [
 
 const MODIFIER_KEYS = ['ShiftLeft', 'ShiftRight'];
 
-const EXTRA_KEYS = ['Space', 'KeyX', 'KeyC', 'KeyE', 'KeyQ', 'KeyZ', 'KeyF', 'ControlLeft', 'ControlRight'];
+const EXTRA_KEYS = [
+  'Space',
+  'KeyX',
+  'KeyC',
+  'KeyE',
+  'KeyQ',
+  'KeyZ',
+  'KeyF',
+  'ControlLeft',
+  'ControlRight',
+  'KeyT',
+  'KeyY',
+  'KeyP'
+];
 
 const RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
 
@@ -38,6 +51,9 @@ const KEY_FALLBACK_MAP = new Map([
   ['f', 'KeyF'],
   ['c', 'KeyC'],
   ['e', 'KeyE'],
+  ['t', 'KeyT'],
+  ['y', 'KeyY'],
+  ['p', 'KeyP'],
   ['shift', 'ShiftLeft'],
   ['control', 'ControlLeft']
 ]);
@@ -63,6 +79,7 @@ const normalizeCode = (event) => {
 
 export function createKeyboard(target = typeof window !== 'undefined' ? window : null) {
   const pressed = new Set();
+  const justPressed = new Set();
   const listeners = new Map();
   const axisState = {
     x: 0,
@@ -88,6 +105,9 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
     if (!RELEVANT_KEYS.has(code)) {
       return;
+    }
+    if (!pressed.has(code)) {
+      justPressed.add(code);
     }
     pressed.add(code);
     updateState();
@@ -149,6 +169,8 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
   updateState();
 
+  let frameJustPressed = new Set();
+
   const axis = {};
   Object.defineProperties(axis, {
     x: {
@@ -207,7 +229,18 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
   const update = () => {
     updateState();
+    frameJustPressed = new Set(justPressed);
+    justPressed.clear();
     return axisState;
+  };
+
+  const wasPressed = (code) => {
+    if (!code) return false;
+    if (frameJustPressed.has(code)) {
+      frameJustPressed.delete(code);
+      return true;
+    }
+    return false;
   };
 
   const dispose = () => {
@@ -219,6 +252,8 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     });
     listeners.clear();
     pressed.clear();
+    justPressed.clear();
+    frameJustPressed.clear();
     updateState();
   };
 
@@ -227,6 +262,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     update,
     axis,
     look,
+    wasPressed,
     dispose
   };
 }

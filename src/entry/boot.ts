@@ -29,10 +29,17 @@ import { AmbientAPI, AMBIENT_TRACKS, initAmbient } from '../audio/ambient';
 import { createFootsteps } from '../audio/footsteps.js';
 import { attachNpcAudio } from '../audio/npcAudio.js';
 import { createHUD } from '../ui/hud.js';
-import { createTimeSky, setTimeOfDay, setSkyEnabled, isSkyEnabled, getTimeOfDay } from '../sky/timeSky.js';
+import { createTimeSky, setSkyEnabled, isSkyEnabled } from '../sky/timeSky.js';
 import { createMountainRim as createHorizonMountainRim } from '../horizon/mountainRim.js';
 import { movementConfig } from '../config/movement.ts';
 import { spawnPlayerOutsideWalls } from '../player/spawnPlayerOutsideWalls.ts';
+import {
+  initializeTimeMode,
+  setTimeMode as applyTimeMode,
+  shiftTimeForward,
+  shiftTimeBackward,
+  getTimeMode as getCurrentTimeMode
+} from '../time/timeController.ts';
 
 type TransformState = {
   pos?: Partial<THREE.Vector3> | { x?: number | null; y?: number | null; z?: number | null } | null;
@@ -335,6 +342,8 @@ export async function runAthens(options: RunOptions = {}) {
   scene.add(ambientLight);
   scene.add(directionalLight);
 
+  const lightingContext = { renderer, sun: directionalLight, ambient: ambientLight };
+
   const applyQualityPreset = (preset: string) => {
     const normalized = typeof preset === 'string' ? preset.toLowerCase() : '';
     const target: 'low' | 'medium' | 'high' =
@@ -393,6 +402,7 @@ export async function runAthens(options: RunOptions = {}) {
   }
 
   await createTimeSky(renderer, scene, initialSkyMode);
+  const initialTimeMode = await initializeTimeMode(initialSkyMode, lightingContext);
   applyHorizonVisibility(isSkyEnabled() || resolveHorizonEnabled());
 
   if (typeof setupGround === 'function') {
@@ -442,17 +452,17 @@ export async function runAthens(options: RunOptions = {}) {
     return trackId;
   };
 
-  const initialAmbientMode = getTimeOfDay() ?? initialSkyMode;
+  let activeTimeMode = initialTimeMode ?? initialSkyMode;
 
   if (!ambientOverrideSelected) {
-    applyAmbientForMode(initialAmbientMode, true);
+    applyAmbientForMode(activeTimeMode, true);
   }
 
   const handleTimeOfDay = async (mode: string) => {
-    const appliedMode = await setTimeOfDay(mode);
-    const effectiveMode = appliedMode ?? getTimeOfDay() ?? initialSkyMode;
-    applyAmbientForMode(effectiveMode, true);
-    return effectiveMode;
+    const appliedMode = await applyTimeMode(mode, lightingContext);
+    activeTimeMode = appliedMode ?? getCurrentTimeMode() ?? activeTimeMode;
+    applyAmbientForMode(activeTimeMode, true);
+    return activeTimeMode;
   };
 
   const handleVolume = (value: number) => {
@@ -778,6 +788,23 @@ export async function runAthens(options: RunOptions = {}) {
       }
 
       keyboard.update?.();
+
+      if (keyboard.wasPressed?.('KeyT')) {
+        shiftTimeForward(lightingContext)
+          .then((mode) => {
+            activeTimeMode = mode ?? activeTimeMode;
+            applyAmbientForMode(activeTimeMode, true);
+          })
+          .catch(() => {});
+      }
+      if (keyboard.wasPressed?.('KeyY')) {
+        shiftTimeBackward(lightingContext)
+          .then((mode) => {
+            activeTimeMode = mode ?? activeTimeMode;
+            applyAmbientForMode(activeTimeMode, true);
+          })
+          .catch(() => {});
+      }
 
       previousPlayerPosition.copy(playerObject.position);
       try {
