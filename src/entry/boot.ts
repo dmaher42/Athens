@@ -359,11 +359,86 @@ export async function runAthens(options: RunOptions = {}) {
   };
 
   const environmentMode = options.skyMode ?? options.preset ?? 'day';
-  try {
-    await applySky(scene, renderer, environmentMode);
-  } catch (error) {
-    console.warn('[Athens][Boot] applySky failed', error);
-  }
+  let currentSkyMode = typeof environmentMode === 'string' && environmentMode ? environmentMode : 'day';
+  let skyEnabled = true;
+  let cachedSky: {
+    background: THREE.Texture | THREE.Color | null;
+    environment: THREE.Texture | THREE.CubeTexture | null;
+  } = {
+    background: (scene.background as THREE.Texture | THREE.Color | null) ?? null,
+    environment: (scene.environment as THREE.Texture | THREE.CubeTexture | null) ?? null
+  };
+
+  const updateSkyCache = () => {
+    cachedSky = {
+      background: (scene.background as THREE.Texture | THREE.Color | null) ?? null,
+      environment: (scene.environment as THREE.Texture | THREE.CubeTexture | null) ?? null
+    };
+  };
+
+  const applyDefaultSkyBackground = () => {
+    scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+    scene.environment = null;
+    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+  };
+
+  const restoreCachedSky = () => {
+    if (cachedSky.background) {
+      scene.background = cachedSky.background;
+    } else {
+      scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+    }
+    scene.environment = cachedSky.environment ?? null;
+    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+  };
+
+  const notifySkyEnabledChange = (enabled: boolean) => {
+    if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
+      return;
+    }
+    try {
+      window.dispatchEvent(new CustomEvent('athens:sky-enabled-changed', { detail: { enabled } }));
+    } catch (_) {
+      // ignored
+    }
+  };
+
+  const applySkyForMode = async (mode: string) => {
+    const normalized = typeof mode === 'string' && mode ? mode : 'day';
+    currentSkyMode = normalized;
+    try {
+      await applySky(scene, renderer, normalized);
+    } catch (error) {
+      console.warn('[Athens][Boot] applySky failed', error);
+    }
+    updateSkyCache();
+    if (!skyEnabled) {
+      applyDefaultSkyBackground();
+    }
+    return normalized;
+  };
+
+  const setSkyEnabledInternal = (enabled: boolean) => {
+    const normalized = Boolean(enabled);
+    if (skyEnabled === normalized) {
+      return skyEnabled;
+    }
+    skyEnabled = normalized;
+    if (skyEnabled) {
+      if (!cachedSky.background && !cachedSky.environment) {
+        applySkyForMode(currentSkyMode).catch(() => {});
+      } else {
+        restoreCachedSky();
+      }
+    } else {
+      applyDefaultSkyBackground();
+    }
+    applyHorizonVisibility(skyEnabled || resolveHorizonEnabled());
+    notifySkyEnabledChange(skyEnabled);
+    return skyEnabled;
+  };
+
+  await applySkyForMode(environmentMode);
 
   if (typeof setupGround === 'function') {
     try {
@@ -416,10 +491,10 @@ export async function runAthens(options: RunOptions = {}) {
     applyAmbientForMode(environmentMode, true);
   }
 
-  const handleTimeOfDay = (mode: string) => {
-    const fallback = typeof mode === 'string' && mode ? mode : 'day';
-    applyAmbientForMode(fallback, true);
-    return fallback;
+  const handleTimeOfDay = async (mode: string) => {
+    const appliedMode = await applySkyForMode(mode);
+    applyAmbientForMode(appliedMode, true);
+    return appliedMode;
   };
 
   const handleVolume = (value: number) => {
@@ -427,13 +502,7 @@ export async function runAthens(options: RunOptions = {}) {
     audio.setMasterVolume(value);
   };
 
-  const handleSkyEnabled = (enabled: boolean) => {
-    const normalized = Boolean(enabled);
-    scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
-    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
-    applyHorizonVisibility(normalized || resolveHorizonEnabled());
-    return normalized;
-  };
+  const handleSkyEnabled = (enabled: boolean) => setSkyEnabledInternal(enabled);
 
   applyQualityPreset('high');
 
@@ -443,6 +512,28 @@ export async function runAthens(options: RunOptions = {}) {
     setQuality: (preset) => applyQualityPreset(String(preset)),
     setSkyEnabled: (value) => handleSkyEnabled(Boolean(value))
   });
+
+  let removeSkyHotkey: (() => void) | null = null;
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    const handleSkyToggleKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.altKey || event.metaKey || event.ctrlKey) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tagName = typeof target.tagName === 'string' ? target.tagName.toLowerCase() : '';
+        if (tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target.isContentEditable) {
+          return;
+        }
+      }
+      const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+      if (key === 'k') {
+        handleSkyEnabled(!skyEnabled);
+      }
+    };
+    window.addEventListener('keydown', handleSkyToggleKey);
+    removeSkyHotkey = () => window.removeEventListener('keydown', handleSkyToggleKey);
+  }
 
   markGround(scene);
   const groundMeshes = collectGround(scene);
@@ -820,6 +911,7 @@ export async function runAthens(options: RunOptions = {}) {
         window.removeEventListener('click', resumeAudioContext);
         window.removeEventListener('keydown', resumeAudioContext);
       }
+      removeSkyHotkey?.();
       const panel = stats?.dom;
       if (panel && panel.parentNode === container) {
         container.removeChild(panel);
