@@ -13,7 +13,6 @@ const DEFAULT_YAW_SPEED = 2.0; // radians per second
 const DEFAULT_PITCH_SPEED = 1.6; // radians per second
 const MAX_DT = 0.25;
 const DEFAULT_DT = 1 / 60;
-const MOUSE_SENSITIVITY = 0.0018;
 
 function computeBaseParameters(offset) {
   const offsetVector = offset.clone();
@@ -61,16 +60,6 @@ export function createFollowCamera(
     return state;
   })();
 
-  let pointerElement = null;
-  let accumulatedMouseDX = 0;
-  let accumulatedMouseDY = 0;
-  let handlePointerMove = null;
-  let handlePointerLockChange = null;
-  let handleClick = null;
-
-  const browserWindow = typeof window !== 'undefined' ? window : null;
-  const browserDocument = typeof document !== 'undefined' ? document : null;
-
   const sanitizeYaw = (value) => {
     if (!Number.isFinite(value)) {
       return 0;
@@ -115,66 +104,6 @@ export function createFollowCamera(
     }
     const scaled = 1 - Math.exp(-options.lerp * dt * 60);
     return THREE.MathUtils.clamp(scaled, 0, 1);
-  };
-
-  const detachPointerLock = () => {
-    if (pointerElement && handleClick && pointerElement.removeEventListener) {
-      pointerElement.removeEventListener('click', handleClick);
-    }
-    if (browserWindow && handlePointerMove) {
-      browserWindow.removeEventListener('mousemove', handlePointerMove);
-    }
-    if (browserDocument && handlePointerLockChange) {
-      browserDocument.removeEventListener('pointerlockchange', handlePointerLockChange);
-    }
-    pointerElement = null;
-    handleClick = null;
-    handlePointerMove = null;
-    handlePointerLockChange = null;
-    accumulatedMouseDX = 0;
-    accumulatedMouseDY = 0;
-  };
-
-  const applyPointerLockElement = (element) => {
-    if (pointerElement === element) {
-      return;
-    }
-    detachPointerLock();
-    if (!element || typeof element.addEventListener !== 'function') {
-      return;
-    }
-    pointerElement = element;
-    handleClick = () => {
-      if (pointerElement && typeof pointerElement.requestPointerLock === 'function') {
-        pointerElement.requestPointerLock();
-      } else if (pointerElement && pointerElement.requestPointerLock) {
-        try {
-          pointerElement.requestPointerLock();
-        } catch {
-          // ignore errors from browsers without pointer lock
-        }
-      }
-    };
-    pointerElement.addEventListener('click', handleClick);
-
-    handlePointerMove = (event) => {
-      if (!browserDocument || browserDocument.pointerLockElement !== pointerElement) {
-        return;
-      }
-      const movementX = Number.isFinite(event?.movementX) ? event.movementX : 0;
-      const movementY = Number.isFinite(event?.movementY) ? event.movementY : 0;
-      if (movementX) accumulatedMouseDX += movementX;
-      if (movementY) accumulatedMouseDY += movementY;
-    };
-    browserWindow?.addEventListener?.('mousemove', handlePointerMove);
-
-    handlePointerLockChange = () => {
-      if (!browserDocument || browserDocument.pointerLockElement !== pointerElement) {
-        accumulatedMouseDX = 0;
-        accumulatedMouseDY = 0;
-      }
-    };
-    browserDocument?.addEventListener?.('pointerlockchange', handlePointerLockChange);
   };
 
   const update = (keyboardState, deltaSeconds = 0) => {
@@ -222,13 +151,6 @@ export function createFollowCamera(
     }
     if (!Number.isFinite(rigState.pitch)) {
       rigState.pitch = 0;
-    }
-
-    if (accumulatedMouseDX !== 0 || accumulatedMouseDY !== 0) {
-      rigState.yaw += accumulatedMouseDX * MOUSE_SENSITIVITY;
-      rigState.pitch -= accumulatedMouseDY * MOUSE_SENSITIVITY;
-      accumulatedMouseDX = 0;
-      accumulatedMouseDY = 0;
     }
 
     rigState.yaw += lookX * options.yawSpeed * dtSafe;
@@ -295,8 +217,8 @@ export function createFollowCamera(
     setTarget,
     syncImmediate,
     options,
-    setPointerLockElement(element) {
-      applyPointerLockElement(element);
+    setPointerLockElement() {
+      // Mouse look has been disabled; this is now a no-op for compatibility.
     },
     get target() {
       return currentTarget;
