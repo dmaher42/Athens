@@ -14,6 +14,14 @@ const DEFAULT_RUN_SPEED = 3.0;
 const DEFAULT_ACCEL = 6.0;
 const DEFAULT_TURN = 0.18;
 
+const DEFAULT_NPC_MODEL_URLS = [
+  'models/Adventurer1.glb',
+  'models/brokenCHar.glb',
+  'models/character3.glb',
+  assetUrl('assets/models/hoplite_npc.glb'),
+  assetUrl('assets/models/npc_athenian.glb')
+];
+
 const STEP_DIRECTION = new THREE.Vector3();
 const INIT_DIRECTION = new THREE.Vector3();
 const TMP_EULER = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -332,6 +340,28 @@ function sanitizeWaypoints(waypoints, fallbackPosition) {
   return result;
 }
 
+function buildNpcPatrolPath(radius, angle, height = 0) {
+  const baseX = Math.cos(angle) * radius;
+  const baseZ = Math.sin(angle) * radius;
+  const offset = Math.max(2, radius * 0.25);
+  const waypoint = (x, z) => ({ x, y: height, z });
+  return [
+    waypoint(baseX, baseZ),
+    waypoint(baseX + Math.cos(angle + Math.PI / 4) * offset, baseZ + Math.sin(angle + Math.PI / 4) * offset),
+    waypoint(baseX + Math.cos(angle - Math.PI / 4) * offset, baseZ + Math.sin(angle - Math.PI / 4) * offset)
+  ];
+}
+
+function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
+  if (!Array.isArray(modelUrls) || modelUrls.length === 0) return [];
+  const radius = 18;
+  return modelUrls.map((modelUrl, index) => {
+    const angle = (index / modelUrls.length) * Math.PI * 2;
+    const waypoints = buildNpcPatrolPath(radius, angle);
+    return { modelUrl, initialPosition: waypoints[0], waypoints };
+  });
+}
+
 function attachModelToNpc(npc, model) {
   if (!npc || !npc.object3d) return;
   const { object3d } = npc;
@@ -585,7 +615,7 @@ export function createNpc(options = {}) {
   };
 }
 
-export function createNpcManager(scene, groundMeshes, options = {}) {
+function createNpcManager(scene, groundMeshes, options = {}) {
   const npcs = [];
   const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
   let warnedGround = false;
@@ -648,4 +678,138 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
   }
 
   return { spawn, update, dispose, _npcs: npcs };
+}
+
+export function createNpcSystem(options = {}) {
+  const {
+    groundMeshes = [],
+    timeSource = null,
+    npcModelUrls = null,
+    npcConfigs = null
+  } = options || {};
+
+  const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
+  const configuredModelUrls = Array.isArray(npcModelUrls) && npcModelUrls.length
+    ? npcModelUrls
+    : DEFAULT_NPC_MODEL_URLS;
+  const baseNpcConfigs = (Array.isArray(npcConfigs) && npcConfigs.length
+    ? npcConfigs
+    : createDefaultNpcConfigs(configuredModelUrls))
+    .filter((config) => config && typeof config === 'object')
+    .map((config) => ({ ...config }));
+
+  let manager = null;
+  let currentScene = null;
+
+  function normalizeNavContext(input) {
+    if (!input) {
+      return { navMesh: null, pathfinder: null };
+    }
+    if (typeof input === 'object' && (Object.prototype.hasOwnProperty.call(input, 'navMesh') || Object.prototype.hasOwnProperty.call(input, 'pathfinder'))) {
+      return {
+        navMesh: input.navMesh ?? null,
+        pathfinder: input.pathfinder ?? null
+      };
+    }
+    return { navMesh: input, pathfinder: null };
+  }
+
+  function createPatrolPath(points = []) {
+    const fallback = Array.isArray(points) && points.length ? points[0] : points;
+    const sanitized = sanitizeWaypoints(points, fallback);
+    const start = sanitized[0]?.clone?.() || new THREE.Vector3();
+    return { waypoints: sanitized, start };
+  }
+
+  function spawnNpcAt(position, { patrol = null, ...config } = {}) {
+    if (!manager) {
+      console.warn('[npc] Attempted to spawn NPC before initialization.');
+      return null;
+    }
+
+    const initialCandidate = config.initialPosition ?? position ?? (Array.isArray(config.waypoints) ? config.waypoints[0] : null);
+    const initial = toVector3(initialCandidate) || new THREE.Vector3();
+    const waypointSource = (Array.isArray(patrol?.waypoints) && patrol.waypoints.length
+      ? patrol.waypoints
+      : config.waypoints) || [initial.clone()];
+    const normalizedWaypoints = sanitizeWaypoints(waypointSource, initial);
+
+    const spawnConfig = {
+      ...config,
+      initialPosition: initial.clone(),
+      waypoints: normalizedWaypoints
+    };
+
+    return manager.spawn(spawnConfig);
+  }
+
+  function dispose() {
+    manager?.dispose?.();
+    manager = null;
+    currentScene = null;
+  }
+
+  function spawnExampleNpc() {
+    if (!manager || !currentScene) {
+      return null;
+    }
+    const start = new THREE.Vector3(5, 0, 5);
+    const end = new THREE.Vector3(20, 0, 5);
+    const patrol = createPatrolPath([start, end]);
+    const npcRoot = currentScene.getObjectByName('NPC_1') || new THREE.Object3D();
+    npcRoot.name = 'NPC_1';
+    if (!npcRoot.parent) currentScene.add(npcRoot);
+    return spawnNpcAt(start, {
+      object3d: npcRoot,
+      patrol,
+      walkSpeed: 1.6,
+      accel: 5.0,
+      turn: 0.18
+    });
+  }
+
+  function spawnConfiguredNpcs() {
+    const results = [];
+    for (const config of baseNpcConfigs) {
+      if (!config) continue;
+      const spawnPosition = config.initialPosition ?? (Array.isArray(config.waypoints) ? config.waypoints[0] : null);
+      const npc = spawnNpcAt(spawnPosition, config);
+      if (npc) results.push(npc);
+    }
+    return results;
+  }
+
+  function initializeNpcs(scene, navmesh) {
+    if (!scene) {
+      console.warn('[npc] Cannot initialize NPCs without a scene.');
+      return;
+    }
+
+    if (manager) {
+      dispose();
+    }
+
+    const context = normalizeNavContext(navmesh);
+    currentScene = scene;
+    manager = createNpcManager(scene, surfaces, {
+      navMesh: context.navMesh,
+      pathfinder: context.pathfinder,
+      timeSource
+    });
+
+    spawnExampleNpc();
+    spawnConfiguredNpcs();
+  }
+
+  function update(deltaSeconds, context = {}) {
+    manager?.update?.(deltaSeconds, context);
+  }
+
+  return {
+    initializeNpcs,
+    createPatrolPath,
+    spawnNpcAt,
+    update,
+    dispose
+  };
 }
