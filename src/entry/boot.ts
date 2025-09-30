@@ -112,8 +112,23 @@ const statsReady: Promise<StatsHandle> = (async () => {
 })();
 
 const bootFn = (boot as unknown as (() => void) | null | undefined);
-console.log('[Athens] boot starting');
-bootFn?.();
+let bootstrapInvoked = false;
+
+if (typeof bootFn === 'function') {
+  bootstrapInvoked = true;
+  console.log('[Athens] boot starting');
+  try {
+    const maybePromise = bootFn();
+    if (maybePromise && typeof (maybePromise as Promise<unknown>).catch === 'function') {
+      (maybePromise as Promise<unknown>).catch((error) => {
+        console.error('[Athens] boot failed', error);
+      });
+    }
+  } catch (error) {
+    console.error('[Athens] boot failed', error);
+    bootstrapInvoked = false;
+  }
+}
 
 const DEFAULT_CONTAINER_ID = 'app';
 const STATUS_SELECTOR = '[data-status-line]';
@@ -937,11 +952,13 @@ if (globalWindow) {
     );
   }
 
-  try {
-    await (globalWindow as any).runAthens();
-    console.log('[Athens] render loop running');
-  } catch (error: unknown) {
-    updateStatus('Failed to start Athens. See console for details.', 'error');
-    console.error(error);
+  if (!bootstrapInvoked) {
+    try {
+      await (globalWindow as any).runAthens();
+      console.log('[Athens] render loop running');
+    } catch (error: unknown) {
+      updateStatus('Failed to start Athens. See console for details.', 'error');
+      console.error(error);
+    }
   }
 }
