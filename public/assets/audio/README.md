@@ -16,4 +16,6 @@ following MP3 files into this directory:
 - `wind-coast.mp3`
 
 These filenames must match exactly because the ambient registry references them
-verbatim. The build will gracefully log a warning if a track is missing at runtime.
+verbatim. Footstep clips in particular must use the singular `footstep_` prefix to
+line up with the runtime loader. The build will gracefully log a warning if a track
+is missing at runtime.
