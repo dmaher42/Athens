@@ -15,7 +15,7 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // Bypass cross-origin (Firebase/analytics/CDNs) to avoid errors
+  // Bypass cross-origin (third-party analytics/CDNs) to avoid errors
   if (url.origin !== self.location.origin) {
     event.respondWith(
       fetch(req).catch(

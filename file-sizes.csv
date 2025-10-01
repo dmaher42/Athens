@@ -204,4 +204,4 @@ tests/spawn-hover.test.js,2715
 tests/texture-guards.spec.js,1097
 tools/find-unused-ground.js,2805
 tsconfig.json,352
-vite.config.js,1475
+vite.config.ts,1475
