@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { applySky } from '../scene/sky.ts';
+import { EnvironmentController } from '../environment/EnvironmentController.ts';
 import { logger } from '../utils/logger.ts';
 
 export async function createSafeScene(canvasSelector = 'canvas') {
@@ -20,8 +20,9 @@ export async function createSafeScene(canvasSelector = 'canvas') {
   camera.position.set(0, 3.5, 7);
   scene.add(camera);
 
+  const environment = new EnvironmentController(scene, renderer);
   try {
-    await applySky(scene, renderer, 'day');
+    await environment.setMode('procedural');
   } catch (error) {
     logger.warn('[safeEntry] applySky failed.', error);
     renderer.setClearColor(0x202834, 1);
@@ -59,6 +60,11 @@ export async function createSafeScene(canvasSelector = 'canvas') {
   }
 
   const update = (dt = 0) => {
+    try {
+      environment.skyController?.update?.(dt);
+    } catch (error) {
+      logger.warn('[safeEntry] Procedural sky update failed.', error);
+    }
     cube.rotation.y += dt;
   };
 
@@ -70,10 +76,11 @@ export async function createSafeScene(canvasSelector = 'canvas') {
     if (typeof window !== 'undefined') {
       window.removeEventListener('resize', onResize);
     }
+    environment.dispose();
     renderer.dispose();
   };
 
-  return { renderer, scene, camera, update, render, dispose };
+  return { renderer, scene, camera, update, render, dispose, environment };
 }
 
 export default createSafeScene;

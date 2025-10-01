@@ -186,6 +186,7 @@ function _installLandmarkDev(scene, options) {
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
 
 const DEFAULT_BACKGROUND_HEX = 0x202834;
+const DEFAULT_PROCEDURAL_CYCLE_SPEED = 0.25;
 
 let stats = null;
 let statsVisible = true;
@@ -611,11 +612,22 @@ export async function initializeAthens(options = {}) {
 
     window.dev = window.dev || {};
     window.dev.sky = window.dev.sky || {};
-    window.dev.sky.on = (mode = 'day') => environmentManager.applySky(mode);
+    window.dev.sky.on = (mode = 'procedural') => environmentManager.setMode(mode);
+    window.dev.sky.apply = (mode = 'day') => environmentManager.applySky(mode);
     window.dev.sky.off = () => { scene.background = null; scene.environment = null; };
     window.dev.sky.color = (hex = 0x87ceeb) => {
       renderer.setClearAlpha(1);
       renderer.setClearColor(hex, 1);
+    };
+    window.dev.sky.setTime = (hours = 12) => {
+      const target = Number(hours);
+      environmentManager.skyController?.setTimeOfDay?.(Number.isFinite(target) ? target : 12);
+    };
+    window.dev.sky.speed = (speed = DEFAULT_PROCEDURAL_CYCLE_SPEED) => {
+      const value = Number(speed);
+      environmentManager.skyController?.setCycleSpeed?.(
+        Number.isFinite(value) ? value : DEFAULT_PROCEDURAL_CYCLE_SPEED
+      );
     };
   }
 
@@ -636,6 +648,17 @@ export async function initializeAthens(options = {}) {
   } catch (error) {
     logger.warn('[Athens] Ambient initialization threw synchronously.', error);
   }
+
+  const normalizeSkyId = (value) => {
+    if (!value || typeof value !== 'string') {
+      return null;
+    }
+    const trimmed = value.trim().toLowerCase();
+    if (!trimmed) {
+      return null;
+    }
+    return trimmed.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  };
 
   try {
     // Register all discovered mp3 tracks before the environment mode picks a track.
@@ -686,18 +709,17 @@ export async function initializeAthens(options = {}) {
   }
 
   try {
-await environmentManager.applySky('day');
+    const requestedSky = searchParams?.get('sky');
+    const normalizedSky = normalizeSkyId(requestedSky);
 
-    environmentManager.setMode('procedural');
-    try {
-      const currentMode = environmentManager?.skyMode || appliedSkyMode || 'day';
-      const match = (SKY_JPGS || []).find((i) =>
-        (i.tags || []).some((t) => t.toLowerCase() === String(currentMode).toLowerCase())
-      );
-      if (match) {
-        await applySkyImage(scene, renderer, match.url);
+    if (normalizedSky) {
+      await environmentManager.applySky(requestedSky || undefined);
+      if (normalizedSky === 'procedural') {
+        await environmentManager.setMode('procedural');
       }
-    } catch {}
+    } else {
+      await environmentManager.setMode('procedural');
+    }
   } catch (error) {
     logger.warn('[Athens] applySky failed during initializeAthens.', error);
     renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
@@ -708,6 +730,7 @@ await environmentManager.applySky('day');
   const ambientTrackIds = new Set(AMBIENT_TRACKS.map((track) => track.id));
   const defaultAmbientTrack = AMBIENT_TRACKS.length > 0 ? AMBIENT_TRACKS[0].id : null;
   const MODE_TO_AMBIENT = {
+    procedural: ['day', 'forest', 'coast', 'market'],
     dawn: ['dawn', 'forest', 'coast', 'night_crickets'],
     day: ['day', 'forest', 'coast', 'market'],
     high_noon: ['day', 'forest', 'coast', 'market'],
@@ -763,13 +786,14 @@ await environmentManager.applySky('day');
       // Ignore stats setup errors.
     });
 
-  let environmentMode = 'day';
+  let environmentMode = 'procedural';
 
   const setEnvironmentMode = (mode, { allowAmbient = true } = {}) => {
     const normalized = typeof mode === 'string' && mode ? mode : 'day';
     environmentMode = normalized;
     if (allowAmbient) {
-      applyAmbientForMode(normalized, true);
+      const ambientKey = normalized === 'procedural' ? 'day' : normalized;
+      applyAmbientForMode(ambientKey, true);
     }
     return environmentMode;
   };
@@ -782,7 +806,7 @@ await environmentManager.applySky('day');
       const allowAmbient = envOptions?.playAmbient !== false;
       const next = setEnvironmentMode(mode, { allowAmbient });
       try {
-        await environmentManager.applySky(next);
+        await environmentManager.setMode(next);
       } catch {
         // keep running if sky load fails
       }
@@ -797,6 +821,9 @@ await environmentManager.applySky('day');
       return next;
     },
     applySky(mode) {
+      if (mode) {
+        setEnvironmentMode(mode, { allowAmbient: true });
+      }
       return environmentManager.applySky(mode);
     },
     dispose() {
@@ -1490,6 +1517,12 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         updateTrees?.(delta);
       } catch (error) {
         logger.warn('[Athens] Tree animation update failed.', error);
+      }
+
+      try {
+        environmentManager.skyController?.update?.(delta);
+      } catch (error) {
+        logger.warn('[Athens] Procedural sky update failed.', error);
       }
 
       if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
