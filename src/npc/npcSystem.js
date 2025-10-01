@@ -415,6 +415,17 @@ function attachModelToNpc(npc, model) {
     enableMeshShadows(model);
     fixModelTilt(model);
     object3d.add(model);
+
+    ensureFeetAtLocalZero(model);
+    object3d.updateMatrixWorld(true);
+
+    const groundTarget = npc.groundTarget || null;
+    if (groundTarget) {
+      placeOnGround(object3d, groundTarget, { clearance: GROUND_CLEARANCE, rayStart: SNAP_OPTIONS.rayStart });
+      if (npc.state && typeof npc.state === 'object') {
+        npc.state.lastGoodY = (object3d.position.y || 0) - GROUND_CLEARANCE;
+      }
+    }
   }
 }
 
@@ -556,7 +567,8 @@ function createNpcEntity(config = {}, { scene = null, navContext = null, groundM
     scheduleTarget: null,
     navContext: navContext || null,
     blockedTimer: 0,
-    lastProgress: object3d.position.clone()
+    lastProgress: object3d.position.clone(),
+    groundTarget
   };
 
   if (sanitizedWaypoints.length > 1) {
