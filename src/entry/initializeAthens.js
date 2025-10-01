@@ -663,10 +663,12 @@ export async function initializeAthens(options = {}) {
   }
 
   try {
-    await environmentController.setMode('day', { playAmbient: true });
+await environmentController.setMode('day', { playAmbient: true });
+
     environmentManager.setMode('procedural');
     try {
-      const currentMode = environmentManager?.skyMode || 'day';
+      const currentMode =
+        appliedSkyId || environmentManager?.skyId || environmentController?.mode || 'day';
       const match = (SKY_JPGS || []).find((i) =>
         (i.tags || []).some((t) => t.toLowerCase() === String(currentMode).toLowerCase())
       );
@@ -757,8 +759,12 @@ export async function initializeAthens(options = {}) {
     async setMode(mode, envOptions = {}) {
       const allowAmbient = envOptions?.playAmbient !== false;
       const next = setEnvironmentMode(mode, { allowAmbient });
-      try {
-        await environmentManager.applySky(next);
+try {
+  await environmentManager.applySky(next);
+} catch {
+  // keep running if sky load fails
+}
+vironmentManager.applySky(next);
       } catch {
         // keep running if sky load fails
       }
@@ -770,7 +776,8 @@ export async function initializeAthens(options = {}) {
         }
       } catch {}
 
-      return next;
+return next;
+
     },
     applySky(mode) {
       return environmentManager.applySky(mode);
