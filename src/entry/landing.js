@@ -1,6 +1,6 @@
 import './block-remote-guard.js';
 import * as THREE from 'three';
-import '../registerServiceWorker.ts';
+import { registerSW } from '../registerServiceWorker.ts';
 import { initializeAthens } from './initializeAthens.js';
 import boot, { whenBootReady } from '../core/bootstrap.js';
 import { startGameLoop, setLoopWatchdog } from '../engine/loop.js';
@@ -19,6 +19,7 @@ let bootPromise = null;
 let bootLogEmitted = false;
 
 const watchdog = attachWatchdog();
+registerSW();
 setLoopWatchdog(watchdog);
 
 let fallbackActive = false;
@@ -201,7 +202,23 @@ async function runAthens(options = {}) {
     container.style.position = container.style.position || 'relative';
     container.style.backgroundColor = container.style.backgroundColor || '#202834';
 
-    const context = await initializeAthens({ ...options, container });
+    let bootTimer = null;
+    const bootTimeout = new Promise((_, reject) => {
+      bootTimer = setTimeout(() => reject(new Error('Boot timeout')), 8000);
+    });
+
+    const context = await Promise.race([
+      initializeAthens({ ...options, container }),
+      bootTimeout
+    ]).catch((error) => {
+      watchdog?.error?.(error?.message || 'boot failed');
+      console.error('[Athens] Boot failed:', error);
+      throw error;
+    });
+
+    if (bootTimer) {
+      clearTimeout(bootTimer);
+    }
     context.renderer?.setClearColor?.(0x202834, 1);
     if (context.scene) {
       try {
