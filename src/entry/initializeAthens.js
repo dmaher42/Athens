@@ -14,7 +14,7 @@ import { collectRoadPoints } from '../roads/collectRoadPoints.js';
 import { createNpcSystem } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
-import { HOTKEY_IDS, getHotkeyDisplayEntries } from '../config/hotkeys.ts';
+import { RELEVANT_KEYS, HOTKEY_IDS, getHotkeyDisplayEntries } from '../config/hotkeys.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -34,6 +34,19 @@ import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
 import { loadWorldWithColliders } from '../physics/collisionWorld.ts';
 import { CharacterController } from '../controls/CharacterController.ts';
 import { getInput } from '../controls/input.ts';
+
+const __hotkeyHealthcheckEnabled =
+  typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
+
+if (__hotkeyHealthcheckEnabled) {
+  try {
+    const sampleKeys = Array.from(RELEVANT_KEYS).slice(0, 10);
+    console.log('[Hotkeys] sample:', sampleKeys);
+    console.log('[Hotkeys] forward action codes:', HOTKEY_IDS?.movement?.forward);
+  } catch (error) {
+    console.warn('[Hotkeys] Failed to log hotkey healthcheck.', error);
+  }
+}
 import {
   LANDMARK_ALIASES,
   KNOWN_LANDMARK_KEYS,
@@ -1435,12 +1448,15 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const keyboard = createKeyboard();
   registerDisposables(keyboard);
 
-  const actionBindings = bindHotkeyActions({
-    [HOTKEY_IDS.debug.toggleStats]: () => toggleStatsPanel(),
-    [HOTKEY_IDS.debug.toggleSound]: () => toggleAmbientMuted(),
-    [HOTKEY_IDS.debug.toggleSky]: () => toggleSkySuppressed(),
-    [HOTKEY_IDS.debug.toggleSanityGeometry]: () => sanityGeometry?.toggle?.()
-  });
+  const actionBindings = bindHotkeyActions(
+    {
+      [HOTKEY_IDS.debug.toggleStats]: () => toggleStatsPanel(),
+      [HOTKEY_IDS.debug.toggleSound]: () => toggleAmbientMuted(),
+      [HOTKEY_IDS.debug.toggleSky]: () => toggleSkySuppressed(),
+      [HOTKEY_IDS.debug.toggleSanityGeometry]: () => sanityGeometry?.toggle?.()
+    },
+    { scope: 'gameplay' }
+  );
   registerDisposables(actionBindings);
   const controller = createPlayerController(playerObject, keyboard, {
     walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
