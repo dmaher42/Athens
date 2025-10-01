@@ -10,8 +10,8 @@ export function installFlyBypass({ state, input }){
   return {
     tick(dt){
       if (!on) return;
-      const up   = input?.held?.('flyUp')   || input?.held?.('Space');
-      const down = input?.held?.('flyDown') || input?.held?.('ShiftLeft') || input?.held?.('ShiftRight');
+      const up = Boolean(input?.held?.('flyUp'));
+      const down = Boolean(input?.held?.('flyDown'));
       const speed = 6;
       if (up)   state.position.y += speed * dt;
       if (down) state.position.y -= speed * dt;

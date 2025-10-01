@@ -14,6 +14,7 @@ import { collectRoadPoints } from '../roads/collectRoadPoints.js';
 import { createNpcSystem } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
+import { extendKeyboardManifest } from '../input/manifest.js';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -1190,6 +1191,25 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const cameraSettings = movementConfig?.camera ?? {};
   const cameraFollowConfig = cameraSettings?.follow ?? {};
   const cameraSeedConfig = cameraSettings?.seed ?? {};
+
+  const flightConfig = movementConfig?.flight ?? {};
+  const collectCodes = (values) => {
+    if (!Array.isArray(values)) {
+      return [];
+    }
+    return values.filter((code) => typeof code === 'string' && code.length > 0);
+  };
+  const toggleOverrides = new Set();
+  if (typeof flightConfig.toggleKey === 'string' && flightConfig.toggleKey.length > 0) {
+    toggleOverrides.add(flightConfig.toggleKey);
+  }
+  collectCodes(flightConfig.toggleKeys).forEach((code) => toggleOverrides.add(code));
+  extendKeyboardManifest({
+    flyToggle: [...toggleOverrides],
+    flyUp: collectCodes(flightConfig.ascendKeys),
+    flyDown: collectCodes(flightConfig.descendKeys)
+  });
+
   const keyboard = createKeyboard();
   registerDisposables(keyboard);
   const controller = createPlayerController(playerObject, keyboard, {
@@ -1536,24 +1556,20 @@ if (readyPromise && typeof readyPromise.then === 'function') {
 
   const flyBypassInput = {
     held(code) {
-      if (!keyboard || typeof keyboard.isDown !== 'function') {
+      if (!keyboard) {
         return false;
       }
-      switch (code) {
-        case 'flyUp':
-          return keyboard.isDown('Space') || keyboard.isDown('KeyE');
-        case 'flyDown':
-          return (
-            keyboard.isDown('ShiftLeft') ||
-            keyboard.isDown('ShiftRight') ||
-            keyboard.isDown('ControlLeft') ||
-            keyboard.isDown('ControlRight') ||
-            keyboard.isDown('KeyQ') ||
-            keyboard.isDown('KeyC')
-          );
-        default:
-          return keyboard.isDown(code);
+      const actionApi = keyboard.actions;
+      if (actionApi && typeof actionApi.isDown === 'function') {
+        const actionCodes = typeof actionApi.codes === 'function' ? actionApi.codes(code) : [];
+        if (Array.isArray(actionCodes) && actionCodes.length > 0) {
+          return actionApi.isDown(code);
+        }
       }
+      if (typeof keyboard.isDown === 'function') {
+        return keyboard.isDown(code);
+      }
+      return false;
     }
   };
 

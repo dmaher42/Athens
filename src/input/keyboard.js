@@ -1,3 +1,5 @@
+import { getManifestActionCodes, hasManifestCode } from './manifest.js';
+
 const INV_SQRT2 = 1 / Math.sqrt(2);
 
 const MOVEMENT_KEYS = [
@@ -31,7 +33,7 @@ const EXTRA_KEYS = [
   'KeyP'
 ];
 
-const RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
+const BASE_RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
 
 const KEY_FALLBACK_MAP = new Map([
   ['w', 'KeyW'],
@@ -57,6 +59,16 @@ const KEY_FALLBACK_MAP = new Map([
   ['shift', 'ShiftLeft'],
   ['control', 'ControlLeft']
 ]);
+
+const isRelevantKey = (code) => {
+  if (typeof code !== 'string' || code.length === 0) {
+    return false;
+  }
+  if (BASE_RELEVANT_KEYS.has(code)) {
+    return true;
+  }
+  return hasManifestCode(code);
+};
 
 const normalizeCode = (event) => {
   if (!event) {
@@ -103,7 +115,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       }
     }
 
-    if (!RELEVANT_KEYS.has(code)) {
+    if (!isRelevantKey(code)) {
       return;
     }
     if (!pressed.has(code)) {
@@ -116,7 +128,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const handleKeyUp = (event) => {
     const code = normalizeCode(event);
 
-    if (!RELEVANT_KEYS.has(code)) {
+    if (!isRelevantKey(code)) {
       return;
     }
     pressed.delete(code);
@@ -243,6 +255,38 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     return false;
   };
 
+  const actions = {
+    isDown(action) {
+      const codes = getManifestActionCodes(action);
+      if (!codes.length) {
+        return false;
+      }
+      for (let i = 0; i < codes.length; i += 1) {
+        if (isDown(codes[i])) {
+          return true;
+        }
+      }
+      return false;
+    },
+    wasPressed(action) {
+      const codes = getManifestActionCodes(action);
+      if (!codes.length) {
+        return false;
+      }
+      for (let i = 0; i < codes.length; i += 1) {
+        const code = codes[i];
+        if (frameJustPressed.has(code)) {
+          frameJustPressed.delete(code);
+          return true;
+        }
+      }
+      return false;
+    },
+    codes(action) {
+      return getManifestActionCodes(action);
+    }
+  };
+
   const dispose = () => {
     if (!target || !target.removeEventListener) {
       return;
@@ -263,6 +307,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     axis,
     look,
     wasPressed,
+    actions,
     dispose
   };
 }

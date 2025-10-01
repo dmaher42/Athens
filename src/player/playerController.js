@@ -4,6 +4,7 @@ import { keepUpright } from '../physics/upright.js';
 import { Capsule, resolveCapsuleVsAABBs } from '../physics/collision.js';
 import { movementConfig, FLIGHT as FLIGHT_DEFAULTS } from '../config/movement.ts';
 import { sanitizeVec3, DEFAULT_PLAYER } from '../utils/sanitize.ts';
+import { isActionActive } from '../input/manifest.js';
 import { logger } from '../utils/logger.ts';
 
 const moveDirection = new THREE.Vector3();
@@ -60,19 +61,6 @@ const SAFE_POSITION = {
 const ZERO_VECTOR = { x: 0, y: 0, z: 0 };
 
 const flightOptions = movementConfig?.flight ?? {};
-const FLIGHT_TOGGLE_KEY = typeof flightOptions.toggleKey === 'string' ? flightOptions.toggleKey : 'KeyF';
-const defaultToggleKeys = (() => {
-  const configured = Array.isArray(flightOptions.toggleKeys) && flightOptions.toggleKeys.length
-    ? flightOptions.toggleKeys
-    : [];
-  const combined = configured.filter((value) => typeof value === 'string');
-  if (typeof FLIGHT_TOGGLE_KEY === 'string') {
-    combined.push(FLIGHT_TOGGLE_KEY);
-  }
-  combined.push('KeyX');
-  return combined.filter((value, index, array) => array.indexOf(value) === index);
-})();
-const toggleKeySet = new Set(defaultToggleKeys.length ? defaultToggleKeys : [FLIGHT_TOGGLE_KEY]);
 const FLIGHT_HORIZONTAL_SPEED = Number.isFinite(flightOptions.horizontalSpeed)
   ? flightOptions.horizontalSpeed
   : FLIGHT_DEFAULTS.horizontalSpeed;
@@ -92,27 +80,6 @@ const FLIGHT_EXIT_HOVER = Number.isFinite(flightOptions.exitHover) ? flightOptio
 const FLIGHT_GRACE_FRAMES = Number.isFinite(flightOptions.startGraceFrames)
   ? Math.max(0, flightOptions.startGraceFrames)
   : 3;
-
-const defaultAscendKeys = Array.isArray(flightOptions.ascendKeys) && flightOptions.ascendKeys.length
-  ? flightOptions.ascendKeys
-  : ['Space', 'KeyE'];
-const defaultDescendKeys = Array.isArray(flightOptions.descendKeys) && flightOptions.descendKeys.length
-  ? flightOptions.descendKeys
-  : ['ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight', 'KeyQ', 'KeyC'];
-const ascendKeySet = new Set(defaultAscendKeys);
-const descendKeySet = new Set(defaultDescendKeys);
-
-function isAnyKeyDown(keyboard, keySet) {
-  if (!keyboard || typeof keyboard.isDown !== 'function') {
-    return false;
-  }
-  for (const code of keySet) {
-    if (keyboard.isDown(code)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 function sanitizePosition(vec3) {
   if (!vec3) {
@@ -284,7 +251,7 @@ export function createPlayerController(
     }
     sanitizePosition(position);
 
-    const toggleDown = isAnyKeyDown(currentKeyboard, toggleKeySet);
+    const toggleDown = isActionActive(currentKeyboard, 'flyToggle');
     if (toggleDown && !prevToggleDown) {
       if (isFlying) {
         exitFlight();
@@ -392,8 +359,8 @@ export function createPlayerController(
     sanitizeVec3(velocity, ZERO_VECTOR);
 
     if (isFlying) {
-      const ascendHeld = isAnyKeyDown(currentKeyboard, ascendKeySet);
-      const descendHeld = isAnyKeyDown(currentKeyboard, descendKeySet);
+      const ascendHeld = isActionActive(currentKeyboard, 'flyUp');
+      const descendHeld = isActionActive(currentKeyboard, 'flyDown');
       const verticalInput = (ascendHeld ? 1 : 0) - (descendHeld ? 1 : 0);
       const verticalSpeed = Number.isFinite(FLIGHT_VERTICAL_SPEED)
         ? Math.max(0, FLIGHT_VERTICAL_SPEED)
