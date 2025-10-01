@@ -7,7 +7,7 @@ import { registerScopedHotkeys } from '../input/hotkeyScopes.js';
 
 const ASCEND_ACTION = HOTKEY_IDS.flight.ascend;
 const DESCEND_ACTION = HOTKEY_IDS.flight.descend;
-const FLY_BYPASS_TOGGLE_ACTION = HOTKEY_IDS.dev.flyBypass.toggle;
+const FLY_BYPASS_TOGGLE_ACTION = HOTKEY_IDS.devTools.flyBypass.toggle;
 
 function resolveEventCode(event) {
   const code = typeof event?.code === 'string' && event.code !== 'Unidentified' ? event.code : '';
