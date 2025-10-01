@@ -1650,5 +1650,3 @@ function _applyLandmarkOverrides(scene, options){
   _applyLandmarkLayout(scene, options, keys, { label: 'LandmarkOverride' });
 }
 // LANDMARK_OVERRIDE_END
-
-export default initializeAthens;
