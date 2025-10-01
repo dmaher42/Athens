@@ -1,55 +1,43 @@
-function resolveEnv(): { BASE_URL?: string; DEV?: boolean } {
-  try {
-    if (typeof import.meta !== 'undefined' && import.meta && import.meta.env) {
-      return import.meta.env as { BASE_URL?: string; DEV?: boolean };
-    }
-  } catch (error) {
-    // ignore inability to access import.meta
-  }
+export async function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
 
-  if (typeof globalThis !== 'undefined' && (globalThis as any).__ATHENS_IMPORT_META_ENV__) {
-    return (globalThis as any).__ATHENS_IMPORT_META_ENV__;
-  }
+  const globalEnv =
+    typeof globalThis !== 'undefined' && globalThis
+      ? (globalThis as { __ATHENS_SW_ENV__?: Record<string, unknown> }).__ATHENS_SW_ENV__
+      : undefined;
+  const importEnv = (import.meta ?? {})?.env as Record<string, unknown> | undefined;
+  const resolvedDev =
+    typeof importEnv?.DEV !== 'undefined' ? importEnv.DEV : globalEnv?.DEV;
+  const resolvedBase =
+    typeof importEnv?.BASE_URL === 'string'
+      ? importEnv.BASE_URL
+      : typeof globalEnv?.BASE_URL === 'string'
+        ? (globalEnv.BASE_URL as string)
+        : '/';
 
-  return {};
-}
-
-function normalizeBaseUrl(base: string | undefined): string {
-  if (!base) {
-    return '/';
-  }
-  return base.endsWith('/') ? base : `${base}/`;
-}
-
-export function setupServiceWorker(env: { BASE_URL?: string; DEV?: boolean } = resolveEnv()): Promise<void> | void {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-    return;
-  }
-
-  const sw = navigator.serviceWorker;
-  if (!sw) {
-    return;
-  }
-
-  const baseUrl = normalizeBaseUrl(env?.BASE_URL);
-  const isDev = Boolean(env?.DEV);
+  const isDev = Boolean(resolvedDev);
+  const baseUrl = resolvedBase;
 
   if (isDev) {
-    return sw
-      .getRegistrations()
-      .then((registrations) => Promise.all(registrations.map((reg) => reg.unregister().catch(() => {}))))
-      .then(() => {})
-      .catch(() => {});
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    } catch {}
+    return;
   }
 
-  const registerOnLoad = () => {
-    sw.register(`${baseUrl}service-worker.js`).catch(() => {});
-  };
+  const url = `${baseUrl}service-worker.js`;
 
-  window.addEventListener('load', registerOnLoad, { once: true });
-  return;
-}
+  try {
+    const head = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    if (!head.ok) return; // file missing -> skip without error
+  } catch {
+    return; // network issue -> skip without blocking boot
+  }
 
-if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && navigator.serviceWorker) {
-  setupServiceWorker();
+  try {
+    await navigator.serviceWorker.register(url, { scope: baseUrl });
+  } catch {
+    // swallow: SW is optional, never block boot
+  }
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { setupServiceWorker } from '../src/registerServiceWorker.ts';
+import { registerSW } from '../src/registerServiceWorker.ts';
 
 type GlobalPatch = Partial<Record<string, any>>;
 
@@ -29,56 +29,45 @@ async function withPatchedGlobals(patch: GlobalPatch, fn: () => Promise<void> | 
   }
 }
 
-test('setupServiceWorker registers service worker with base URL on window load', async () => {
-  const registerCalls: string[] = [];
-  const loadHandlers: Array<() => void | Promise<void>> = [];
+test('registerSW checks for service worker availability and registers with base scope', async () => {
+  const registerCalls: Array<{ url: string; scope?: string }> = [];
+  const fetchCalls: Array<{ input: any; init: any }> = [];
 
   await withPatchedGlobals(
     {
-      window: {
-        addEventListener(type: string, handler: () => void | Promise<void>) {
-          if (type === 'load') {
-            loadHandlers.push(handler);
-          }
-        }
-      },
       navigator: {
         serviceWorker: {
-          register(url: string) {
-            registerCalls.push(url);
+          register(url: string, options?: { scope?: string }) {
+            registerCalls.push({ url, scope: options?.scope });
             return Promise.resolve();
           },
           getRegistrations() {
             return Promise.resolve([]);
           }
         }
-      }
+      },
+      fetch(input: RequestInfo | URL, init?: RequestInit) {
+        fetchCalls.push({ input, init });
+        return Promise.resolve({ ok: true });
+      },
+      __ATHENS_SW_ENV__: { BASE_URL: '/Athens/', DEV: false }
     },
     async () => {
-      setupServiceWorker({ BASE_URL: '/Athens/', DEV: false });
+      assert.ok('serviceWorker' in navigator);
+      await registerSW();
 
-      assert.equal(registerCalls.length, 0);
-      assert.ok(loadHandlers.length > 0, 'expected load handler to be registered');
-
-      for (const handler of loadHandlers) {
-        await handler();
-      }
-
-      assert.deepEqual(registerCalls, ['/Athens/service-worker.js']);
+      assert.equal(fetchCalls.length, 1);
+      assert.equal(fetchCalls[0]?.init?.method, 'HEAD');
+      assert.deepEqual(registerCalls, [{ url: '/Athens/service-worker.js', scope: '/Athens/' }]);
     }
   );
 });
 
-test('setupServiceWorker unregisters existing registrations during development', async () => {
+test('registerSW unregisters existing registrations during development', async () => {
   const unregisterCalls: number[] = [];
 
   await withPatchedGlobals(
     {
-      window: {
-        addEventListener() {
-          // no-op
-        }
-      },
       navigator: {
         serviceWorker: {
           getRegistrations() {
@@ -98,10 +87,11 @@ test('setupServiceWorker unregisters existing registrations during development',
             ]);
           }
         }
-      }
+      },
+      __ATHENS_SW_ENV__: { BASE_URL: '/Athens/', DEV: true }
     },
     async () => {
-      await setupServiceWorker({ BASE_URL: '/Athens/', DEV: true });
+      await registerSW();
 
       assert.deepEqual(unregisterCalls, [1, 2]);
     }
