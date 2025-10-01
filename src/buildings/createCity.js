@@ -2,123 +2,147 @@ import * as THREE from 'three';
 import { loadMaterials } from '../materials/library.js';
 import { createParthenon } from './parthenon.js';
 import { createAgora } from './agora.js';
-import { createCityWalls } from './cityWalls.js';
 import { createGround } from './ground.js';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
-import { snapGroupToGround } from '../physics/groundProject.js';
+import { snapGroupToGround, sampleGroundY } from '../physics/groundProject.js';
+import { createTemple } from './temple.js';
+import { createStoa } from './stoa.js';
+import { createTheater } from './theater.js';
+import { createHouseBlock } from './houses.js';
+import { createCityWalls as createExtendedWalls, createGate } from './gatesWalls.js';
+import { createTholos } from './tholos.js';
+import { createStadium } from './stadium.js';
+import { createPort } from './port.js';
 
-// LAYOUT_APPLY_START
-// Lightweight post-build layout applier: respects options.layoutConfig.positions and spacing
-const __LANDMARK_KEYS = [
-  'Agora', 'Stoa', 'Stoa_of_Attalos', 'Tholos', 'Theater', 'Theater_of_Dionysus', 'Stadium', 'CityGate', 'CityGate_South', 'Port', 'Port_Quay_A'
-];
-const __NAME_ALIASES = {
-  Agora: ['Agora', 'AgoraGroup'],
-  Stoa: ['Stoa', 'Stoa_of_Attalos', 'StoaAttalos'],
-  Stoa_of_Attalos: ['Stoa_of_Attalos', 'Stoa', 'StoaAttalos'],
-  Tholos: ['Tholos'],
-  Theater: ['Theater', 'Theatre', 'Theater_of_Dionysus', 'Theatre_of_Dionysus'],
-  Theater_of_Dionysus: ['Theater_of_Dionysus', 'Theatre_of_Dionysus', 'Theater', 'Theatre'],
-  Stadium: ['Stadium', 'Stadion'],
-  CityGate: ['CityGate', 'SouthGate', 'Gate_South', 'CityGate_South'],
-  CityGate_South: ['CityGate_South', 'CityGate', 'SouthGate', 'Gate_South'],
-  Port: ['Port', 'Harbor', 'Harbour', 'Quay', 'Port_Quay_A'],
-  Port_Quay_A: ['Port_Quay_A', 'Port', 'Harbor', 'Harbour', 'Quay']
+const ATHENS_PLAN_PRESET = {
+  Agora: { x: -40, y: 'ground', z: 30 },
+  Stoa_of_Attalos: { x: -20, y: 'ground', z: 20 },
+  Tholos: { x: -48, y: 'ground', z: 18 },
+  Theater_of_Dionysus: { x: 35, y: 'ground', z: 15 },
+  Stadium: { x: 80, y: 'ground', z: 10 },
+  CityGate_South: { x: 10, y: 'ground', z: 110 },
+  Port_Quay_A: { x: 10, y: 'ground', z: 160 },
+  Houses_NW: { x: -90, y: 'ground', z: -60 },
+  Houses_NE: { x: 40, y: 'ground', z: -80 },
+  Temple_of_Hephaestus: { x: -60, y: 'ground', z: 45 },
+  Parthenon: { x: 6, y: 'acropolis', z: -4 }
 };
 
-function __findByNames(root, names) {
-  if (!root) return null;
-  // exact first
-  for (const n of names) {
-    const hit = root.getObjectByName?.(n);
-    if (hit) return hit;
+function applyConfigOverride(current, override) {
+  if (!override) {
+    return current;
   }
-  // fuzzy
-  const lowers = names.map((n) => String(n).toLowerCase());
-  let best = null;
-  root.traverse?.((o) => {
-    if (!o?.name) return;
-    const nm = o.name.toLowerCase();
-    for (const needle of lowers) {
-      if (nm === needle || nm.includes(needle)) {
-        best = best || o;
-        break;
+
+  if (override instanceof THREE.Vector3) {
+    return { x: override.x, y: override.y, z: override.z };
+  }
+
+  if (Array.isArray(override)) {
+    const [ox, oy, oz] = override;
+    return {
+      x: Number.isFinite(ox) ? ox : current.x,
+      y: Number.isFinite(oy) ? oy : current.y,
+      z: Number.isFinite(oz) ? oz : current.z
+    };
+  }
+
+  if (typeof override === 'number') {
+    return { ...current, y: override };
+  }
+
+  if (typeof override === 'object') {
+    const next = { ...current };
+    if ('x' in override && override.x !== undefined) {
+      const parsed = Number(override.x);
+      next.x = Number.isFinite(parsed) ? parsed : override.x;
+    }
+    if ('y' in override && override.y !== undefined) {
+      const parsed = Number(override.y);
+      next.y = Number.isFinite(parsed) ? parsed : override.y;
+    }
+    if ('z' in override && override.z !== undefined) {
+      const parsed = Number(override.z);
+      next.z = Number.isFinite(parsed) ? parsed : override.z;
+    }
+    return next;
+  }
+
+  return current;
+}
+
+function createLayoutResolver({ layout, layoutConfig, plateauHeight, sampleGround }) {
+  const normalizedLayout = typeof layout === 'string' && layout ? layout : 'classic';
+  const normalizedConfig = layoutConfig && typeof layoutConfig === 'object' ? layoutConfig : {};
+  const positionOverrides =
+    normalizedConfig.positions && typeof normalizedConfig.positions === 'object'
+      ? normalizedConfig.positions
+      : null;
+
+  return (key, fallback = new THREE.Vector3()) => {
+    const fallbackVec = fallback instanceof THREE.Vector3
+      ? fallback.clone()
+      : new THREE.Vector3(fallback?.x ?? 0, fallback?.y ?? 0, fallback?.z ?? 0);
+
+    let resolved = fallbackVec.clone();
+
+    if (normalizedLayout === 'athensPlan' && ATHENS_PLAN_PRESET[key]) {
+      const preset = ATHENS_PLAN_PRESET[key];
+      resolved.set(
+        Number.isFinite(preset.x) ? preset.x : fallbackVec.x,
+        preset.y ?? fallbackVec.y,
+        Number.isFinite(preset.z) ? preset.z : fallbackVec.z
+      );
+    }
+
+    const layers = [];
+    if (normalizedConfig[key] !== undefined) {
+      layers.push(normalizedConfig[key]);
+    }
+    if (positionOverrides?.[key] !== undefined) {
+      layers.push(positionOverrides[key]);
+    }
+
+    let config = { x: resolved.x, y: resolved.y, z: resolved.z };
+    for (const layer of layers) {
+      config = applyConfigOverride(config, layer);
+    }
+
+    const finalX = Number.isFinite(config.x) ? config.x : fallbackVec.x;
+    const finalZ = Number.isFinite(config.z) ? config.z : fallbackVec.z;
+
+    let finalY = config.y;
+    let snapToGround = false;
+
+    if (finalY === 'ground') {
+      const sample = sampleGround ? sampleGround(finalX, finalZ) : null;
+      if (typeof sample === 'number' && Number.isFinite(sample)) {
+        finalY = sample;
+      } else {
+        finalY = fallbackVec.y;
       }
-    }
-  });
-  return best;
-}
-
-function __setWorldPositionSafe(obj, x, y, z) {
-  if (!obj) return false;
-  try {
-    const T = (typeof THREE !== 'undefined') ? THREE : (globalThis?.THREE);
-    if (obj.parent && obj.parent.worldToLocal && T?.Vector3) {
-      obj.parent.updateMatrixWorld?.(true);
-      const wp = new T.Vector3(x, y, z);
-      obj.position.copy(obj.parent.worldToLocal(wp));
+      snapToGround = true;
+    } else if (finalY === 'acropolis') {
+      finalY = typeof plateauHeight === 'number' ? plateauHeight : fallbackVec.y;
+    } else if (!Number.isFinite(finalY)) {
+      finalY = fallbackVec.y;
     } else {
-      // fallback: local set (may be off if parent is transformed, but safe)
-      obj.position.set(x, y, z);
+      snapToGround = false;
     }
-    obj.updateMatrixWorld?.(true);
-    return true;
-  } catch {
-    obj.position.set(x, y, z);
-    return true;
-  }
-}
 
-function __applyAthensLayout(root, options) {
-  const cfg = options?.layoutConfig || {};
-  const spacingMul = Number.isFinite(cfg.spacing) ? cfg.spacing : 1.0;
-  const overrides = cfg.positions || {};
-  // very simple spread defaults (scaled by spacing)
-  const defaults = {
-    Agora: { x: 0, y: 80, z: 0 },
-    Stoa: { x: 200, y: 82, z: 50 },
-    Stoa_of_Attalos: { x: 200, y: 82, z: 50 },
-    Tholos: { x: -150, y: 82, z: 80 },
-    Theater: { x: 300, y: 78, z: -200 },
-    Theater_of_Dionysus: { x: 300, y: 78, z: -200 },
-    Stadium: { x: -300, y: 85, z: 250 },
-    CityGate: { x: 0, y: 80, z: -400 },
-    CityGate_South: { x: 0, y: 80, z: -420 },
-    Port: { x: 0, y: 75, z: 500 },
-    Port_Quay_A: { x: 80, y: 75, z: 520 }
+    const position = new THREE.Vector3(
+      Number.isFinite(finalX) ? finalX : fallbackVec.x,
+      Number.isFinite(finalY) ? finalY : fallbackVec.y,
+      Number.isFinite(finalZ) ? finalZ : fallbackVec.z
+    );
+
+    return { position, snapToGround };
   };
-  // apply spacing multiplier
-  for (const k of Object.keys(defaults)) {
-    defaults[k] = { x: defaults[k].x * spacingMul, y: defaults[k].y, z: defaults[k].z * spacingMul };
-  }
-
-  const results = {};
-  for (const key of __LANDMARK_KEYS) {
-    const aliases = __NAME_ALIASES[key] || [key];
-    const obj = __findByNames(root, aliases);
-    if (!obj) {
-      results[key] = 'not-found';
-      continue;
-    }
-    const src = overrides[key] || defaults[key];
-    if (!src) {
-      results[key] = 'no-pos';
-      continue;
-    }
-    const x = Number.isFinite(src.x) ? src.x : obj.position.x;
-    const y = Number.isFinite(src.y) ? src.y : obj.position.y;
-    const z = Number.isFinite(src.z) ? src.z : obj.position.z;
-    const ok = __setWorldPositionSafe(obj, x, y, z);
-    results[key] = ok ? `moved (${x.toFixed?.(2) || x}, ${y.toFixed?.(2) || y}, ${z.toFixed?.(2) || z})` : 'failed';
-  }
-  try {
-    console.info('[Athens/Layout]', results);
-  } catch {}
 }
-// LAYOUT_APPLY_END
 
-export async function createCity({ renderer, scene, ground: groundOverrides } = {}) {
-  const options = arguments[0] ?? {};
+export async function createCity(options = {}) {
+  const { renderer, scene, ground: groundOverrides, layout, layoutConfig } = options ?? {};
+  const variant = options?.variant === 'legacy' ? 'legacy' : 'merged';
+
   const materials = await loadMaterials(renderer);
   const root = new THREE.Group();
   root.name = 'AthensCity';
@@ -130,7 +154,7 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
   const defaultGroundOptions = { size: 1000, repeat: 80 };
   const groundOptions = {
     ...defaultGroundOptions,
-    ...(groundOverrides ?? {}),
+    ...(groundOverrides ?? {})
   };
   if (groundOptions.renderer === undefined) {
     groundOptions.renderer = renderer;
@@ -161,12 +185,15 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
     }
   };
 
-  const addAndSnap = (group) => {
+  const addToRoot = (group, { snap = true } = {}) => {
     if (!group) {
       return;
     }
     root.add(group);
     updateWorldMatrices();
+    if (!snap) {
+      return;
+    }
     const grounds = ensureGroundMeshes();
     if (grounds.length) {
       snapGroupToGround(group, grounds, { hover: 0.03, fromY: 300 });
@@ -198,14 +225,29 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
   })();
   // ACROPOLIS_END
 
+  const sampleGround = (x, z) => {
+    const grounds = ensureGroundMeshes();
+    if (!grounds.length) {
+      return null;
+    }
+    return sampleGroundY(x, z, grounds, { fromY: 400 });
+  };
+
+  const resolveLayout = createLayoutResolver({
+    layout,
+    layoutConfig,
+    plateauHeight: acropolisMeta.plateauHeight,
+    sampleGround
+  });
+
   const acropolisCenter = acropolisMeta.center;
   const plateauY = acropolisMeta.plateauHeight;
 
-  const parthenonPosition = new THREE.Vector3(acropolisCenter.x + 6, plateauY, acropolisCenter.z - 4);
-  const parthenon = createParthenon(materials, { position: parthenonPosition });
-  addAndSnap(parthenon);
+  const parthenonFallback = new THREE.Vector3(acropolisCenter.x + 6, plateauY, acropolisCenter.z - 4);
+  const parthenonConfig = resolveLayout('Parthenon', parthenonFallback);
+  const parthenon = createParthenon(materials, { position: parthenonConfig.position.clone() });
+  addToRoot(parthenon, { snap: false });
 
-  // ACROPOLIS_START
   const applyPlateauHeight = (object) => {
     if (!object?.isObject3D) {
       return;
@@ -237,33 +279,151 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
   }
 
   namedTargets.forEach((target) => applyPlateauHeight(target));
-  // ACROPOLIS_END
 
-  const agoraPosition = new THREE.Vector3(80, 0, -40);
-  const agora = createAgora(materials, { position: agoraPosition });
-  addAndSnap(agora);
+  const agoraFallback = new THREE.Vector3(80, 0, -40);
+  const agoraConfig = resolveLayout('Agora', agoraFallback);
+  const agora = createAgora(materials, { position: agoraConfig.position.clone() });
+  addToRoot(agora, { snap: agoraConfig.snapToGround });
 
   const wallsPath = [
-    new THREE.Vector3(-200, 0, -200),
-    new THREE.Vector3(200, 0, -200),
-    new THREE.Vector3(200, 0, 200),
-    new THREE.Vector3(-200, 0, 200),
-    new THREE.Vector3(-200, 0, -200)
+    new THREE.Vector3(-220, 0, -200),
+    new THREE.Vector3(220, 0, -200),
+    new THREE.Vector3(220, 0, 220),
+    new THREE.Vector3(-220, 0, 220),
+    new THREE.Vector3(-220, 0, -200)
   ];
-  const walls = createCityWalls(materials, { path: wallsPath });
-  addAndSnap(walls);
+
+  const walls = createExtendedWalls(materials, {
+    path: wallsPath,
+    towerEvery: 120,
+    height: 9,
+    thickness: 4,
+    groundMeshes: ensureGroundMeshes()
+  });
+  if (walls) {
+    walls.name = 'CityWalls';
+    addToRoot(walls, { snap: false });
+  }
+
+  const gateFallback = new THREE.Vector3(0, 0, -200);
+  const gateConfig = resolveLayout('CityGate_South', gateFallback);
+  const gate = createGate(materials, {
+    width: 10,
+    height: 8,
+    position: gateConfig.position.clone(),
+    facingYaw: 0,
+    thickness: 4,
+    groundMeshes: ensureGroundMeshes()
+  });
+  if (gate) {
+    gate.name = 'CityGate_South';
+    if (!gate.getObjectByName('CityGate')) {
+      const alias = new THREE.Object3D();
+      alias.name = 'CityGate';
+      gate.add(alias);
+    }
+    addToRoot(gate, { snap: false });
+  }
+
+  if (variant !== 'legacy') {
+    const prefabGrounds = ensureGroundMeshes();
+
+    const templeFallback = new THREE.Vector3(-60, 0, 45);
+    const templeConfig = resolveLayout('Temple_of_Hephaestus', templeFallback);
+    const heph = createTemple(materials, {
+      footprint: [22, 45],
+      columns: [6, 13],
+      position: templeConfig.position.clone(),
+      groundMeshes: prefabGrounds
+    });
+    if (heph) {
+      heph.name = 'Temple_of_Hephaestus';
+      addToRoot(heph, { snap: false });
+    }
+
+    const stoaFallback = new THREE.Vector3(80, 0, -40);
+    const stoaConfig = resolveLayout('Stoa_of_Attalos', stoaFallback);
+    const stoa = createStoa(materials, {
+      length: 120,
+      depth: 16,
+      colSpacing: 5,
+      position: stoaConfig.position.clone(),
+      groundMeshes: prefabGrounds
+    });
+    if (stoa) {
+      stoa.name = 'Stoa_of_Attalos';
+      addToRoot(stoa, { snap: false });
+    }
+
+    const tholosFallback = new THREE.Vector3(-48, 0, 18);
+    const tholosConfig = resolveLayout('Tholos', tholosFallback);
+    const tholos = createTholos(materials, { position: tholosConfig.position.clone() });
+    if (tholos) {
+      addToRoot(tholos, { snap: tholosConfig.snapToGround });
+    }
+
+    const theaterFallback = new THREE.Vector3(150, 0, 120);
+    const theaterConfig = resolveLayout('Theater_of_Dionysus', theaterFallback);
+    const theater = createTheater(materials, {
+      radius: 55,
+      steps: 18,
+      position: theaterConfig.position.clone(),
+      groundMeshes: prefabGrounds
+    });
+    if (theater) {
+      theater.name = 'Theater_of_Dionysus';
+      addToRoot(theater, { snap: false });
+    }
+
+    const stadiumFallback = new THREE.Vector3(-180, 0, -260);
+    const stadiumConfig = resolveLayout('Stadium', stadiumFallback);
+    const stadium = createStadium(materials, {
+      position: stadiumConfig.position.clone(),
+      groundMeshes: prefabGrounds
+    });
+    if (stadium) {
+      addToRoot(stadium, { snap: false });
+    }
+
+    const housesNWFallback = new THREE.Vector3(-90, 0, -60);
+    const housesNWConfig = resolveLayout('Houses_NW', housesNWFallback);
+    const housesNW = createHouseBlock(materials, {
+      rows: 3,
+      cols: 4,
+      spacing: 14,
+      position: housesNWConfig.position.clone(),
+      groundMeshes: prefabGrounds
+    });
+    if (housesNW) {
+      housesNW.name = 'Houses_NW';
+      addToRoot(housesNW, { snap: false });
+    }
+
+    const housesNEFallback = new THREE.Vector3(40, 0, -80);
+    const housesNEConfig = resolveLayout('Houses_NE', housesNEFallback);
+    const housesNE = createHouseBlock(materials, {
+      rows: 3,
+      cols: 4,
+      spacing: 14,
+      position: housesNEConfig.position.clone(),
+      groundMeshes: prefabGrounds
+    });
+    if (housesNE) {
+      housesNE.name = 'Houses_NE';
+      addToRoot(housesNE, { snap: false });
+    }
+
+    const portFallback = new THREE.Vector3(10, 0, 160);
+    const portConfig = resolveLayout('Port_Quay_A', portFallback);
+    const port = createPort(materials, { position: portConfig.position.clone() });
+    if (port) {
+      addToRoot(port, { snap: portConfig.snapToGround });
+    }
+  }
 
   updateWorldMatrices();
 
-  // LAYOUT_APPLY_START
-  // If using athensPlan, apply layout overrides/spread after build so nothing is squashed.
-  if (options?.layout === 'athensPlan') {
-    __applyAthensLayout(scene ?? root, options);
-  } else if (options?.layoutConfig?.positions) {
-    // even without athensPlan flag, respect explicit positions when provided
-    __applyAthensLayout(scene ?? root, options);
-  }
-  // LAYOUT_APPLY_END
-
   return { root, materials };
 }
+
+export default createCity;
