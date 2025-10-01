@@ -128,27 +128,90 @@ export async function createCity({ renderer, scene, ground: groundOverrides } = 
   }
 
   const defaultGroundOptions = { size: 1000, repeat: 80 };
-  const groundOptions = {
-    ...defaultGroundOptions,
-    ...(groundOverrides ?? {}),
-  };
-  if (groundOptions.renderer === undefined) {
-    groundOptions.renderer = renderer;
+  const groundConfig = groundOverrides ?? {};
+  const {
+    existing: existingGround = null,
+    useExisting = false,
+    skipCreate = false,
+    ...legacyGroundOverrides
+  } = groundConfig;
+  const layeredGroundRoot = existingGround?.root ?? null;
+  const hasLayeredGround = Boolean(layeredGroundRoot?.userData?.layeredGround);
+  const shouldReuseExistingGround = hasLayeredGround || useExisting || skipCreate;
+
+  let groundResult = null;
+  if (!shouldReuseExistingGround) {
+    const groundOptions = {
+      ...defaultGroundOptions,
+      ...legacyGroundOverrides,
+    };
+    if (groundOptions.renderer === undefined) {
+      groundOptions.renderer = renderer;
+    }
+
+    groundResult = await createGround(scene, materials, groundOptions);
+    const groundGroup = groundResult?.group ?? groundResult;
+    if (groundGroup) {
+      root.add(groundGroup);
+    }
+  } else {
+    groundResult = existingGround ?? null;
   }
 
-  const groundResult = await createGround(scene, materials, groundOptions);
-  const groundGroup = groundResult?.group ?? groundResult;
-  if (groundGroup) {
-    root.add(groundGroup);
+  const layeredGroundMeshes = [];
+  if (hasLayeredGround) {
+    const layeredTiles = Array.isArray(existingGround?.tiles) ? existingGround.tiles : [];
+    layeredTiles.forEach((tile, index) => {
+      if (tile?.dirtGroup?.isObject3D) {
+        tile.dirtGroup.userData = tile.dirtGroup.userData || {};
+        tile.dirtGroup.userData.isGround = true;
+        tile.dirtGroup.name = tile.dirtGroup.name || `ground:dirt:tile:${index}`;
+      }
+      if (tile?.dirtMesh?.isMesh) {
+        tile.dirtMesh.userData = tile.dirtMesh.userData || {};
+        tile.dirtMesh.userData.isGround = true;
+        tile.dirtMesh.name = tile.dirtMesh.name || `ground:dirt:mesh:${index}`;
+        layeredGroundMeshes.push(tile.dirtMesh);
+      }
+    });
+
+    if (layeredGroundRoot) {
+      layeredGroundRoot.userData = layeredGroundRoot.userData || {};
+      layeredGroundRoot.userData.isGround = true;
+    }
   }
 
   const registryRoot = scene ?? root;
+  if (hasLayeredGround && layeredGroundRoot) {
+    markGround(layeredGroundRoot);
+  }
   markGround(registryRoot);
   let groundMeshes = collectGround(registryRoot);
+  if (layeredGroundMeshes.length) {
+    const merged = new Set(groundMeshes);
+    layeredGroundMeshes.forEach((mesh) => {
+      if (!merged.has(mesh)) {
+        merged.add(mesh);
+        groundMeshes.push(mesh);
+      }
+    });
+  }
 
   const ensureGroundMeshes = () => {
     if (!groundMeshes?.length) {
       groundMeshes = collectGround(registryRoot);
+      if (layeredGroundMeshes.length) {
+        const merged = new Set(groundMeshes);
+        layeredGroundMeshes.forEach((mesh) => {
+          if (!merged.has(mesh)) {
+            merged.add(mesh);
+            groundMeshes.push(mesh);
+          }
+        });
+      }
+    }
+    if (!groundMeshes?.length && layeredGroundMeshes.length) {
+      return layeredGroundMeshes;
     }
     return groundMeshes;
   };
