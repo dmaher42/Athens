@@ -55,7 +55,7 @@ import { SKY_JPGS, GROUND_JPGS } from '../assets/skyGround.generated.ts';
 import { installSkyDev } from '../dev/skyDebugHooks.js';
 import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
-import { withTimeout } from '../boot/withTimeout.ts';
+import { withTimeout as withBootTimeout } from '../boot/withTimeout.ts';
 
 // CHAR_MAIN_HEIGHT_START
 // Height scaling for the main character is no longer required.
@@ -571,46 +571,63 @@ export async function initializeAthens(options = {}) {
 
   renderer.setClearAlpha(1);
 
-  const environmentModule = await withTimeout(
-    import('../environment/EnvironmentController.ts'),
+  const environmentModule = await withBootTimeout(
+    import('../environment/envCore.ts'),
     1500,
     'environment-module',
     async () => ({
-      createEnvironmentController: () => {
+      createEnvironment: () => {
         const stub = {
-          mode: 'day',
-          skyMode: 'day',
-          async applySky(next) {
-            if (typeof next === 'string' && next) {
-              stub.mode = next;
-              stub.skyMode = next;
-            }
-            return stub.mode;
-          },
-          setMode(next) {
-            if (typeof next === 'string' && next) {
-              stub.mode = next;
-              stub.skyMode = next;
-            }
-            return stub.mode;
-          },
+          async applySkyMode() {},
+          async applySkyImage() {},
+          setMode() {},
           dispose() {}
         };
         return stub;
-      },
-      registerExternalSkyImages: () => {},
-      applySkyImage: async () => {}
+      }
     })
   );
-  const { createEnvironmentController, registerExternalSkyImages, applySkyImage } = environmentModule;
+  const { createEnvironment } = environmentModule;
 
-  const environmentManager = createEnvironmentController({ scene, renderer });
+  const environmentManager = createEnvironment({ scene, renderer });
+
+  const sanitizeSkyToken = (value) =>
+    typeof value === 'string'
+      ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      : '';
+
+  const SKY_MODE_ALIASES = new Map([
+    ['dawn', 'dawn'],
+    ['sunrise', 'dawn'],
+    ['day', 'day'],
+    ['high-noon', 'day'],
+    ['high_noon', 'day'],
+    ['highnoon', 'day'],
+    ['noon', 'day'],
+    ['midday', 'day'],
+    ['dusk', 'dusk'],
+    ['sunset', 'dusk'],
+    ['evening', 'dusk'],
+    ['golden-hour', 'dusk'],
+    ['goldenhour', 'dusk'],
+    ['blue-hour', 'dusk'],
+    ['night', 'night'],
+    ['midnight', 'night'],
+    ['night-sky', 'night'],
+    ['starlit-night', 'night'],
+    ['night-4k', 'night'],
+    ['night4k', 'night'],
+    ['procedural', 'day'],
+    ['image', 'day']
+  ]);
+
+  const resolveSkyMode = (mode) => SKY_MODE_ALIASES.get(sanitizeSkyToken(mode)) || 'day';
+
+  let lastAppliedSkyMode = 'day';
+  let environmentMode = 'day';
 
   // Register discovered assets (safe no-ops if arrays are empty)
   try {
-    if (Array.isArray(SKY_JPGS)) {
-      registerExternalSkyImages(SKY_JPGS);
-    }
     if (Array.isArray(GROUND_JPGS) && GROUND_JPGS.length > 0) {
       // Use the first ground jpg as default override (non-breaking: only affects grass when feature is used)
       setExternalGroundTexture(GROUND_JPGS[0].url);
@@ -651,7 +668,12 @@ export async function initializeAthens(options = {}) {
 
     window.dev = window.dev || {};
     window.dev.sky = window.dev.sky || {};
-    window.dev.sky.on = (mode = 'day') => environmentManager.applySky(mode);
+    window.dev.sky.on = (mode = 'day') => {
+      const skyMode = resolveSkyMode(mode);
+      lastAppliedSkyMode = skyMode;
+      environmentManager.setMode('procedural');
+      return environmentManager.applySkyMode(skyMode);
+    };
     window.dev.sky.off = () => { scene.background = null; scene.environment = null; };
     window.dev.sky.color = (hex = 0x87ceeb) => {
       renderer.setClearAlpha(1);
@@ -719,28 +741,47 @@ export async function initializeAthens(options = {}) {
       globalWindow.__athensDebug.setSkyImage = async (idOrUrl) => {
         const item = (SKY_JPGS || []).find((x) => x.id === idOrUrl || x.url === idOrUrl);
         if (item) {
-          await applySkyImage(scene, renderer, item.url);
+          await environmentManager.applySkyImage(item.url);
+          environmentManager.setMode('image');
         }
       };
     }
   }
 
-  const applyInitialEnvironment = async () => {
+  const withTimeout = async (p, ms, fb) => {
+    let t;
+    const to = new Promise((_, r) => {
+      t = setTimeout(() => r(new Error('timeout')), ms);
+    });
     try {
-      await environmentManager.applySky('day');
-    } catch (error) {
-      logger.warn('[Athens] applySky failed during initializeAthens.', error);
-      throw error;
+      return await Promise.race([p, to]);
+    } catch {
+      return typeof fb === 'function' ? fb() : fb;
+    } finally {
+      if (t) {
+        clearTimeout(t);
+      }
     }
+  };
 
+  const applyInitialEnvironment = async () => {
+    await withTimeout(environmentManager.applySkyMode('day'), 2000, () => {
+      try {
+        logger.warn('[Athens] applySkyMode("day") timed out; using clear color fallback.');
+      } catch {}
+      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    });
+
+    lastAppliedSkyMode = 'day';
     environmentManager.setMode('procedural');
     try {
-      const currentMode = environmentManager?.skyMode || appliedSkyMode || 'day';
+      const currentMode = environmentMode || lastAppliedSkyMode || 'day';
       const match = (SKY_JPGS || []).find((i) =>
         (i.tags || []).some((t) => t.toLowerCase() === String(currentMode).toLowerCase())
       );
       if (match) {
-        await applySkyImage(scene, renderer, match.url);
+        await environmentManager.applySkyImage(match.url);
+        environmentManager.setMode('image');
       }
     } catch {}
   };
@@ -749,7 +790,7 @@ export async function initializeAthens(options = {}) {
     setPhase('env-start');
   } catch {}
 
-  await withTimeout(
+  await withBootTimeout(
     applyInitialEnvironment(),
     2000,
     'environment',
@@ -828,8 +869,6 @@ export async function initializeAthens(options = {}) {
       // Ignore stats setup errors.
     });
 
-  let environmentMode = 'day';
-
   const setEnvironmentMode = (mode, { allowAmbient = true } = {}) => {
     const normalized = typeof mode === 'string' && mode ? mode : 'day';
     environmentMode = normalized;
@@ -846,8 +885,11 @@ export async function initializeAthens(options = {}) {
     async setMode(mode, envOptions = {}) {
       const allowAmbient = envOptions?.playAmbient !== false;
       const next = setEnvironmentMode(mode, { allowAmbient });
+      const skyMode = resolveSkyMode(next);
       try {
-        await environmentManager.applySky(next);
+        await environmentManager.applySkyMode(skyMode);
+        lastAppliedSkyMode = skyMode;
+        environmentManager.setMode('procedural');
       } catch {
         // keep running if sky load fails
       }
@@ -862,7 +904,10 @@ export async function initializeAthens(options = {}) {
       return next;
     },
     applySky(mode) {
-      return environmentManager.applySky(mode);
+      const skyMode = resolveSkyMode(mode);
+      lastAppliedSkyMode = skyMode;
+      environmentManager.setMode('procedural');
+      return environmentManager.applySkyMode(skyMode);
     },
     dispose() {
       environmentManager.dispose();

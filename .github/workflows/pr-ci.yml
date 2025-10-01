@@ -29,3 +29,6 @@ jobs:
       - name: Check for unused dependencies
         run: npm run depcheck
 
+      - name: Check for import cycles
+        run: npx tsx scripts/check-cycles.ts
+
