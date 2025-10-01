@@ -1,4 +1,3 @@
-import type { MeshBVH } from 'three-mesh-bvh';
 import type { Capsule as ExampleCapsule } from 'three/examples/jsm/math/Capsule.js';
 
 declare module 'three-mesh-bvh' {
