@@ -645,13 +645,14 @@ export async function initializeAthens(options = {}) {
     globalWindow.THREE = THREE;
 
     if (headlessSmoke) {
-      globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
+      globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer, controller: null };
     } else {
       globalWindow.__athensDebug = {
         ...existingDebug,
         scene,
         camera,
         renderer,
+        controller: null,
         audioAPI: AmbientAPI,
         customAmbientTracks: Array.isArray(CUSTOM_AMBIENT_TRACKS)
           ? CUSTOM_AMBIENT_TRACKS.map((track) => track.id)
@@ -660,9 +661,6 @@ export async function initializeAthens(options = {}) {
     }
 
     if (typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
-      globalWindow.__athensDebug.controller = WALKING_ENABLED && walkingController
-        ? walkingController
-        : controller;
       globalWindow.__athensDebug.collision = collisionWorld;
       globalWindow.__athensDebug.skyJpgs = (SKY_JPGS || []).map((x) => ({
         id: x.id,
@@ -1247,6 +1245,12 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   });
   controller.setGroundMeshes(groundMeshes);
   controller.setColliders?.(colliders);
+
+  if (globalWindow && typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
+    globalWindow.__athensDebug.controller = WALKING_ENABLED && walkingController
+      ? walkingController
+      : controller;
+  }
 
   const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 2.2, z: -6 };
   const followLookOffset = cameraFollowConfig?.lookAtOffset ?? { x: 0, y: 1.5, z: 0 };
