@@ -16,8 +16,9 @@ Development builds now launch straight into the main experience at `/`. For trou
 
 - Open `/dev/` while running the dev server to use the standalone bootstrap page without interfering with Vite's module proxy.
 - Press `S` to toggle the "sanity geometry" helper if the scene looks empty.
+- Press `M` to mute or resume the ambience audio.
+- Press `P` to show or hide the FPS panel (also available via `window.toggleStatsVisibility()` in the console).
 - Press `K` to toggle the sky background if you need to inspect lighting without the skybox.
-- Call `window.toggleStatsVisibility()` in the browser console to show or hide the FPS panel (visible automatically on localhost).
 - Watch the console for boot milestones (asset base detection, renderer sizing) and initialization errors.
 
 ## Entry points

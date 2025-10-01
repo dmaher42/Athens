@@ -168,6 +168,19 @@ export async function playAmbient(id: string, fadeSeconds = 1.0) {
   }
 }
 
+export function stopAmbient() {
+  if (!R.current) {
+    return;
+  }
+  try {
+    R.current.stop();
+  } catch (error) {
+    logger.warn('[ambient] Failed to stop ambient track', error);
+  }
+  R.current = undefined;
+  R.fading = false;
+}
+
 export async function initAmbient(camera: THREE.Camera) {
   if (!camera) return;
   attachAudioListenerTo(camera);
@@ -194,6 +207,7 @@ export async function initAmbient(camera: THREE.Camera) {
 
 export const AmbientAPI = {
   play: (trackId: string) => playAmbient(trackId),
+  stop: () => stopAmbient(),
   list: () => AMBIENT_TRACKS.map((t) => t.id)
 };
 

@@ -60,7 +60,7 @@ const SAFE_POSITION = {
 const ZERO_VECTOR = { x: 0, y: 0, z: 0 };
 
 const flightOptions = movementConfig?.flight ?? {};
-const FLIGHT_TOGGLE_KEY = typeof flightOptions.toggleKey === 'string' ? flightOptions.toggleKey : 'KeyF';
+const FLIGHT_TOGGLE_KEY = typeof flightOptions.toggleKey === 'string' ? flightOptions.toggleKey : 'KeyX';
 const defaultToggleKeys = (() => {
   const configured = Array.isArray(flightOptions.toggleKeys) && flightOptions.toggleKeys.length
     ? flightOptions.toggleKeys

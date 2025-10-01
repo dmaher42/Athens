@@ -73,8 +73,8 @@ export const movementConfig: MovementConfig = {
     scale: 1
   },
   flight: {
-    toggleKey: 'KeyF',
-    toggleKeys: ['KeyF', 'KeyX'],
+    toggleKey: 'KeyX',
+    toggleKeys: ['KeyX', 'KeyF'],
     horizontalSpeed: FLIGHT.horizontalSpeed,
     verticalSpeed: FLIGHT.verticalSpeed,
     verticalAcceleration: 20,
