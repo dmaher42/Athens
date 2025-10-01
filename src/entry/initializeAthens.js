@@ -743,15 +743,27 @@ export async function initializeAthens(options = {}) {
   // CITYPLAN_START
   const ground = await setupGround(scene, renderer, { layout, layoutConfig });
   registerDisposables(ground);
+  const layeredGroundRoot = ground?.root ?? null;
+  const hasLayeredGround = Boolean(layeredGroundRoot?.userData?.layeredGround);
   // CITYPLAN_END
 
   // CITYPLAN_START
   const cityVariant = options?.city?.variant ?? options?.cityVariant;
-  const city = await createCity({ renderer, scene, layout, layoutConfig, variant: cityVariant });
+
+  const city = await createCity({
+    renderer,
+    scene,
+    layout,
+    layoutConfig,
+    variant: cityVariant,
+    ground: hasLayeredGround ? { existing: ground } : undefined,
+  });
+
   const cityRoot = city?.root ?? null;
   registerDisposables(cityRoot);
   const cityMaterials = city?.materials ?? null;
   // CITYPLAN_END
+
 
   // LANDMARK_SPREAD_START
   _applyLandmarkSpread(scene, options);
@@ -790,19 +802,21 @@ export async function initializeAthens(options = {}) {
   // LANDMARK_OVERRIDE_END
 
   // Grass material application for main ground
-  const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
-  if (mainGround?.isMesh) {
-    try {
-      const grassMaterial = await loadGrassMaterial(renderer, { repeat: 80 });
-      if (grassMaterial) {
-        const previous = mainGround.material;
-        mainGround.material = grassMaterial;
-        if (previous && previous !== grassMaterial && typeof previous.dispose === 'function') {
-          previous.dispose();
+  if (!hasLayeredGround) {
+    const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
+    if (mainGround?.isMesh) {
+      try {
+        const grassMaterial = await loadGrassMaterial(renderer, { repeat: 80 });
+        if (grassMaterial) {
+          const previous = mainGround.material;
+          mainGround.material = grassMaterial;
+          if (previous && previous !== grassMaterial && typeof previous.dispose === 'function') {
+            previous.dispose();
+          }
         }
+      } catch (error) {
+        logger.warn('[Athens] Unable to apply grass material to main ground plane.', error);
       }
-    } catch (error) {
-      logger.warn('[Athens] Unable to apply grass material to main ground plane.', error);
     }
   }
 
