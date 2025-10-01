@@ -55,7 +55,6 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
   }
 
   let disposed = false;
-  let mode: 'procedural' | 'image' = 'procedural';
   let imageState: ImageState = { ...EMPTY_IMAGE_STATE };
 
   const ensureActive = () => {
@@ -77,7 +76,6 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
       try {
         const normalized = normalizeSkyMode(nextMode);
         await applySky(scene, renderer, normalized);
-        mode = 'procedural';
       } finally {
         disposeImageState(previousImage);
       }
@@ -124,7 +122,6 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
         environment: renderTarget.texture,
         renderTarget,
       };
-      mode = 'image';
 
       disposeAll(previousEnvironment);
       if (
@@ -142,7 +139,10 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
       if (!ensureActive()) {
         return;
       }
-      mode = next === 'image' ? 'image' : 'procedural';
+      if (next === 'image' || next === 'procedural') {
+        // Mode tracking has been removed; keep branch to satisfy lint and
+        // preserve the public signature.
+      }
     },
 
     dispose() {
