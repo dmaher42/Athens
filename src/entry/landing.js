@@ -8,6 +8,18 @@ import { createSafeScene } from '../engine/safeEntry.js';
 import { attachWatchdog } from '../ui/watchdog.js';
 import { maybeRemoteInit } from '../services/remote.js';
 import { logger } from '../utils/logger.ts';
+import { startAmbience } from '../audio/startAmbience.ts';
+
+(function () {
+  const S = (window.__athensBoot ||= { phase: 'html', t0: performance.now(), log: [] });
+  function set(p) {
+    S.phase = p;
+    S.log.push([performance.now(), p]);
+    console.info('[Athens][Boot]', p);
+  }
+  window.__athensSetPhase = set;
+  set('bundle-loaded');
+})();
 
 /**
  * @typedef {ReturnType<typeof initializeAthens> extends Promise<infer T> ? T : never} AthensContext
@@ -27,6 +39,78 @@ let fallbackLoop = null;
 let fallbackScene = null;
 let fallbackRoot = null;
 let fallbackInitTask = null;
+
+function renderBootFailureOverlay(error) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  const existing = document.getElementById('athens-boot-overlay');
+  if (existing) {
+    existing.textContent = error?.message || 'Boot failed';
+    return;
+  }
+
+  if (!document.body) {
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'athens-boot-overlay';
+  overlay.style.cssText =
+    'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(16,18,24,0.92);color:#fff;font-family:system-ui,sans-serif;padding:24px;text-align:center;gap:12px;';
+
+  const title = document.createElement('div');
+  title.textContent = 'Athens could not start.';
+  title.style.fontSize = '20px';
+  title.style.fontWeight = '600';
+  overlay.appendChild(title);
+
+  const details = document.createElement('div');
+  details.textContent = error?.message || 'An unknown error occurred.';
+  details.style.fontSize = '14px';
+  details.style.opacity = '0.85';
+  overlay.appendChild(details);
+
+  const buttonRow = document.createElement('div');
+  buttonRow.style.display = 'flex';
+  buttonRow.style.flexDirection = 'row';
+  buttonRow.style.gap = '12px';
+  overlay.appendChild(buttonRow);
+
+  const resetButton = document.createElement('button');
+  resetButton.textContent = 'Reset Cache';
+  resetButton.style.cssText =
+    'padding:8px 16px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:#1f2937;color:#fff;cursor:pointer;font-size:14px;';
+  resetButton.addEventListener('click', () => {
+    try {
+      if ('caches' in window && typeof caches.keys === 'function') {
+        caches
+          .keys()
+          .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+          .catch(() => {});
+      }
+    } catch {}
+  });
+  buttonRow.appendChild(resetButton);
+
+  const swButton = document.createElement('button');
+  swButton.textContent = 'Unregister SW';
+  swButton.style.cssText = resetButton.style.cssText;
+  swButton.addEventListener('click', () => {
+    try {
+      const nav = window.navigator;
+      if (nav?.serviceWorker?.getRegistrations) {
+        nav.serviceWorker
+          .getRegistrations()
+          .then((regs) => Promise.all(regs.map((reg) => reg.unregister())))
+          .catch(() => {});
+      }
+    } catch {}
+  });
+  buttonRow.appendChild(swButton);
+
+  document.body.appendChild(overlay);
+}
 
 const ensureFallback = () => {
   if (fallbackActive || fallbackInitTask || typeof document === 'undefined') {
@@ -202,37 +286,30 @@ async function runAthens(options = {}) {
     container.style.position = container.style.position || 'relative';
     container.style.backgroundColor = container.style.backgroundColor || '#202834';
 
-    let bootTimer = null;
-    const bootTimeoutMarker = Symbol('athens.boot-timeout');
-    const bootTimeout = new Promise((resolve) => {
-      bootTimer = setTimeout(() => resolve(bootTimeoutMarker), 8000);
-    });
+    const setPhase =
+      typeof window !== 'undefined' && typeof window.__athensSetPhase === 'function'
+        ? window.__athensSetPhase
+        : () => {};
+    setPhase('init-start');
 
     const initializationTask = initializeAthens({ ...options, container });
+    let bootTimer = null;
     let context;
     try {
-      const firstResult = await Promise.race([initializationTask, bootTimeout]).catch((error) => {
-        watchdog?.error?.(error?.message || 'boot failed');
-        console.error('[Athens] Boot failed:', error);
-        throw error;
+      const watchdogTimer = new Promise((_, reject) => {
+        bootTimer = setTimeout(() => {
+          const lastPhase = window.__athensBoot?.phase;
+          reject(new Error(`Boot timeout; last phase=${lastPhase}`));
+        }, 10000);
       });
 
-      if (firstResult === bootTimeoutMarker) {
-        watchdog?.warn?.('boot timeout');
-        logger.warn('[Athens] Boot is taking longer than expected. Waiting for initialization to complete.');
-        context = await initializationTask.catch((error) => {
-          watchdog?.error?.(error?.message || 'boot failed');
-          console.error('[Athens] Boot failed:', error);
-          throw error;
-        });
-      } else {
-        context = firstResult;
-      }
+      context = await Promise.race([initializationTask, watchdogTimer]);
     } finally {
       if (bootTimer) {
         clearTimeout(bootTimer);
       }
     }
+
     context.renderer?.setClearColor?.(0x202834, 1);
     if (context.scene) {
       try {
@@ -243,7 +320,15 @@ async function runAthens(options = {}) {
     }
 
     teardownFallback();
-    maybeRemoteInit(context);
+    try {
+      setPhase('ready');
+    } catch {}
+    try {
+      startAmbience();
+    } catch {}
+    Promise.resolve()
+      .then(() => maybeRemoteInit(context))
+      .catch(() => {});
     initializedContext = context;
     return context;
   })();
@@ -251,6 +336,10 @@ async function runAthens(options = {}) {
   try {
     return await initializationTask;
   } catch (error) {
+    renderBootFailureOverlay(error);
+    if (typeof error?.message === 'string' && error.message.toLowerCase().includes('timeout')) {
+      watchdog?.warn?.('boot timeout');
+    }
     watchdog?.error?.(error?.message || 'boot failed');
     throw error;
   } finally {

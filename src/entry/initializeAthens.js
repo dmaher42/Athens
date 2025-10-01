@@ -55,6 +55,7 @@ import { SKY_JPGS, GROUND_JPGS } from '../assets/skyGround.generated.ts';
 import { installSkyDev } from '../dev/skyDebugHooks.js';
 import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
+import { withTimeout } from '../boot/withTimeout.ts';
 
 // CHAR_MAIN_HEIGHT_START
 // Height scaling for the main character is no longer required.
@@ -68,6 +69,13 @@ const _TMP_GROUND = new THREE.Vector3();
 const WALKING_ENABLED = true;
 const _WALK_LOOK_DIR = new THREE.Vector3();
 const _WALK_LOOK_TARGET = new THREE.Vector3();
+
+function getPhaseSetter() {
+  if (typeof window !== 'undefined' && typeof window.__athensSetPhase === 'function') {
+    return window.__athensSetPhase;
+  }
+  return () => {};
+}
 
 function _setWorldPosition(object, x, y, z) {
   if (!object?.isObject3D) return false;
@@ -511,6 +519,7 @@ function createPlaceholderPlayer() {
 }
 
 export async function initializeAthens(options = {}) {
+  const setPhase = getPhaseSetter();
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
 
@@ -537,6 +546,10 @@ export async function initializeAthens(options = {}) {
     container.appendChild(renderer.domElement);
   }
 
+  try {
+    setPhase('renderer-ready');
+  } catch {}
+
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
   const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
@@ -558,11 +571,38 @@ export async function initializeAthens(options = {}) {
 
   renderer.setClearAlpha(1);
 
-  const {
-    createEnvironmentController,
-    registerExternalSkyImages,
-    applySkyImage,
-  } = await import('../environment/EnvironmentController.ts');
+  const environmentModule = await withTimeout(
+    import('../environment/EnvironmentController.ts'),
+    1500,
+    'environment-module',
+    async () => ({
+      createEnvironmentController: () => {
+        const stub = {
+          mode: 'day',
+          skyMode: 'day',
+          async applySky(next) {
+            if (typeof next === 'string' && next) {
+              stub.mode = next;
+              stub.skyMode = next;
+            }
+            return stub.mode;
+          },
+          setMode(next) {
+            if (typeof next === 'string' && next) {
+              stub.mode = next;
+              stub.skyMode = next;
+            }
+            return stub.mode;
+          },
+          dispose() {}
+        };
+        return stub;
+      },
+      registerExternalSkyImages: () => {},
+      applySkyImage: async () => {}
+    })
+  );
+  const { createEnvironmentController, registerExternalSkyImages, applySkyImage } = environmentModule;
 
   const environmentManager = createEnvironmentController({ scene, renderer });
 
@@ -685,8 +725,13 @@ export async function initializeAthens(options = {}) {
     }
   }
 
-  try {
-await environmentManager.applySky('day');
+  const applyInitialEnvironment = async () => {
+    try {
+      await environmentManager.applySky('day');
+    } catch (error) {
+      logger.warn('[Athens] applySky failed during initializeAthens.', error);
+      throw error;
+    }
 
     environmentManager.setMode('procedural');
     try {
@@ -698,10 +743,30 @@ await environmentManager.applySky('day');
         await applySkyImage(scene, renderer, match.url);
       }
     } catch {}
-  } catch (error) {
-    logger.warn('[Athens] applySky failed during initializeAthens.', error);
-    renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
-  }
+  };
+
+  try {
+    setPhase('env-start');
+  } catch {}
+
+  await withTimeout(
+    applyInitialEnvironment(),
+    2000,
+    'environment',
+    async () => {
+      try {
+        environmentManager?.setMode?.('day');
+      } catch {}
+      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+      try {
+        scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+      } catch {}
+    }
+  );
+
+  try {
+    setPhase('env-ready');
+  } catch {}
 
   const ambientMuted = searchParams ? searchParams.get('mute') === '1' : false;
   const ambientOverrideSelected = searchParams ? searchParams.has('amb') : false;
@@ -1295,6 +1360,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     playerNameCandidates: ['MainCharacter', 'Player']
   });
 
+  try {
+    setPhase('scene-ready');
+  } catch {}
+
   const resolveSavedState = () => {
     if (options?.savedState) {
       return options.savedState;
@@ -1671,6 +1740,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   };
 
   const flyBypass = installFlyBypass({ state: flyBypassState, input: flyBypassInput });
+
+  try {
+    setPhase('first-frame');
+  } catch {}
   gameLoop.start();
 
   function startTimeOfDayCycle({ minutesPerDay = 10 } = {}) {
