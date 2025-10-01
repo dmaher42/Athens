@@ -31,7 +31,6 @@
     "eslint-plugin-unused-imports": "^3.2.0",
     "http-server": "^14.1.1",
     "tsx": "^4.20.6",
-    "typescript": "~5.5.4",
     "vite": "^5.4.0"
   }
 }
