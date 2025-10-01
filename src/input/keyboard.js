@@ -20,6 +20,14 @@ for (const binding of HOTKEY_AXIS_METADATA) {
   }
 }
 
+const PREVENT_DEFAULT_CODES = new Set([
+  'Space',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown'
+]);
+
 const normalizeCode = (event) => {
   if (!event) {
     return undefined;
@@ -54,8 +62,11 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const lookState = { x: 0, y: 0 };
   let frameJustPressed = new Set();
 
+  const isDevEnvironment =
+    typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
+
   let activeRelevantKeys = RELEVANT_KEYS;
-  if (!RELEVANT_KEYS.size) {
+  if (!RELEVANT_KEYS.size && isDevEnvironment) {
     activeRelevantKeys = new Set([
       'KeyW',
       'KeyA',
@@ -69,9 +80,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       'ShiftRight',
       'Space'
     ]);
-    const shouldWarn =
-      typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
-    if (shouldWarn && !hasWarnedForRelevantKeyFallback) {
+    if (!hasWarnedForRelevantKeyFallback) {
       console.warn('[Hotkeys] Falling back to default relevant key allowlist.');
       hasWarnedForRelevantKeyFallback = true;
     }
@@ -126,7 +135,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const handleKeyDown = (event) => {
     const code = normalizeCode(event);
 
-    if (code === 'Space') {
+    if (code && PREVENT_DEFAULT_CODES.has(code)) {
       if (typeof event.preventDefault === 'function') {
         event.preventDefault();
       }
@@ -168,7 +177,8 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     axisState.x = updateAxisFromBinding('x');
     axisState.z = updateAxisFromBinding('z');
 
-    if (axisState.x !== 0 && axisState.z !== 0) {
+    const combinedMagnitude = Math.abs(axisState.x) + Math.abs(axisState.z);
+    if (combinedMagnitude > 1) {
       axisState.x *= INV_SQRT2;
       axisState.z *= INV_SQRT2;
     }
