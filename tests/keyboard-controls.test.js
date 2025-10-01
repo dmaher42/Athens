@@ -4,6 +4,8 @@ import test from 'node:test';
 import createKeyboard from '../src/input/keyboard.js';
 import { HOTKEY_IDS } from '../src/config/hotkeys.ts';
 
+const EPSILON = 1e-6;
+
 const createMockTarget = () => {
   const listeners = new Map();
 
@@ -62,12 +64,26 @@ test('keyboard normalizes events without code to maintain controls', () => {
   assert.strictEqual(keyboard.look.x, -1);
   assert.strictEqual(keyboard.axis.lookX, -1);
 
+  keyup({ key: 'ArrowLeft', code: '' });
+
+  keydown({ key: 'ArrowRight', code: undefined });
+  assert.strictEqual(keyboard.axis.lookX, 1);
+  assert.strictEqual(keyboard.look.x, 1);
+
+  keyup({ key: 'ArrowRight', code: '' });
+
   keydown({ key: 'ArrowUp', code: undefined });
   assert.strictEqual(keyboard.look.y, 1);
   assert.strictEqual(keyboard.axis.lookY, 1);
 
-  keyup({ key: 'ArrowLeft', code: '' });
   keyup({ key: 'ArrowUp', code: '' });
+
+  keydown({ key: 'ArrowDown', code: undefined });
+  assert.strictEqual(keyboard.look.y, -1);
+  assert.strictEqual(keyboard.axis.lookY, -1);
+
+  keyup({ key: 'ArrowRight', code: '' });
+  keyup({ key: 'ArrowDown', code: '' });
   keyup({ key: 'Shift', code: '' });
   keyup({ key: 'w', code: '' });
 
@@ -106,6 +122,67 @@ test('keyboard maps azerty movement aliases without triggering descend', () => {
   keyup({ key: 'q' });
 
   assert.strictEqual(keyboard.axis.x, 0);
+
+  keyboard.dispose();
+});
+
+test('keyboard normalizes diagonal movement speed', () => {
+  const target = createMockTarget();
+  const keyboard = createKeyboard(target);
+  const keydown = target.listeners.get('keydown');
+  const keyup = target.listeners.get('keyup');
+
+  keydown({ code: 'KeyW', key: 'w' });
+  keydown({ code: 'KeyD', key: 'd' });
+
+  assert.ok(Math.abs(keyboard.axis.z - Math.SQRT1_2) < EPSILON);
+  assert.ok(Math.abs(keyboard.axis.x - Math.SQRT1_2) < EPSILON);
+
+  keyup({ code: 'KeyW', key: 'w' });
+  keyup({ code: 'KeyD', key: 'd' });
+
+  keyboard.dispose();
+});
+
+test('keyboard prevents default browser actions for space and arrow keys', () => {
+  const target = createMockTarget();
+  const keyboard = createKeyboard(target);
+  const keydown = target.listeners.get('keydown');
+  const keyup = target.listeners.get('keyup');
+
+  let spacePrevented = 0;
+  let spaceStopped = 0;
+  keydown({
+    code: 'Space',
+    key: ' ',
+    preventDefault() {
+      spacePrevented += 1;
+    },
+    stopPropagation() {
+      spaceStopped += 1;
+    }
+  });
+  assert.strictEqual(spacePrevented, 1);
+  assert.strictEqual(spaceStopped, 1);
+
+  keyup({ code: 'Space', key: ' ' });
+
+  let arrowPrevented = 0;
+  let arrowStopped = 0;
+  keydown({
+    code: 'ArrowDown',
+    key: 'ArrowDown',
+    preventDefault() {
+      arrowPrevented += 1;
+    },
+    stopPropagation() {
+      arrowStopped += 1;
+    }
+  });
+  assert.strictEqual(arrowPrevented, 1);
+  assert.strictEqual(arrowStopped, 1);
+
+  keyup({ code: 'ArrowDown', key: 'ArrowDown' });
 
   keyboard.dispose();
 });
