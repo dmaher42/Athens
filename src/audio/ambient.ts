@@ -7,13 +7,14 @@ export type AmbEntry = {
   file: string;
   label?: string;
   volume?: number;
+  tags?: string[];
 };
 
 export const AMBIENT_TRACKS: AmbEntry[] = [
-  { id: 'dawn', file: assetUrl('assets/audio/ambience_dawn.mp3'), label: 'Ambience – Dawn', volume: 0.55 },
-  { id: 'day', file: assetUrl('assets/audio/ambience_day.mp3'), label: 'Ambience – Day', volume: 0.58 },
-  { id: 'dusk', file: assetUrl('assets/audio/ambience_dusk.mp3'), label: 'Ambience – Dusk', volume: 0.56 },
-  { id: 'night', file: assetUrl('assets/audio/ambience_night.mp3'), label: 'Ambience – Night', volume: 0.5 },
+  { id: 'dawn', file: assetUrl('assets/audio/' + 'ambience_dawn.mp3'), label: 'Ambience – Dawn', volume: 0.55 },
+  { id: 'day', file: assetUrl('assets/audio/' + 'ambience_day.mp3'), label: 'Ambience – Day', volume: 0.58 },
+  { id: 'dusk', file: assetUrl('assets/audio/' + 'ambience_dusk.mp3'), label: 'Ambience – Dusk', volume: 0.56 },
+  { id: 'night', file: assetUrl('assets/audio/' + 'ambience_night.mp3'), label: 'Ambience – Night', volume: 0.5 },
   { id: 'forest', file: assetUrl('assets/audio/forest-day.mp3'), label: 'Forest Day', volume: 0.38 },
   { id: 'coast', file: assetUrl('assets/audio/wind-coast.mp3'), label: 'Coastal Wind', volume: 0.32 },
   { id: 'market', file: assetUrl('assets/audio/market_chatter.mp3'), label: 'Market Chatter', volume: 0.35 },
@@ -195,3 +196,33 @@ export const AmbientAPI = {
   play: (trackId: string) => playAmbient(trackId),
   list: () => AMBIENT_TRACKS.map((t) => t.id)
 };
+
+// Append a set of externally discovered tracks at runtime.
+// - Deduplicates by 'id'.
+// - Accepts objects with { id, url, tags: string[] }.
+// - No behavior changes for existing code unless this is called.
+export function registerExternalAmbientTracks(
+  tracks: Array<{ id: string; url: string; tags?: string[] }>
+): void {
+  if (!Array.isArray(tracks) || tracks.length === 0) return;
+
+  const existingIds = new Set(AMBIENT_TRACKS.map(t => t.id));
+  const seen = new Set<string>();
+  const toAdd = tracks
+    .filter(t => {
+      if (!t || typeof t.id !== 'string' || typeof t.url !== 'string') return false;
+      if (existingIds.has(t.id) || seen.has(t.id)) return false;
+      seen.add(t.id);
+      return true;
+    })
+    .map(t => ({
+      id: t.id,
+      file: t.url,
+      tags: Array.isArray(t.tags) ? t.tags : ['ambient']
+    }));
+
+  if (toAdd.length === 0) return;
+
+  // Push into AMBIENT_TRACKS; preserve original references for callers that already imported it.
+  AMBIENT_TRACKS.push(...toAdd);
+}

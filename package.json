@@ -9,6 +9,7 @@
     "dev:clean": "node ./scripts/dev-clean.js",
     "dev:force": "vite --force --open --port 4173",
     "generate:assets": "node ./scripts/generate-static-assets.js",
+    "gen:ambient": "node -e \"require('./scripts/generate-custom-ambient-tracks.js')\"",
     "build": "npm run generate:assets && node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
     "preview": "vite preview",
     "test": "tsx --test",

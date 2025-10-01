@@ -44,7 +44,8 @@ import {
   sanitizeVec3,
   safeSetVec3
 } from '../utils/sanitize.ts';
-import { initAmbient, AmbientAPI, AMBIENT_TRACKS } from '../audio/ambient.ts';
+import { CUSTOM_AMBIENT_TRACKS } from '../audio/customAmbientTracks.generated.ts';
+import { initAmbient, AmbientAPI, AMBIENT_TRACKS, registerExternalAmbientTracks } from '../audio/ambient.ts';
 // SKYSYS_START
 import { installSkyDev } from '../dev/skyDebugHooks.js';
 import { EnvironmentController } from '../environment/EnvironmentController.ts';
@@ -567,16 +568,37 @@ export async function initializeAthens(options = {}) {
 
   await initAmbient(camera);
 
+  try {
+    // Register all discovered mp3 tracks before the environment mode picks a track.
+    if (Array.isArray(CUSTOM_AMBIENT_TRACKS)) {
+      registerExternalAmbientTracks(CUSTOM_AMBIENT_TRACKS);
+    }
+  } catch {}
+
   if (globalWindow) {
-    const existingDebug =
-      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
-        ? globalWindow.__athensDebug
-        : {};
-    const headlessSmoke = searchParams?.get('headlessSmoke') === '1';
-    globalWindow.THREE = THREE;
-    globalWindow.__athensDebug = headlessSmoke
-      ? { scene, camera, renderer }
-      : { ...existingDebug, scene, camera, renderer, audioAPI: AmbientAPI };
+const existingDebug =
+  globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
+    ? globalWindow.__athensDebug
+    : {};
+
+const headlessSmoke = searchParams?.get('headlessSmoke') === '1';
+globalWindow.THREE = THREE;
+
+if (headlessSmoke) {
+  globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
+} else {
+  globalWindow.__athensDebug = {
+    ...existingDebug,
+    scene,
+    camera,
+    renderer,
+    audioAPI: AmbientAPI,
+    customAmbientTracks: Array.isArray(CUSTOM_AMBIENT_TRACKS)
+      ? CUSTOM_AMBIENT_TRACKS.map((track) => track.id)
+      : []
+  };
+}
+
   }
 
   try {
