@@ -38,9 +38,12 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   const isSameOrigin = url.origin === self.location.origin;
 
-  // Only cache same-origin GET requests. Pass others straight through (safely).
+  // Only handle same-origin GET requests. Others should be left to the
+  // browser's default network handling. Responding to cross-origin or
+  // non-GET requests can trigger "Failed to convert value to 'Response'"
+  // errors in some browsers because the response must comply with stricter
+  // mode/type requirements (e.g. opaque responses for no-cors fetches).
   if (req.method !== 'GET' || !isSameOrigin) {
-    event.respondWith(safeNetwork(req));
     return;
   }
 
