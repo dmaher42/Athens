@@ -626,7 +626,16 @@ export async function initializeAthens(options = {}) {
     searchParams = new URLSearchParams(globalWindow.location.search);
   }
 
-  await initAmbient(camera);
+  try {
+    const ambientTask = initAmbient(camera);
+    if (ambientTask && typeof ambientTask.catch === 'function') {
+      ambientTask.catch((error) => {
+        logger.warn('[Athens] Ambient initialization failed.', error);
+      });
+    }
+  } catch (error) {
+    logger.warn('[Athens] Ambient initialization threw synchronously.', error);
+  }
 
   try {
     // Register all discovered mp3 tracks before the environment mode picks a track.

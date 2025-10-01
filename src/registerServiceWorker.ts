@@ -1,3 +1,5 @@
+import { buildBaseRelativeUrl, resolveBaseUrl } from './utils/baseUrl.ts';
+
 export async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
 
@@ -8,15 +10,11 @@ export async function registerSW() {
   const importEnv = (import.meta ?? {})?.env as Record<string, unknown> | undefined;
   const resolvedDev =
     typeof importEnv?.DEV !== 'undefined' ? importEnv.DEV : globalEnv?.DEV;
-  const resolvedBase =
-    typeof importEnv?.BASE_URL === 'string'
-      ? importEnv.BASE_URL
-      : typeof globalEnv?.BASE_URL === 'string'
-        ? (globalEnv.BASE_URL as string)
-        : '/';
 
   const isDev = Boolean(resolvedDev);
-  const baseUrl = resolvedBase;
+  const scopeBase = resolveBaseUrl({ importEnv, globalEnv });
+  const normalizedScope = scopeBase.endsWith('/') ? scopeBase : `${scopeBase}/`;
+  const swUrl = buildBaseRelativeUrl('service-worker.js', { importEnv, globalEnv });
 
   if (isDev) {
     try {
@@ -26,17 +24,18 @@ export async function registerSW() {
     return;
   }
 
-  const url = `${baseUrl}service-worker.js`;
-
   try {
-    const head = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    const head = await fetch(swUrl, { method: 'HEAD', cache: 'no-store' });
     if (!head.ok) return; // file missing -> skip without error
   } catch {
     return; // network issue -> skip without blocking boot
   }
 
   try {
-    await navigator.serviceWorker.register(url, { scope: baseUrl });
+    const registration = navigator.serviceWorker.register(swUrl, { scope: normalizedScope });
+    if (registration && typeof (registration as Promise<unknown>).catch === 'function') {
+      (registration as Promise<unknown>).catch(() => {});
+    }
   } catch {
     // swallow: SW is optional, never block boot
   }

@@ -55,7 +55,7 @@
 ## 4. Architecture issues
 - Asset-path utilities overlap: `assetUrl.js` and `asset-paths.js` both compute base URLs and normalize paths, creating parallel code paths that drift over time.【F:src/utils/assetUrl.js†L1-L34】【F:src/utils/asset-paths.js†L1-L107】
 - Duplicate asset roots (`assets/`, `models/`, `public/assets/`) with inconsistent casing (`Adventurer.glb` vs `adventurer.glb`) suggest partial migrations and complicate tooling.
-- GitHub Pages base path is handled in Vite config, yet many helpers also attempt to infer BASE_URL manually, increasing risk of inconsistencies when deploying under `/Athens/`.【F:vite.config.js†L1-L28】【F:src/utils/asset-paths.js†L90-L107】
+- GitHub Pages base path is handled in Vite config, yet many helpers also attempt to infer BASE_URL manually, increasing risk of inconsistencies when deploying under `/Athens/`.【F:vite.config.ts†L1-L28】【F:src/utils/asset-paths.js†L90-L107】
 - No circular dependencies detected by `madge`, but the coexistence of multiple entry modules (e.g., `sky.ts` vs `sky.js`) indicates unfinished rewrites.【069e4b†L1-L4】【F:src/scene/sky.js†L1-L120】【F:src/scene/sky.ts†L1-L200】
 
 ## 5. GitHub Pages considerations
