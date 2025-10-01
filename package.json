@@ -13,6 +13,7 @@
     "build": "npm run generate:assets && node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
     "preview": "vite preview",
     "test": "tsx --test",
+    "lint": "npm run lint:unused",
     "html:no-ts": "./scripts/check-html-no-ts.sh",
     "serve:dist": "http-server dist -p 4173 -s",
     "depcheck": "npx depcheck --ignores='vite,three'",
