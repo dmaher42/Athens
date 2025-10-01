@@ -47,6 +47,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Chrome will issue synthetic requests with cache: "only-if-cached" and
+  // mode !== "same-origin" during navigation preload. Intercepting them and
+  // attempting to respond manually causes `TypeError: Failed to convert value
+  // to 'Response'`. Let the browser handle those requests instead.
+  if (req.cache === 'only-if-cached' && req.mode !== 'same-origin') {
+    return;
+  }
+
   event.respondWith((async () => {
     try {
       const cached = await caches.match(req);
