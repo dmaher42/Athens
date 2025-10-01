@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Model Gallery</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; }
+    h1 { color: #333; }
+    .gallery { display: flex; flex-wrap: wrap; gap: 32px; }
+    .item { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 16px; width: 320px; }
+    .item h2 { font-size: 1.1em; margin: 8px 0; }
+    model-viewer { width: 300px; height: 300px; background: #eee; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>3D Model Gallery</h1>
+  <div class="gallery">
+    <!-- Add each model as an item below -->
+    <div class="item">
+      <h2>Character Model</h2>
+      <model-viewer src="assets/models/character.glb" alt="Character" auto-rotate camera-controls></model-viewer>
+      <p><a href="assets/models/character.glb" download>Download</a></p>
+    </div>
+    <!-- Add more items here for each model -->
+  </div>
+</body>
+</html>
