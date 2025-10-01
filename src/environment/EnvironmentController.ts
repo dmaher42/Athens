@@ -47,3 +47,33 @@ export class EnvironmentController {
     this.scene.background = null;
   }
 }
+
+// Optional registry for external sky images discovered at build time
+let _externalSkyImages: Array<{ id: string; url: string; tags?: string[] }> = [];
+
+/** Register external equirectangular sky JPGs (optional). No-ops if array is empty. */
+export function registerExternalSkyImages(images: Array<{ id: string; url: string; tags?: string[] }>) {
+  if (!Array.isArray(images)) return;
+  _externalSkyImages = images.filter((i) => i && typeof i.id === 'string' && typeof i.url === 'string');
+}
+
+/** Apply a single equirectangular sky image as background+environment (optional utility). */
+export async function applySkyImage(
+  scene: THREE.Scene,
+  renderer: THREE.WebGLRenderer,
+  url: string
+) {
+  if (!scene || !renderer || !url) return;
+  const loader = new THREE.TextureLoader();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const tex: THREE.Texture = await new Promise((resolve, reject) =>
+    loader.load(url, resolve, undefined, reject)
+  );
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+
+  // Build PMREM for env; keep the texture as background
+  const envRT = pmrem.fromEquirectangular(tex);
+  scene.background = tex;
+  scene.environment = envRT.texture;
+}

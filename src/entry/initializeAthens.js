@@ -49,6 +49,9 @@ import { initAmbient, AmbientAPI, AMBIENT_TRACKS, registerExternalAmbientTracks 
 // SKYSYS_START
 import { installSkyDev } from '../dev/skyDebugHooks.js';
 import { EnvironmentController } from '../environment/EnvironmentController.ts';
+import { SKY_JPGS, GROUND_JPGS } from '../assets/skyGround.generated.ts';
+import { registerExternalSkyImages, applySkyImage } from '../environment/EnvironmentController.ts';
+import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
 
 // CHAR_MAIN_HEIGHT_START
@@ -517,6 +520,17 @@ export async function initializeAthens(options = {}) {
 
   const environmentManager = new EnvironmentController(scene, renderer);
 
+  // Register discovered assets (safe no-ops if arrays are empty)
+  try {
+    if (Array.isArray(SKY_JPGS)) {
+      registerExternalSkyImages(SKY_JPGS);
+    }
+    if (Array.isArray(GROUND_JPGS) && GROUND_JPGS.length > 0) {
+      // Use the first ground jpg as default override (non-breaking: only affects grass when feature is used)
+      setExternalGroundTexture(GROUND_JPGS[0].url);
+    }
+  } catch {}
+
   const trackedDisposables = new Set();
   const registerDisposables = (...items) => {
     for (const item of items) {
@@ -576,34 +590,56 @@ export async function initializeAthens(options = {}) {
   } catch {}
 
   if (globalWindow) {
-const existingDebug =
-  globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
-    ? globalWindow.__athensDebug
-    : {};
+    const existingDebug =
+      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
+        ? globalWindow.__athensDebug
+        : {};
 
-const headlessSmoke = searchParams?.get('headlessSmoke') === '1';
-globalWindow.THREE = THREE;
+    const headlessSmoke = searchParams?.get('headlessSmoke') === '1';
+    globalWindow.THREE = THREE;
 
-if (headlessSmoke) {
-  globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
-} else {
-  globalWindow.__athensDebug = {
-    ...existingDebug,
-    scene,
-    camera,
-    renderer,
-    audioAPI: AmbientAPI,
-    customAmbientTracks: Array.isArray(CUSTOM_AMBIENT_TRACKS)
-      ? CUSTOM_AMBIENT_TRACKS.map((track) => track.id)
-      : []
-  };
-}
+    if (headlessSmoke) {
+      globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
+    } else {
+      globalWindow.__athensDebug = {
+        ...existingDebug,
+        scene,
+        camera,
+        renderer,
+        audioAPI: AmbientAPI,
+        customAmbientTracks: Array.isArray(CUSTOM_AMBIENT_TRACKS)
+          ? CUSTOM_AMBIENT_TRACKS.map((track) => track.id)
+          : []
+      };
+    }
 
+    if (typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
+      globalWindow.__athensDebug.skyJpgs = (SKY_JPGS || []).map((x) => ({
+        id: x.id,
+        url: x.url,
+        tags: x.tags
+      }));
+      globalWindow.__athensDebug.setSkyImage = async (idOrUrl) => {
+        const item = (SKY_JPGS || []).find((x) => x.id === idOrUrl || x.url === idOrUrl);
+        if (item) {
+          await applySkyImage(scene, renderer, item.url);
+        }
+      };
+    }
   }
 
   try {
     await environmentManager.applySky('day');
     environmentManager.setMode('procedural');
+    try {
+      const currentMode = environmentManager?.skyMode || 'day';
+      const match = (SKY_JPGS || []).find((i) =>
+        (i.tags || []).some((t) => t.toLowerCase() === String(currentMode).toLowerCase())
+      );
+      if (match) {
+        await applySkyImage(scene, renderer, match.url);
+      }
+    } catch {}
   } catch (error) {
     logger.warn('[Athens] applySky failed during initializeAthens.', error);
     renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
