@@ -203,21 +203,35 @@ async function runAthens(options = {}) {
     container.style.backgroundColor = container.style.backgroundColor || '#202834';
 
     let bootTimer = null;
-    const bootTimeout = new Promise((_, reject) => {
-      bootTimer = setTimeout(() => reject(new Error('Boot timeout')), 8000);
+    const bootTimeoutMarker = Symbol('athens.boot-timeout');
+    const bootTimeout = new Promise((resolve) => {
+      bootTimer = setTimeout(() => resolve(bootTimeoutMarker), 8000);
     });
 
-    const context = await Promise.race([
-      initializeAthens({ ...options, container }),
-      bootTimeout
-    ]).catch((error) => {
-      watchdog?.error?.(error?.message || 'boot failed');
-      console.error('[Athens] Boot failed:', error);
-      throw error;
-    });
+    const initializationTask = initializeAthens({ ...options, container });
+    let context;
+    try {
+      const firstResult = await Promise.race([initializationTask, bootTimeout]).catch((error) => {
+        watchdog?.error?.(error?.message || 'boot failed');
+        console.error('[Athens] Boot failed:', error);
+        throw error;
+      });
 
-    if (bootTimer) {
-      clearTimeout(bootTimer);
+      if (firstResult === bootTimeoutMarker) {
+        watchdog?.warn?.('boot timeout');
+        logger.warn('[Athens] Boot is taking longer than expected. Waiting for initialization to complete.');
+        context = await initializationTask.catch((error) => {
+          watchdog?.error?.(error?.message || 'boot failed');
+          console.error('[Athens] Boot failed:', error);
+          throw error;
+        });
+      } else {
+        context = firstResult;
+      }
+    } finally {
+      if (bootTimer) {
+        clearTimeout(bootTimer);
+      }
     }
     context.renderer?.setClearColor?.(0x202834, 1);
     if (context.scene) {
