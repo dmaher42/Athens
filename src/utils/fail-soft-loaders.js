@@ -69,14 +69,7 @@ export function applyLoadedTexture(
     try {
       fallbackTex.dispose?.();
     } catch (error) {
-      if (
-        typeof process !== 'undefined' &&
-        process?.env?.NODE_ENV !== 'production' &&
-        typeof console !== 'undefined' &&
-        typeof console.debug === 'function'
-      ) {
-        console.debug('[asset-loader] dispose fallback failed', error);
-      }
+      if (import.meta.env.DEV) console.debug?.('[asset-loader] dispose fallback failed', error);
     }
   }
 }
@@ -156,14 +149,7 @@ function loadTextureWithFallback(url, options = {}) {
             fallbackTexture: texture
           });
         }
-        if (
-          typeof process !== 'undefined' &&
-          process?.env?.NODE_ENV !== 'production' &&
-          typeof console !== 'undefined' &&
-          typeof console.debug === 'function'
-        ) {
-          console.debug(`[asset-loader] applied texture ${label}`);
-        }
+        if (import.meta.env.DEV) console.debug?.(`[asset-loader] applied texture ${label}`);
       } catch (error) {
         logger.warn(
           `[asset-loader] Texture post-processing failed for ${label} at ${url}; retaining fallback.`,

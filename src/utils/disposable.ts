@@ -75,10 +75,8 @@ function disposeMaterial(material: THREE.Material, seen: SeenSet): void {
   try {
     material.dispose();
   } catch (error) {
-    if (typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.warn('[disposeAll] Failed to dispose material', material, error);
-    }
+    // eslint-disable-next-line no-console
+    if (import.meta.env.DEV) console.warn('[disposeAll] Failed to dispose material', material, error);
   }
 }
 
@@ -130,10 +128,8 @@ function disposeUnknown(item: DisposableItem | any, seen: SeenSet): void {
     try {
       item.dispose();
     } catch (error) {
-      if (typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production') {
-        // eslint-disable-next-line no-console
-        console.warn('[disposeAll] Failed to dispose texture', item, error);
-      }
+      // eslint-disable-next-line no-console
+      if (import.meta.env.DEV) console.warn('[disposeAll] Failed to dispose texture', item, error);
     }
     return;
   }
@@ -143,10 +139,8 @@ function disposeUnknown(item: DisposableItem | any, seen: SeenSet): void {
     try {
       item.dispose();
     } catch (error) {
-      if (typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production') {
-        // eslint-disable-next-line no-console
-        console.warn('[disposeAll] Failed to dispose geometry', item, error);
-      }
+      // eslint-disable-next-line no-console
+      if (import.meta.env.DEV) console.warn('[disposeAll] Failed to dispose geometry', item, error);
     }
     return;
   }
@@ -156,10 +150,8 @@ function disposeUnknown(item: DisposableItem | any, seen: SeenSet): void {
     try {
       item.dispose();
     } catch (error) {
-      if (typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production') {
-        // eslint-disable-next-line no-console
-        console.warn('[disposeAll] Failed to dispose resource', item, error);
-      }
+      // eslint-disable-next-line no-console
+      if (import.meta.env.DEV) console.warn('[disposeAll] Failed to dispose resource', item, error);
     }
     return;
   }
