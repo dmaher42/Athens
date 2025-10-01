@@ -18,10 +18,10 @@ const DEFAULT_TURN = 0.18;
 
 const DEFAULT_NPC_MODEL_URLS = [
   'models/Adventurer1.glb',
-  'models/brokenCHar.glb',
   'models/character3.glb',
-  assetUrl('assets/models/hoplite_npc.glb'),
-  assetUrl('assets/models/npc_athenian.glb')
+  'models/character4.glb',
+  'models/hoplite_npc.glb',
+  'models/npc_athenian.glb'
 ];
 
 const STEP_DIRECTION = new THREE.Vector3();
