@@ -25,7 +25,6 @@ import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
 import { createCity } from '../buildings/createCity.js';
-import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
@@ -749,15 +748,22 @@ export async function initializeAthens(options = {}) {
   // CITYPLAN_END
 
   // CITYPLAN_START
+  const cityVariant = options?.city?.variant ?? options?.cityVariant;
+
   const city = await createCity({
     renderer,
     scene,
     layout,
     layoutConfig,
+    variant: cityVariant,
     ground: hasLayeredGround ? { existing: ground } : undefined,
   });
-  registerDisposables(city);
+
+  const cityRoot = city?.root ?? null;
+  registerDisposables(cityRoot);
+  const cityMaterials = city?.materials ?? null;
   // CITYPLAN_END
+
 
   // LANDMARK_SPREAD_START
   _applyLandmarkSpread(scene, options);
@@ -813,14 +819,6 @@ export async function initializeAthens(options = {}) {
       }
     }
   }
-
-  // Extended city (provides root + shared materials)
-  // CITYPLAN_START
-  const extendedRes = await createCityExtended({ renderer, scene, layout, layoutConfig });
-  // CITYPLAN_END
-  const extendedCity = extendedRes?.root ?? null;
-  registerDisposables(extendedCity);
-  const sharedMaterials = extendedRes?.materials ?? null;
 
   // LANDMARK_OVERRIDE_START
   // Apply runtime landmark overrides (world-space), if provided
@@ -1012,13 +1010,10 @@ export async function initializeAthens(options = {}) {
     scene.userData.landmarkPlacer = landmarkPlacer;
   }
   // PLACER_END
-  if (city?.root && groundMeshes.length) {
+  if (cityRoot && groundMeshes.length) {
     const snapOpts = { hover: 0.03, fromY: 300 };
-    snapChildrenToGround(city.root, groundMeshes, snapOpts);
-    snapGroupToGround(city.root, groundMeshes, snapOpts);
-  }
-  if (extendedCity && groundMeshes.length) {
-    snapGroupToGround(extendedCity, groundMeshes, { hover: 0.03, fromY: 300 });
+    snapChildrenToGround(cityRoot, groundMeshes, snapOpts);
+    snapGroupToGround(cityRoot, groundMeshes, snapOpts);
   }
 
   markColliders(scene);
@@ -1069,7 +1064,7 @@ export async function initializeAthens(options = {}) {
       const roadGroup = buildRoadNetwork({
         scene,
         points: roadPoints,
-        materials: sharedMaterials || city?.materials || {},
+        materials: cityMaterials || city?.materials || {},
         options: { width: 3.0, tileScale: 6.0 }
       });
       roadGroup.name = 'RoadNetwork';
@@ -1558,7 +1553,6 @@ export async function initializeAthens(options = {}) {
     mainCharacter,
     environmentController,
     city,
-    extendedCity,
     container,
     ui,
     async setEnvironmentMode(mode, envOptions = {}) {
@@ -1601,7 +1595,6 @@ export async function initializeAthens(options = {}) {
     window.__athens.mainCharacter = context.mainCharacter;
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
     window.__athens.city = context.city;
-    window.__athens.extendedCity = context.extendedCity;
     window.__athens.ui = context.ui;
   }
 
