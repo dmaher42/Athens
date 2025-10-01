@@ -56,6 +56,18 @@ export class EnvironmentController {
   }
 }
 
+export type EnvironmentControllerArgs = {
+  scene: THREE.Scene;
+  renderer: THREE.WebGLRenderer;
+};
+
+export function createEnvironmentController({
+  scene,
+  renderer,
+}: EnvironmentControllerArgs): EnvironmentController {
+  return new EnvironmentController(scene, renderer);
+}
+
 // Optional registry for external sky images discovered at build time
 let _externalSkyImages: Array<{ id: string; url: string; tags?: string[] }> = [];
 
