@@ -554,8 +554,8 @@ export const HOTKEY_AXIS_METADATA: AxisBinding[] = [
   {
     type: 'paired',
     axis: 'z',
-    positive: movementActions.moveBackward.id,
-    negative: movementActions.moveForward.id,
+    positive: movementActions.moveForward.id,
+    negative: movementActions.moveBackward.id,
     normalizeWith: ['x']
   },
   {
