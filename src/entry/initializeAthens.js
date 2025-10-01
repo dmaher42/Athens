@@ -28,6 +28,9 @@ import { createOriginalUi } from '../ui/originalUi.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
 import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
+import { loadWorldWithColliders } from '../physics/collisionWorld.ts';
+import { CharacterController } from '../controls/CharacterController.ts';
+import { getInput } from '../controls/input.ts';
 import {
   LANDMARK_ALIASES,
   KNOWN_LANDMARK_KEYS,
@@ -62,6 +65,10 @@ import { setExternalGroundTexture } from '../materials/groundGrass.js';
 const _TMP_WORLD = new THREE.Vector3();
 const _TMP_LOCAL = new THREE.Vector3();
 const _TMP_GROUND = new THREE.Vector3();
+
+const WALKING_ENABLED = true;
+const _WALK_LOOK_DIR = new THREE.Vector3();
+const _WALK_LOOK_TARGET = new THREE.Vector3();
 
 function _setWorldPosition(object, x, y, z) {
   if (!object?.isObject3D) return false;
@@ -648,6 +655,10 @@ export async function initializeAthens(options = {}) {
     }
 
     if (typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
+      globalWindow.__athensDebug.controller = WALKING_ENABLED && walkingController
+        ? walkingController
+        : controller;
+      globalWindow.__athensDebug.collision = collisionWorld;
       globalWindow.__athensDebug.skyJpgs = (SKY_JPGS || []).map((x) => ({
         id: x.id,
         url: x.url,
@@ -1028,6 +1039,23 @@ await environmentManager.applySky('day');
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
 
+  let collisionWorld = { colliderMesh: null, bvh: null };
+  if (WALKING_ENABLED) {
+    const collisionWorldUrl =
+      options?.collisionWorldUrl ??
+      options?.collision?.url ??
+      options?.worldUrl ??
+      null;
+
+    if (collisionWorldUrl) {
+      try {
+        collisionWorld = await loadWorldWithColliders(collisionWorldUrl, scene);
+      } catch (error) {
+        logger.warn('[Athens][CollisionWorld] Failed to load collision world.', error);
+      }
+    }
+  }
+
   const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
   const spawnHint = mainCharacterOptions?.initialPosition ?? DEFAULT_PLAYER_START;
   const playerSpawn = findSafePlayerSpawn({
@@ -1158,6 +1186,19 @@ await environmentManager.applySky('day');
 
   if (playerObject?.position) {
     sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+  }
+
+  const controllerHeight = Number.isFinite(movementConfig?.character?.height)
+    ? Math.max(1, movementConfig.character.height)
+    : 1.7;
+  let walkingController = null;
+  if (WALKING_ENABLED) {
+    const controllerStart = playerSpawn.clone();
+    controllerStart.y += controllerHeight * 0.5;
+    walkingController = new CharacterController(camera, controllerStart, controllerHeight);
+    if (playerObject?.position) {
+      playerObject.position.copy(walkingController.position);
+    }
   }
 
 // CHAR_MAIN_HEIGHT_START
@@ -1459,17 +1500,28 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       landmarks.update?.(camera);
 
       if (!skippedLargeDt) {
-        controller?.update?.(delta, camera);
+        if (WALKING_ENABLED && walkingController) {
+          walkingController.update(delta, getInput(), collisionWorld);
+          if (playerObject?.position) {
+            playerObject.position.copy(walkingController.position);
+          }
+        } else {
+          controller?.update?.(delta, camera);
+        }
       }
 
       ui?.update?.(delta, {
         position: playerObject?.position,
-        isFlying: controller?.isFlying?.() ?? false,
-        isRunning: controller?.isRunning?.(),
+        isFlying: WALKING_ENABLED ? false : controller?.isFlying?.() ?? false,
+        isRunning: WALKING_ENABLED && walkingController
+          ? walkingController.velocity.length() > walkingController.walkSpeed + 0.1
+          : controller?.isRunning?.(),
         skippedLargeDt: Boolean(skippedLargeDt)
       });
 
-      followCamera?.update?.(keyboard, delta);
+      if (!WALKING_ENABLED || !walkingController) {
+        followCamera?.update?.(keyboard, delta);
+      }
 
       const activePlayer = findPlayerObject() || playerObject;
       if (activePlayer?.position && !isFiniteVec3(activePlayer.position)) {
@@ -1491,13 +1543,23 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         }
       }
 
-      const lookTarget = activePlayer?.position
-        ? activePlayer.position
-        : playerObject?.position
-          ? playerObject.position
-          : SAFE_PLAYER_VECTOR.clone();
-      sanitizeVec3(lookTarget, SAFE_PLAYER_FALLBACK);
-      camera.lookAt(lookTarget);
+      if (WALKING_ENABLED && walkingController) {
+        camera.getWorldDirection(_WALK_LOOK_DIR);
+        if (_WALK_LOOK_DIR.lengthSq() < 1e-6) {
+          _WALK_LOOK_DIR.set(0, 0, -1);
+        }
+        _WALK_LOOK_TARGET.copy(camera.position).addScaledVector(_WALK_LOOK_DIR, 10);
+        sanitizeVec3(_WALK_LOOK_TARGET, SAFE_PLAYER_FALLBACK);
+        camera.lookAt(_WALK_LOOK_TARGET);
+      } else {
+        const lookTarget = activePlayer?.position
+          ? activePlayer.position
+          : playerObject?.position
+            ? playerObject.position
+            : SAFE_PLAYER_VECTOR.clone();
+        sanitizeVec3(lookTarget, SAFE_PLAYER_FALLBACK);
+        camera.lookAt(lookTarget);
+      }
     } catch (error) {
       logger.warn('[Athens] Frame update failed.', error);
     }
@@ -1592,6 +1654,8 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     city,
     container,
     ui,
+    collisionWorld,
+    walkingController,
     async setEnvironmentMode(mode, envOptions = {}) {
       const result = await environmentController?.setMode?.(mode, envOptions);
       const label = formatEnvironmentLabel(result || mode);
@@ -1634,6 +1698,8 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
     window.__athens.city = context.city;
     window.__athens.ui = context.ui;
+    window.__athens.controller = WALKING_ENABLED && walkingController ? walkingController : controller;
+    window.__athens.collisionWorld = collisionWorld;
   }
 
   return context;

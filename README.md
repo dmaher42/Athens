@@ -23,3 +23,9 @@ Development builds now launch straight into the main experience at `/`. For trou
 ## Entry points
 
 Use `src/entry/initializeAthens.js` as the runtime entry point for embedding Athens into other experiences.
+
+## Collision & Interiors
+
+- Building interiors and walkable areas should have dedicated collider meshes in the GLB.
+- Prefix collider meshes with `COL_` **or** set `userData.collision = true` in the authoring tool to ensure they are picked up by the collision BVH builder.
+- Colliders should be closed volumes or have sufficient thickness. Single-sided planes only collide from one side and may allow the player to tunnel through.

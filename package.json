@@ -23,7 +23,8 @@
     "gen:skyground": "node scripts/generate-sky-ground-assets.js"
   },
   "dependencies": {
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "three-mesh-bvh": "^0.7.3"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.2.1",
