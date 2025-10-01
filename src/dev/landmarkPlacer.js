@@ -11,10 +11,10 @@ import { registerScopedHotkeys } from '../input/hotkeyScopes.js';
 const DEFAULT_LANDMARKS = [...KNOWN_LANDMARK_KEYS];
 
 const DEV_ACTION_IDS = {
-  next: HOTKEY_IDS.dev.landmark.next,
-  prev: HOTKEY_IDS.dev.landmark.prev,
-  save: HOTKEY_IDS.dev.landmark.save,
-  exit: HOTKEY_IDS.dev.landmark.exit
+  next: HOTKEY_IDS.devTools.landmark.next,
+  prev: HOTKEY_IDS.devTools.landmark.prev,
+  save: HOTKEY_IDS.devTools.landmark.save,
+  exit: HOTKEY_IDS.devTools.landmark.exit
 };
 
 function eventToCode(event) {
