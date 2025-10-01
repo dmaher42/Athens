@@ -683,6 +683,7 @@ export async function initializeAthens(options = {}) {
 
   let globalWindow = null;
   let searchParams = null;
+  let collisionWorld = { colliderMesh: null, bvh: null };
   if (typeof window !== 'undefined') {
     globalWindow = window;
     searchParams = new URLSearchParams(globalWindow.location.search);
@@ -1161,7 +1162,6 @@ export async function initializeAthens(options = {}) {
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
 
-  let collisionWorld = { colliderMesh: null, bvh: null };
   if (WALKING_ENABLED) {
     const collisionWorldUrl =
       options?.collisionWorldUrl ??
