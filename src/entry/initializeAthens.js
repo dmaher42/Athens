@@ -1058,8 +1058,23 @@ export async function initializeAthens(options = {}) {
     sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
   }
 
-  // CHAR_MAIN_HEIGHT_START
-  // Height scaling for the main character is no longer required.
+// CHAR_MAIN_HEIGHT_START
+const enforceMainCharacterHeight = () => __enforceMainCharacterHeight(scene, options);
+const readyPromise = mainCharacter?.ready;
+
+if (readyPromise && typeof readyPromise.then === 'function') {
+  readyPromise
+    .then(() => {
+      enforceMainCharacterHeight();
+    })
+    .catch((error) => {
+      logger.warn('[Athens][MainCharacter] Failed to load character before enforcing height.', error);
+      enforceMainCharacterHeight();
+    });
+} else {
+  enforceMainCharacterHeight();
+}
+
   // CHAR_MAIN_HEIGHT_END
 
   const flyBypassFallbackPosition = new THREE.Vector3();

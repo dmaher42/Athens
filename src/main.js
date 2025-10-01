@@ -1,5 +1,6 @@
 import { loadGround } from './scene/ground.js';
 import { loadTreeLibrary, scatterTrees, updateTrees as updateTreeAnimations } from './vegetation/trees.js';
+import { groundYAt } from './utils/spawn.ts';
 import { getAssetBase } from './utils/asset-paths.js';
 import { logger } from './utils/logger.ts';
 
@@ -49,7 +50,16 @@ let treesInitialized = false;
 
 // If your main branch had extra tree setup inside setupGround, you can merge it
 // below after the ground is created. For now we keep the original ground setup:
-async function ensureTrees(scene, renderer) {
+function collectGroundTargets(groundLayers) {
+  if (!groundLayers || typeof groundLayers !== 'object') {
+    return [];
+  }
+
+  const { root, dirt, grass, foundationBlend, tilesRoot } = groundLayers;
+  return [root, dirt, grass, foundationBlend, tilesRoot].filter(Boolean);
+}
+
+async function ensureTrees(scene, renderer, groundLayers = null) {
   if (treesInitialized) {
     if (scene && groveGroup && !scene.children.includes(groveGroup)) {
       scene.add(groveGroup);
@@ -59,11 +69,20 @@ async function ensureTrees(scene, renderer) {
 
   try {
     treeLibraryState = await loadTreeLibrary(renderer);
+    const groundTargets = collectGroundTargets(groundLayers);
+    const heightFn = groundTargets.length
+      ? (x, z) => {
+          const height = groundYAt(x, z, groundTargets);
+          return Number.isFinite(height) ? height : 0;
+        }
+      : undefined;
+
     groveGroup = scatterTrees({
       name: 'olive',
       area: { xMin: -500, xMax: 500, zMin: -500, zMax: 500 },
       count: 100,
-      minDist: 7
+      minDist: 7,
+      heightFn
     });
 
     if (scene && groveGroup && !scene.children.includes(groveGroup)) {
@@ -80,7 +99,7 @@ async function ensureTrees(scene, renderer) {
 export async function setupGround(scene, renderer) {
   const ground = await loadGround(scene, renderer, groundOptions);
 
-  await ensureTrees(scene, renderer);
+  await ensureTrees(scene, renderer, ground);
   return ground;
 }
 
