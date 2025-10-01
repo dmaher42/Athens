@@ -663,7 +663,8 @@ export async function initializeAthens(options = {}) {
   }
 
   try {
-    const appliedSkyId = await environmentController.setMode('day', { playAmbient: true });
+await environmentController.setMode('day', { playAmbient: true });
+
     environmentManager.setMode('procedural');
     try {
       const currentMode =
@@ -758,9 +759,12 @@ export async function initializeAthens(options = {}) {
     async setMode(mode, envOptions = {}) {
       const allowAmbient = envOptions?.playAmbient !== false;
       const next = setEnvironmentMode(mode, { allowAmbient });
-      let appliedId = null;
-      try {
-        appliedId = await environmentManager.applySky(next);
+try {
+  await environmentManager.applySky(next);
+} catch {
+  // keep running if sky load fails
+}
+vironmentManager.applySky(next);
       } catch {
         // keep running if sky load fails
       }
@@ -772,7 +776,8 @@ export async function initializeAthens(options = {}) {
         }
       } catch {}
 
-      return appliedId || next;
+return next;
+
     },
     applySky(mode) {
       return environmentManager.applySky(mode);
