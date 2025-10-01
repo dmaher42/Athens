@@ -213,32 +213,13 @@ async function stubThree(): Promise<ThreeModule> {
 }
 
 async function stubEnvironmentModule() {
-  const environmentModule = await import('../../environment/EnvironmentController.ts');
-  mock.method(environmentModule, 'createEnvironmentController', () => {
-    const manager: any = {
-      mode: 'day',
-      async applySky() {
-        return manager.mode;
-      },
-      setMode(next: string) {
-        manager.mode = next;
-        return next;
-      },
-      dispose() {},
-    };
-    Object.defineProperty(manager, 'skyMode', {
-      get() {
-        return manager.mode;
-      },
-      set(value: string) {
-        manager.mode = value;
-      },
-      configurable: true,
-    });
-    return manager;
-  });
-  mock.method(environmentModule, 'registerExternalSkyImages', () => {});
-  mock.method(environmentModule, 'applySkyImage', async () => {});
+  const environmentModule = await import('../../environment/envCore.ts');
+  mock.method(environmentModule, 'createEnvironment', () => ({
+    async applySkyMode() {},
+    async applySkyImage() {},
+    setMode() {},
+    dispose() {},
+  }));
 }
 
 async function stubAppModules(THREE: ThreeModule) {
