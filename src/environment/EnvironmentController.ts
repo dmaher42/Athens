@@ -25,9 +25,7 @@ export class EnvironmentController {
       return null;
     }
     const appliedId = await applySky(this.scene, this.renderer, choice);
-    if (appliedId) {
-      this.lastAppliedSkyId = appliedId;
-    }
+    this.lastAppliedSkyId = appliedId ?? null;
     return appliedId;
   }
 
@@ -36,6 +34,9 @@ export class EnvironmentController {
       return;
     }
     this.currentSkyMode = mode;
+    if (mode === 'procedural') {
+      this.lastAppliedSkyId = null;
+    }
   }
 
   dispose(): void {
