@@ -11,22 +11,63 @@ type KeyboardEventLike = { code?: string; key?: string; repeat?: boolean };
 
 const activeKeys = new Set<string>();
 
-const POSITIVE_FORWARD = createActionCodeSet(HOTKEY_IDS.movement.forward);
-const NEGATIVE_FORWARD = createActionCodeSet(HOTKEY_IDS.movement.backward);
-const POSITIVE_RIGHT = createActionCodeSet(HOTKEY_IDS.movement.right);
-const NEGATIVE_RIGHT = createActionCodeSet(HOTKEY_IDS.movement.left);
-const JUMP_KEYS = createActionCodeSet(HOTKEY_IDS.flight.ascend);
-const SPRINT_KEYS = createActionCodeSet(HOTKEY_IDS.movement.run);
+type MovementActionCodes = {
+  forwardPositive: readonly string[];
+  forwardNegative: readonly string[];
+  rightPositive: readonly string[];
+  rightNegative: readonly string[];
+  jump: readonly string[];
+  sprint: readonly string[];
+};
+
 const RELEVANT_KEY_SET: Set<string> | undefined =
   RELEVANT_KEYS && typeof RELEVANT_KEYS.has === 'function' ? RELEVANT_KEYS : undefined;
 
-function createActionCodeSet(actionId: string | undefined): Set<string> {
+const dynamicRelevantCodes = new Set<string>();
+
+function resolveActionCodes(actionId: string | undefined): string[] {
   if (!actionId) {
-    return new Set();
+    return [];
   }
 
   const codes = getActionCodes(actionId);
-  return new Set(codes);
+  const resolved: string[] = [];
+  if (Array.isArray(codes)) {
+    for (const code of codes) {
+      if (typeof code === 'string' && code) {
+        resolved.push(code);
+      }
+    }
+  }
+
+  return resolved;
+}
+
+function updateDynamicRelevance(codes: MovementActionCodes) {
+  if (!RELEVANT_KEY_SET) {
+    return;
+  }
+
+  dynamicRelevantCodes.clear();
+  for (const group of Object.values(codes)) {
+    for (const code of group) {
+      dynamicRelevantCodes.add(code);
+    }
+  }
+}
+
+function refreshMovementCodes(): MovementActionCodes {
+  const codes: MovementActionCodes = {
+    forwardPositive: resolveActionCodes(HOTKEY_IDS.movement.forward),
+    forwardNegative: resolveActionCodes(HOTKEY_IDS.movement.backward),
+    rightPositive: resolveActionCodes(HOTKEY_IDS.movement.right),
+    rightNegative: resolveActionCodes(HOTKEY_IDS.movement.left),
+    jump: resolveActionCodes(HOTKEY_IDS.flight.ascend),
+    sprint: resolveActionCodes(HOTKEY_IDS.movement.run)
+  };
+
+  updateDynamicRelevance(codes);
+  return codes;
 }
 
 let listenersAttached = false;
@@ -35,6 +76,8 @@ function normalizeCode(event: KeyboardEventLike): string {
   if (!event) {
     return '';
   }
+
+  refreshMovementCodes();
 
   const code = event.code;
   if (typeof code === 'string' && code && code !== 'Unidentified') {
@@ -60,7 +103,7 @@ function isRelevant(code: string): boolean {
   }
 
   if (RELEVANT_KEY_SET) {
-    return RELEVANT_KEY_SET.has(code);
+    return RELEVANT_KEY_SET.has(code) || dynamicRelevantCodes.has(code);
   }
 
   return true;
@@ -106,13 +149,13 @@ function ensureListeners() {
   }
 }
 
-function axisValue(positive: Set<string>, negative: Set<string>) {
+function axisValue(positive: Iterable<string>, negative: Iterable<string>) {
   const pos = hasAnyKey(positive) ? 1 : 0;
   const neg = hasAnyKey(negative) ? 1 : 0;
   return pos - neg;
 }
 
-function hasAnyKey(codes: Set<string>) {
+function hasAnyKey(codes: Iterable<string>) {
   for (const code of codes) {
     if (activeKeys.has(code)) {
       return true;
@@ -124,11 +167,13 @@ function hasAnyKey(codes: Set<string>) {
 export function getInput(): CharacterInput {
   ensureListeners();
 
+  const movementCodes = refreshMovementCodes();
+
   return {
-    forward: axisValue(POSITIVE_FORWARD, NEGATIVE_FORWARD),
-    right: axisValue(POSITIVE_RIGHT, NEGATIVE_RIGHT),
-    jump: hasAnyKey(JUMP_KEYS),
-    sprint: hasAnyKey(SPRINT_KEYS)
+    forward: axisValue(movementCodes.forwardPositive, movementCodes.forwardNegative),
+    right: axisValue(movementCodes.rightPositive, movementCodes.rightNegative),
+    jump: hasAnyKey(movementCodes.jump),
+    sprint: hasAnyKey(movementCodes.sprint)
   };
 }
 
