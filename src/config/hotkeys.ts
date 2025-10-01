@@ -108,25 +108,23 @@ const movementActions = {
     id: 'movement.moveForward',
     title: 'Move Forward',
     default: 'KeyW',
-    fallback: ['w', 'z']
+    fallback: ['z']
   }),
   moveBackward: createAction(HotkeyCategoryId.Movement, {
     id: 'movement.moveBackward',
     title: 'Move Backward',
-    default: 'KeyS',
-    fallback: ['s']
+    default: 'KeyS'
   }),
   moveLeft: createAction(HotkeyCategoryId.Movement, {
     id: 'movement.moveLeft',
     title: 'Move Left',
     default: 'KeyA',
-    fallback: ['a', 'q']
+    fallback: ['q']
   }),
   moveRight: createAction(HotkeyCategoryId.Movement, {
     id: 'movement.moveRight',
     title: 'Move Right',
-    default: 'KeyD',
-    fallback: ['d']
+    default: 'KeyD'
   }),
   run: createAction(HotkeyCategoryId.Movement, {
     id: 'movement.run',
@@ -525,6 +523,24 @@ for (const def of actionRegistry.values()) {
   for (const code of def.codes) {
     relevantKeys.add(code);
   }
+}
+
+const CORE_RELEVANT_CODES = [
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown',
+  'ShiftLeft',
+  'ShiftRight',
+  'Space'
+];
+
+for (const code of CORE_RELEVANT_CODES) {
+  relevantKeys.add(code);
 }
 
 export const RELEVANT_KEYS = relevantKeys;
