@@ -22,6 +22,23 @@ module.exports = {
       'error',
       { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
     ],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          { name: '@/three', message: 'Import directly from "three".' },
+          { name: './three.js', message: 'Import directly from "three".' },
+        ],
+        patterns: ['**/three.js'],
+      },
+    ],
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: "AssignmentExpression[left.object.name='window'][left.property.name='THREE']",
+        message: 'Set window.THREE only in the main boot path.',
+      },
+    ],
   },
   ignorePatterns: ['dist', 'node_modules', 'src/sky/nightSkyTextureData.js'],
 };
