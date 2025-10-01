@@ -142,7 +142,11 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
       if (!ensureActive()) {
         return;
       }
-      mode = next === 'image' ? 'image' : 'procedural';
+      const normalized = next === 'image' ? 'image' : 'procedural';
+      if (mode === normalized) {
+        return;
+      }
+      mode = normalized;
     },
 
     dispose() {
