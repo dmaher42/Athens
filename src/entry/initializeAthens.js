@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { installRenderGuard } from '../safety/hardenPositions';
-if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only
 import { createStats } from '../debug/statsShim.js';
 import { logger } from '../utils/logger.ts';
 import { setupGround, updateTrees } from '../main.js';
@@ -646,25 +645,21 @@ export async function initializeAthens(options = {}) {
   let searchParams = null;
   if (typeof window !== 'undefined') {
     globalWindow = window;
-    globalWindow.THREE = THREE;
-    const existingDebug =
-      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
-        ? globalWindow.__athensDebug
-        : {};
-    globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
     searchParams = new URLSearchParams(globalWindow.location.search);
-    if (searchParams.get('headlessSmoke') === '1') {
-      globalWindow.__athensDebug = { scene, camera, renderer };
-    }
   }
 
   await initAmbient(camera);
 
   if (globalWindow) {
-    globalWindow.__athensDebug = {
-      ...(globalWindow.__athensDebug || {}),
-      audioAPI: AmbientAPI
-    };
+    const existingDebug =
+      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
+        ? globalWindow.__athensDebug
+        : {};
+    const headlessSmoke = searchParams?.get('headlessSmoke') === '1';
+    globalWindow.THREE = THREE;
+    globalWindow.__athensDebug = headlessSmoke
+      ? { scene, camera, renderer }
+      : { ...existingDebug, scene, camera, renderer, audioAPI: AmbientAPI };
   }
 
   try {

@@ -171,10 +171,10 @@ export async function initAmbient(camera: THREE.Camera) {
   if (!camera) return;
   attachAudioListenerTo(camera);
   if (typeof window !== 'undefined') {
-    (window as any).__athensDebug = {
-      ...(window as any).__athensDebug,
-      audio: { AMBIENT_TRACKS }
-    };
+    const debug = (window as any).__athensDebug;
+    if (debug && typeof debug === 'object') {
+      debug.audio = { AMBIENT_TRACKS };
+    }
   }
 
   if (!AMBIENT_TRACKS.length) {
