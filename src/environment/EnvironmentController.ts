@@ -42,6 +42,8 @@ export class EnvironmentController {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.currentSkyMode = 'procedural';
+    this.lastAppliedSkyId = null;
     const environment = this.scene.environment as THREE.Texture | null;
     const background = this.scene.background;
     const backgroundTexture =
