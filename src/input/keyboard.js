@@ -9,6 +9,7 @@ const INV_SQRT2 = 1 / Math.sqrt(2);
 
 const pairedAxisBindings = new Map();
 let runningBinding = null;
+let hasWarnedForRelevantKeyFallback = false;
 
 for (const binding of HOTKEY_AXIS_METADATA) {
   if (!binding) continue;
@@ -52,6 +53,29 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   };
   const lookState = { x: 0, y: 0 };
   let frameJustPressed = new Set();
+
+  let activeRelevantKeys = RELEVANT_KEYS;
+  if (!RELEVANT_KEYS.size) {
+    activeRelevantKeys = new Set([
+      'KeyW',
+      'KeyA',
+      'KeyS',
+      'KeyD',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'ShiftLeft',
+      'ShiftRight',
+      'Space'
+    ]);
+    const shouldWarn =
+      typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
+    if (shouldWarn && !hasWarnedForRelevantKeyFallback) {
+      console.warn('[Hotkeys] Falling back to default relevant key allowlist.');
+      hasWarnedForRelevantKeyFallback = true;
+    }
+  }
 
   const resolveActionCodes = (actionId) => getActionCodes(actionId);
 
@@ -111,7 +135,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       }
     }
 
-    if (!code || !RELEVANT_KEYS.has(code)) {
+    if (!code || !activeRelevantKeys.has(code)) {
       return;
     }
     if (!pressed.has(code)) {
@@ -124,7 +148,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const handleKeyUp = (event) => {
     const code = normalizeCode(event);
 
-    if (!code || !RELEVANT_KEYS.has(code)) {
+    if (!code || !activeRelevantKeys.has(code)) {
       return;
     }
     pressed.delete(code);

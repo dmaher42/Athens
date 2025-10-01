@@ -231,8 +231,8 @@ const devToolActions = {
   captureScreenshot: createAction(HotkeyCategoryId.DevTools, {
     id: 'dev.captureScreenshot',
     title: 'Capture Screenshot',
-    default: 'KeyP',
-    fallback: ['p']
+    default: 'F10',
+    fallback: [['f10', 'F10']]
   }),
   landmarkNext: createAction(HotkeyCategoryId.DevTools, {
     id: 'dev.landmark.next',
