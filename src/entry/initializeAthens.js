@@ -14,11 +14,13 @@ import { collectRoadPoints } from '../roads/collectRoadPoints.js';
 import { createNpcSystem } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
-import { HOTKEY_IDS } from '../config/hotkeys.ts';
+import { HOTKEY_IDS, getHotkeyDisplayEntries } from '../config/hotkeys.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
 import { installFlyBypass } from '../dev/flyBypass.js';
+import { bindHotkeyActions } from '../input/bindHotkeyActions.js';
+import { registerScopedHotkeys } from '../input/hotkeyScopes.js';
 import { createGameLoop } from '../engine/loop.js';
 import { movementConfig } from '../config/movement.ts';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
@@ -50,6 +52,7 @@ import {
 } from '../utils/sanitize.ts';
 import { CUSTOM_AMBIENT_TRACKS } from '../audio/customAmbientTracks.generated.ts';
 import { initAmbient, AmbientAPI, AMBIENT_TRACKS, registerExternalAmbientTracks } from '../audio/ambient.ts';
+import { createSanityGeometryController } from '../debug/sanityGeometry.js';
 // SKYSYS_START
 import { SKY_JPGS, GROUND_JPGS } from '../assets/skyGround.generated.ts';
 import { installSkyDev } from '../dev/skyDebugHooks.js';
@@ -223,6 +226,15 @@ const registerGlobalStatsHelpers = () => {
     updateStatsVisibility();
     return statsVisible;
   };
+};
+
+const toggleStatsPanel = () => {
+  if (typeof window !== 'undefined' && typeof window.toggleStatsVisibility === 'function') {
+    return window.toggleStatsVisibility();
+  }
+  statsVisible = !statsVisible;
+  updateStatsVisibility();
+  return statsVisible;
 };
 
 const statsReady = (async () => {
@@ -566,6 +578,8 @@ export async function initializeAthens(options = {}) {
   camera.lookAt(initialLookTarget);
   scene.add(camera);
 
+  const sanityGeometry = createSanityGeometryController(scene);
+
 // Ensure we can actually see distant background
   if (camera.far < 50000) { camera.far = 50000; camera.updateProjectionMatrix(); }
 
@@ -625,6 +639,7 @@ export async function initializeAthens(options = {}) {
 
   let lastAppliedSkyMode = 'day';
   let environmentMode = 'day';
+  let skySuppressed = false;
 
   // Register discovered assets (safe no-ops if arrays are empty)
   try {
@@ -658,7 +673,7 @@ export async function initializeAthens(options = {}) {
   };
   let beforeUnloadCleanup = null;
 
-  registerDisposables(renderer, environmentManager);
+  registerDisposables(renderer, environmentManager, sanityGeometry);
 
   if (typeof window !== 'undefined') {
     window.scene = window.scene || scene;
@@ -810,7 +825,7 @@ export async function initializeAthens(options = {}) {
     setPhase('env-ready');
   } catch {}
 
-  const ambientMuted = searchParams ? searchParams.get('mute') === '1' : false;
+  let ambientMuted = searchParams ? searchParams.get('mute') === '1' : false;
   const ambientOverrideSelected = searchParams ? searchParams.has('amb') : false;
   const ambientTrackIds = new Set(AMBIENT_TRACKS.map((track) => track.id));
   const defaultAmbientTrack = AMBIENT_TRACKS.length > 0 ? AMBIENT_TRACKS[0].id : null;
@@ -847,6 +862,29 @@ export async function initializeAthens(options = {}) {
       AmbientAPI.play(trackId).catch(() => {});
     }
     return trackId;
+  };
+
+  const setAmbientMuted = (muted) => {
+    const next = Boolean(muted);
+    if (ambientMuted === next) {
+      return ambientMuted;
+    }
+    ambientMuted = next;
+    if (ambientMuted) {
+      try {
+        AmbientAPI.stop?.();
+      } catch (error) {
+        logger.warn('[Athens] Failed to stop ambient audio.', error);
+      }
+    } else {
+      applyAmbientForMode(environmentMode, true);
+    }
+    return ambientMuted;
+  };
+
+  const toggleAmbientMuted = () => {
+    setAmbientMuted(!ambientMuted);
+    return ambientMuted;
   };
 
   ensureLights(scene);
@@ -913,6 +951,28 @@ export async function initializeAthens(options = {}) {
     dispose() {
       environmentManager.dispose();
     }
+  };
+
+  const setSkySuppressedState = (hidden) => {
+    const next = Boolean(hidden);
+    if (skySuppressed === next) {
+      return skySuppressed;
+    }
+    skySuppressed = next;
+    if (skySuppressed) {
+      scene.background = null;
+      scene.environment = null;
+    } else {
+      const target = lastAppliedSkyMode || resolveSkyMode(environmentMode);
+      environmentManager.setMode('procedural');
+      environmentManager.applySkyMode(target).catch(() => {});
+    }
+    return skySuppressed;
+  };
+
+  const toggleSkySuppressed = () => {
+    setSkySuppressedState(!skySuppressed);
+    return skySuppressed;
   };
   registerDisposables(environmentController);
 
@@ -1210,6 +1270,25 @@ export async function initializeAthens(options = {}) {
 
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
+  const applyHudInstructions = (manifest) => {
+    const entries = getHotkeyDisplayEntries('hud', manifest);
+    const mapped = entries.map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      description: entry.description
+    }));
+    ui?.setHotkeyInstructions?.(mapped);
+  };
+  applyHudInstructions();
+  const hudHotkeys = registerScopedHotkeys('gameplay', {
+    onActivate(manifest) {
+      applyHudInstructions(manifest);
+    },
+    onDeactivate() {
+      ui?.setHotkeyInstructions?.([]);
+    }
+  });
+  registerDisposables(hudHotkeys);
   registerDisposables(ui);
 
   // Roads built from collected points (use extended/shared materials if available)
@@ -1355,6 +1434,14 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const cameraSeedConfig = cameraSettings?.seed ?? {};
   const keyboard = createKeyboard();
   registerDisposables(keyboard);
+
+  const actionBindings = bindHotkeyActions({
+    [HOTKEY_IDS.debug.toggleStats]: () => toggleStatsPanel(),
+    [HOTKEY_IDS.debug.toggleSound]: () => toggleAmbientMuted(),
+    [HOTKEY_IDS.debug.toggleSky]: () => toggleSkySuppressed(),
+    [HOTKEY_IDS.debug.toggleSanityGeometry]: () => sanityGeometry?.toggle?.()
+  });
+  registerDisposables(actionBindings);
   const controller = createPlayerController(playerObject, keyboard, {
     walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
     runMultiplier: Number.isFinite(movementConfig?.runMultiplier) ? movementConfig.runMultiplier : 1.7,
@@ -1825,6 +1912,20 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     ui,
     collisionWorld,
     walkingController,
+    sanityGeometry,
+    toggleSound(muted) {
+      if (typeof muted === 'boolean') {
+        return setAmbientMuted(muted);
+      }
+      return toggleAmbientMuted();
+    },
+    toggleSky(hidden) {
+      if (typeof hidden === 'boolean') {
+        return setSkySuppressedState(hidden);
+      }
+      return toggleSkySuppressed();
+    },
+    toggleStats: () => toggleStatsPanel(),
     async setEnvironmentMode(mode, envOptions = {}) {
       const result = await environmentController?.setMode?.(mode, envOptions);
       const label = formatEnvironmentLabel(result || mode);
@@ -1869,6 +1970,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     window.__athens.ui = context.ui;
     window.__athens.controller = WALKING_ENABLED && walkingController ? walkingController : controller;
     window.__athens.collisionWorld = collisionWorld;
+    window.__athens.toggleSound = context.toggleSound;
+    window.__athens.toggleSky = context.toggleSky;
+    window.__athens.toggleStats = context.toggleStats;
+    window.__athens.sanityGeometry = sanityGeometry;
   }
 
   return context;

@@ -175,16 +175,16 @@ const flightActions = {
   descend: createAction(HotkeyCategoryId.Flight, {
     id: 'flight.descend',
     title: 'Descend',
-    default: 'KeyQ',
-    aliasCodes: ['KeyC', 'ControlLeft', 'ControlRight'],
-    fallback: ['q', ['c', 'KeyC'], 'control', 'ctrl']
+    default: 'ShiftLeft',
+    aliasCodes: ['ShiftRight', 'KeyQ', 'KeyC', 'ControlLeft', 'ControlRight'],
+    fallback: ['shift', ['q', 'KeyQ'], ['c', 'KeyC'], 'control', 'ctrl']
   }),
   toggle: createAction(HotkeyCategoryId.Flight, {
     id: 'flight.toggle',
     title: 'Toggle Flight',
-    default: 'KeyF',
-    aliasCodes: ['KeyX'],
-    fallback: ['f', ['x', 'KeyX']]
+    default: 'KeyX',
+    aliasCodes: ['KeyF'],
+    fallback: ['x', ['f', 'KeyF']]
   }),
   nudgeUp: createAction(HotkeyCategoryId.Flight, {
     id: 'flight.nudgeUp',
@@ -204,8 +204,26 @@ const debugActions = {
   toggleStats: createAction(HotkeyCategoryId.Debug, {
     id: 'debug.toggleStats',
     title: 'Toggle Stats Overlay',
-    default: 'KeyY',
-    fallback: ['y']
+    default: 'KeyP',
+    fallback: ['p']
+  }),
+  toggleSound: createAction(HotkeyCategoryId.Debug, {
+    id: 'debug.toggleSound',
+    title: 'Toggle Ambience Audio',
+    default: 'KeyM',
+    fallback: ['m']
+  }),
+  toggleSky: createAction(HotkeyCategoryId.Debug, {
+    id: 'debug.toggleSky',
+    title: 'Toggle Sky',
+    default: 'KeyK',
+    fallback: ['k']
+  }),
+  toggleSanityGeometry: createAction(HotkeyCategoryId.Debug, {
+    id: 'debug.toggleSanityGeometry',
+    title: 'Toggle Sanity Geometry',
+    default: 'KeyS',
+    fallback: ['s']
   })
 } as const;
 
@@ -261,6 +279,246 @@ export const HOTKEY_MANIFEST = {
   debug: debugActions,
   devTools: devToolActions
 } as const;
+
+type HotkeyManifestEntry = {
+  id: string;
+  title: string;
+  codes: string[];
+  default: string;
+  scope: HotkeyScope;
+};
+
+type HotkeyDisplayContext = 'hud' | 'docs';
+
+type HotkeyDisplayConfig = {
+  id: string;
+  actions: string[];
+  description: string;
+  contexts: HotkeyDisplayContext[];
+  order?: number;
+  includeAliases?: boolean;
+};
+
+type HotkeyDisplayEntry = {
+  id: string;
+  description: string;
+  label: string;
+  codes: string[];
+  actions: string[];
+  order: number;
+};
+
+const CODE_LABEL_OVERRIDES = new Map<string, string>([
+  ['ArrowUp', '↑'],
+  ['ArrowDown', '↓'],
+  ['ArrowLeft', '←'],
+  ['ArrowRight', '→'],
+  ['ShiftLeft', 'Shift'],
+  ['ShiftRight', 'Shift'],
+  ['ControlLeft', 'Ctrl'],
+  ['ControlRight', 'Ctrl'],
+  ['AltLeft', 'Alt'],
+  ['AltRight', 'Alt'],
+  ['Space', 'Space'],
+  ['Escape', 'Esc'],
+  ['Backquote', '`']
+]);
+
+function formatKeyCode(code: string): string {
+  if (typeof code !== 'string' || code === '') {
+    return '';
+  }
+  const override = CODE_LABEL_OVERRIDES.get(code);
+  if (override) {
+    return override;
+  }
+  if (code.startsWith('Key') && code.length === 4) {
+    return code.slice(3);
+  }
+  if (code.startsWith('Digit') && code.length >= 6) {
+    return code.slice(5);
+  }
+  if (code.endsWith('Arrow')) {
+    return code.replace('Arrow', '');
+  }
+  if (code.endsWith('Left') || code.endsWith('Right')) {
+    return code.replace(/Left|Right$/, '');
+  }
+  return code;
+}
+
+function uniquePreserveOrder<T>(values: T[]): T[] {
+  const result: T[] = [];
+  const seen = new Set<T>();
+  for (const value of values) {
+    if (!seen.has(value)) {
+      seen.add(value);
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+const HOTKEY_DISPLAY_CONFIG: HotkeyDisplayConfig[] = [
+  {
+    id: 'movement.move',
+    actions: [
+      movementActions.moveForward.id,
+      movementActions.moveLeft.id,
+      movementActions.moveBackward.id,
+      movementActions.moveRight.id
+    ],
+    description: 'Move',
+    contexts: ['hud', 'docs'],
+    order: 10
+  },
+  {
+    id: 'look.orbit',
+    actions: [
+      lookActions.lookLeft.id,
+      lookActions.lookRight.id,
+      lookActions.lookUp.id,
+      lookActions.lookDown.id
+    ],
+    description: 'Orbit Camera',
+    contexts: ['hud'],
+    order: 20
+  },
+  {
+    id: 'movement.run',
+    actions: [movementActions.run.id],
+    description: 'Hold to Run',
+    contexts: ['hud'],
+    order: 30
+  },
+  {
+    id: 'flight.toggle',
+    actions: [flightActions.toggle.id],
+    description: 'Toggle Flight',
+    contexts: ['hud'],
+    order: 40
+  },
+  {
+    id: 'flight.vertical',
+    actions: [flightActions.ascend.id, flightActions.descend.id],
+    description: 'Fly Up / Down',
+    contexts: ['hud'],
+    order: 50
+  },
+  {
+    id: 'debug.toggleSound',
+    actions: [debugActions.toggleSound.id],
+    description: 'Toggle Sound',
+    contexts: ['hud', 'docs'],
+    order: 60
+  },
+  {
+    id: 'debug.toggleStats',
+    actions: [debugActions.toggleStats.id],
+    description: 'Toggle FPS Panel',
+    contexts: ['hud', 'docs'],
+    order: 70
+  },
+  {
+    id: 'debug.toggleSky',
+    actions: [debugActions.toggleSky.id],
+    description: 'Toggle Sky',
+    contexts: ['hud', 'docs'],
+    order: 80
+  },
+  {
+    id: 'debug.toggleSanityGeometry',
+    actions: [debugActions.toggleSanityGeometry.id],
+    description: 'Toggle Sanity Geometry',
+    contexts: ['docs'],
+    order: 90
+  }
+];
+
+function resolveManifestMap(manifest?: HotkeyManifestEntry[]): Map<string, HotkeyManifestEntry> {
+  const map = new Map<string, HotkeyManifestEntry>();
+  if (Array.isArray(manifest)) {
+    for (const entry of manifest) {
+      if (entry && typeof entry.id === 'string') {
+        map.set(entry.id, entry);
+      }
+    }
+  }
+  return map;
+}
+
+function resolveCodesForAction(
+  actionId: string,
+  manifestMap: Map<string, HotkeyManifestEntry>,
+  includeAliases = false
+): string[] {
+  const manifestEntry = manifestMap.get(actionId);
+  if (manifestEntry) {
+    if (includeAliases) {
+      return manifestEntry.codes ?? [];
+    }
+    if (manifestEntry.default) {
+      return [manifestEntry.default];
+    }
+  }
+  const definition = getActionDefinition(actionId);
+  if (!definition) {
+    return [];
+  }
+  if (includeAliases) {
+    return definition.codes;
+  }
+  return definition.default ? [definition.default] : definition.codes.slice(0, 1);
+}
+
+function buildDisplayEntry(
+  config: HotkeyDisplayConfig,
+  manifestMap: Map<string, HotkeyManifestEntry>
+): HotkeyDisplayEntry | null {
+  const codes: string[] = [];
+  for (const actionId of config.actions) {
+    const actionCodes = resolveCodesForAction(actionId, manifestMap, config.includeAliases);
+    for (const code of actionCodes) {
+      if (typeof code === 'string' && code) {
+        codes.push(code);
+      }
+    }
+  }
+  if (!codes.length) {
+    return null;
+  }
+  const formatted = uniquePreserveOrder(codes.map((code) => formatKeyCode(code)).filter(Boolean));
+  if (!formatted.length) {
+    return null;
+  }
+  return {
+    id: config.id,
+    description: config.description,
+    label: formatted.join(' / '),
+    codes: formatted,
+    actions: [...config.actions],
+    order: typeof config.order === 'number' ? config.order : 0
+  };
+}
+
+export function getHotkeyDisplayEntries(
+  context: HotkeyDisplayContext,
+  manifest?: HotkeyManifestEntry[]
+): HotkeyDisplayEntry[] {
+  const normalizedContext = String(context) as HotkeyDisplayContext;
+  const manifestMap = resolveManifestMap(manifest);
+  const entries: HotkeyDisplayEntry[] = [];
+  for (const config of HOTKEY_DISPLAY_CONFIG) {
+    if (!config.contexts.includes(normalizedContext)) {
+      continue;
+    }
+    const entry = buildDisplayEntry(config, manifestMap);
+    if (entry) {
+      entries.push(entry);
+    }
+  }
+  return entries.sort((a, b) => a.order - b.order);
+}
 
 const relevantKeys = new Set<string>();
 for (const def of actionRegistry.values()) {
@@ -341,7 +599,10 @@ export const HOTKEY_IDS = Object.freeze({
   },
   debug: {
     toggleInspector: debugActions.toggleInspector.id,
-    toggleStats: debugActions.toggleStats.id
+    toggleStats: debugActions.toggleStats.id,
+    toggleSound: debugActions.toggleSound.id,
+    toggleSky: debugActions.toggleSky.id,
+    toggleSanityGeometry: debugActions.toggleSanityGeometry.id
   },
   devTools: {
     captureScreenshot: devToolActions.captureScreenshot.id,
@@ -371,3 +632,5 @@ export function getActionsByScope(scope: HotkeyScope): HotkeyActionDefinition[] 
 
 export type { HotkeyActionDefinition };
 export type { HotkeyScope };
+export type { HotkeyManifestEntry };
+export type { HotkeyDisplayEntry };
