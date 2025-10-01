@@ -24,6 +24,8 @@ const DEFAULT_NPC_MODEL_URLS = [
   assetUrl('assets/models/npc_athenian.glb')
 ];
 
+const KING_MODEL_URL = 'models/King.glb';
+
 const STEP_DIRECTION = new THREE.Vector3();
 const INIT_DIRECTION = new THREE.Vector3();
 const TMP_EULER = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -346,6 +348,57 @@ function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
   });
 }
 
+function createKingPatrolConfigs() {
+  const baseSpeed = 1.45;
+  const patrols = [
+    {
+      name: 'KingAgoraPatrol',
+      waypoints: [
+        { x: 18, y: 0, z: -24 },
+        { x: -20, y: 0, z: -32 },
+        { x: -24, y: 0, z: 18 },
+        { x: 22, y: 0, z: 24 }
+      ]
+    },
+    {
+      name: 'KingTheaterPromenade',
+      waypoints: [
+        { x: 190, y: 0, z: 240 },
+        { x: 230, y: 0, z: 280 },
+        { x: 170, y: 0, z: 320 },
+        { x: 150, y: 0, z: 270 }
+      ]
+    },
+    {
+      name: 'KingSouthRoadMarch',
+      waypoints: [
+        { x: 28, y: 0, z: -470 },
+        { x: 68, y: 0, z: -520 },
+        { x: 16, y: 0, z: -570 },
+        { x: -18, y: 0, z: -520 }
+      ]
+    }
+  ];
+
+  return patrols.map((patrol) => {
+    const waypoints = patrol.waypoints.map((point) => ({
+      x: Number(point.x) || 0,
+      y: Number(point.y) || 0,
+      z: Number(point.z) || 0
+    }));
+    const initialPosition = waypoints[0] || { x: 0, y: 0, z: 0 };
+    return {
+      name: patrol.name,
+      modelUrl: KING_MODEL_URL,
+      walkSpeed: baseSpeed,
+      accel: 5.0,
+      turn: 0.2,
+      initialPosition,
+      waypoints
+    };
+  });
+}
+
 function attachModelToNpc(npc, model) {
   if (!npc || !npc.object3d) return;
   const { object3d } = npc;
@@ -390,8 +443,17 @@ function loadNpcModel(npc, modelUrl) {
 
       if (Array.isArray(gltf?.animations) && gltf.animations.length) {
         npc.mixer = new THREE.AnimationMixer(scene || object3d);
-        const clip = gltf.animations[0];
-        const action = npc.mixer.clipAction(clip);
+        let clip = gltf.animations[0];
+        for (const candidate of gltf.animations) {
+          if (candidate?.name && typeof candidate.name === 'string') {
+            if (candidate.name.toLowerCase().includes('walk')) {
+              clip = candidate;
+              break;
+            }
+          }
+        }
+        const action = clip ? npc.mixer.clipAction(clip) : null;
+        action?.setLoop?.(THREE.LoopRepeat, Infinity);
         action?.play();
       }
 
@@ -676,11 +738,14 @@ export function createNpcSystem(options = {}) {
   const configuredModelUrls = Array.isArray(npcModelUrls) && npcModelUrls.length
     ? npcModelUrls
     : DEFAULT_NPC_MODEL_URLS;
-  const baseNpcConfigs = (Array.isArray(npcConfigs) && npcConfigs.length
-    ? npcConfigs
-    : createDefaultNpcConfigs(configuredModelUrls))
+  const hasCustomConfigs = Array.isArray(npcConfigs) && npcConfigs.length;
+  const baseNpcConfigs = (hasCustomConfigs ? npcConfigs : createDefaultNpcConfigs(configuredModelUrls))
     .filter((config) => config && typeof config === 'object')
     .map((config) => ({ ...config }));
+
+  if (!hasCustomConfigs) {
+    baseNpcConfigs.push(...createKingPatrolConfigs());
+  }
 
   let manager = null;
   let currentScene = null;
