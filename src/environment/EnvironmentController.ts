@@ -9,6 +9,7 @@ export class EnvironmentController {
   private readonly renderer: THREE.WebGLRenderer;
   private disposed = false;
   private currentSkyMode: SkyMode = 'procedural';
+  private lastAppliedSkyId: string | null = null;
 
   constructor(scene: THREE.Scene, renderer: THREE.WebGLRenderer) {
     this.scene = scene;
@@ -19,11 +20,19 @@ export class EnvironmentController {
     return this.currentSkyMode;
   }
 
-  async applySky(choice?: string) {
+  get skyId(): string | null {
+    return this.lastAppliedSkyId;
+  }
+
+  async applySky(choice?: string): Promise<string | null> {
     if (this.disposed) {
       return null;
     }
-    return applySky(this.scene, this.renderer, choice);
+    const appliedId = await applySky(this.scene, this.renderer, choice);
+    if (appliedId) {
+      this.lastAppliedSkyId = appliedId;
+    }
+    return appliedId;
   }
 
   setMode(mode: SkyMode): void {

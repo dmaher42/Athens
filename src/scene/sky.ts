@@ -135,7 +135,7 @@ export async function applySky(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
   choice?: string
-) {
+): Promise<string | null> {
   setRendererColorSpace(renderer);
 
   const previousBackground = scene.background as THREE.Texture | THREE.Color | null;
@@ -161,6 +161,8 @@ export async function applySky(
     logger.warn('[sky] No sky choices found.');
     return;
   }
+
+  let appliedId: string | null = null;
 
   try {
     if (pick.type === 'cube' && pick.dir && pick.faces) {
@@ -225,6 +227,8 @@ export async function applySky(
       );
       return;
     }
+
+    appliedId = pick.id;
   } catch (error) {
     logger.warn('[sky] Failed to apply sky environment.', error);
   } finally {
@@ -237,4 +241,6 @@ export async function applySky(
       }
     }
   }
+
+  return appliedId;
 }
