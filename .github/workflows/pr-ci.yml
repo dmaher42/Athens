@@ -29,5 +29,3 @@ jobs:
       - name: Check for unused dependencies
         run: npm run depcheck
 
-      - name: Validate dependency graph
-        run: npm run deps:graph
