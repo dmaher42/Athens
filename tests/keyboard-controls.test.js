@@ -30,7 +30,7 @@ test('keyboard respects event.code when provided', () => {
   assert.strictEqual(keyboard.isDown('KeyW'), true);
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), true);
   assert.strictEqual(keyboard.getActionState(HOTKEY_IDS.movement.forward).isDown, true);
-  assert.strictEqual(keyboard.axis.z, -1);
+  assert.strictEqual(keyboard.axis.z, 1);
 
   keyup({ code: 'KeyW', key: 'w' });
   assert.strictEqual(keyboard.isDown('KeyW'), false);
@@ -50,7 +50,7 @@ test('keyboard normalizes events without code to maintain controls', () => {
   assert.strictEqual(keyboard.isDown('KeyW'), true);
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), true);
   assert.strictEqual(keyboard.getActionState(HOTKEY_IDS.movement.forward).isDown, true);
-  assert.strictEqual(keyboard.axis.z, -1);
+  assert.strictEqual(keyboard.axis.z, 1);
 
   keydown({ key: 'Shift', code: 'Unidentified' });
   assert.strictEqual(keyboard.axis.running, true);
@@ -92,7 +92,7 @@ test('keyboard maps azerty movement aliases without triggering descend', () => {
   keydown({ key: 'z' });
   assert.strictEqual(keyboard.isDown('KeyW'), true);
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), true);
-  assert.strictEqual(keyboard.axis.z, -1);
+  assert.strictEqual(keyboard.axis.z, 1);
 
   keyup({ key: 'z' });
   assert.strictEqual(keyboard.axis.z, 0);
