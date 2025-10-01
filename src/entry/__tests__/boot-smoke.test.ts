@@ -212,6 +212,33 @@ async function stubThree(): Promise<ThreeModule> {
   return THREE;
 }
 
+function mockSkyModule(THREE: ThreeModule) {
+  mock.module('three/examples/jsm/objects/Sky.js', () => {
+    class SkyStub extends THREE.Object3D {
+      material: any;
+      geometry: THREE.BufferGeometry;
+
+      constructor() {
+        super();
+        this.material = {
+          uniforms: {
+            turbidity: { value: 0 },
+            rayleigh: { value: 0 },
+            mieCoefficient: { value: 0 },
+            mieDirectionalG: { value: 0 },
+            sunPosition: { value: new THREE.Vector3() },
+            up: { value: new THREE.Vector3(0, 1, 0) },
+          },
+          dispose: () => {},
+        };
+        this.geometry = new THREE.BufferGeometry();
+      }
+    }
+
+    return { Sky: SkyStub };
+  });
+}
+
 async function stubEnvironmentModule() {
   const environmentModule = await import('../../environment/envCore.ts');
   mock.method(environmentModule, 'createEnvironment', () => ({
@@ -401,6 +428,87 @@ test('environment modules import without runtime side effects', async () => {
   await import('../../scene/sky.ts');
 
   assert.strictEqual(loaderCount, 0);
+  mock.restoreAll();
+});
+
+test('applySkyMode uses procedural sky environment', async () => {
+  mock.restoreAll();
+  const THREE = await import('three');
+  mockSkyModule(THREE);
+
+  mock.method(THREE, 'WebGLRenderer', function WebGLRenderer(this: any) {
+    this.domElement = new FakeCanvas();
+    this.dispose = () => {};
+    this.render = () => {};
+    this.getContext = () => ({ getExtension: () => null });
+    return this;
+  });
+
+  let pmremCalls = 0;
+  mock.method(THREE, 'PMREMGenerator', function PMREMGenerator(this: any) {
+    this.fromScene = () => {
+      pmremCalls += 1;
+      const texture = new THREE.Texture();
+      texture.dispose = () => {};
+      return { texture, dispose: () => {} } as any;
+    };
+    this.dispose = () => {};
+    return this;
+  });
+
+  const { createEnvironment } = await import('../../environment/envCore.ts');
+  const scene = new THREE.Scene();
+  const renderer = new THREE.WebGLRenderer();
+  const env = createEnvironment({ scene, renderer });
+
+  await env.applySkyMode('day');
+
+  assert.ok(scene.environment instanceof THREE.Texture);
+  assert.ok(scene.background instanceof THREE.Color);
+  assert.ok(pmremCalls > 0);
+
+  mock.restoreAll();
+});
+
+test('applySkyMode disposes previous procedural textures', async () => {
+  mock.restoreAll();
+  const THREE = await import('three');
+  mockSkyModule(THREE);
+
+  mock.method(THREE, 'WebGLRenderer', function WebGLRenderer(this: any) {
+    this.domElement = new FakeCanvas();
+    this.dispose = () => {};
+    this.render = () => {};
+    this.getContext = () => ({ getExtension: () => null });
+    return this;
+  });
+
+  let disposeCount = 0;
+  mock.method(THREE, 'PMREMGenerator', function PMREMGenerator(this: any) {
+    this.fromScene = () => {
+      const texture = new THREE.Texture();
+      texture.dispose = () => {
+        disposeCount += 1;
+      };
+      return { texture, dispose: () => {} } as any;
+    };
+    this.dispose = () => {};
+    return this;
+  });
+
+  const { createEnvironment } = await import('../../environment/envCore.ts');
+  const scene = new THREE.Scene();
+  const renderer = new THREE.WebGLRenderer();
+  const env = createEnvironment({ scene, renderer });
+
+  await env.applySkyMode('day');
+  const firstTexture = scene.environment as THREE.Texture | null;
+  await new Promise((resolve) => setTimeout(resolve, 220));
+  await env.applySkyMode('dusk');
+
+  assert.notStrictEqual(scene.environment, firstTexture);
+  assert.ok(disposeCount >= 1);
+
   mock.restoreAll();
 });
 

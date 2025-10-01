@@ -1,7 +1,9 @@
 import * as THREE from 'three';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { assetUrl } from '../utils/assetUrl.ts';
 import { logger } from '../utils/logger';
 import { disposeAll } from '../utils/disposable.ts';
+import { SKY_PROCEDURAL_BACKGROUNDS, type SkyTime } from './proceduralSky.ts';
 
 export type SkyChoice =
   | {
@@ -122,6 +124,11 @@ function setTextureColorSpace(tex: THREE.Texture | THREE.CubeTexture) {
     (THREE as any).SRGBColorSpace ?? (tex as any).colorSpace ?? (THREE as any).sRGBEncoding;
 }
 
+function setHdrColorSpace(tex: THREE.Texture) {
+  (tex as any).colorSpace =
+    (THREE as any).LinearSRGBColorSpace ?? (tex as any).colorSpace ?? (THREE as any).LinearEncoding;
+}
+
 function setRendererColorSpace(renderer: THREE.WebGLRenderer) {
   (renderer as any).outputColorSpace =
     (THREE as any).SRGBColorSpace ?? (renderer as any).outputColorSpace;
@@ -162,19 +169,45 @@ export async function applySky(
     return null;
   }
 
+  const preferHdrVariant = (choice: SkyChoice) => {
+    if (!choice || choice.type !== 'equirect') {
+      return choice;
+    }
+    const normalizedId = normalize(choice.id);
+    const hdrCandidate = SKY_CHOICES.find((candidate) => {
+      if (candidate === choice || candidate.type !== 'equirect') {
+        return false;
+      }
+      if (!candidate.file?.toLowerCase().endsWith('.hdr')) {
+        return false;
+      }
+      const candidateId = normalize(candidate.id);
+      if (candidateId === normalizedId) {
+        return true;
+      }
+      return candidate.aliases?.some((alias) => normalize(alias) === normalizedId) ?? false;
+    });
+    if (hdrCandidate) {
+      return hdrCandidate;
+    }
+    return choice;
+  };
+
+  const resolvedPick = preferHdrVariant(pick);
+
   let appliedId: string | null = null;
 
   try {
-    if (pick.type === 'cube' && pick.dir && pick.faces) {
+    if (resolvedPick.type === 'cube' && resolvedPick.dir && resolvedPick.faces) {
       const loader = new THREE.CubeTextureLoader();
       const order = [
-        pick.faces.px,
-        pick.faces.nx,
-        pick.faces.py,
-        pick.faces.ny,
-        pick.faces.pz,
-        pick.faces.nz
-      ].map((n) => resolveSkyPath(n, pick.dir));
+        resolvedPick.faces.px,
+        resolvedPick.faces.nx,
+        resolvedPick.faces.py,
+        resolvedPick.faces.ny,
+        resolvedPick.faces.pz,
+        resolvedPick.faces.nz
+      ].map((n) => resolveSkyPath(n, resolvedPick.dir));
 
       const tex = await new Promise<THREE.CubeTexture>((resolve, reject) =>
         loader.load(order, resolve, undefined, reject)
@@ -193,39 +226,87 @@ export async function applySky(
       if (typeof window !== 'undefined') {
         const debug = (window as typeof window & { __athensDebug?: any }).__athensDebug;
         if (debug && typeof debug === 'object') {
-          debug.sky = { type: 'cube', id: pick.id, files: order };
+          debug.sky = { type: 'cube', id: resolvedPick.id, files: order };
         }
       }
-      appliedId = pick.id;
-    } else if (pick.type === 'equirect' && pick.file) {
-      const loader = new THREE.TextureLoader();
-      const url = resolveSkyPath(pick.file);
+      appliedId = resolvedPick.id;
+    } else if (resolvedPick.type === 'equirect' && resolvedPick.file) {
+      const url = resolveSkyPath(resolvedPick.file);
+      const lowerUrl = url.toLowerCase();
+      const isHdr = lowerUrl.endsWith('.hdr');
 
-      const tex = await new Promise<THREE.Texture>((resolve, reject) =>
-        loader.load(url, resolve, undefined, reject)
-      );
-
-      tex.mapping = THREE.EquirectangularReflectionMapping;
-      setTextureColorSpace(tex);
-
-      scene.background = tex;
-      disposeExistingEnvironment(scene);
-
-      const pmrem = new THREE.PMREMGenerator(renderer);
-      const env = pmrem.fromEquirectangular(tex).texture;
-      scene.environment = env;
-      pmrem.dispose();
-
-      if (typeof window !== 'undefined') {
-        const debug = (window as typeof window & { __athensDebug?: any }).__athensDebug;
-        if (debug && typeof debug === 'object') {
-          debug.sky = { type: 'equirect', id: pick.id, file: url };
+      if (isHdr) {
+        const loader = new RGBELoader();
+        const dataType = (THREE as any).HalfFloatType ?? (THREE as any).FloatType;
+        if (typeof loader.setDataType === 'function' && dataType) {
+          loader.setDataType(dataType);
         }
+
+        const tex = await new Promise<THREE.Texture>((resolve, reject) =>
+          loader.load(url, resolve, undefined, reject)
+        );
+
+        tex.mapping = THREE.EquirectangularReflectionMapping;
+        setHdrColorSpace(tex);
+
+        disposeExistingEnvironment(scene);
+
+        const pmrem = new THREE.PMREMGenerator(renderer);
+        const env = pmrem.fromEquirectangular(tex).texture;
+        pmrem.dispose();
+
+        tex.dispose();
+
+        scene.environment = env;
+
+        const normalizedId = normalize(resolvedPick.id);
+        const fallbackKey: SkyTime =
+          normalizedId === 'dawn'
+            ? 'dawn'
+            : normalizedId === 'dusk'
+            ? 'dusk'
+            : normalizedId === 'night'
+            ? 'night'
+            : 'day';
+        const fallbackColor = SKY_PROCEDURAL_BACKGROUNDS[fallbackKey];
+        scene.background = new THREE.Color(fallbackColor);
+
+        if (typeof window !== 'undefined') {
+          const debug = (window as typeof window & { __athensDebug?: any }).__athensDebug;
+          if (debug && typeof debug === 'object') {
+            debug.sky = { type: 'hdr', id: resolvedPick.id, file: url };
+          }
+        }
+        appliedId = resolvedPick.id;
+      } else {
+        const loader = new THREE.TextureLoader();
+
+        const tex = await new Promise<THREE.Texture>((resolve, reject) =>
+          loader.load(url, resolve, undefined, reject)
+        );
+
+        tex.mapping = THREE.EquirectangularReflectionMapping;
+        setTextureColorSpace(tex);
+
+        scene.background = tex;
+        disposeExistingEnvironment(scene);
+
+        const pmrem = new THREE.PMREMGenerator(renderer);
+        const env = pmrem.fromEquirectangular(tex).texture;
+        scene.environment = env;
+        pmrem.dispose();
+
+        if (typeof window !== 'undefined') {
+          const debug = (window as typeof window & { __athensDebug?: any }).__athensDebug;
+          if (debug && typeof debug === 'object') {
+            debug.sky = { type: 'equirect', id: resolvedPick.id, file: url };
+          }
+        }
+        appliedId = resolvedPick.id;
       }
-      appliedId = pick.id;
     } else {
       logger.warn(
-        `[sky] Choice "${pick.id}" is missing required properties for type "${pick.type}".`
+        `[sky] Choice "${resolvedPick.id}" is missing required properties for type "${resolvedPick.type}".`
       );
       return null;
     }
