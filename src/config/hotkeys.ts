@@ -220,14 +220,16 @@ for (const def of actionRegistry.values()) {
 
 export const RELEVANT_KEYS = relevantKeys;
 
-const fallbackPairs: [string, string][] = [];
+const fallbackMap = new Map<string, string>();
 for (const def of actionRegistry.values()) {
-  for (const entry of def.fallback) {
-    fallbackPairs.push(entry);
+  for (const [key, code] of def.fallback) {
+    if (!fallbackMap.has(key)) {
+      fallbackMap.set(key, code);
+    }
   }
 }
 
-export const KEY_FALLBACK_MAP = new Map(fallbackPairs);
+export const KEY_FALLBACK_MAP = fallbackMap;
 
 export const ACTION_CODES = actionCodes;
 export const ACTION_REGISTRY = actionRegistry;

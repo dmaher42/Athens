@@ -51,10 +51,8 @@ import {
 import { CUSTOM_AMBIENT_TRACKS } from '../audio/customAmbientTracks.generated.ts';
 import { initAmbient, AmbientAPI, AMBIENT_TRACKS, registerExternalAmbientTracks } from '../audio/ambient.ts';
 // SKYSYS_START
-import { installSkyDev } from '../dev/skyDebugHooks.js';
-import { EnvironmentController } from '../environment/EnvironmentController.ts';
 import { SKY_JPGS, GROUND_JPGS } from '../assets/skyGround.generated.ts';
-import { registerExternalSkyImages, applySkyImage } from '../environment/EnvironmentController.ts';
+import { installSkyDev } from '../dev/skyDebugHooks.js';
 import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
 
@@ -560,7 +558,13 @@ export async function initializeAthens(options = {}) {
 
   renderer.setClearAlpha(1);
 
-  const environmentManager = new EnvironmentController(scene, renderer);
+  const {
+    createEnvironmentController,
+    registerExternalSkyImages,
+    applySkyImage,
+  } = await import('../environment/EnvironmentController.ts');
+
+  const environmentManager = createEnvironmentController({ scene, renderer });
 
   // Register discovered assets (safe no-ops if arrays are empty)
   try {
