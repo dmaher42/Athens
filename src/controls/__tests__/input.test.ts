@@ -23,7 +23,7 @@ test('input adapter maps WASD keys to movement axes', () => {
   assert.strictEqual(input.right, 0);
 });
 
-test('input adapter respects arrow keys and sprint/jump modifiers', () => {
+test('input adapter ignores arrow keys for movement and keeps modifiers', () => {
   __inputTest.reset();
 
   __inputTest.press('ArrowDown');
@@ -32,8 +32,8 @@ test('input adapter respects arrow keys and sprint/jump modifiers', () => {
   __inputTest.press('ShiftLeft');
 
   const input = getInput();
-  assert.strictEqual(input.forward, -1);
-  assert.strictEqual(input.right, 1);
+  assert.strictEqual(input.forward, 0);
+  assert.strictEqual(input.right, 0);
   assert.strictEqual(input.jump, true);
   assert.strictEqual(input.sprint, true);
 
