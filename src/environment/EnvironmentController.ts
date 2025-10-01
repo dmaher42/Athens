@@ -2,13 +2,14 @@ import * as THREE from 'three';
 import { applySky } from '../scene/sky.ts';
 import { disposeAll } from '../utils/disposable.ts';
 
-export type SkyMode = 'procedural';
+export type SkyMode = 'procedural' | string;
 
 export class EnvironmentController {
   private readonly scene: THREE.Scene;
   private readonly renderer: THREE.WebGLRenderer;
   private disposed = false;
   private currentSkyMode: SkyMode = 'procedural';
+  private lastAppliedSkyId: string | null = null;
 
   constructor(scene: THREE.Scene, renderer: THREE.WebGLRenderer) {
     this.scene = scene;
@@ -16,14 +17,18 @@ export class EnvironmentController {
   }
 
   get skyMode(): SkyMode {
-    return this.currentSkyMode;
+    return (this.lastAppliedSkyId ?? this.currentSkyMode) as SkyMode;
   }
 
-  async applySky(choice?: string) {
+  async applySky(choice?: string): Promise<string | null> {
     if (this.disposed) {
       return null;
     }
-    return applySky(this.scene, this.renderer, choice);
+    const appliedId = await applySky(this.scene, this.renderer, choice);
+    if (appliedId) {
+      this.lastAppliedSkyId = appliedId;
+    }
+    return appliedId;
   }
 
   setMode(mode: SkyMode): void {

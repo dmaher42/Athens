@@ -629,10 +629,10 @@ export async function initializeAthens(options = {}) {
   }
 
   try {
-    await environmentManager.applySky('day');
+    const appliedSkyMode = (await environmentManager.applySky('day')) || 'day';
     environmentManager.setMode('procedural');
     try {
-      const currentMode = environmentManager?.skyMode || 'day';
+      const currentMode = environmentManager?.skyMode || appliedSkyMode || 'day';
       const match = (SKY_JPGS || []).find((i) =>
         (i.tags || []).some((t) => t.toLowerCase() === String(currentMode).toLowerCase())
       );
