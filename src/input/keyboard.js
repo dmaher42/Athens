@@ -7,16 +7,60 @@ import {
 
 const INV_SQRT2 = 1 / Math.sqrt(2);
 
-const pairedAxisBindings = new Map();
-let runningBinding = null;
+const DEV_FALLBACK_CODES = [
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown',
+  'ShiftLeft',
+  'ShiftRight',
+  'Space'
+];
+
+const axisCodeBindings = new Map();
+const runningActionCodes = new Set();
 let hasWarnedForRelevantKeyFallback = false;
+
+const createCodeSet = (actionId) => {
+  const set = new Set();
+  if (!actionId) {
+    return set;
+  }
+  const codes = getActionCodes(actionId);
+  if (!Array.isArray(codes)) {
+    return set;
+  }
+  for (const code of codes) {
+    if (typeof code === 'string' && code) {
+      set.add(code);
+    }
+  }
+  return set;
+};
 
 for (const binding of HOTKEY_AXIS_METADATA) {
   if (!binding) continue;
   if (binding.type === 'paired') {
-    pairedAxisBindings.set(binding.axis, binding);
+    axisCodeBindings.set(binding.axis, {
+      positive: createCodeSet(binding.positive),
+      negative: createCodeSet(binding.negative)
+    });
   } else if (binding.type === 'binary' && binding.axis === 'running') {
-    runningBinding = binding;
+    for (const actionId of binding.actions ?? []) {
+      const codes = getActionCodes(actionId);
+      if (!Array.isArray(codes)) {
+        continue;
+      }
+      for (const code of codes) {
+        if (typeof code === 'string' && code) {
+          runningActionCodes.add(code);
+        }
+      }
+    }
   }
 }
 
@@ -66,27 +110,51 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
 
   let activeRelevantKeys = RELEVANT_KEYS;
-  if (!RELEVANT_KEYS.size && isDevEnvironment) {
-    activeRelevantKeys = new Set([
-      'KeyW',
-      'KeyA',
-      'KeyS',
-      'KeyD',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'ShiftLeft',
-      'ShiftRight',
-      'Space'
-    ]);
+  if (!(activeRelevantKeys instanceof Set)) {
+    activeRelevantKeys = new Set(activeRelevantKeys ? [...activeRelevantKeys] : []);
+  }
+  if ((!activeRelevantKeys || activeRelevantKeys.size === 0) && isDevEnvironment) {
+    activeRelevantKeys = new Set(DEV_FALLBACK_CODES);
     if (!hasWarnedForRelevantKeyFallback) {
-      console.warn('[Hotkeys] Falling back to default relevant key allowlist.');
+      console.warn('[hotkeys] empty RELEVANT_KEYS; enabling dev fallback');
       hasWarnedForRelevantKeyFallback = true;
     }
   }
 
   const resolveActionCodes = (actionId) => getActionCodes(actionId);
+
+  const shouldPreventDefault = (event, normalizedCode) => {
+    if (!normalizedCode || !PREVENT_DEFAULT_CODES.has(normalizedCode)) {
+      return false;
+    }
+    if (!event) {
+      return false;
+    }
+    if (!target || target === window) {
+      return true;
+    }
+    const eventTarget = event.target;
+    if (eventTarget) {
+      if (eventTarget === target) {
+        return true;
+      }
+      if (typeof target.contains === 'function' && target.contains(eventTarget)) {
+        return true;
+      }
+    }
+    if (typeof document !== 'undefined') {
+      const activeElement = document.activeElement;
+      if (activeElement) {
+        if (activeElement === target) {
+          return true;
+        }
+        if (typeof target.contains === 'function' && target.contains(activeElement)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
 
   const getActionState = (actionId) => {
     const codes = resolveActionCodes(actionId);
@@ -122,20 +190,32 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     return false;
   };
 
-  const updateAxisFromBinding = (axisId) => {
-    const binding = pairedAxisBindings.get(axisId);
+  const hasAnyPressed = (codes) => {
+    if (!codes || typeof codes.size !== 'number' || codes.size === 0) {
+      return false;
+    }
+    for (const code of codes) {
+      if (pressed.has(code)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const axisValueFromCodes = (axisId) => {
+    const binding = axisCodeBindings.get(axisId);
     if (!binding) {
       return 0;
     }
-    const positive = isActionDown(binding.positive) ? 1 : 0;
-    const negative = isActionDown(binding.negative) ? 1 : 0;
+    const positive = hasAnyPressed(binding.positive) ? 1 : 0;
+    const negative = hasAnyPressed(binding.negative) ? 1 : 0;
     return positive - negative;
   };
 
   const handleKeyDown = (event) => {
     const code = normalizeCode(event);
 
-    if (code && PREVENT_DEFAULT_CODES.has(code)) {
+    if (shouldPreventDefault(event, code)) {
       if (typeof event.preventDefault === 'function') {
         event.preventDefault();
       }
@@ -147,11 +227,13 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     if (!code || !activeRelevantKeys.has(code)) {
       return;
     }
+
     if (!pressed.has(code)) {
       justPressed.add(code);
+      pressed.add(code);
+      updateState();
+      return;
     }
-    pressed.add(code);
-    updateState();
   };
 
   const handleKeyUp = (event) => {
@@ -160,8 +242,9 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     if (!code || !activeRelevantKeys.has(code)) {
       return;
     }
-    pressed.delete(code);
-    updateState();
+    if (pressed.delete(code)) {
+      updateState();
+    }
   };
 
   if (target && target.addEventListener) {
@@ -174,8 +257,8 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const isDown = (code) => pressed.has(code);
 
   const updateState = () => {
-    axisState.x = updateAxisFromBinding('x');
-    axisState.z = updateAxisFromBinding('z');
+    axisState.x = axisValueFromCodes('x');
+    axisState.z = axisValueFromCodes('z');
 
     const combinedMagnitude = Math.abs(axisState.x) + Math.abs(axisState.z);
     if (combinedMagnitude > 1) {
@@ -185,12 +268,10 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
     axisState.turn = 0;
 
-    axisState.lookX = updateAxisFromBinding('lookX');
-    axisState.lookY = updateAxisFromBinding('lookY');
+    axisState.lookX = axisValueFromCodes('lookX');
+    axisState.lookY = axisValueFromCodes('lookY');
 
-    axisState.running = Boolean(
-      runningBinding?.actions?.some((actionId) => isActionDown(actionId))
-    );
+    axisState.running = hasAnyPressed(runningActionCodes);
 
     lookState.x = axisState.lookX;
     lookState.y = axisState.lookY;

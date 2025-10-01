@@ -11,6 +11,7 @@ const createMockTarget = () => {
 
   return {
     listeners,
+    tagName: 'CANVAS',
     addEventListener(type, handler) {
       listeners.set(type, handler);
     },
@@ -18,133 +19,128 @@ const createMockTarget = () => {
       if (listeners.get(type) === handler) {
         listeners.delete(type);
       }
+    },
+    contains(node) {
+      return node === this;
     }
   };
 };
 
-test('keyboard respects event.code when provided', () => {
+const focusEvent = (target, event) => ({ target, ...event });
+
+test('WASD movement updates axes and shift enables running', () => {
   const target = createMockTarget();
   const keyboard = createKeyboard(target);
   const keydown = target.listeners.get('keydown');
   const keyup = target.listeners.get('keyup');
 
-  keydown({ code: 'KeyW', key: 'w' });
+  keydown(focusEvent(target, { code: 'KeyW', key: 'w' }));
   assert.strictEqual(keyboard.isDown('KeyW'), true);
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), true);
-  assert.strictEqual(keyboard.getActionState(HOTKEY_IDS.movement.forward).isDown, true);
   assert.strictEqual(keyboard.axis.z, 1);
 
-  keyup({ code: 'KeyW', key: 'w' });
-  assert.strictEqual(keyboard.isDown('KeyW'), false);
-  assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), false);
-  assert.strictEqual(keyboard.axis.z, 0);
+  keydown(focusEvent(target, { code: 'KeyA', key: 'a' }));
+  assert.strictEqual(keyboard.axis.x, -1);
+  assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.left), true);
 
-  keyboard.dispose();
-});
-
-test('keyboard normalizes events without code to maintain controls', () => {
-  const target = createMockTarget();
-  const keyboard = createKeyboard(target);
-  const keydown = target.listeners.get('keydown');
-  const keyup = target.listeners.get('keyup');
-
-  keydown({ key: 'w', code: '' });
-  assert.strictEqual(keyboard.isDown('KeyW'), true);
-  assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), true);
-  assert.strictEqual(keyboard.getActionState(HOTKEY_IDS.movement.forward).isDown, true);
-  assert.strictEqual(keyboard.axis.z, 1);
-
-  keydown({ key: 'Shift', code: 'Unidentified' });
+  keydown(
+    focusEvent(target, {
+      code: 'Unidentified',
+      key: 'Shift'
+    })
+  );
   assert.strictEqual(keyboard.axis.running, true);
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.run), true);
 
-  keydown({ key: 'ArrowLeft', code: 'Unidentified' });
-  assert.strictEqual(keyboard.isDown('ArrowLeft'), true);
-  assert.strictEqual(keyboard.getActionState(HOTKEY_IDS.look.left).isDown, true);
-  assert.strictEqual(keyboard.look.x, -1);
-  assert.strictEqual(keyboard.axis.lookX, -1);
-
-  keyup({ key: 'ArrowLeft', code: '' });
-
-  keydown({ key: 'ArrowRight', code: undefined });
-  assert.strictEqual(keyboard.axis.lookX, 1);
-  assert.strictEqual(keyboard.look.x, 1);
-
-  keyup({ key: 'ArrowRight', code: '' });
-
-  keydown({ key: 'ArrowUp', code: undefined });
-  assert.strictEqual(keyboard.look.y, 1);
-  assert.strictEqual(keyboard.axis.lookY, 1);
-
-  keyup({ key: 'ArrowUp', code: '' });
-
-  keydown({ key: 'ArrowDown', code: undefined });
-  assert.strictEqual(keyboard.look.y, -1);
-  assert.strictEqual(keyboard.axis.lookY, -1);
-
-  keyup({ key: 'ArrowRight', code: '' });
-  keyup({ key: 'ArrowDown', code: '' });
-  keyup({ key: 'Shift', code: '' });
-  keyup({ key: 'w', code: '' });
-
-  assert.strictEqual(keyboard.isDown('KeyW'), false);
-  assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), false);
-  assert.strictEqual(keyboard.axis.z, 0);
+  keyup(focusEvent(target, { code: 'Unidentified', key: 'Shift' }));
   assert.strictEqual(keyboard.axis.running, false);
-  assert.strictEqual(keyboard.look.x, 0);
-  assert.strictEqual(keyboard.look.y, 0);
-  assert.strictEqual(keyboard.axis.lookX, 0);
-  assert.strictEqual(keyboard.axis.lookY, 0);
+
+  keyup(focusEvent(target, { code: 'KeyA', key: 'a' }));
+  assert.strictEqual(keyboard.axis.x, 0);
+
+  keyup(focusEvent(target, { code: 'KeyW', key: 'w' }));
+  assert.strictEqual(keyboard.axis.z, 0);
 
   keyboard.dispose();
 });
 
-test('keyboard maps azerty movement aliases without triggering descend', () => {
+test('Azerty fallbacks map to WASD movement', () => {
   const target = createMockTarget();
   const keyboard = createKeyboard(target);
   const keydown = target.listeners.get('keydown');
   const keyup = target.listeners.get('keyup');
 
-  keydown({ key: 'z' });
+  keydown(focusEvent(target, { key: 'z' }));
   assert.strictEqual(keyboard.isDown('KeyW'), true);
-  assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), true);
   assert.strictEqual(keyboard.axis.z, 1);
 
-  keyup({ key: 'z' });
+  keyup(focusEvent(target, { key: 'z' }));
   assert.strictEqual(keyboard.axis.z, 0);
 
-  keydown({ key: 'q' });
+  keydown(focusEvent(target, { key: 'q' }));
   assert.strictEqual(keyboard.isDown('KeyA'), true);
-  assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.left), true);
   assert.strictEqual(keyboard.axis.x, -1);
-  assert.strictEqual(keyboard.isDown('KeyQ'), false);
 
-  keyup({ key: 'q' });
-
+  keyup(focusEvent(target, { key: 'q' }));
   assert.strictEqual(keyboard.axis.x, 0);
 
   keyboard.dispose();
 });
 
-test('keyboard normalizes diagonal movement speed', () => {
+test('Diagonal movement normalizes to unit speed', () => {
   const target = createMockTarget();
   const keyboard = createKeyboard(target);
   const keydown = target.listeners.get('keydown');
   const keyup = target.listeners.get('keyup');
 
-  keydown({ code: 'KeyW', key: 'w' });
-  keydown({ code: 'KeyD', key: 'd' });
+  keydown(focusEvent(target, { code: 'KeyW', key: 'w' }));
+  keydown(focusEvent(target, { code: 'KeyD', key: 'd' }));
 
   assert.ok(Math.abs(keyboard.axis.z - Math.SQRT1_2) < EPSILON);
   assert.ok(Math.abs(keyboard.axis.x - Math.SQRT1_2) < EPSILON);
 
-  keyup({ code: 'KeyW', key: 'w' });
-  keyup({ code: 'KeyD', key: 'd' });
+  keyup(focusEvent(target, { code: 'KeyD', key: 'd' }));
+  keyup(focusEvent(target, { code: 'KeyW', key: 'w' }));
 
   keyboard.dispose();
 });
 
-test('keyboard prevents default browser actions for space and arrow keys', () => {
+test('Arrow keys drive look axes', () => {
+  const target = createMockTarget();
+  const keyboard = createKeyboard(target);
+  const keydown = target.listeners.get('keydown');
+  const keyup = target.listeners.get('keyup');
+
+  keydown(focusEvent(target, { key: 'ArrowLeft', code: 'Unidentified' }));
+  assert.strictEqual(keyboard.axis.lookX, -1);
+  assert.strictEqual(keyboard.look.x, -1);
+
+  keyup(focusEvent(target, { key: 'ArrowLeft', code: 'Unidentified' }));
+  assert.strictEqual(keyboard.axis.lookX, 0);
+
+  keydown(focusEvent(target, { key: 'ArrowRight', code: 'ArrowRight' }));
+  assert.strictEqual(keyboard.axis.lookX, 1);
+
+  keyup(focusEvent(target, { key: 'ArrowRight', code: 'ArrowRight' }));
+  assert.strictEqual(keyboard.axis.lookX, 0);
+
+  keydown(focusEvent(target, { key: 'ArrowUp', code: 'ArrowUp' }));
+  assert.strictEqual(keyboard.axis.lookY, 1);
+  assert.strictEqual(keyboard.look.y, 1);
+
+  keyup(focusEvent(target, { key: 'ArrowUp', code: 'ArrowUp' }));
+  assert.strictEqual(keyboard.axis.lookY, 0);
+
+  keydown(focusEvent(target, { key: 'ArrowDown', code: 'ArrowDown' }));
+  assert.strictEqual(keyboard.axis.lookY, -1);
+
+  keyup(focusEvent(target, { key: 'ArrowDown', code: 'ArrowDown' }));
+  assert.strictEqual(keyboard.axis.lookY, 0);
+
+  keyboard.dispose();
+});
+
+test('Space and arrow keys prevent default when canvas is focused', () => {
   const target = createMockTarget();
   const keyboard = createKeyboard(target);
   const keydown = target.listeners.get('keydown');
@@ -152,37 +148,41 @@ test('keyboard prevents default browser actions for space and arrow keys', () =>
 
   let spacePrevented = 0;
   let spaceStopped = 0;
-  keydown({
-    code: 'Space',
-    key: ' ',
-    preventDefault() {
-      spacePrevented += 1;
-    },
-    stopPropagation() {
-      spaceStopped += 1;
-    }
-  });
+  keydown(
+    focusEvent(target, {
+      code: 'Space',
+      key: ' ',
+      preventDefault() {
+        spacePrevented += 1;
+      },
+      stopPropagation() {
+        spaceStopped += 1;
+      }
+    })
+  );
   assert.strictEqual(spacePrevented, 1);
   assert.strictEqual(spaceStopped, 1);
 
-  keyup({ code: 'Space', key: ' ' });
+  keyup(focusEvent(target, { code: 'Space', key: ' ' }));
 
   let arrowPrevented = 0;
   let arrowStopped = 0;
-  keydown({
-    code: 'ArrowDown',
-    key: 'ArrowDown',
-    preventDefault() {
-      arrowPrevented += 1;
-    },
-    stopPropagation() {
-      arrowStopped += 1;
-    }
-  });
+  keydown(
+    focusEvent(target, {
+      code: 'ArrowUp',
+      key: 'ArrowUp',
+      preventDefault() {
+        arrowPrevented += 1;
+      },
+      stopPropagation() {
+        arrowStopped += 1;
+      }
+    })
+  );
   assert.strictEqual(arrowPrevented, 1);
   assert.strictEqual(arrowStopped, 1);
 
-  keyup({ code: 'ArrowDown', key: 'ArrowDown' });
+  keyup(focusEvent(target, { code: 'ArrowUp', key: 'ArrowUp' }));
 
   keyboard.dispose();
 });

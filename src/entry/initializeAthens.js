@@ -34,19 +34,6 @@ import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
 import { loadWorldWithColliders } from '../physics/collisionWorld.ts';
 import { CharacterController } from '../controls/CharacterController.ts';
 import { getInput } from '../controls/input.ts';
-
-const __hotkeyHealthcheckEnabled =
-  typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
-
-if (__hotkeyHealthcheckEnabled) {
-  try {
-    const sampleKeys = Array.from(RELEVANT_KEYS).slice(0, 10);
-    console.log('[Hotkeys] sample:', sampleKeys);
-    console.log('[Hotkeys] forward action codes:', HOTKEY_IDS?.movement?.forward);
-  } catch (error) {
-    console.warn('[Hotkeys] Failed to log hotkey healthcheck.', error);
-  }
-}
 import {
   LANDMARK_ALIASES,
   KNOWN_LANDMARK_KEYS,
@@ -72,6 +59,10 @@ import { installSkyDev } from '../dev/skyDebugHooks.js';
 import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
 import { withTimeout as withBootTimeout } from '../boot/withTimeout.ts';
+
+if (typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production') {
+  console.log('[hotkeys] sample:', [...RELEVANT_KEYS].slice(0, 8));
+}
 
 // CHAR_MAIN_HEIGHT_START
 // Height scaling for the main character is no longer required.
