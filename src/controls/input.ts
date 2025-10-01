@@ -1,33 +1,33 @@
+import {
+  HOTKEY_IDS,
+  KEY_FALLBACK_MAP,
+  RELEVANT_KEYS,
+  getActionCodes
+} from '../config/hotkeys.ts';
+
 import type { CharacterInput } from './CharacterController.ts';
 
 type KeyboardEventLike = { code?: string; key?: string; repeat?: boolean };
 
 const activeKeys = new Set<string>();
 
-const POSITIVE_FORWARD = new Set(['KeyW', 'ArrowUp']);
-const NEGATIVE_FORWARD = new Set(['KeyS', 'ArrowDown']);
-const POSITIVE_RIGHT = new Set(['KeyD', 'ArrowRight']);
-const NEGATIVE_RIGHT = new Set(['KeyA', 'ArrowLeft']);
-const JUMP_KEYS = new Set(['Space']);
-const SPRINT_KEYS = new Set(['ShiftLeft', 'ShiftRight']);
+const POSITIVE_FORWARD = createActionCodeSet(HOTKEY_IDS.movement.forward);
+const NEGATIVE_FORWARD = createActionCodeSet(HOTKEY_IDS.movement.backward);
+const POSITIVE_RIGHT = createActionCodeSet(HOTKEY_IDS.movement.right);
+const NEGATIVE_RIGHT = createActionCodeSet(HOTKEY_IDS.movement.left);
+const JUMP_KEYS = createActionCodeSet(HOTKEY_IDS.flight.ascend);
+const SPRINT_KEYS = createActionCodeSet(HOTKEY_IDS.movement.run);
+const RELEVANT_KEY_SET: Set<string> | undefined =
+  RELEVANT_KEYS && typeof RELEVANT_KEYS.has === 'function' ? RELEVANT_KEYS : undefined;
 
-const KEY_ALIAS: Record<string, string> = {
-  w: 'KeyW',
-  W: 'KeyW',
-  s: 'KeyS',
-  S: 'KeyS',
-  a: 'KeyA',
-  A: 'KeyA',
-  d: 'KeyD',
-  D: 'KeyD',
-  ArrowUp: 'ArrowUp',
-  ArrowDown: 'ArrowDown',
-  ArrowLeft: 'ArrowLeft',
-  ArrowRight: 'ArrowRight',
-  ' ': 'Space',
-  Space: 'Space',
-  Shift: 'ShiftLeft'
-};
+function createActionCodeSet(actionId: string | undefined): Set<string> {
+  if (!actionId) {
+    return new Set();
+  }
+
+  const codes = getActionCodes(actionId);
+  return new Set(codes);
+}
 
 let listenersAttached = false;
 
@@ -38,15 +38,32 @@ function normalizeCode(event: KeyboardEventLike): string {
 
   const code = event.code;
   if (typeof code === 'string' && code && code !== 'Unidentified') {
-    return code;
+    return isRelevant(code) ? code : '';
   }
 
   const key = event.key;
   if (typeof key === 'string' && key) {
-    return KEY_ALIAS[key] || KEY_ALIAS[key.toUpperCase()] || '';
+    const fallbackKey = key.toLowerCase();
+    const fallbackCode = KEY_FALLBACK_MAP.get(fallbackKey);
+
+    if (fallbackCode && isRelevant(fallbackCode)) {
+      return fallbackCode;
+    }
   }
 
   return '';
+}
+
+function isRelevant(code: string): boolean {
+  if (!code) {
+    return false;
+  }
+
+  if (RELEVANT_KEY_SET) {
+    return RELEVANT_KEY_SET.has(code);
+  }
+
+  return true;
 }
 
 function setKeyState(code: string, isDown: boolean) {
