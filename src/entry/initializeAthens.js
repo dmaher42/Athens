@@ -30,6 +30,12 @@ import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
 import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
 import {
+  LANDMARK_ALIASES,
+  KNOWN_LANDMARK_KEYS,
+  createLandmarkLayoutResolver,
+  getLandmarkKeysForLayout
+} from '../config/landmarkLayout.ts';
+import {
   DEFAULT_CAMERA,
   DEFAULT_PLAYER,
   finiteNumber,
@@ -133,81 +139,103 @@ function __enforceMainCharacterHeight(scene, options) {
 // CHAR_MAIN_HEIGHT_END
 
 // LANDMARK_SPREAD_START
-const _LANDMARK_MATCH = {
-  Agora:            ['Agora','AgoraGroup'],
-  Stoa_of_Attalos:  ['Stoa_of_Attalos','Stoa','StoaAttalos'],
-  Tholos:           ['Tholos'],
-  Theater_of_Dionysus: ['Theater_of_Dionysus','Theatre_of_Dionysus','Theater','Theatre'],
-  Stadium:          ['Stadium','Stadion'],
-  CityGate_South:   ['CityGate_South','CityGate','SouthGate','Gate_South'],
-  Port_Quay_A:      ['Port_Quay_A','Port','Harbor','Harbour','Quay']
-};
+const _TMP_WORLD = new THREE.Vector3();
+const _TMP_LOCAL = new THREE.Vector3();
+const _TMP_GROUND = new THREE.Vector3();
 
-const _SPREAD_DEFAULTS = {
-  // spread with clear separation, tweak freely later
-  Agora:                 { x:    0, y: 'ground', z:    0 },
-  Stoa_of_Attalos:       { x:  220, y: 'ground', z:   40 },
-  Tholos:                { x: -220, y: 'ground', z:  -20 },
-  Theater_of_Dionysus:   { x:  180, y: 'ground', z:  260 },
-  Stadium:               { x: -180, y: 'ground', z: -260 },
-  CityGate_South:        { x:   40, y: 'ground', z: -520 },
-  Port_Quay_A:           { x:   80, y: 'ground', z: -900 }
-};
-
-function _findByNames(scene, names) {
-  // try exact first
-  for (const n of names) {
-    const hit = scene.getObjectByName(n);
-    if (hit) return hit;
+function _setWorldPosition(object, x, y, z) {
+  if (!object?.isObject3D) return false;
+  object.updateMatrixWorld(true);
+  const parent = object.parent;
+  if (parent?.isObject3D) {
+    parent.updateMatrixWorld(true);
+    _TMP_LOCAL.set(x, y, z);
+    object.position.copy(parent.worldToLocal(_TMP_LOCAL));
+  } else {
+    object.position.set(x, y, z);
   }
-  // then case-insensitive / fuzzy
-  const lowers = names.map(n => n.toLowerCase());
-  let best = null;
-  scene.traverse(o => {
-    if (!o || !o.name) return;
-    const nm = o.name.toLowerCase();
-    for (const needle of lowers) {
-      if (nm === needle || nm.includes(needle)) { best = best || o; break; }
-    }
-  });
-  return best;
+  object.updateMatrixWorld(true);
+  return true;
 }
 
-function _groundYAt(pos, fallbackY) {
+function _findLandmarkObject(scene, key) {
+  if (!scene) return null;
+  const aliases = LANDMARK_ALIASES[key] || [key];
+  for (const name of aliases) {
+    const exact = scene.getObjectByName(name);
+    if (exact) return exact;
+  }
+  const lowered = aliases.map((name) => String(name).toLowerCase());
+  let fallback = null;
+  scene.traverse((obj) => {
+    if (fallback || !obj?.name) return;
+    const candidate = obj.name.toLowerCase();
+    for (const needle of lowered) {
+      if (candidate === needle || candidate.includes(needle)) {
+        fallback = obj;
+        break;
+      }
+    }
+  });
+  return fallback;
+}
+
+function _sampleSceneGround(x, z, fallbackY) {
+  const baseY = Number.isFinite(fallbackY) ? fallbackY : 0;
   try {
     if (typeof raycastGroundY === 'function') {
-      const gy = raycastGroundY(pos);
-      if (Number.isFinite(gy)) return gy;
+      _TMP_GROUND.set(x, baseY, z);
+      const gy = raycastGroundY(_TMP_GROUND);
+      if (Number.isFinite(gy)) {
+        return gy;
+      }
     }
   } catch {}
   return fallbackY;
 }
 
-function _applyLandmarkSpread(scene, options, {force=false} = {}) {
-  // Only act when explicitly requested, or when options.layout === 'athensPlan'
-  const shouldRun = force || options?.layout === 'athensPlan';
-  if (!shouldRun) return;
+function _applyLandmarkLayout(scene, options, keys, { label = 'Landmarks' } = {}) {
+  if (!scene || !Array.isArray(keys) || keys.length === 0) {
+    return {};
+  }
 
-  const overrides = options?.layoutConfig?.positions || {};
+  const resolver = createLandmarkLayoutResolver({
+    layout: options?.layout,
+    layoutConfig: options?.layoutConfig,
+    plateauHeight: options?.layoutConfig?.plateauHeight,
+    sampleGround: _sampleSceneGround
+  });
+
   const results = {};
-
-  for (const key of Object.keys(_LANDMARK_MATCH)) {
-    const target = _findByNames(scene, _LANDMARK_MATCH[key]);
-    if (!target) { results[key] = 'not-found'; continue; }
-
-    const src = overrides[key] ?? _SPREAD_DEFAULTS[key];
-    if (!src) { results[key] = 'no-default'; continue; }
-
-    // determine desired y
-    const wp = target.getWorldPosition(new THREE.Vector3());
-    let y = (src.y === 'ground') ? _groundYAt(new THREE.Vector3(src.x ?? wp.x, wp.y, src.z ?? wp.z), wp.y)
-                                 : (Number.isFinite(src.y) ? src.y : wp.y);
-
-    const ok = _setWorldPosition(target, src.x ?? wp.x, y, src.z ?? wp.z);
+  for (const key of keys) {
+    const target = _findLandmarkObject(scene, key);
+    if (!target) {
+      results[key] = 'not-found';
+      continue;
+    }
+    const fallback = target.getWorldPosition(_TMP_WORLD.set(0, 0, 0));
+    const { position } = resolver(key, fallback);
+    const ok = _setWorldPosition(target, position.x, position.y, position.z);
     results[key] = ok ? 'moved' : 'failed';
   }
 
-  try { logger.info('[LandmarkSpread]', results); } catch {}
+  try { logger.info(`[${label}]`, results); } catch {}
+  return results;
+}
+
+function _applyLandmarkSpread(scene, options, { force = false } = {}) {
+  const shouldRun = force || options?.layout === 'athensPlan';
+  if (!shouldRun) return;
+
+  const keys = new Set();
+  getLandmarkKeysForLayout(options?.layout).forEach((key) => keys.add(key));
+  const overrides = options?.layoutConfig?.positions;
+  if (overrides && typeof overrides === 'object') {
+    Object.keys(overrides).forEach((key) => keys.add(key));
+  }
+  KNOWN_LANDMARK_KEYS.forEach((key) => keys.add(key));
+
+  _applyLandmarkLayout(scene, options, [...keys], { label: 'LandmarkSpread' });
 }
 
 function _installLandmarkDev(scene, options) {
@@ -770,37 +798,6 @@ export async function initializeAthens(options = {}) {
   _installLandmarkDev(scene, options);
   // LANDMARK_SPREAD_END
 
-  // LANDMARK_OVERRIDE_START
-  (function applyAgoraOverride(scene, options) {
-    const p = options?.layoutConfig?.positions?.Agora;
-    if (!p) return;
-    function get(name) {
-      return scene.getObjectByName(name);
-    }
-    function setWorldPosition(obj, x, y, z) {
-      if (!obj) return false;
-      obj.updateMatrixWorld(true);
-      const parent = obj.parent;
-      if (parent) {
-        parent.updateMatrixWorld(true);
-        const v = new THREE.Vector3(x, y, z);
-        obj.position.copy(parent.worldToLocal(v));
-      } else {
-        obj.position.set(x, y, z);
-      }
-      obj.updateMatrixWorld(true);
-      return true;
-    }
-    const agora = get('AgoraGroup') || get('Agora');
-    if (agora) {
-      setWorldPosition(agora, p.x, p.y, p.z);
-      logger.info('[LandmarkOverride] Agora ->', p);
-    } else {
-      logger.warn('[LandmarkOverride] Agora object not found');
-    }
-  })(scene, options);
-  // LANDMARK_OVERRIDE_END
-
   // Grass material application for main ground
   if (!hasLayeredGround) {
     const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
@@ -843,15 +840,7 @@ export async function initializeAthens(options = {}) {
     logger.warn('[npc] no ground meshes');
   }
   // PLACER_START
-  const landmarkSequence = [
-    'Agora',
-    'Stoa_of_Attalos',
-    'Tholos',
-    'Theater_of_Dionysus',
-    'Stadium',
-    'CityGate_South',
-    'Port_Quay_A'
-  ];
+  const landmarkSequence = [...KNOWN_LANDMARK_KEYS];
   const devLandmarkOptions = options?.dev?.landmarkPlacer;
   const shouldAttachLandmarkPlacer = devLandmarkOptions !== false;
   let landmarkPlacer = null;
@@ -1602,36 +1591,14 @@ export async function initializeAthens(options = {}) {
 }
 
 // LANDMARK_OVERRIDE_START
-function _findByNameCI(scene, name){
-  const target = name.toLowerCase();
-  let hit = scene.getObjectByName(name);
-  if (hit) return hit;
-  let fallback = null;
-  scene.traverse(obj => {
-    if (!obj || !obj.name) return;
-    const n = obj.name.toLowerCase();
-    if (n === target) { hit = obj; }
-    else if (!fallback && n.includes(target)) { fallback = obj; }
-  });
-  return hit || fallback;
-}
-
 function _applyLandmarkOverrides(scene, options){
-  const pos = options?.layoutConfig?.positions;
-  if (!pos) return;
+  const overrides = options?.layoutConfig?.positions;
+  if (!overrides || typeof overrides !== 'object') return;
 
-  const log = (...args)=>{ try{ logger.info('[LandmarkOverride]', ...args); }catch{} }
+  const keys = Object.keys(overrides);
+  if (!keys.length) return;
 
-  // AGORA override only (expand later)
-  if (pos.Agora && Number.isFinite(pos.Agora.x) && Number.isFinite(pos.Agora.y) && Number.isFinite(pos.Agora.z)) {
-    const agora = _findByNameCI(scene, 'Agora');
-    if (!agora) {
-      log('Agora not found in scene graph; available top-level children:', scene.children.map(c=>c.name).filter(Boolean));
-    } else {
-      const ok = _setWorldPosition(agora, pos.Agora.x, pos.Agora.y, pos.Agora.z);
-      log('Applied Agora override to', agora.name, '->', pos.Agora, 'success:', ok);
-    }
-  }
+  _applyLandmarkLayout(scene, options, keys, { label: 'LandmarkOverride' });
 }
 // LANDMARK_OVERRIDE_END
 

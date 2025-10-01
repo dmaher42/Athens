@@ -13,125 +13,7 @@ import { createCityWalls as createExtendedWalls, createGate } from './gatesWalls
 import { createTholos } from './tholos.js';
 import { createStadium } from './stadium.js';
 import { createPort } from './port.js';
-
-const ATHENS_PLAN_PRESET = {
-  Agora: { x: -40, y: 'ground', z: 30 },
-  Stoa_of_Attalos: { x: -20, y: 'ground', z: 20 },
-  Tholos: { x: -48, y: 'ground', z: 18 },
-  Theater_of_Dionysus: { x: 35, y: 'ground', z: 15 },
-  Stadium: { x: 80, y: 'ground', z: 10 },
-  CityGate_South: { x: 10, y: 'ground', z: 110 },
-  Port_Quay_A: { x: 10, y: 'ground', z: 160 },
-  Houses_NW: { x: -90, y: 'ground', z: -60 },
-  Houses_NE: { x: 40, y: 'ground', z: -80 },
-  Temple_of_Hephaestus: { x: -60, y: 'ground', z: 45 },
-  Parthenon: { x: 6, y: 'acropolis', z: -4 }
-};
-
-function applyConfigOverride(current, override) {
-  if (!override) return current;
-
-  if (override instanceof THREE.Vector3) {
-    return { x: override.x, y: override.y, z: override.z };
-  }
-
-  if (Array.isArray(override)) {
-    const [ox, oy, oz] = override;
-    return {
-      x: Number.isFinite(ox) ? ox : current.x,
-      y: Number.isFinite(oy) ? oy : current.y,
-      z: Number.isFinite(oz) ? oz : current.z
-    };
-  }
-
-  if (typeof override === 'number') {
-    return { ...current, y: override };
-  }
-
-  if (typeof override === 'object') {
-    const next = { ...current };
-    if ('x' in override && override.x !== undefined) {
-      const parsed = Number(override.x);
-      next.x = Number.isFinite(parsed) ? parsed : override.x;
-    }
-    if ('y' in override && override.y !== undefined) {
-      const parsed = Number(override.y);
-      next.y = Number.isFinite(parsed) ? parsed : override.y;
-    }
-    if ('z' in override && override.z !== undefined) {
-      const parsed = Number(override.z);
-      next.z = Number.isFinite(parsed) ? parsed : override.z;
-    }
-    return next;
-  }
-
-  return current;
-}
-
-function createLayoutResolver({ layout, layoutConfig, plateauHeight, sampleGround }) {
-  const normalizedLayout = typeof layout === 'string' && layout ? layout : 'classic';
-  const normalizedConfig = layoutConfig && typeof layoutConfig === 'object' ? layoutConfig : {};
-  const positionOverrides =
-    normalizedConfig.positions && typeof normalizedConfig.positions === 'object'
-      ? normalizedConfig.positions
-      : null;
-
-  return (key, fallback = new THREE.Vector3()) => {
-    const fallbackVec = fallback instanceof THREE.Vector3
-      ? fallback.clone()
-      : new THREE.Vector3(fallback?.x ?? 0, fallback?.y ?? 0, fallback?.z ?? 0);
-
-    let resolved = fallbackVec.clone();
-
-    if (normalizedLayout === 'athensPlan' && ATHENS_PLAN_PRESET[key]) {
-      const preset = ATHENS_PLAN_PRESET[key];
-      resolved.set(
-        Number.isFinite(preset.x) ? preset.x : fallbackVec.x,
-        preset.y ?? fallbackVec.y,
-        Number.isFinite(preset.z) ? preset.z : fallbackVec.z
-      );
-    }
-
-    const layers = [];
-    if (normalizedConfig[key] !== undefined) layers.push(normalizedConfig[key]);
-    if (positionOverrides?.[key] !== undefined) layers.push(positionOverrides[key]);
-
-    let config = { x: resolved.x, y: resolved.y, z: resolved.z };
-    for (const layer of layers) {
-      config = applyConfigOverride(config, layer);
-    }
-
-    const finalX = Number.isFinite(config.x) ? config.x : fallbackVec.x;
-    const finalZ = Number.isFinite(config.z) ? config.z : fallbackVec.z;
-
-    let finalY = config.y;
-    let snapToGround = false;
-
-    if (finalY === 'ground') {
-      const sample = sampleGround ? sampleGround(finalX, finalZ) : null;
-      if (typeof sample === 'number' && Number.isFinite(sample)) {
-        finalY = sample;
-      } else {
-        finalY = fallbackVec.y;
-      }
-      snapToGround = true;
-    } else if (finalY === 'acropolis') {
-      finalY = typeof plateauHeight === 'number' ? plateauHeight : fallbackVec.y;
-    } else if (!Number.isFinite(finalY)) {
-      finalY = fallbackVec.y;
-    } else {
-      snapToGround = false;
-    }
-
-    const position = new THREE.Vector3(
-      Number.isFinite(finalX) ? finalX : fallbackVec.x,
-      Number.isFinite(finalY) ? finalY : fallbackVec.y,
-      Number.isFinite(finalZ) ? finalZ : fallbackVec.z
-    );
-
-    return { position, snapToGround };
-  };
-}
+import { createLandmarkLayoutResolver } from '../config/landmarkLayout.ts';
 
 export async function createCity(options = {}) {
   const { renderer, scene, ground: groundOverrides, layout, layoutConfig } = options ?? {};
@@ -282,13 +164,14 @@ export async function createCity(options = {}) {
   })();
   // ACROPOLIS_END
 
-  const sampleGround = (x, z) => {
+  const sampleGround = (x, z, fallbackY) => {
     const grounds = ensureGroundMeshes();
-    if (!grounds.length) return null;
-    return sampleGroundY(x, z, grounds, { fromY: 400 });
+    if (!grounds.length) return fallbackY;
+    const sample = sampleGroundY(x, z, grounds, { fromY: 400 });
+    return sample == null ? fallbackY : sample;
   };
 
-  const resolveLayout = createLayoutResolver({
+  const resolveLayout = createLandmarkLayoutResolver({
     layout,
     layoutConfig,
     plateauHeight: acropolisMeta.plateauHeight,
