@@ -1,62 +1,23 @@
+import {
+  RELEVANT_KEYS,
+  KEY_FALLBACK_MAP,
+  HOTKEY_AXIS_METADATA,
+  getActionCodes
+} from '../config/hotkeys.ts';
+
 const INV_SQRT2 = 1 / Math.sqrt(2);
 
-const MOVEMENT_KEYS = [
-  'KeyW',
-  'KeyA',
-  'KeyS',
-  'KeyD'
-];
+const pairedAxisBindings = new Map();
+let runningBinding = null;
 
-const LOOK_KEYS = [
-  'ArrowUp',
-  'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight'
-];
-
-const MODIFIER_KEYS = ['ShiftLeft', 'ShiftRight'];
-
-const EXTRA_KEYS = [
-  'Space',
-  'KeyX',
-  'KeyC',
-  'KeyE',
-  'KeyQ',
-  'KeyZ',
-  'KeyF',
-  'ControlLeft',
-  'ControlRight',
-  'KeyT',
-  'KeyY',
-  'KeyP'
-];
-
-const RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
-
-const KEY_FALLBACK_MAP = new Map([
-  ['w', 'KeyW'],
-  ['a', 'KeyA'],
-  ['s', 'KeyS'],
-  ['d', 'KeyD'],
-  ['z', 'KeyW'],
-  ['q', 'KeyA'],
-  ['arrowup', 'ArrowUp'],
-  ['arrowdown', 'ArrowDown'],
-  ['arrowleft', 'ArrowLeft'],
-  ['arrowright', 'ArrowRight'],
-  [' ', 'Space'],
-  ['space', 'Space'],
-  ['spacebar', 'Space'],
-  ['x', 'KeyX'],
-  ['f', 'KeyF'],
-  ['c', 'KeyC'],
-  ['e', 'KeyE'],
-  ['t', 'KeyT'],
-  ['y', 'KeyY'],
-  ['p', 'KeyP'],
-  ['shift', 'ShiftLeft'],
-  ['control', 'ControlLeft']
-]);
+for (const binding of HOTKEY_AXIS_METADATA) {
+  if (!binding) continue;
+  if (binding.type === 'paired') {
+    pairedAxisBindings.set(binding.axis, binding);
+  } else if (binding.type === 'binary' && binding.axis === 'running') {
+    runningBinding = binding;
+  }
+}
 
 const normalizeCode = (event) => {
   if (!event) {
@@ -65,11 +26,11 @@ const normalizeCode = (event) => {
 
   const { code, key } = event;
 
-  if (code && code !== '' && code !== 'Unidentified') {
+  if (typeof code === 'string' && code !== '' && code !== 'Unidentified') {
     return code;
   }
 
-  if (!key && key !== 0) {
+  if (key === undefined || key === null) {
     return undefined;
   }
 
@@ -90,6 +51,53 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     lookY: 0
   };
   const lookState = { x: 0, y: 0 };
+  let frameJustPressed = new Set();
+
+  const resolveActionCodes = (actionId) => getActionCodes(actionId);
+
+  const getActionState = (actionId) => {
+    const codes = resolveActionCodes(actionId);
+    if (!codes.length) {
+      return { id: actionId, isDown: false, justPressed: false, codes };
+    }
+    let isDown = false;
+    let wasJustPressed = false;
+    for (const code of codes) {
+      if (!isDown && pressed.has(code)) {
+        isDown = true;
+      }
+      if (!wasJustPressed && (frameJustPressed.has(code) || justPressed.has(code))) {
+        wasJustPressed = true;
+      }
+      if (isDown && wasJustPressed) {
+        break;
+      }
+    }
+    return { id: actionId, isDown, justPressed: wasJustPressed, codes };
+  };
+
+  const isActionDown = (actionId) => {
+    const codes = resolveActionCodes(actionId);
+    if (!codes.length) {
+      return false;
+    }
+    for (const code of codes) {
+      if (pressed.has(code)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const updateAxisFromBinding = (axisId) => {
+    const binding = pairedAxisBindings.get(axisId);
+    if (!binding) {
+      return 0;
+    }
+    const positive = isActionDown(binding.positive) ? 1 : 0;
+    const negative = isActionDown(binding.negative) ? 1 : 0;
+    return positive - negative;
+  };
 
   const handleKeyDown = (event) => {
     const code = normalizeCode(event);
@@ -103,7 +111,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
       }
     }
 
-    if (!RELEVANT_KEYS.has(code)) {
+    if (!code || !RELEVANT_KEYS.has(code)) {
       return;
     }
     if (!pressed.has(code)) {
@@ -116,7 +124,7 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const handleKeyUp = (event) => {
     const code = normalizeCode(event);
 
-    if (!RELEVANT_KEYS.has(code)) {
+    if (!code || !RELEVANT_KEYS.has(code)) {
       return;
     }
     pressed.delete(code);
@@ -133,43 +141,28 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const isDown = (code) => pressed.has(code);
 
   const updateState = () => {
-    let x = 0;
-    let z = 0;
+    axisState.x = updateAxisFromBinding('x');
+    axisState.z = updateAxisFromBinding('z');
 
-    if (isDown('KeyD')) {
-      x += 1;
-    }
-    if (isDown('KeyA')) {
-      x -= 1;
+    if (axisState.x !== 0 && axisState.z !== 0) {
+      axisState.x *= INV_SQRT2;
+      axisState.z *= INV_SQRT2;
     }
 
-    if (isDown('KeyS')) {
-      z += 1;
-    }
-    if (isDown('KeyW')) {
-      z -= 1;
-    }
-
-    if (x !== 0 && z !== 0) {
-      x *= INV_SQRT2;
-      z *= INV_SQRT2;
-    }
-
-    axisState.x = x;
-    axisState.z = z;
     axisState.turn = 0;
-    axisState.running = MODIFIER_KEYS.some((code) => isDown(code));
 
-    axisState.lookX = (isDown('ArrowRight') ? 1 : 0) - (isDown('ArrowLeft') ? 1 : 0);
-    axisState.lookY = (isDown('ArrowUp') ? 1 : 0) - (isDown('ArrowDown') ? 1 : 0);
+    axisState.lookX = updateAxisFromBinding('lookX');
+    axisState.lookY = updateAxisFromBinding('lookY');
+
+    axisState.running = Boolean(
+      runningBinding?.actions?.some((actionId) => isActionDown(actionId))
+    );
 
     lookState.x = axisState.lookX;
     lookState.y = axisState.lookY;
   };
 
   updateState();
-
-  let frameJustPressed = new Set();
 
   const axis = {};
   Object.defineProperties(axis, {
@@ -259,6 +252,8 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
   return {
     isDown,
+    isActionDown,
+    getActionState,
     update,
     axis,
     look,

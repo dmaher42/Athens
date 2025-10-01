@@ -1,3 +1,8 @@
+import { HOTKEY_IDS } from '../config/hotkeys.ts';
+
+const ASCEND_ACTION = HOTKEY_IDS.flight.ascend;
+const DESCEND_ACTION = HOTKEY_IDS.flight.descend;
+
 export function installFlyBypass({ state, input }){
   if (typeof window==='undefined') return;
   window.dev = window.dev || {};
@@ -10,8 +15,17 @@ export function installFlyBypass({ state, input }){
   return {
     tick(dt){
       if (!on) return;
-      const up   = input?.held?.('flyUp')   || input?.held?.('Space');
-      const down = input?.held?.('flyDown') || input?.held?.('ShiftLeft') || input?.held?.('ShiftRight');
+      const up =
+        input?.held?.(ASCEND_ACTION) ||
+        input?.held?.('flyUp') ||
+        input?.held?.('Space');
+      const down =
+        input?.held?.(DESCEND_ACTION) ||
+        input?.held?.('flyDown') ||
+        input?.held?.('ShiftLeft') ||
+        input?.held?.('ShiftRight') ||
+        input?.held?.('ControlLeft') ||
+        input?.held?.('ControlRight');
       const speed = 6;
       if (up)   state.position.y += speed * dt;
       if (down) state.position.y -= speed * dt;
