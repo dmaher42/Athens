@@ -189,10 +189,10 @@ export async function applySky(
       pmrem.dispose();
 
       if (typeof window !== 'undefined') {
-        (window as typeof window & { __athensDebug?: any }).__athensDebug = {
-          ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
-          sky: { type: 'cube', id: pick.id, files: order }
-        };
+        const debug = (window as typeof window & { __athensDebug?: any }).__athensDebug;
+        if (debug && typeof debug === 'object') {
+          debug.sky = { type: 'cube', id: pick.id, files: order };
+        }
       }
     } else if (pick.type === 'equirect' && pick.file) {
       const loader = new THREE.TextureLoader();
@@ -214,10 +214,10 @@ export async function applySky(
       pmrem.dispose();
 
       if (typeof window !== 'undefined') {
-        (window as typeof window & { __athensDebug?: any }).__athensDebug = {
-          ...(window as typeof window & { __athensDebug?: any }).__athensDebug,
-          sky: { type: 'equirect', id: pick.id, file: url }
-        };
+        const debug = (window as typeof window & { __athensDebug?: any }).__athensDebug;
+        if (debug && typeof debug === 'object') {
+          debug.sky = { type: 'equirect', id: pick.id, file: url };
+        }
       }
     } else {
       logger.warn(

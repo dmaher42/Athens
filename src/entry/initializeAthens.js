@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { installRenderGuard } from '../safety/hardenPositions';
-if (typeof window !== 'undefined') window.THREE = THREE; // for console/puppeteer debug only
 import { createStats } from '../debug/statsShim.js';
 import { logger } from '../utils/logger.ts';
 import { setupGround, updateTrees } from '../main.js';
@@ -53,90 +52,7 @@ import { EnvironmentController } from '../environment/EnvironmentController.ts';
 // SKYSYS_END
 
 // CHAR_MAIN_HEIGHT_START
-function __measure(obj) {
-  if (!obj) return 0;
-  const box = new THREE.Box3().setFromObject(obj);
-  const size = new THREE.Vector3();
-  box.getSize(size);
-  return size.y || 0;
-}
-
-function __applyScaleMult(char, mult) {
-  if (!char) return;
-  char.userData._origScale ??= char.scale.clone();
-  const base = char.userData._origScale;
-  char.scale.set(base.x * mult, base.y * mult, base.z * mult);
-  char.updateMatrixWorld(true);
-
-  const st = (typeof window !== 'undefined' ? window.state : undefined) || {};
-  if (typeof st.capsuleHalfHeight === 'number') {
-    st._origCapsuleHalfHeight ??= st.capsuleHalfHeight;
-    st.capsuleHalfHeight = st._origCapsuleHalfHeight * mult;
-  }
-  if (typeof st.radius === 'number') {
-    st._origRadius ??= st.radius;
-    st.radius = st._origRadius * mult;
-  }
-  if (st.navAgent) {
-    if (typeof st.navAgent.height === 'number') {
-      st._origAgentHeight ??= st.navAgent.height;
-      st.navAgent.height = st._origAgentHeight * mult;
-    }
-    if (typeof st.navAgent.radius === 'number') {
-      st._origAgentRadius ??= st.navAgent.radius;
-      st.navAgent.radius = st._origAgentRadius * mult;
-    }
-  }
-}
-
-function __enforceMainCharacterHeight(scene, options) {
-  const unitsPerMeter = options?.movementConfig?.character?.unitsPerMeter ?? 100;
-  const desiredMeters = options?.movementConfig?.character?.height ?? 1.7;
-  const targetUnits = desiredMeters * unitsPerMeter;
-
-  const char = scene?.getObjectByName?.('MainCharacter');
-  if (!char) {
-    try { console.warn('[CharHeight] MainCharacter not found'); } catch {}
-    return;
-  }
-
-  const measured = __measure(char);
-  const scaleY = char.scale?.y || 1;
-  const baselineUnits = measured / scaleY || 1;
-  const mult = targetUnits / baselineUnits;
-
-  __applyScaleMult(char, mult);
-  requestAnimationFrame(() => __applyScaleMult(char, mult));
-
-  try {
-    console.info('[CharHeight/MainCharacter]', {
-      desiredMeters,
-      unitsPerMeter,
-      targetUnits,
-      baselineUnits,
-      mult
-    });
-  } catch {}
-
-  if (typeof window !== 'undefined') {
-    window.dev = window.dev || {};
-    window.dev.character = Object.assign(window.dev.character || {}, {
-      status: () => {
-        const c = scene?.getObjectByName?.('MainCharacter');
-        if (!c) return console.log('[CharHeight] no MainCharacter');
-        console.log('[CharHeight] measured≈', __measure(c).toFixed(2), 'scale=', c.scale);
-      },
-      setHeightMeters: (m = desiredMeters, upm = unitsPerMeter) => {
-        const c = scene?.getObjectByName?.('MainCharacter');
-        if (!c) return;
-        const base = (__measure(c)) / (c.scale?.y || 1) || 1;
-        const k = (m * upm) / base;
-        __applyScaleMult(c, k);
-        requestAnimationFrame(() => __applyScaleMult(c, k));
-      }
-    });
-  }
-}
+// Height scaling for the main character is no longer required.
 // CHAR_MAIN_HEIGHT_END
 
 // LANDMARK_SPREAD_START
@@ -647,16 +563,7 @@ export async function initializeAthens(options = {}) {
   let searchParams = null;
   if (typeof window !== 'undefined') {
     globalWindow = window;
-    globalWindow.THREE = THREE;
-    const existingDebug =
-      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
-        ? globalWindow.__athensDebug
-        : {};
-    globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
     searchParams = new URLSearchParams(globalWindow.location.search);
-    if (searchParams.get('headlessSmoke') === '1') {
-      globalWindow.__athensDebug = { scene, camera, renderer };
-    }
   }
 
   await initAmbient(camera);
@@ -669,13 +576,29 @@ export async function initializeAthens(options = {}) {
   } catch {}
 
   if (globalWindow) {
-    globalWindow.__athensDebug = {
-      ...(globalWindow.__athensDebug || {}),
-      audioAPI: AmbientAPI,
-      customAmbientTracks: Array.isArray(CUSTOM_AMBIENT_TRACKS)
-        ? CUSTOM_AMBIENT_TRACKS.map((track) => track.id)
-        : []
-    };
+const existingDebug =
+  globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
+    ? globalWindow.__athensDebug
+    : {};
+
+const headlessSmoke = searchParams?.get('headlessSmoke') === '1';
+globalWindow.THREE = THREE;
+
+if (headlessSmoke) {
+  globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer };
+} else {
+  globalWindow.__athensDebug = {
+    ...existingDebug,
+    scene,
+    camera,
+    renderer,
+    audioAPI: AmbientAPI,
+    customAmbientTracks: Array.isArray(CUSTOM_AMBIENT_TRACKS)
+      ? CUSTOM_AMBIENT_TRACKS.map((track) => track.id)
+      : []
+  };
+}
+
   }
 
   try {
@@ -1152,21 +1075,23 @@ export async function initializeAthens(options = {}) {
     sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
   }
 
-  // CHAR_MAIN_HEIGHT_START
-  const enforceMainCharacterHeight = () => __enforceMainCharacterHeight(scene, options);
-  const readyPromise = mainCharacter?.ready;
-  if (readyPromise && typeof readyPromise.then === 'function') {
-    readyPromise
-      .then(() => {
-        enforceMainCharacterHeight();
-      })
-      .catch((error) => {
-        logger.warn('[Athens][MainCharacter] Failed to load character before enforcing height.', error);
-        enforceMainCharacterHeight();
-      });
-  } else {
-    enforceMainCharacterHeight();
-  }
+// CHAR_MAIN_HEIGHT_START
+const enforceMainCharacterHeight = () => __enforceMainCharacterHeight(scene, options);
+const readyPromise = mainCharacter?.ready;
+
+if (readyPromise && typeof readyPromise.then === 'function') {
+  readyPromise
+    .then(() => {
+      enforceMainCharacterHeight();
+    })
+    .catch((error) => {
+      logger.warn('[Athens][MainCharacter] Failed to load character before enforcing height.', error);
+      enforceMainCharacterHeight();
+    });
+} else {
+  enforceMainCharacterHeight();
+}
+
   // CHAR_MAIN_HEIGHT_END
 
   const flyBypassFallbackPosition = new THREE.Vector3();
