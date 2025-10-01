@@ -12,12 +12,15 @@ type ContinuousAxisId = 'x' | 'z' | 'lookX' | 'lookY' | 'turn';
 
 type HotkeyFallbackEntry = string | [string, string];
 
+type HotkeyScope = 'gameplay' | 'dev';
+
 type HotkeyActionInit = {
   id: string;
   title: string;
   default: string;
   aliasCodes?: string[];
   fallback?: HotkeyFallbackEntry[];
+  scope?: HotkeyScope;
 };
 
 type HotkeyActionDefinition = {
@@ -28,6 +31,7 @@ type HotkeyActionDefinition = {
   codes: string[];
   fallback: [string, string][];
   category: HotkeyCategory;
+  scope: HotkeyScope;
 };
 
 type AxisBinding =
@@ -46,6 +50,7 @@ type AxisBinding =
 
 const actionRegistry = new Map<string, HotkeyActionDefinition>();
 const actionCodes = new Map<string, string[]>();
+const actionsByScope = new Map<HotkeyScope, HotkeyActionDefinition[]>();
 
 function createAction(
   category: HotkeyCategory,
@@ -72,6 +77,8 @@ function createAction(
     }
   }
 
+  const scope: HotkeyScope = init.scope ?? 'gameplay';
+
   const definition: HotkeyActionDefinition = {
     id: init.id,
     title: init.title,
@@ -79,11 +86,19 @@ function createAction(
     aliasCodes,
     codes,
     fallback: fallbackEntries,
-    category
+    category,
+    scope
   };
 
   actionRegistry.set(definition.id, definition);
   actionCodes.set(definition.id, definition.codes);
+
+  const scoped = actionsByScope.get(scope);
+  if (scoped) {
+    scoped.push(definition);
+  } else {
+    actionsByScope.set(scope, [definition]);
+  }
 
   return definition;
 }
@@ -200,6 +215,42 @@ const devToolActions = {
     title: 'Capture Screenshot',
     default: 'KeyP',
     fallback: ['p']
+  }),
+  landmarkNext: createAction(HotkeyCategoryId.DevTools, {
+    id: 'dev.landmark.next',
+    title: 'Select Next Landmark',
+    default: 'BracketRight',
+    fallback: [']', 'bracketright'],
+    scope: 'dev'
+  }),
+  landmarkPrev: createAction(HotkeyCategoryId.DevTools, {
+    id: 'dev.landmark.prev',
+    title: 'Select Previous Landmark',
+    default: 'BracketLeft',
+    fallback: ['[', 'bracketleft'],
+    scope: 'dev'
+  }),
+  landmarkSave: createAction(HotkeyCategoryId.DevTools, {
+    id: 'dev.landmark.save',
+    title: 'Save Landmark Positions',
+    default: 'F9',
+    fallback: [['f9', 'F9']],
+    scope: 'dev'
+  }),
+  landmarkExit: createAction(HotkeyCategoryId.DevTools, {
+    id: 'dev.landmark.exit',
+    title: 'Exit Landmark Placer',
+    default: 'KeyL',
+    aliasCodes: ['Escape'],
+    fallback: ['l', 'escape'],
+    scope: 'dev'
+  }),
+  flyBypassToggle: createAction(HotkeyCategoryId.DevTools, {
+    id: 'dev.flyBypass.toggle',
+    title: 'Toggle Fly Bypass',
+    default: 'Backquote',
+    fallback: ['`', 'backquote'],
+    scope: 'dev'
   })
 } as const;
 
@@ -293,7 +344,16 @@ export const HOTKEY_IDS = Object.freeze({
     toggleStats: debugActions.toggleStats.id
   },
   devTools: {
-    captureScreenshot: devToolActions.captureScreenshot.id
+    captureScreenshot: devToolActions.captureScreenshot.id,
+    landmark: {
+      next: devToolActions.landmarkNext.id,
+      prev: devToolActions.landmarkPrev.id,
+      save: devToolActions.landmarkSave.id,
+      exit: devToolActions.landmarkExit.id
+    },
+    flyBypass: {
+      toggle: devToolActions.flyBypassToggle.id
+    }
   }
 });
 
@@ -305,4 +365,9 @@ export function getActionDefinition(actionId: string): HotkeyActionDefinition | 
   return actionRegistry.get(actionId);
 }
 
+export function getActionsByScope(scope: HotkeyScope): HotkeyActionDefinition[] {
+  return actionsByScope.get(scope) ?? [];
+}
+
 export type { HotkeyActionDefinition };
+export type { HotkeyScope };
