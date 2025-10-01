@@ -437,6 +437,40 @@ function ensureLights(scene) {
   }
 }
 
+// Sun presets per mode (position, intensity, color). Tweak freely later.
+const SUN_PRESETS = {
+  dawn:        { pos: [-80, 120,  80], intensity: 0.9,  color: 0xfff2cf },
+  day:         { pos: [160, 260, 120], intensity: 1.05, color: 0xffffff },
+  high_noon:   { pos: [160, 260, 120], intensity: 1.05, color: 0xffffff },
+  golden_hour: { pos: [-120,140,  40], intensity: 0.95, color: 0xffd6a3 },
+  dusk:        { pos: [120, 110, -60], intensity: 0.8,  color: 0xffc7a1 },
+  night:       { pos: [ 20,  40, -20], intensity: 0.2,  color: 0xbfd4ff },
+  midnight:    { pos: [  0,  30,   0], intensity: 0.12, color: 0xcfe3ff },
+};
+
+function _findSun(scene) {
+  let sun = null;
+  scene.traverse((o) => {
+    if (!sun && o && (o.isDirectionalLight || o.type === 'DirectionalLight')) {
+      sun = o;
+    }
+  });
+  return sun;
+}
+
+/** Set first DirectionalLight to a preset that matches the mode (no-op if none). */
+function applySunForMode(scene, mode) {
+  const sun = _findSun(scene);
+  if (!sun) return;
+  const key = String(mode || 'day').toLowerCase();
+  const preset = SUN_PRESETS[key] || SUN_PRESETS.day;
+  const [x, y, z] = preset.pos;
+  sun.position.set(x, y, z);
+  if (typeof sun.intensity === 'number') sun.intensity = preset.intensity;
+  try { sun.color?.setHex?.(preset.color); } catch {}
+  sun.updateMatrixWorld?.(true);
+}
+
 function createPlaceholderPlayer() {
   const group = new THREE.Group();
   group.name = 'Player';
@@ -629,7 +663,7 @@ export async function initializeAthens(options = {}) {
   }
 
   try {
-    await environmentManager.applySky('day');
+    await environmentController.setMode('day', { playAmbient: true });
     environmentManager.setMode('procedural');
     try {
       const currentMode = environmentManager?.skyMode || 'day';
@@ -722,7 +756,21 @@ export async function initializeAthens(options = {}) {
     },
     async setMode(mode, envOptions = {}) {
       const allowAmbient = envOptions?.playAmbient !== false;
-      return setEnvironmentMode(mode, { allowAmbient });
+      const next = setEnvironmentMode(mode, { allowAmbient });
+      try {
+        await environmentManager.applySky(next);
+      } catch {
+        // keep running if sky load fails
+      }
+
+      // OPTIONAL SUN TWEAK (only if you add Part C below)
+      try {
+        if (typeof applySunForMode === 'function') {
+          applySunForMode(scene, next);
+        }
+      } catch {}
+
+      return next;
     },
     applySky(mode) {
       return environmentManager.applySky(mode);
@@ -1511,6 +1559,20 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const flyBypass = installFlyBypass({ state: flyBypassState, input: flyBypassInput });
   gameLoop.start();
 
+  function startTimeOfDayCycle({ minutesPerDay = 10 } = {}) {
+    const order = ['dawn', 'day', 'golden_hour', 'dusk', 'night', 'midnight'];
+    let i = Math.max(0, order.indexOf(String(environmentController.mode).toLowerCase()));
+    const stepMs = Math.max(5000, (minutesPerDay * 60_000) / order.length);
+
+    let timer = null;
+    async function tick() {
+      i = (i + 1) % order.length;
+      await environmentController.setMode(order[i], { playAmbient: true });
+    }
+    timer = setInterval(tick, stepMs);
+    return () => clearInterval(timer);
+  }
+
   // Context / teardown
   const context = {
     renderer,
@@ -1567,6 +1629,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     window.__athens = window.__athens || {};
     window.__athens.environment = context.environmentController;
     window.__athens.mainCharacter = context.mainCharacter;
+    window.__athens.startTimeOfDayCycle = (opts) => startTimeOfDayCycle(opts);
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
     window.__athens.city = context.city;
     window.__athens.ui = context.ui;
