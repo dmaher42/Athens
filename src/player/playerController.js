@@ -351,7 +351,7 @@ export function createPlayerController(
       rightVector.normalize();
     }
 
-    const forwardInput = THREE.MathUtils.clamp(-axisZ, -1, 1);
+    const forwardInput = THREE.MathUtils.clamp(axisZ, -1, 1);
     const strafeInput = THREE.MathUtils.clamp(axisX, -1, 1);
 
     if (hasMoveInput) {

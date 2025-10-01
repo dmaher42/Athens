@@ -4,10 +4,10 @@ type KeyboardEventLike = { code?: string; key?: string; repeat?: boolean };
 
 const activeKeys = new Set<string>();
 
-const POSITIVE_FORWARD = new Set(['KeyW', 'ArrowUp']);
-const NEGATIVE_FORWARD = new Set(['KeyS', 'ArrowDown']);
-const POSITIVE_RIGHT = new Set(['KeyD', 'ArrowRight']);
-const NEGATIVE_RIGHT = new Set(['KeyA', 'ArrowLeft']);
+const POSITIVE_FORWARD = new Set(['KeyW']);
+const NEGATIVE_FORWARD = new Set(['KeyS']);
+const POSITIVE_RIGHT = new Set(['KeyD']);
+const NEGATIVE_RIGHT = new Set(['KeyA']);
 const JUMP_KEYS = new Set(['Space']);
 const SPRINT_KEYS = new Set(['ShiftLeft', 'ShiftRight']);
 
@@ -20,10 +20,6 @@ const KEY_ALIAS: Record<string, string> = {
   A: 'KeyA',
   d: 'KeyD',
   D: 'KeyD',
-  ArrowUp: 'ArrowUp',
-  ArrowDown: 'ArrowDown',
-  ArrowLeft: 'ArrowLeft',
-  ArrowRight: 'ArrowRight',
   ' ': 'Space',
   Space: 'Space',
   Shift: 'ShiftLeft'
