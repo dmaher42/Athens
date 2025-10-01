@@ -14,6 +14,7 @@ import { collectRoadPoints } from '../roads/collectRoadPoints.js';
 import { createNpcSystem } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
+import { HOTKEY_IDS } from '../config/hotkeys.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
 import { createPlayerController } from '../player/playerController.js';
@@ -1534,26 +1535,59 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const gameLoop = createGameLoop(updateFrame, renderFrame);
   registerDisposables(gameLoop);
 
+  const flyBypassAscendAliases = new Set([
+    HOTKEY_IDS.flight.ascend,
+    'flyUp',
+    'Space',
+    'KeyE'
+  ]);
+  const flyBypassDescendAliases = new Set([
+    HOTKEY_IDS.flight.descend,
+    'flyDown',
+    'ShiftLeft',
+    'ShiftRight',
+    'ControlLeft',
+    'ControlRight',
+    'KeyQ',
+    'KeyC'
+  ]);
+
   const flyBypassInput = {
-    held(code) {
-      if (!keyboard || typeof keyboard.isDown !== 'function') {
+    held(identifier) {
+      if (!keyboard) {
         return false;
       }
-      switch (code) {
-        case 'flyUp':
-          return keyboard.isDown('Space') || keyboard.isDown('KeyE');
-        case 'flyDown':
-          return (
-            keyboard.isDown('ShiftLeft') ||
-            keyboard.isDown('ShiftRight') ||
-            keyboard.isDown('ControlLeft') ||
-            keyboard.isDown('ControlRight') ||
-            keyboard.isDown('KeyQ') ||
-            keyboard.isDown('KeyC')
-          );
-        default:
-          return keyboard.isDown(code);
+
+      if (flyBypassAscendAliases.has(identifier)) {
+        if (typeof keyboard.isActionDown === 'function' && keyboard.isActionDown(HOTKEY_IDS.flight.ascend)) {
+          return true;
+        }
+        return typeof keyboard.isDown === 'function'
+          ? keyboard.isDown('Space') || keyboard.isDown('KeyE')
+          : false;
       }
+
+      if (flyBypassDescendAliases.has(identifier)) {
+        if (typeof keyboard.isActionDown === 'function' && keyboard.isActionDown(HOTKEY_IDS.flight.descend)) {
+          return true;
+        }
+        return typeof keyboard.isDown === 'function'
+          ? (
+              keyboard.isDown('ShiftLeft') ||
+              keyboard.isDown('ShiftRight') ||
+              keyboard.isDown('ControlLeft') ||
+              keyboard.isDown('ControlRight') ||
+              keyboard.isDown('KeyQ') ||
+              keyboard.isDown('KeyC')
+            )
+          : false;
+      }
+
+      if (typeof identifier === 'string' && identifier.includes('.') && typeof keyboard.isActionDown === 'function') {
+        return keyboard.isActionDown(identifier);
+      }
+
+      return typeof keyboard.isDown === 'function' ? keyboard.isDown(identifier) : false;
     }
   };
 
