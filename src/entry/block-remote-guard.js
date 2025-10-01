@@ -1,6 +1,5 @@
 import { USE_REMOTE } from '../config/flags';
 import { logger } from '../utils/logger.ts';
-import { buildBaseRelativeUrl } from '../utils/baseUrl.ts';
 
 if (typeof window !== 'undefined' && !USE_REMOTE) {
   (function () {
@@ -33,8 +32,8 @@ if (typeof window !== 'undefined' && !USE_REMOTE) {
     }
 
     try {
-      const swRelative = buildBaseRelativeUrl('service-worker.js');
-      const swUrl = new URL(swRelative, window.location.href).toString();
+      const base = (import.meta?.env?.BASE_URL ?? window.__ATHENS_BASE__ ?? '/');
+      const swUrl = new URL(`${base}service-worker.js`, window.location.href).toString();
 
       Promise.resolve()
         .then(() =>
