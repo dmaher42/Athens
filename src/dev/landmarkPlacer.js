@@ -1,15 +1,8 @@
 // PLACER_START
 import * as THREE from 'three';
+import { KNOWN_LANDMARK_KEYS } from '../config/landmarkLayout.ts';
 
-const DEFAULT_LANDMARKS = [
-  'Agora',
-  'Stoa_of_Attalos',
-  'Tholos',
-  'Theater_of_Dionysus',
-  'Stadium',
-  'CityGate_South',
-  'Port_Quay_A'
-];
+const DEFAULT_LANDMARKS = [...KNOWN_LANDMARK_KEYS];
 
 const KEY_BINDINGS = {
   next: { key: ']', code: 'BracketRight' },
