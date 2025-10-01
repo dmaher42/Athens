@@ -135,7 +135,7 @@ export async function applySky(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
   choice?: string
-) {
+): Promise<string | null> {
   setRendererColorSpace(renderer);
 
   const previousBackground = scene.background as THREE.Texture | THREE.Color | null;
@@ -159,8 +159,10 @@ export async function applySky(
 
   if (!pick) {
     logger.warn('[sky] No sky choices found.');
-    return;
+    return null;
   }
+
+  let appliedId: string | null = null;
 
   try {
     if (pick.type === 'cube' && pick.dir && pick.faces) {
@@ -194,6 +196,7 @@ export async function applySky(
           debug.sky = { type: 'cube', id: pick.id, files: order };
         }
       }
+      appliedId = pick.id;
     } else if (pick.type === 'equirect' && pick.file) {
       const loader = new THREE.TextureLoader();
       const url = resolveSkyPath(pick.file);
@@ -219,14 +222,16 @@ export async function applySky(
           debug.sky = { type: 'equirect', id: pick.id, file: url };
         }
       }
+      appliedId = pick.id;
     } else {
       logger.warn(
         `[sky] Choice "${pick.id}" is missing required properties for type "${pick.type}".`
       );
-      return;
+      return null;
     }
   } catch (error) {
     logger.warn('[sky] Failed to apply sky environment.', error);
+    return null;
   } finally {
     // Dispose the previous background texture if it was replaced
     if (previousBackground && previousBackground !== scene.background) {
@@ -237,4 +242,6 @@ export async function applySky(
       }
     }
   }
+
+  return appliedId;
 }
