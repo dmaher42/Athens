@@ -1142,7 +1142,20 @@ export async function initializeAthens(options = {}) {
   }
 
   // CHAR_MAIN_HEIGHT_START
-  __enforceMainCharacterHeight(scene, options);
+  const enforceMainCharacterHeight = () => __enforceMainCharacterHeight(scene, options);
+  const readyPromise = mainCharacter?.ready;
+  if (readyPromise && typeof readyPromise.then === 'function') {
+    readyPromise
+      .then(() => {
+        enforceMainCharacterHeight();
+      })
+      .catch((error) => {
+        logger.warn('[Athens][MainCharacter] Failed to load character before enforcing height.', error);
+        enforceMainCharacterHeight();
+      });
+  } else {
+    enforceMainCharacterHeight();
+  }
   // CHAR_MAIN_HEIGHT_END
 
   const flyBypassFallbackPosition = new THREE.Vector3();
