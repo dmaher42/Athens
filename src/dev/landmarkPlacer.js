@@ -1,27 +1,32 @@
 // PLACER_START
 import * as THREE from 'three';
 import { KNOWN_LANDMARK_KEYS } from '../config/landmarkLayout.ts';
+import {
+  HOTKEY_IDS,
+  KEY_FALLBACK_MAP,
+  getActionCodes
+} from '../config/hotkeys.ts';
+import { registerScopedHotkeys } from '../input/hotkeyScopes.js';
 
 const DEFAULT_LANDMARKS = [...KNOWN_LANDMARK_KEYS];
 
-const KEY_BINDINGS = {
-  next: { key: ']', code: 'BracketRight' },
-  prev: { key: '[', code: 'BracketLeft' },
-  exit: { key: 'l', code: 'KeyL' },
-  saveCode: 'F9'
+const DEV_ACTION_IDS = {
+  next: HOTKEY_IDS.dev.landmark.next,
+  prev: HOTKEY_IDS.dev.landmark.prev,
+  save: HOTKEY_IDS.dev.landmark.save,
+  exit: HOTKEY_IDS.dev.landmark.exit
 };
 
-function matchesKey(event, binding) {
-  if (!event || !binding) return false;
-  const key = typeof event.key === 'string' ? event.key : '';
-  if (binding.key && key.toLowerCase() === String(binding.key).toLowerCase()) {
-    return true;
+function eventToCode(event) {
+  const code = typeof event?.code === 'string' && event.code !== 'Unidentified' ? event.code : '';
+  if (code) {
+    return code;
   }
-  const code = typeof event.code === 'string' ? event.code : '';
-  if (binding.code && code === binding.code) {
-    return true;
+  const key = typeof event?.key === 'string' ? event.key.toLowerCase() : '';
+  if (!key) {
+    return '';
   }
-  return false;
+  return KEY_FALLBACK_MAP.get(key) || '';
 }
 
 function shouldIgnoreKeyEvent(event) {
@@ -48,6 +53,44 @@ function shouldIgnoreKeyEvent(event) {
 }
 
 const POINTER_BUTTON_PRIMARY = 0;
+
+function formatCodeLabel(code) {
+  if (typeof code !== 'string' || code === '') {
+    return '';
+  }
+  if (code.startsWith('Key') && code.length === 4) {
+    return code.slice(3).toUpperCase();
+  }
+  if (code.startsWith('Digit') && code.length === 5) {
+    return code.slice(5);
+  }
+  switch (code) {
+    case 'BracketLeft':
+      return '[';
+    case 'BracketRight':
+      return ']';
+    case 'Backquote':
+      return '`';
+    case 'Escape':
+      return 'Esc';
+    default:
+      return code;
+  }
+}
+
+function formatCodeList(codes) {
+  if (!codes || codes.size === 0) {
+    return '';
+  }
+  const entries = [];
+  for (const code of codes) {
+    const label = formatCodeLabel(code);
+    if (label) {
+      entries.push(label);
+    }
+  }
+  return entries.join(', ');
+}
 
 function isGround(mesh) {
   if (!mesh) return false;
@@ -199,6 +242,64 @@ export function createLandmarkPlacer({
     lastHit: null
   };
 
+  const devHotkeys = {
+    active: false,
+    next: new Set(),
+    prev: new Set(),
+    save: new Set(),
+    exit: new Set()
+  };
+
+  function syncDevHotkeys(manifest) {
+    const byId = new Map();
+    if (Array.isArray(manifest)) {
+      for (const entry of manifest) {
+        if (entry && typeof entry.id === 'string') {
+          byId.set(entry.id, entry);
+        }
+      }
+    }
+
+    const updateSet = (actionId, targetSet) => {
+      targetSet.clear();
+      if (!actionId) {
+        return;
+      }
+      const manifestEntry = byId.get(actionId);
+      const codes = manifestEntry?.codes ?? getActionCodes(actionId);
+      for (const code of codes) {
+        if (typeof code === 'string' && code) {
+          targetSet.add(code);
+        }
+      }
+    };
+
+    updateSet(DEV_ACTION_IDS.next, devHotkeys.next);
+    updateSet(DEV_ACTION_IDS.prev, devHotkeys.prev);
+    updateSet(DEV_ACTION_IDS.save, devHotkeys.save);
+    updateSet(DEV_ACTION_IDS.exit, devHotkeys.exit);
+    devHotkeys.active = true;
+    updateHud();
+  }
+
+  function clearDevHotkeys() {
+    devHotkeys.active = false;
+    devHotkeys.next.clear();
+    devHotkeys.prev.clear();
+    devHotkeys.save.clear();
+    devHotkeys.exit.clear();
+    updateHud();
+  }
+
+  const devHotkeySession = registerScopedHotkeys('dev', {
+    onActivate(manifest) {
+      syncDevHotkeys(manifest);
+    },
+    onDeactivate() {
+      clearDevHotkeys();
+    }
+  });
+
   let groundMeshes = [];
 
   const listeners = {
@@ -221,6 +322,24 @@ export function createLandmarkPlacer({
     return state.names[state.index] ?? null;
   }
 
+  function buildHotkeySummary() {
+    if (!devHotkeys.active) {
+      return 'Hotkeys: Prev [ [ ] Next | Save Ctrl/Cmd+S or F9 | Exit L/Esc';
+    }
+
+    const prev = formatCodeList(devHotkeys.prev) || '[';
+    const next = formatCodeList(devHotkeys.next) || ']';
+    const saveCodes = formatCodeList(devHotkeys.save);
+    const exitCodes = formatCodeList(devHotkeys.exit);
+    const saveSummary = saveCodes ? `Ctrl/Cmd+S or ${saveCodes}` : 'Ctrl/Cmd+S';
+    const exitSummary = devHotkeys.exit.has('Escape')
+      ? exitCodes
+      : exitCodes
+        ? `${exitCodes} or Esc`
+        : 'Esc';
+    return `Hotkeys: Prev ${prev} | Next ${next} | Save ${saveSummary} | Exit ${exitSummary}`;
+  }
+
   function updateHud() {
     if (!hud) return;
     if (!state.enabled) {
@@ -230,10 +349,11 @@ export function createLandmarkPlacer({
     }
     const name = currentName() || '—';
     const saved = state.positions[name] ? ' (set)' : '';
+    const summary = buildHotkeySummary();
     hud.innerHTML = `
       <div style="font-weight:600;margin-bottom:4px;">Landmark Placer</div>
       <div>Landmark: <span style="color:#facc15;">${name}</span>${saved}</div>
-      <div style="margin-top:6px;opacity:0.8;">Hotkeys: Prev [ [ ] Next | Save Ctrl/Cmd+S or F9 | Exit L/Esc</div>
+      <div style="margin-top:6px;opacity:0.8;">${summary}</div>
     `;
     hud.style.display = 'block';
   }
@@ -312,11 +432,19 @@ export function createLandmarkPlacer({
     selectNext(-1);
   }
 
+  function matchesAction(event, codes) {
+    if (!codes || codes.size === 0) {
+      return false;
+    }
+    const resolved = eventToCode(event);
+    return resolved ? codes.has(resolved) : false;
+  }
+
   function handleKeyDown(event) {
     if (!state.enabled) return;
+    if (!devHotkeys.active) return;
     if (shouldIgnoreKeyEvent(event)) return;
     const keyLower = typeof event.key === 'string' ? event.key.toLowerCase() : '';
-    const code = typeof event.code === 'string' ? event.code : '';
 
     if ((event.ctrlKey || event.metaKey) && keyLower === 's') {
       event.preventDefault();
@@ -327,7 +455,7 @@ export function createLandmarkPlacer({
       return;
     }
 
-    if (code === KEY_BINDINGS.saveCode || event.key === KEY_BINDINGS.saveCode) {
+    if (matchesAction(event, devHotkeys.save)) {
       event.preventDefault();
       event.stopImmediatePropagation();
       if (!event.repeat) {
@@ -336,21 +464,21 @@ export function createLandmarkPlacer({
       return;
     }
 
-    if (matchesKey(event, KEY_BINDINGS.next)) {
+    if (matchesAction(event, devHotkeys.next)) {
       event.preventDefault();
       event.stopImmediatePropagation();
       selectNext(1);
       return;
     }
 
-    if (matchesKey(event, KEY_BINDINGS.prev)) {
+    if (matchesAction(event, devHotkeys.prev)) {
       event.preventDefault();
       event.stopImmediatePropagation();
       selectPrev();
       return;
     }
 
-    if (keyLower === 'escape' || matchesKey(event, KEY_BINDINGS.exit)) {
+    if (keyLower === 'escape' || matchesAction(event, devHotkeys.exit)) {
       event.preventDefault();
       event.stopImmediatePropagation();
       api.disable();
@@ -394,6 +522,7 @@ export function createLandmarkPlacer({
   const api = {
     enable() {
       if (state.enabled) return;
+      devHotkeySession.activate();
       state.enabled = true;
       groundMeshes = collectGroundMeshes();
       if (!scene.getObjectByName(ghost.name)) {
@@ -405,6 +534,7 @@ export function createLandmarkPlacer({
     },
     disable() {
       if (!state.enabled) return;
+      devHotkeySession.deactivate();
       state.enabled = false;
       ghost.visible = false;
       state.lastHit = null;
@@ -455,6 +585,23 @@ export function createLandmarkPlacer({
     },
     refreshGround() {
       groundMeshes = collectGroundMeshes();
+    },
+    dispose() {
+      if (typeof devHotkeySession.dispose === 'function') {
+        devHotkeySession.dispose();
+      } else {
+        devHotkeySession.deactivate();
+      }
+      unbindListeners();
+      if (ghost?.parent) {
+        ghost.parent.remove(ghost);
+      }
+      if (hud?.parentElement) {
+        hud.parentElement.removeChild(hud);
+      }
+      state.enabled = false;
+      state.lastHit = null;
+      devHotkeys.active = false;
     }
   };
 
