@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { applySky } from '../scene/sky.ts';
 import { disposeAll } from '../utils/disposable.ts';
+import { createProceduralSky, type SkyTime } from '../scene/proceduralSky.ts';
 
 export type EnvDeps = {
   scene: THREE.Scene;
@@ -8,7 +8,7 @@ export type EnvDeps = {
 };
 
 export type EnvAPI = {
-  applySkyMode(mode: 'dawn' | 'day' | 'dusk' | 'night'): Promise<void>;
+  applySkyMode(mode: SkyTime): Promise<void>;
   applySkyImage(url: string): Promise<void>;
   setMode(mode: 'procedural' | 'image'): void;
   dispose(): void;
@@ -38,7 +38,7 @@ function disposeImageState(state: ImageState) {
   disposeAll(state.background, state.environment, state.renderTarget);
 }
 
-function normalizeSkyMode(mode: 'dawn' | 'day' | 'dusk' | 'night'): 'dawn' | 'day' | 'dusk' | 'night' {
+function normalizeSkyMode(mode: SkyTime): SkyTime {
   switch (mode) {
     case 'dawn':
     case 'day':
@@ -56,6 +56,8 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
 
   let disposed = false;
   let imageState: ImageState = { ...EMPTY_IMAGE_STATE };
+  let procedural = null as ReturnType<typeof createProceduralSky> | null;
+  let _currentMode: 'procedural' | 'image' = 'procedural';
 
   const ensureActive = () => {
     if (disposed) {
@@ -75,7 +77,28 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
 
       try {
         const normalized = normalizeSkyMode(nextMode);
-        await applySky(scene, renderer, normalized);
+        if (!procedural) {
+          procedural = createProceduralSky(renderer);
+        }
+        procedural.setMode(normalized);
+        const previousBackground = scene.background;
+        const previousEnvironment = scene.environment as THREE.Texture | THREE.CubeTexture | null;
+        await procedural.applyTo(scene);
+        _currentMode = 'procedural';
+        if (
+          previousEnvironment &&
+          previousEnvironment !== scene.environment &&
+          (previousEnvironment instanceof THREE.Texture || previousEnvironment instanceof THREE.CubeTexture)
+        ) {
+          disposeAll(previousEnvironment);
+        }
+        if (
+          previousBackground &&
+          previousBackground !== scene.background &&
+          (previousBackground instanceof THREE.Texture || previousBackground instanceof THREE.CubeTexture)
+        ) {
+          disposeAll(previousBackground);
+        }
       } finally {
         disposeImageState(previousImage);
       }
@@ -133,6 +156,7 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
       }
 
       disposeImageState(previousImage);
+      _currentMode = 'image';
     },
 
     setMode(next) {
@@ -140,8 +164,7 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
         return;
       }
       if (next === 'image' || next === 'procedural') {
-        // Mode tracking has been removed; keep branch to satisfy lint and
-        // preserve the public signature.
+        _currentMode = next;
       }
     },
 
@@ -160,6 +183,9 @@ export function createEnvironment({ scene, renderer }: EnvDeps): EnvAPI {
       }
       scene.environment = null;
       scene.background = null;
+      procedural?.dispose();
+      procedural = null;
+      _currentMode = 'procedural';
     },
   };
 }
