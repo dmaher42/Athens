@@ -18,6 +18,9 @@ type MovementActionCodes = {
   rightNegative: readonly string[];
   jump: readonly string[];
   sprint: readonly string[];
+  flyToggle: readonly string[];
+  flyUp: readonly string[];
+  flyDown: readonly string[];
 };
 
 const RELEVANT_KEY_SET: Set<string> | undefined =
@@ -60,7 +63,10 @@ function refreshMovementCodes(): MovementActionCodes {
     rightPositive: resolveActionCodes(HOTKEY_IDS.movement.right),
     rightNegative: resolveActionCodes(HOTKEY_IDS.movement.left),
     jump: resolveActionCodes(HOTKEY_IDS.flight.ascend),
-    sprint: resolveActionCodes(HOTKEY_IDS.movement.run)
+    sprint: resolveActionCodes(HOTKEY_IDS.movement.run),
+    flyToggle: resolveActionCodes(HOTKEY_IDS.flight.toggle),
+    flyUp: resolveActionCodes(HOTKEY_IDS.flight.ascend),
+    flyDown: resolveActionCodes(HOTKEY_IDS.flight.descend)
   };
 
   mergeRelevantKeys(codes);
@@ -170,7 +176,10 @@ export function getInput(): CharacterInput {
     forward: axisValue(movementCodes.forwardPositive, movementCodes.forwardNegative),
     right: axisValue(movementCodes.rightPositive, movementCodes.rightNegative),
     jump: hasAnyKey(movementCodes.jump),
-    sprint: hasAnyKey(movementCodes.sprint)
+    sprint: hasAnyKey(movementCodes.sprint),
+    flyToggle: hasAnyKey(movementCodes.flyToggle),
+    flyUp: hasAnyKey(movementCodes.flyUp),
+    flyDown: hasAnyKey(movementCodes.flyDown)
   };
 }
 

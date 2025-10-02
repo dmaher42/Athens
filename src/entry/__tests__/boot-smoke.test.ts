@@ -317,15 +317,6 @@ async function stubAppModules(THREE: ThreeModule) {
   const seedCameraModule = await import('../../camera/seedCameraBehindPlayer.js');
   mock.method(seedCameraModule, 'seedCameraBehindPlayer', () => {});
 
-  const playerControllerModule = await import('../../player/playerController.js');
-  mock.method(playerControllerModule, 'createPlayerController', () => ({
-    setGroundMeshes: () => {},
-    setColliders: () => {},
-    setObject: () => {},
-    update: () => {},
-    dispose: () => {},
-  }));
-
   const flyBypassModule = await import('../../dev/flyBypass.js');
   mock.method(flyBypassModule, 'installFlyBypass', () => ({ tick: () => {} }));
 
