@@ -18,7 +18,6 @@ import { createKeyboard } from '../input/keyboard.js';
 import { RELEVANT_KEYS, HOTKEY_IDS, getHotkeyDisplayEntries } from '../config/hotkeys.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
 import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
-import { createPlayerController } from '../player/playerController.js';
 import { installFlyBypass } from '../dev/flyBypass.js';
 import { bindHotkeyActions } from '../input/bindHotkeyActions.js';
 import { registerScopedHotkeys } from '../input/hotkeyScopes.js';
@@ -198,10 +197,6 @@ if (typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production') {
 const _TMP_WORLD = new THREE.Vector3();
 const _TMP_LOCAL = new THREE.Vector3();
 const _TMP_GROUND = new THREE.Vector3();
-
-const WALKING_ENABLED = true;
-const _WALK_LOOK_DIR = new THREE.Vector3();
-const _WALK_LOOK_TARGET = new THREE.Vector3();
 
 function getPhaseSetter() {
   if (typeof window !== 'undefined' && typeof window.__athensSetPhase === 'function') {
@@ -1351,19 +1346,14 @@ export async function initializeAthens(options = {}) {
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
 
-  if (WALKING_ENABLED) {
-    const collisionWorldUrl =
-      options?.collisionWorldUrl ??
-      options?.collision?.url ??
-      options?.worldUrl ??
-      null;
+  const collisionWorldUrl =
+    options?.collisionWorldUrl ?? options?.collision?.url ?? options?.worldUrl ?? null;
 
-    if (collisionWorldUrl) {
-      try {
-        collisionWorld = await loadWorldWithColliders(collisionWorldUrl, scene);
-      } catch (error) {
-        logger.warn('[Athens][CollisionWorld] Failed to load collision world.', error);
-      }
+  if (collisionWorldUrl) {
+    try {
+      collisionWorld = await loadWorldWithColliders(collisionWorldUrl, scene);
+    } catch (error) {
+      logger.warn('[Athens][CollisionWorld] Failed to load collision world.', error);
     }
   }
 
@@ -1521,14 +1511,42 @@ export async function initializeAthens(options = {}) {
   const controllerHeight = Number.isFinite(movementConfig?.character?.height)
     ? Math.max(1, movementConfig.character.height)
     : 1.7;
-  let walkingController = null;
-  if (WALKING_ENABLED) {
-    const controllerStart = playerSpawn.clone();
-    controllerStart.y += controllerHeight * 0.5;
-    walkingController = new CharacterController(camera, controllerStart, controllerHeight);
-    if (playerObject?.position) {
-      playerObject.position.copy(walkingController.position);
+  const controllerStart = playerSpawn.clone();
+  controllerStart.y += controllerHeight * 0.5;
+  sanitizeVec3(controllerStart, SAFE_PLAYER_FALLBACK);
+
+  const flightConfig = movementConfig?.flight ?? {};
+  const flightVerticalSpeed = Number.isFinite(flightConfig.verticalSpeed)
+    ? flightConfig.verticalSpeed
+    : Number.isFinite(flightConfig.verticalMaxSpeed)
+    ? flightConfig.verticalMaxSpeed
+    : undefined;
+
+  const controller = new CharacterController(camera, controllerStart, {
+    height: controllerHeight,
+    walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
+    runMultiplier: Number.isFinite(movementConfig?.runMultiplier)
+      ? Math.max(movementConfig.runMultiplier, 1)
+      : 1.7,
+    damping: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : undefined,
+    safePosition: SAFE_PLAYER_FALLBACK,
+    flight: {
+      horizontalSpeed: Number.isFinite(flightConfig.horizontalSpeed)
+        ? Math.max(flightConfig.horizontalSpeed, 0)
+        : undefined,
+      verticalSpeed: Number.isFinite(flightVerticalSpeed)
+        ? Math.max(flightVerticalSpeed, 0)
+        : undefined,
+      nudgeUp: Number.isFinite(flightConfig.nudgeUp) ? flightConfig.nudgeUp : undefined,
+      exitHover: Number.isFinite(flightConfig.exitHover) ? flightConfig.exitHover : undefined,
+      startGraceFrames: Number.isFinite(flightConfig.startGraceFrames)
+        ? flightConfig.startGraceFrames
+        : undefined
     }
+  });
+  controller.attach(playerObject ?? null);
+  if (playerObject?.position) {
+    controller.setPosition(playerObject.position);
   }
 
 // CHAR_MAIN_HEIGHT_START
@@ -1540,6 +1558,8 @@ const ensureMainCharacterPlacement = () => {
   placeAtSpawn(resolvedPlayer);
   sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
   playerObject = resolvedPlayer;
+  controller.attach(resolvedPlayer);
+  controller.setPosition(resolvedPlayer.position);
   return resolvedPlayer;
 };
 
@@ -1586,26 +1606,15 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     { scope: 'gameplay' }
   );
   registerDisposables(actionBindings);
-  const controller = createPlayerController(playerObject, keyboard, {
-    walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
-    runMultiplier: Number.isFinite(movementConfig?.runMultiplier) ? movementConfig.runMultiplier : 1.7,
-    acceleration: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : 10,
-    turnLerp: 0.18,
-    colliders
-  });
-  controller.setGroundMeshes(groundMeshes);
-  controller.setColliders?.(colliders);
 
   flyBypassState.setFlying = (active) => {
     const desired = Boolean(active);
-    controller?.setFlyingActive?.(desired);
-    flyBypassState.isFlying = controller?.isFlying?.() ?? desired;
+    controller.setFlyingActive(desired);
+    flyBypassState.isFlying = controller.isFlying();
   };
 
   if (globalWindow && typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
-    globalWindow.__athensDebug.controller = WALKING_ENABLED && walkingController
-      ? walkingController
-      : controller;
+    globalWindow.__athensDebug.controller = controller;
   }
 
   const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 2.2, z: -6 };
@@ -1717,6 +1726,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       sanitizeQuaternion(playerObject.quaternion);
     }
 
+    if (playerObject?.position) {
+      controller.setPosition(playerObject.position);
+    }
+
     if (cameraState?.pos) {
       safeSetVec3(camera.position, cameraState.pos, DEFAULT_CAMERA);
     } else {
@@ -1785,7 +1798,8 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
         sanitizeEuler(resolvedPlayer.rotation);
         sanitizeQuaternion(resolvedPlayer.quaternion);
-        controller.setObject?.(resolvedPlayer);
+        controller.attach(resolvedPlayer);
+        controller.setPosition(resolvedPlayer.position);
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
         flyBypassState.position = playerObject?.position || flyBypassFallbackPosition;
@@ -1793,6 +1807,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
           restoreCameraAndPlayer(savedState);
         } else {
           sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+          controller.setPosition(playerObject.position);
           seedCameraBehindPlayer(playerObject, camera, {
             followDistance: Number.isFinite(cameraSeedConfig?.followDistance)
               ? cameraSeedConfig.followDistance
@@ -1854,6 +1869,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
 
       if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
         sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+        controller.setPosition(playerObject.position);
       }
       if (!isFiniteVec3(camera.position)) {
         sanitizeVec3(camera.position, DEFAULT_CAMERA);
@@ -1878,26 +1894,15 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       landmarks.update?.(camera);
 
       if (!skippedLargeDt) {
-        if (WALKING_ENABLED && walkingController) {
-          walkingController.update(delta, getInput(), collisionWorld);
-          if (playerObject?.position) {
-            playerObject.position.copy(walkingController.position);
-          }
-        } else {
-          controller?.update?.(delta, camera);
-        }
+        controller.update(delta, getInput(), collisionWorld);
       }
 
-      if (controller) {
-        flyBypassState.isFlying = controller.isFlying?.() ?? flyBypassState.isFlying;
-      }
+      flyBypassState.isFlying = controller.isFlying();
 
       ui?.update?.(delta, {
         position: playerObject?.position,
-        isFlying: WALKING_ENABLED ? false : controller?.isFlying?.() ?? false,
-        isRunning: WALKING_ENABLED && walkingController
-          ? walkingController.velocity.length() > walkingController.walkSpeed + 0.1
-          : controller?.isRunning?.(),
+        isFlying: controller.isFlying(),
+        isRunning: controller.isRunning(),
         skippedLargeDt: Boolean(skippedLargeDt)
       });
 
@@ -1909,6 +1914,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       }
       if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
         sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+        controller.setPosition(playerObject.position);
       }
       if (!isFiniteVec3(camera.position)) {
         sanitizeVec3(camera.position, DEFAULT_CAMERA);
@@ -1923,23 +1929,13 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         }
       }
 
-      if (WALKING_ENABLED && walkingController) {
-        camera.getWorldDirection(_WALK_LOOK_DIR);
-        if (_WALK_LOOK_DIR.lengthSq() < 1e-6) {
-          _WALK_LOOK_DIR.set(0, 0, -1);
-        }
-        _WALK_LOOK_TARGET.copy(camera.position).addScaledVector(_WALK_LOOK_DIR, 10);
-        sanitizeVec3(_WALK_LOOK_TARGET, SAFE_PLAYER_FALLBACK);
-        camera.lookAt(_WALK_LOOK_TARGET);
-      } else {
-        const lookTarget = activePlayer?.position
-          ? activePlayer.position
-          : playerObject?.position
-            ? playerObject.position
-            : SAFE_PLAYER_VECTOR.clone();
-        sanitizeVec3(lookTarget, SAFE_PLAYER_FALLBACK);
-        camera.lookAt(lookTarget);
-      }
+      const lookTarget = activePlayer?.position
+        ? activePlayer.position
+        : playerObject?.position
+          ? playerObject.position
+          : SAFE_PLAYER_VECTOR.clone();
+      sanitizeVec3(lookTarget, SAFE_PLAYER_FALLBACK);
+      camera.lookAt(lookTarget);
     } catch (error) {
       logger.warn('[Athens] Frame update failed.', error);
     }
@@ -1954,6 +1950,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         }
         if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
           sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+          controller.setPosition(playerObject.position);
         }
         if (!isFiniteVec3(camera.position)) {
           sanitizeVec3(camera.position, DEFAULT_CAMERA);
@@ -2072,7 +2069,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     container,
     ui,
     collisionWorld,
-    walkingController,
+    controller,
     sanityGeometry,
     toggleSound(muted) {
       if (typeof muted === 'boolean') {
@@ -2129,7 +2126,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
     window.__athens.city = context.city;
     window.__athens.ui = context.ui;
-    window.__athens.controller = WALKING_ENABLED && walkingController ? walkingController : controller;
+    window.__athens.controller = controller;
     window.__athens.collisionWorld = collisionWorld;
     window.__athens.toggleSound = context.toggleSound;
     window.__athens.toggleSky = context.toggleSky;
