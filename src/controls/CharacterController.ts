@@ -60,6 +60,7 @@ export interface CharacterControllerOptions {
   jumpSpeed?: number;
   damping?: number;
   stepOffset?: number;
+  autoUpdateCamera?: boolean;
   safePosition?: { x: number; y: number; z: number } | THREE.Vector3;
   flight?: CharacterFlightOptions;
 }
@@ -85,6 +86,7 @@ export class CharacterController {
   private readonly _position = new THREE.Vector3();
   private readonly _halfSegment = new THREE.Vector3();
   private readonly safePosition = { x: DEFAULT_PLAYER.x, y: DEFAULT_PLAYER.y, z: DEFAULT_PLAYER.z };
+  private readonly autoUpdateCamera: boolean;
   private attachedObject: THREE.Object3D | null = null;
   private flightEnabled = true;
   private flightToggleDown = false;
@@ -98,6 +100,7 @@ export class CharacterController {
     options: CharacterControllerOptions = {}
   ) {
     this.camera = camera;
+    this.autoUpdateCamera = Boolean(options.autoUpdateCamera);
 
     const height = Number.isFinite(options.height)
       ? Math.max(options.height ?? 0, EPSILON * 2)
@@ -169,7 +172,9 @@ export class CharacterController {
     }
 
     this.sanitizeCapsule();
-    this.updateCameraPosition();
+    if (this.autoUpdateCamera) {
+      this.updateCameraPosition();
+    }
   }
 
   get position(): THREE.Vector3 {
@@ -209,7 +214,9 @@ export class CharacterController {
     }
 
     this.sanitizeCapsule();
-    this.updateCameraPosition();
+    if (this.autoUpdateCamera) {
+      this.updateCameraPosition();
+    }
     this.syncAttachedObject();
   }
 
@@ -458,7 +465,9 @@ export class CharacterController {
     }
 
     this.sanitizeCapsule();
-    this.updateCameraPosition();
+    if (this.autoUpdateCamera) {
+      this.updateCameraPosition();
+    }
     this.syncAttachedObject();
   }
 
@@ -492,7 +501,9 @@ export class CharacterController {
     this.capsule.start.copy(_capsuleCenter).sub(this._halfSegment);
     this.capsule.end.copy(_capsuleCenter).add(this._halfSegment);
     this.sanitizeCapsule();
-    this.updateCameraPosition();
+    if (this.autoUpdateCamera) {
+      this.updateCameraPosition();
+    }
     this.syncAttachedObject();
   }
 }
