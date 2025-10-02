@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export const DEFAULT_PLAYER = new THREE.Vector3(0, 1, 0);
+export const DEFAULT_PLAYER = new THREE.Vector3(0, 1, -230);
 export const DEFAULT_CAMERA = new THREE.Vector3(20, 12, 20);
 
 export function finiteNumber(n: any, def = 0): number {
