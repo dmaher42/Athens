@@ -60,6 +60,131 @@ import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
 import { withTimeout as withBootTimeout } from '../boot/withTimeout.ts';
 
+const ENVIRONMENT_MODULE_TIMEOUT_MS = 2500;
+
+function createDeferredEnvironmentModule(modulePromise) {
+  return {
+    createEnvironment(deps) {
+      let disposed = false;
+      let realEnvironment = null;
+      const pendingCalls = [];
+
+      const flushPending = async () => {
+        if (!realEnvironment || pendingCalls.length === 0 || disposed) {
+          return;
+        }
+
+        while (pendingCalls.length > 0 && !disposed) {
+          const task = pendingCalls.shift();
+          if (!task) continue;
+          const { method, args } = task;
+          try {
+            const result = realEnvironment[method](...args);
+            if (result && typeof result.then === 'function') {
+              await result;
+            }
+          } catch (error) {
+            try {
+              logger?.warn?.('[Athens][Boot] deferred environment call failed:', method, error);
+            } catch {}
+          }
+        }
+      };
+
+      modulePromise
+        ?.then(async (module) => {
+          if (disposed) {
+            return;
+          }
+          try {
+            realEnvironment = module?.createEnvironment?.(deps) || null;
+          } catch (error) {
+            try {
+              logger?.warn?.('[Athens][Boot] failed to upgrade environment module after timeout:', error);
+            } catch {}
+            realEnvironment = null;
+            return;
+          }
+
+          await flushPending();
+        })
+        ?.catch((error) => {
+          try {
+            logger?.warn?.('[Athens][Boot] failed to recover environment module after timeout:', error);
+          } catch {}
+          pendingCalls.length = 0;
+        });
+
+      const enqueue = (method, args) => {
+        if (disposed) {
+          return;
+        }
+        if (realEnvironment) {
+          try {
+            const result = realEnvironment[method](...args);
+            if (result && typeof result.then === 'function') {
+              result.catch((error) => {
+                try {
+                  logger?.warn?.('[Athens][Boot] deferred environment call failed:', method, error);
+                } catch {}
+              });
+            }
+          } catch (error) {
+            try {
+              logger?.warn?.('[Athens][Boot] deferred environment call failed:', method, error);
+            } catch {}
+          }
+          return;
+        }
+        pendingCalls.push({ method, args });
+      };
+
+      return {
+        async applySkyMode(...args) {
+          if (disposed) {
+            return;
+          }
+          if (realEnvironment) {
+            await realEnvironment.applySkyMode(...args);
+            return;
+          }
+          enqueue('applySkyMode', args);
+        },
+        async applySkyImage(...args) {
+          if (disposed) {
+            return;
+          }
+          if (realEnvironment) {
+            await realEnvironment.applySkyImage(...args);
+            return;
+          }
+          enqueue('applySkyImage', args);
+        },
+        setMode(...args) {
+          if (disposed) {
+            return;
+          }
+          if (realEnvironment) {
+            realEnvironment.setMode(...args);
+            return;
+          }
+          enqueue('setMode', args);
+        },
+        dispose() {
+          if (disposed) {
+            return;
+          }
+          disposed = true;
+          pendingCalls.length = 0;
+          try {
+            realEnvironment?.dispose?.();
+          } catch {}
+        }
+      };
+    }
+  };
+}
+
 if (typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production') {
   console.log('[hotkeys] sample:', [...RELEVANT_KEYS].slice(0, 8));
 }
@@ -546,6 +671,8 @@ export async function initializeAthens(options = {}) {
   const layoutConfig = options?.layoutConfig ?? {};
   // CITYPLAN_END
 
+  const environmentModulePromise = import('../environment/envCore.ts');
+
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
   renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
@@ -590,20 +717,10 @@ export async function initializeAthens(options = {}) {
   renderer.setClearAlpha(1);
 
   const environmentModule = await withBootTimeout(
-    import('../environment/envCore.ts'),
-    1500,
+    environmentModulePromise,
+    ENVIRONMENT_MODULE_TIMEOUT_MS,
     'environment-module',
-    async () => ({
-      createEnvironment: () => {
-        const stub = {
-          async applySkyMode() {},
-          async applySkyImage() {},
-          setMode() {},
-          dispose() {}
-        };
-        return stub;
-      }
-    })
+    () => createDeferredEnvironmentModule(environmentModulePromise)
   );
   const { createEnvironment } = environmentModule;
 
