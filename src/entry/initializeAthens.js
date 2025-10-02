@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { installRenderGuard } from '../safety/hardenPositions';
 import { createStats } from '../debug/statsShim.js';
 import { logger } from '../utils/logger.ts';
-import { setupGround, updateTrees } from '../main.js';
+import { setupGround, updateTrees, resetTrees } from '../main.js';
+import { disposeTreeGroves } from '../vegetation/trees.js';
 import { disposeAll } from '../utils/disposable.ts';
 import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
@@ -794,6 +795,8 @@ export async function initializeAthens(options = {}) {
     }
   };
   const disposeTracked = () => {
+    disposeTreeGroves();
+    resetTrees();
     if (!trackedDisposables.size) return;
     disposeAll(...trackedDisposables);
   };
