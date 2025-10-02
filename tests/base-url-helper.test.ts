@@ -19,3 +19,20 @@ test('buildBaseRelativeUrl prefixes assets with the GitHub Pages base', () => {
     }
   }
 });
+
+test('buildBaseRelativeUrl resolves the service worker relative to the base', () => {
+  const scoped = globalThis as Record<string, unknown>;
+  const previous = scoped.__ATHENS_BASE__;
+
+  try {
+    scoped.__ATHENS_BASE__ = '/Athens/';
+    const url = buildBaseRelativeUrl('service-worker.js');
+    assert.equal(url, '/Athens/service-worker.js');
+  } finally {
+    if (typeof previous === 'undefined') {
+      delete scoped.__ATHENS_BASE__;
+    } else {
+      scoped.__ATHENS_BASE__ = previous;
+    }
+  }
+});
