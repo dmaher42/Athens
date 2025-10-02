@@ -5,8 +5,6 @@ import {
   getActionCodes
 } from '../config/hotkeys.ts';
 
-const INV_SQRT2 = 1 / Math.sqrt(2);
-
 const DEV_FALLBACK_CODES = [
   'KeyW',
   'KeyA',
@@ -241,6 +239,15 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const handleKeyUp = (event) => {
     const code = normalizeCode(event);
 
+    if (shouldPreventDefault(event, code)) {
+      if (typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      if (typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+    }
+
     if (!code || !activeRelevantKeys.has(code)) {
       return;
     }
@@ -259,19 +266,24 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
   const isDown = (code) => pressed.has(code);
 
   const updateState = () => {
-    axisState.x = axisValueFromCodes('x');
-    axisState.z = axisValueFromCodes('z');
+    const axisX = axisValueFromCodes('x');
+    const axisZ = axisValueFromCodes('z');
+    axisState.x = axisX;
+    axisState.z = axisZ;
 
-    const combinedMagnitude = Math.abs(axisState.x) + Math.abs(axisState.z);
-    if (combinedMagnitude > 1) {
-      axisState.x *= INV_SQRT2;
-      axisState.z *= INV_SQRT2;
+    const magnitudeSq = axisState.x * axisState.x + axisState.z * axisState.z;
+    if (magnitudeSq > 1) {
+      const invMagnitude = 1 / Math.sqrt(magnitudeSq);
+      axisState.x *= invMagnitude;
+      axisState.z *= invMagnitude;
     }
 
     axisState.turn = 0;
 
-    axisState.lookX = axisValueFromCodes('lookX');
-    axisState.lookY = axisValueFromCodes('lookY');
+    const lookX = axisValueFromCodes('lookX');
+    const lookY = axisValueFromCodes('lookY');
+    axisState.lookX = Math.max(-1, Math.min(1, lookX));
+    axisState.lookY = Math.max(-1, Math.min(1, lookY));
 
     axisState.running = hasAnyPressed(runningActionCodes);
 

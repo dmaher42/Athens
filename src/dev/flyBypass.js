@@ -41,9 +41,48 @@ export function installFlyBypass({ state, input }){
   window.dev = window.dev || {};
   let on = false;
   let isFlying = false;
-  function toggle(){ isFlying = !isFlying; on = isFlying; if (isFlying) state.position.y += 0.5; }
+
+  function applyState() {
+    const active = Boolean(isFlying);
+    state.isFlying = active;
+    if (typeof state.setFlying === 'function') {
+      state.setFlying(active);
+    }
+  }
+
+  function toggle() {
+    isFlying = !isFlying;
+    on = isFlying;
+    if (
+      isFlying &&
+      typeof state.setFlying !== 'function' &&
+      state?.position &&
+      Number.isFinite(state.position.y)
+    ) {
+      state.position.y += 0.5;
+    }
+    applyState();
+  }
+
   window.dev.fly = {
-    on(){ isFlying = on = true; }, off(){ isFlying = on = false; }, toggle,
+    on() {
+      on = true;
+      isFlying = true;
+      if (
+        typeof state.setFlying !== 'function' &&
+        state?.position &&
+        Number.isFinite(state.position.y)
+      ) {
+        state.position.y += 0.5;
+      }
+      applyState();
+    },
+    off() {
+      on = false;
+      isFlying = false;
+      applyState();
+    },
+    toggle
   };
 
   const toggleCodes = new Set();
@@ -117,6 +156,13 @@ export function installFlyBypass({ state, input }){
   return {
     tick(dt){
       if (!on) return;
+      const controllerManaged = typeof state.setFlying === 'function';
+      if (controllerManaged) {
+        if (state.velocity) {
+          state.velocity.y = 0;
+        }
+        return;
+      }
       const up =
         input?.held?.(ASCEND_ACTION) ||
         input?.held?.('flyUp') ||

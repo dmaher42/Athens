@@ -1564,7 +1564,9 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const flyBypassVelocity = { y: 0 };
   const flyBypassState = {
     position: playerObject?.position || flyBypassFallbackPosition,
-    velocity: flyBypassVelocity
+    velocity: flyBypassVelocity,
+    isFlying: false,
+    setFlying: null
   };
 
   // Controls & camera
@@ -1593,6 +1595,12 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   });
   controller.setGroundMeshes(groundMeshes);
   controller.setColliders?.(colliders);
+
+  flyBypassState.setFlying = (active) => {
+    const desired = Boolean(active);
+    controller?.setFlyingActive?.(desired);
+    flyBypassState.isFlying = controller?.isFlying?.() ?? desired;
+  };
 
   if (globalWindow && typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
     globalWindow.__athensDebug.controller = WALKING_ENABLED && walkingController
@@ -1878,6 +1886,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         } else {
           controller?.update?.(delta, camera);
         }
+      }
+
+      if (controller) {
+        flyBypassState.isFlying = controller.isFlying?.() ?? flyBypassState.isFlying;
       }
 
       ui?.update?.(delta, {

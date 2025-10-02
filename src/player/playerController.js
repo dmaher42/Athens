@@ -505,6 +505,23 @@ export function createPlayerController(
     setKeyboard,
     setGroundMeshes,
     setColliders,
+    setFlyingActive(active) {
+      if (active) {
+        if (!isFlying) {
+          enterFlight();
+        }
+      } else if (isFlying) {
+        exitFlight();
+      }
+    },
+    toggleFlight() {
+      if (isFlying) {
+        exitFlight();
+      } else {
+        enterFlight();
+      }
+      logger.info(`[playerController] Fly ${isFlying ? 'ON' : 'OFF'}`);
+    },
     setGroundSnapSkipRef(nextRef) {
       groundSnapSkip = typeof nextRef === 'object' ? nextRef : null;
     },
