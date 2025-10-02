@@ -1,8 +1,18 @@
+import { AMBIENT_TRACKS } from './ambient.ts';
+
 export function startAmbience() {
   try {
-    const winBase = typeof window !== 'undefined' ? (window as any).__ATHENS_BASE__ : undefined;
-    const base = (import.meta as any)?.env?.BASE_URL || winBase || '/';
-    const url = `${base}assets/audio/ambience_dawn.mp3`;
+    const track = AMBIENT_TRACKS[0];
+    if (!track) {
+      return;
+    }
+
+    const url = track.file;
+    if (!url) {
+      console.warn('[Athens][Audio] ambience missing URL for track:', track.id);
+      return;
+    }
+
     const audio = new Audio();
     audio.loop = true;
     audio.src = url;

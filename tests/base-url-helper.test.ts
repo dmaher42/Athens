@@ -9,8 +9,8 @@ test('buildBaseRelativeUrl prefixes assets with the GitHub Pages base', () => {
 
   try {
     scoped.__ATHENS_BASE__ = '/Athens/';
-    const url = buildBaseRelativeUrl('assets/audio/ambience_dawn.mp3');
-    assert.equal(url, '/Athens/assets/audio/ambience_dawn.mp3');
+    const url = buildBaseRelativeUrl('assets/audio/ambience_day.mp3');
+    assert.equal(url, '/Athens/assets/audio/ambience_day.mp3');
   } finally {
     if (typeof previous === 'undefined') {
       delete scoped.__ATHENS_BASE__;

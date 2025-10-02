@@ -35,8 +35,8 @@ test('assetUrl resolves URLs for different base formats', async (t) => {
   await t.test('respects GitHub Pages base path', () => {
     withBaseUrl('/Athens/', () => {
       assert.equal(
-        assetUrl('assets/audio/ambience_dawn.mp3'),
-        '/Athens/assets/audio/ambience_dawn.mp3'
+        assetUrl('assets/audio/ambience_day.mp3'),
+        '/Athens/assets/audio/ambience_day.mp3'
       );
     });
   });
