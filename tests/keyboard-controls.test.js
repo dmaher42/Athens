@@ -39,6 +39,10 @@ test('WASD movement updates axes and shift enables running', () => {
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), true);
   assert.strictEqual(keyboard.axis.z, 1);
 
+  keyup(focusEvent(target, { code: 'KeyW', key: 'w' }));
+  assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.forward), false);
+  assert.strictEqual(keyboard.axis.z, 0);
+
   keydown(focusEvent(target, { code: 'KeyA', key: 'a' }));
   assert.strictEqual(keyboard.axis.x, -1);
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.left), true);
@@ -57,9 +61,6 @@ test('WASD movement updates axes and shift enables running', () => {
 
   keyup(focusEvent(target, { code: 'KeyA', key: 'a' }));
   assert.strictEqual(keyboard.axis.x, 0);
-
-  keyup(focusEvent(target, { code: 'KeyW', key: 'w' }));
-  assert.strictEqual(keyboard.axis.z, 0);
 
   keyboard.dispose();
 });
