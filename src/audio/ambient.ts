@@ -43,21 +43,76 @@ async function loadBuffer(url: string): Promise<AudioBuffer> {
 }
 
 let _unlockInstalled = false;
+let _unlockPromise: Promise<void> | null = null;
+let _resolveUnlock: (() => void) | null = null;
+
+function getAudioContext() {
+  return (R.listener.context || (R.listener as any).getContext?.()) as AudioContext | undefined;
+}
+
+function cleanupUnlockListeners(unlock: () => void) {
+  if (typeof window === 'undefined') return;
+  window.removeEventListener('pointerdown', unlock);
+  window.removeEventListener('keydown', unlock);
+  window.removeEventListener('touchstart', unlock);
+}
+
+function finishUnlock(unlock: () => void) {
+  cleanupUnlockListeners(unlock);
+  _resolveUnlock?.();
+  _resolveUnlock = null;
+  _unlockInstalled = false;
+}
+
 function installAutoplayUnlock() {
   if (_unlockInstalled || typeof window === 'undefined') return;
+
+  _unlockPromise = new Promise<void>((resolve) => {
+    _resolveUnlock = resolve;
+  });
+
   const unlock = () => {
-    const ctx = (R.listener.context || (R.listener as any).getContext?.()) as AudioContext | undefined;
-    if (ctx && ctx.state !== 'running') {
-      ctx.resume?.().catch(() => {});
+    const ctx = getAudioContext();
+    if (!ctx) {
+      finishUnlock(unlock);
+      return;
     }
-    window.removeEventListener('pointerdown', unlock);
-    window.removeEventListener('keydown', unlock);
-    window.removeEventListener('touchstart', unlock);
+    if (ctx.state === 'running') {
+      finishUnlock(unlock);
+      return;
+    }
+    ctx
+      .resume()
+      .then(() => finishUnlock(unlock))
+      .catch(() => {
+        // If resume fails we keep listening for another user gesture.
+      });
   };
+
   window.addEventListener('pointerdown', unlock, { once: false });
   window.addEventListener('keydown', unlock, { once: false });
   window.addEventListener('touchstart', unlock, { once: false });
   _unlockInstalled = true;
+
+  // In case the context is already running, resolve immediately.
+  const ctx = getAudioContext();
+  if (!ctx || ctx.state === 'running') {
+    finishUnlock(unlock);
+  }
+}
+
+async function ensureAudioContextRunning() {
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'running') {
+    return;
+  }
+  installAutoplayUnlock();
+  if (!_unlockPromise) {
+    // installAutoplayUnlock may have immediately resolved and cleared the promise.
+    return;
+  }
+  await _unlockPromise;
+  _unlockPromise = null;
 }
 
 function nowMs() {
@@ -84,6 +139,8 @@ export async function playAmbient(id: string, fadeSeconds = 1.0) {
     logger.warn(`[ambient] Failed to load ${srcUrl}`, error);
     return;
   }
+
+  await ensureAudioContextRunning();
 
   const next = new THREE.Audio(R.listener);
   next.setBuffer(buffer);
