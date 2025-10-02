@@ -130,7 +130,8 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     if (!event) {
       return false;
     }
-    if (!target || target === window) {
+    const win = typeof window !== 'undefined' ? window : undefined;
+    if (!target || (win && target === win)) {
       return true;
     }
     const eventTarget = event.target;

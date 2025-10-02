@@ -40,7 +40,8 @@ test('WASD movement updates axes and shift enables running', () => {
   assert.strictEqual(keyboard.axis.z, 1);
 
   keydown(focusEvent(target, { code: 'KeyA', key: 'a' }));
-  assert.strictEqual(keyboard.axis.x, -1);
+  assert.ok(Math.abs(keyboard.axis.x + Math.SQRT1_2) < EPSILON);
+  assert.ok(Math.abs(keyboard.axis.z - Math.SQRT1_2) < EPSILON);
   assert.strictEqual(keyboard.isActionDown(HOTKEY_IDS.movement.left), true);
 
   keydown(
