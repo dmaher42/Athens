@@ -67,7 +67,7 @@ export const movementConfig: MovementConfig = {
   walkSpeed: 14,
   runMultiplier: 2,
   acceleration: 20,
-  safePosition: { x: 0, y: 1, z: 0 },
+  safePosition: { x: -4, y: -76, z: 1 },
   character: {
     height: 1.7,
     scale: 1
