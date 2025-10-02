@@ -1529,6 +1529,7 @@ export async function initializeAthens(options = {}) {
       ? Math.max(movementConfig.runMultiplier, 1)
       : 1.7,
     damping: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : undefined,
+    autoUpdateCamera: true,
     safePosition: SAFE_PLAYER_FALLBACK,
     flight: {
       horizontalSpeed: Number.isFinite(flightConfig.horizontalSpeed)

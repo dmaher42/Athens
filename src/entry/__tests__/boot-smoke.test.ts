@@ -351,11 +351,66 @@ async function stubAppModules(THREE: ThreeModule) {
 
   const characterModule = await import('../../controls/CharacterController.ts');
   mock.method(characterModule, 'CharacterController', class CharacterController {
-    position = new THREE.Vector3();
+    camera: THREE.PerspectiveCamera;
+    headOffset = new THREE.Vector3(0, 0.75, 0);
     velocity = new THREE.Vector3();
     walkSpeed = 4;
+    privatePosition = new THREE.Vector3();
+    privateAutoUpdate = false;
+    privateAttached: THREE.Object3D | null = null;
+    privateFlying = false;
+
+    constructor(camera: THREE.PerspectiveCamera, start = new THREE.Vector3(), options: any = {}) {
+      this.camera = camera;
+      if (Number.isFinite(options?.height)) {
+        const height = Math.max(options.height, 0);
+        const offsetY = Math.max(0.2, height * 0.5 - 0.1);
+        this.headOffset.set(0, offsetY, 0);
+      }
+      this.privatePosition.copy(start);
+      this.privateAutoUpdate = Boolean(options?.autoUpdateCamera);
+      if (this.privateAutoUpdate) {
+        this.camera.position.copy(this.privatePosition).add(this.headOffset);
+      }
+    }
+
+    get position() {
+      return this.privatePosition;
+    }
+
     update() {}
+
     dispose() {}
+
+    attach(object: THREE.Object3D | null) {
+      this.privateAttached = object ?? null;
+      if (this.privateAttached?.position) {
+        this.privateAttached.position.copy(this.privatePosition);
+      }
+    }
+
+    setPosition(position: THREE.Vector3) {
+      if (!position) return;
+      this.privatePosition.copy(position);
+      if (this.privateAttached?.position) {
+        this.privateAttached.position.copy(this.privatePosition);
+      }
+      if (this.privateAutoUpdate) {
+        this.camera.position.copy(this.privatePosition).add(this.headOffset);
+      }
+    }
+
+    setFlyingActive(active: boolean) {
+      this.privateFlying = Boolean(active);
+    }
+
+    isFlying() {
+      return this.privateFlying;
+    }
+
+    isRunning() {
+      return false;
+    }
   } as any);
 
   const inputModule = await import('../../controls/input.ts');
@@ -515,6 +570,21 @@ test('initializeAthens resolves with stubbed environment', async () => {
   try {
     const context = await initializeAthens({ container, layout: 'classic', layoutConfig: {} });
     assert.ok(context);
+    assert.ok(context.camera, 'expected camera to be initialized');
+    assert.ok(context.controller, 'expected controller to be initialized');
+
+    const placeholderCameraPosition = new THREE.Vector3(90, 110, 180);
+    const distanceFromPlaceholder = context.camera.position.distanceTo(placeholderCameraPosition);
+    assert.ok(distanceFromPlaceholder > 50, 'camera should not remain at the placeholder position');
+
+    const controllerCenter = context.controller.position?.clone
+      ? context.controller.position.clone()
+      : context.controller.position;
+    assert.ok(controllerCenter, 'expected controller to expose a position');
+
+    const cameraToController = context.camera.position.distanceTo(controllerCenter);
+    assert.ok(cameraToController < 5, 'camera should align near the controller position');
+
     context.dispose?.();
   } finally {
     mock.restoreAll();
