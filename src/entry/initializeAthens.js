@@ -1755,9 +1755,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         skippedLargeDt: Boolean(skippedLargeDt)
       });
 
-      if (!WALKING_ENABLED || !walkingController) {
-        followCamera?.update?.(keyboard, delta);
-      }
+      followCamera?.update?.(keyboard, delta);
 
       const activePlayer = findPlayerObject() || playerObject;
       if (activePlayer?.position && !isFiniteVec3(activePlayer.position)) {
