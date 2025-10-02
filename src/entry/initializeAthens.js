@@ -1407,20 +1407,30 @@ export async function initializeAthens(options = {}) {
   }
 
 // CHAR_MAIN_HEIGHT_START
-const enforceMainCharacterHeight = () => __enforceMainCharacterHeight(scene, options);
+const ensureMainCharacterPlacement = () => {
+  const resolvedPlayer = mainCharacter?.object3d || findPlayerObject() || null;
+  if (!resolvedPlayer) {
+    return null;
+  }
+  placeAtSpawn(resolvedPlayer);
+  sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
+  playerObject = resolvedPlayer;
+  return resolvedPlayer;
+};
+
 const readyPromise = mainCharacter?.ready;
 
 if (readyPromise && typeof readyPromise.then === 'function') {
   readyPromise
     .then(() => {
-      enforceMainCharacterHeight();
+      ensureMainCharacterPlacement();
     })
     .catch((error) => {
-      logger.warn('[Athens][MainCharacter] Failed to load character before enforcing height.', error);
-      enforceMainCharacterHeight();
+      logger.warn('[Athens][MainCharacter] Failed to load character before resolving placement.', error);
+      ensureMainCharacterPlacement();
     });
 } else {
-  enforceMainCharacterHeight();
+  ensureMainCharacterPlacement();
 }
 
   // CHAR_MAIN_HEIGHT_END
