@@ -48,6 +48,11 @@ let treeLibraryState = null;
 let groveGroup = null;
 let treesInitialized = false;
 
+export function resetTrees() {
+  groveGroup = null;
+  treesInitialized = false;
+}
+
 // If your main branch had extra tree setup inside setupGround, you can merge it
 // below after the ground is created. For now we keep the original ground setup:
 function collectGroundTargets(groundLayers) {

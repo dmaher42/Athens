@@ -27,6 +27,74 @@ const windTimeUniform = { value: 0 };
 let libraryPromise = null;
 let libraryHandle = null;
 
+const trackedTreeGroves = new Set();
+
+function createGroveTracker() {
+  return {
+    lods: new Set(),
+    instancedMeshes: new Set(),
+    geometries: new Set(),
+    materials: new Set()
+  };
+}
+
+function trackMaterial(target, tracker) {
+  if (!target) {
+    return;
+  }
+
+  if (Array.isArray(target)) {
+    target.forEach((material) => {
+      if (material) {
+        tracker.materials.add(material);
+      }
+    });
+    return;
+  }
+
+  tracker.materials.add(target);
+}
+
+function collectResourcesForObject(object, tracker) {
+  if (!object || !tracker) {
+    return;
+  }
+
+  object.traverse((child) => {
+    if (!child) {
+      return;
+    }
+
+    if (child.isLOD) {
+      tracker.lods.add(child);
+    }
+
+    if (child.isInstancedMesh) {
+      tracker.instancedMeshes.add(child);
+    }
+
+    if (child.isMesh || child.isInstancedMesh) {
+      if (child.geometry) {
+        tracker.geometries.add(child.geometry);
+      }
+      trackMaterial(child.material, tracker);
+    }
+  });
+}
+
+function hasTrackedResources(tracker) {
+  if (!tracker) {
+    return false;
+  }
+
+  return (
+    tracker.lods.size > 0 ||
+    tracker.instancedMeshes.size > 0 ||
+    tracker.geometries.size > 0 ||
+    tracker.materials.size > 0
+  );
+}
+
 function ensureStandardMaterial(material) {
   if (!material) {
     return new THREE.MeshStandardMaterial({
@@ -504,7 +572,6 @@ function createInstancedGrove(definition, placements) {
     return null;
   }
 
-  const { trunkGeometry, trunkMaterial, leavesGeometry, leavesMaterial } = instancing;
   const count = placements.length;
   if (count === 0) {
     return null;
@@ -512,6 +579,13 @@ function createInstancedGrove(definition, placements) {
 
   const group = new THREE.Group();
   group.name = `${definition.name}-instanced`;
+
+  const trunkGeometry = instancing.trunkGeometry.clone();
+  const leavesGeometry = instancing.leavesGeometry.clone();
+  const trunkMaterial = instancing.trunkMaterial.clone();
+  const leavesMaterial = instancing.leavesMaterial.clone();
+
+  enableWind(leavesMaterial, instancing.height);
 
   const trunkMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, count);
   const leavesMesh = new THREE.InstancedMesh(leavesGeometry, leavesMaterial, count);
@@ -563,6 +637,11 @@ export function scatterTrees({
     return group;
   }
 
+  const tracker = createGroveTracker();
+  tracker.group = group;
+  group.userData = group.userData || {};
+  group.userData.treeResources = tracker;
+
   const lodCount = Math.min(placements.length, Math.max(1, maxLod));
   const lodPlacements = placements.slice(0, lodCount);
   const instancedPlacements = placements.slice(lodCount);
@@ -574,12 +653,14 @@ export function scatterTrees({
       scale: placement.scale
     });
     group.add(tree);
+    collectResourcesForObject(tree, tracker);
   });
 
   if (useInstancing && instancedPlacements.length > 0) {
     const instanced = createInstancedGrove(definition, instancedPlacements);
     if (instanced) {
       group.add(instanced);
+      collectResourcesForObject(instanced, tracker);
     } else {
       instancedPlacements.forEach((placement) => {
         const tree = createTreeInstance(name, {
@@ -588,6 +669,7 @@ export function scatterTrees({
           scale: placement.scale
         });
         group.add(tree);
+        collectResourcesForObject(tree, tracker);
       });
     }
   } else {
@@ -598,10 +680,73 @@ export function scatterTrees({
         scale: placement.scale
       });
       group.add(tree);
+      collectResourcesForObject(tree, tracker);
     });
   }
 
+  if (hasTrackedResources(tracker)) {
+    trackedTreeGroves.add(tracker);
+  }
+
   return group;
+}
+
+export function disposeTreeGroves() {
+  if (!trackedTreeGroves.size) {
+    return;
+  }
+
+  trackedTreeGroves.forEach((tracker) => {
+    tracker.lods.forEach((lod) => {
+      if (!lod) {
+        return;
+      }
+      try {
+        if (typeof lod.dispose === 'function') {
+          lod.dispose();
+        }
+      } catch {}
+      lod.onBeforeRender = null;
+    });
+
+    tracker.instancedMeshes.forEach((mesh) => {
+      if (!mesh) {
+        return;
+      }
+      try {
+        if (typeof mesh.dispose === 'function') {
+          mesh.dispose();
+        }
+      } catch {}
+    });
+
+    tracker.geometries.forEach((geometry) => {
+      if (geometry && typeof geometry.dispose === 'function') {
+        try {
+          geometry.dispose();
+        } catch {}
+      }
+    });
+
+    tracker.materials.forEach((material) => {
+      if (material && typeof material.dispose === 'function') {
+        try {
+          material.dispose();
+        } catch {}
+      }
+    });
+
+    tracker.lods.clear();
+    tracker.instancedMeshes.clear();
+    tracker.geometries.clear();
+    tracker.materials.clear();
+    if (tracker.group && tracker.group.userData) {
+      delete tracker.group.userData.treeResources;
+    }
+    tracker.group = null;
+  });
+
+  trackedTreeGroves.clear();
 }
 
 export function updateTrees(delta) {
