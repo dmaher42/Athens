@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import getInput, { __inputTest } from '../input.ts';
-import { ACTION_CODES, HOTKEY_IDS } from '../../config/hotkeys.ts';
+import { ACTION_CODES, HOTKEY_IDS, RELEVANT_KEYS } from '../../config/hotkeys.ts';
 
 test('input adapter maps movement hotkeys to axes', () => {
   __inputTest.reset();
@@ -65,9 +65,14 @@ test('input adapter reflects manifest overrides for movement actions', () => {
 
   const forwardAction = HOTKEY_IDS.movement.forward;
   const originalCodes = ACTION_CODES.get(forwardAction);
+  const relevantKeySet = RELEVANT_KEYS instanceof Set ? RELEVANT_KEYS : undefined;
+  const hadCustomKey = relevantKeySet?.has('KeyI') ?? false;
 
   try {
     ACTION_CODES.set(forwardAction, ['KeyI']);
+
+    getInput();
+    assert.ok(RELEVANT_KEYS instanceof Set && RELEVANT_KEYS.has('KeyI'));
 
     __inputTest.press('KeyI');
     let input = getInput();
@@ -82,6 +87,9 @@ test('input adapter reflects manifest overrides for movement actions', () => {
       ACTION_CODES.set(forwardAction, originalCodes);
     } else {
       ACTION_CODES.delete(forwardAction);
+    }
+    if (relevantKeySet && !hadCustomKey) {
+      relevantKeySet.delete('KeyI');
     }
     __inputTest.reset();
   }

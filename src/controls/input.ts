@@ -21,9 +21,7 @@ type MovementActionCodes = {
 };
 
 const RELEVANT_KEY_SET: Set<string> | undefined =
-  RELEVANT_KEYS && typeof RELEVANT_KEYS.has === 'function' ? RELEVANT_KEYS : undefined;
-
-const dynamicRelevantCodes = new Set<string>();
+  RELEVANT_KEYS instanceof Set ? RELEVANT_KEYS : undefined;
 
 function resolveActionCodes(actionId: string | undefined): string[] {
   if (!actionId) {
@@ -43,15 +41,14 @@ function resolveActionCodes(actionId: string | undefined): string[] {
   return resolved;
 }
 
-function updateDynamicRelevance(codes: MovementActionCodes) {
+function mergeRelevantKeys(codes: MovementActionCodes) {
   if (!RELEVANT_KEY_SET) {
     return;
   }
 
-  dynamicRelevantCodes.clear();
   for (const group of Object.values(codes)) {
     for (const code of group) {
-      dynamicRelevantCodes.add(code);
+      RELEVANT_KEY_SET.add(code);
     }
   }
 }
@@ -66,7 +63,7 @@ function refreshMovementCodes(): MovementActionCodes {
     sprint: resolveActionCodes(HOTKEY_IDS.movement.run)
   };
 
-  updateDynamicRelevance(codes);
+  mergeRelevantKeys(codes);
   return codes;
 }
 
@@ -103,7 +100,7 @@ function isRelevant(code: string): boolean {
   }
 
   if (RELEVANT_KEY_SET) {
-    return RELEVANT_KEY_SET.has(code) || dynamicRelevantCodes.has(code);
+    return RELEVANT_KEY_SET.has(code);
   }
 
   return true;
