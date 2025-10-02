@@ -397,7 +397,12 @@ const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
 const DEFAULT_GEOJSON_URL = 'data/athens_places.geojson';
 
-const DEFAULT_PLAYER_START = new THREE.Vector3(0, 0, 0);
+const DEFAULT_PLAYER_START = new THREE.Vector3(0, 0, -230);
+const LEGACY_PLAYER_STARTS = [
+  new THREE.Vector3(0, 0, 0),
+  new THREE.Vector3(0, 1, 0)
+];
+const LEGACY_PLAYER_RADIUS_SQ = 36; // ~6 meters from the legacy plaza spawn
 const PLAYER_SEARCH_STEP = 4;
 const PLAYER_SEARCH_RINGS = 10;
 const PLAYER_COLLIDER_MARGIN = 1.5;
@@ -1664,6 +1669,15 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     if (playerObject?.position) {
       if (playerState?.pos) {
         safeSetVec3(playerObject.position, playerState.pos, SAFE_PLAYER_FALLBACK);
+        const isLegacySpawn = LEGACY_PLAYER_STARTS.some((anchor) =>
+          anchor && typeof anchor.distanceToSquared === 'function'
+            ? playerObject.position.distanceToSquared(anchor) <= LEGACY_PLAYER_RADIUS_SQ
+            : false
+        );
+        if (isLegacySpawn) {
+          playerObject.position.copy(playerSpawn);
+          sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+        }
       } else {
         sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
       }
