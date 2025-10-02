@@ -11,14 +11,7 @@ export type AmbEntry = {
 };
 
 export const AMBIENT_TRACKS: AmbEntry[] = [
-  { id: 'dawn', file: assetUrl('assets/audio/' + 'ambience_dawn.mp3'), label: 'Ambience – Dawn', volume: 0.55 },
-  { id: 'day', file: assetUrl('assets/audio/' + 'ambience_day.mp3'), label: 'Ambience – Day', volume: 0.58 },
-  { id: 'dusk', file: assetUrl('assets/audio/' + 'ambience_dusk.mp3'), label: 'Ambience – Dusk', volume: 0.56 },
-  { id: 'night', file: assetUrl('assets/audio/' + 'ambience_night.mp3'), label: 'Ambience – Night', volume: 0.5 },
-  { id: 'forest', file: assetUrl('assets/audio/forest-day.mp3'), label: 'Forest Day', volume: 0.38 },
-  { id: 'coast', file: assetUrl('assets/audio/wind-coast.mp3'), label: 'Coastal Wind', volume: 0.32 },
-  { id: 'market', file: assetUrl('assets/audio/market_chatter.mp3'), label: 'Market Chatter', volume: 0.35 },
-  { id: 'night_crickets', file: assetUrl('assets/audio/night-crickets.mp3'), label: 'Night Crickets', volume: 0.28 }
+  { id: 'day', file: assetUrl('assets/audio/' + 'ambience_day.mp3'), label: 'Ambience – Day', volume: 0.58 }
 ];
 
 type Running = {

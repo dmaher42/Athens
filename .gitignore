@@ -17,7 +17,10 @@ public/assets/models/*
 !public/assets/models/README.txt
 
 # Runtime audio clips are supplied locally and kept out of git.
+# Ambient day track ships with the repository to guarantee at least one
+# functional default; allowlist it explicitly.
 public/assets/audio/*
+!public/assets/audio/ambience_day.mp3
 !public/assets/audio/README.md
 
 # Vendored bundles should live in npm dependencies instead.
