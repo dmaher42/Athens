@@ -272,7 +272,7 @@ const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
 const DEFAULT_GEOJSON_URL = 'data/athens_places.geojson';
 
-const DEFAULT_PLAYER_START = new THREE.Vector3(6, 0, -12);
+const DEFAULT_PLAYER_START = new THREE.Vector3(0, 0, 0);
 const PLAYER_SEARCH_STEP = 4;
 const PLAYER_SEARCH_RINGS = 10;
 const PLAYER_COLLIDER_MARGIN = 1.5;
