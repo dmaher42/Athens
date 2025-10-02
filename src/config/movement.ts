@@ -66,7 +66,7 @@ export const FLIGHT = {
 export const movementConfig: MovementConfig = {
   walkSpeed: 14,
   runMultiplier: 2,
-  acceleration: 10,
+  acceleration: 20,
   safePosition: { x: 0, y: 1, z: 0 },
   character: {
     height: 1.7,
