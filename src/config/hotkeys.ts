@@ -220,8 +220,8 @@ const debugActions = {
   toggleSanityGeometry: createAction(HotkeyCategoryId.Debug, {
     id: 'debug.toggleSanityGeometry',
     title: 'Toggle Sanity Geometry',
-    default: 'KeyS',
-    fallback: ['s']
+    default: 'KeyG',
+    fallback: ['g']
   })
 } as const;
 
