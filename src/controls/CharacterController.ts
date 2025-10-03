@@ -496,7 +496,7 @@ export class CharacterController {
     return this._isRunning;
   }
 
-  public attach(object: THREE.Object3D | null) {
+  public attach(object: THREE.Object3D | null, options: { visualHoverOffset?: number } = {}) {
     this.attachedObject = object ?? null;
     if (!this.attachedObject?.position) {
       this.attachedOffset.set(0, 0, 0);
@@ -510,8 +510,12 @@ export class CharacterController {
     this.attachedOffset.sub(center);
     sanitizeVec3(this.attachedOffset, _zeroVector);
 
-    if (this.visualHoverOffset !== 0) {
-      this.attachedOffset.y -= this.visualHoverOffset;
+    const hoverOffset = Number.isFinite(options?.visualHoverOffset)
+      ? options.visualHoverOffset || 0
+      : this.visualHoverOffset;
+
+    if (hoverOffset !== 0) {
+      this.attachedOffset.y -= hoverOffset;
     }
 
     this.syncAttachedObject();

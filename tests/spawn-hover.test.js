@@ -96,3 +96,34 @@ test('character controller compensates for spawn hover', () => {
     'controller center should remain unchanged when compensating hover'
   );
 });
+
+test('character controller allows overriding hover compensation on attach', () => {
+  const CHARACTER_HEIGHT = 1.7;
+  const CHARACTER_HOVER = Math.min(0.1, Math.max(0.03, CHARACTER_HEIGHT * 0.03));
+  const sampledGroundY = 0;
+
+  const halfHeight = CHARACTER_HEIGHT * 0.5;
+  const playerMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, CHARACTER_HEIGHT, 0.5));
+  playerMesh.position.set(0, sampledGroundY + halfHeight + CHARACTER_HOVER, 0);
+
+  const camera = new THREE.PerspectiveCamera();
+  const controllerStart = new THREE.Vector3(0, sampledGroundY + halfHeight, 0);
+  const controller = new CharacterController(camera, controllerStart.clone(), {
+    height: CHARACTER_HEIGHT,
+    autoUpdateCamera: false,
+    visualHoverOffset: 0
+  });
+
+  controller.attach(playerMesh, { visualHoverOffset: CHARACTER_HOVER });
+  playerMesh.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(playerMesh);
+  assert.ok(
+    Math.abs(box.min.y - sampledGroundY) < 1e-6,
+    'player mesh should rest on the ground after override attach'
+  );
+  assert.ok(
+    Math.abs(controller.position.y - controllerStart.y) < 1e-6,
+    'controller center should remain unchanged when overriding hover'
+  );
+});
