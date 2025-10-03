@@ -65,32 +65,31 @@ export function createMainCharacter(scene, options = {}) {
     waypoints: [start]
   });
 
-  npc.object3d.name = 'MainCharacter';
-  npc.object3d.userData.isMainCharacter = true;
+  const root = npc.object3d;
+  root.name = 'MainCharacter';
+  root.userData.isMainCharacter = true;
 
   if (typeof headingRadians === 'number' && Number.isFinite(headingRadians)) {
-    npc.object3d.rotation.y = headingRadians;
+    root.rotation.y = headingRadians;
   }
 
-  applyScale(npc.object3d, scale);
+  applyScale(root, scale);
 
-  // Ensure feet at local y=0 (prevents visual hovering from model pivot offsets)
-  {
-    const box = new THREE.Box3().setFromObject(npc.object3d);
-    if (box.isEmpty() === false) {
-      const minY = box.min.y;
-      if (Number.isFinite(minY)) {
-        npc.object3d.position.y -= minY; // shift down so feet are at 0
-      } else {
-        npc.object3d.position.y += 1e-5;
-      }
-    } else {
-      npc.object3d.position.y += 1e-5;
+  root.up.set(0, 1, 0);
+  if (root.scale.y < 0) {
+    root.scale.y = Math.abs(root.scale.y);
+  }
+
+  const box = new THREE.Box3().setFromObject(root);
+  if (!box.isEmpty()) {
+    const minY = box.min.y;
+    if (Number.isFinite(minY)) {
+      root.position.y -= minY;
     }
   }
 
   if (scene && typeof scene.add === 'function') {
-    scene.add(npc.object3d);
+    scene.add(root);
   }
 
   return npc;

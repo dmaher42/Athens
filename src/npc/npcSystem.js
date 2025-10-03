@@ -600,13 +600,17 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
 
   skipReachedPoints(npc);
 
+  const skipGroundSnap = Boolean(npc?.object3d?.userData?.isMainCharacter);
+
   if (npc.pathIndex >= npc.pathPoints.length) {
     if (npc.hasDestination) {
       handlePathCompletion(npc, navContext);
     }
     const accelFactor = Math.min(1, Math.max(0, npc.accel * dt));
     npc.speed += (0 - npc.speed) * accelFactor;
-    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    if (!skipGroundSnap) {
+      snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    }
     keepUpright(npc.object3d, npc.state.yaw, npc.turn);
     return;
   }
@@ -614,7 +618,9 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
   const target = npc.pathPoints[npc.pathIndex];
   if (!target) {
     npc.pathIndex += 1;
-    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    if (!skipGroundSnap) {
+      snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    }
     keepUpright(npc.object3d, npc.state.yaw, npc.turn);
     return;
   }
@@ -647,7 +653,9 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
     npc.object3d.position.z += STEP_DIRECTION.z * npc.speed * dt;
   }
 
-  snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+  if (!skipGroundSnap) {
+    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+  }
   keepUpright(npc.object3d, npc.state.yaw, npc.turn);
   checkBlocked(npc, dt, navContext);
 }
