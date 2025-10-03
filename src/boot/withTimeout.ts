@@ -14,11 +14,19 @@ export async function withTimeout<T>(
   try {
     return await Promise.race([p, timeoutPromise]);
   } catch (error) {
+    const isTimeoutError =
+      error instanceof Error ? error.message === `timeout:${label}` : false;
+
+    if (!isTimeoutError) {
+      throw error;
+    }
+
     console.warn('[Athens][Boot] timed out:', label, error);
     if (fallback) {
       return await fallback();
     }
-    return undefined as unknown as T;
+
+    throw error;
   } finally {
     if (typeof timer !== 'undefined') {
       clearTimeout(timer as ReturnType<typeof setTimeout>);
