@@ -13,3 +13,10 @@ test('withTimeout resolves with fallback when promise times out', async () => {
 
   assert.equal(result, 'fallback');
 });
+
+test('withTimeout rejects when there is no fallback', async () => {
+  await assert.rejects(
+    withTimeout(new Promise<never>(() => {}), 5, 'unit-test-no-fallback'),
+    /timeout:unit-test-no-fallback/
+  );
+});
