@@ -64,6 +64,7 @@ export interface CharacterControllerOptions {
   stepOffset?: number;
   autoUpdateCamera?: boolean;
   safePosition?: { x: number; y: number; z: number } | THREE.Vector3;
+  visualHoverOffset?: number;
   flight?: CharacterFlightOptions;
 }
 
@@ -89,6 +90,7 @@ export class CharacterController {
   private readonly _halfSegment = new THREE.Vector3();
   private readonly safePosition = { x: DEFAULT_PLAYER.x, y: DEFAULT_PLAYER.y, z: DEFAULT_PLAYER.z };
   private readonly autoUpdateCamera: boolean;
+  private readonly visualHoverOffset: number;
   private attachedObject: THREE.Object3D | null = null;
   private readonly attachedOffset = new THREE.Vector3();
   private flightEnabled = true;
@@ -139,6 +141,12 @@ export class CharacterController {
     }
     if (Number.isFinite(options.stepOffset)) {
       this.stepOffset = Math.max(options.stepOffset ?? this.stepOffset, 0);
+    }
+
+    if (Number.isFinite(options.visualHoverOffset)) {
+      this.visualHoverOffset = options.visualHoverOffset ?? 0;
+    } else {
+      this.visualHoverOffset = 0;
     }
 
     const safe = options.safePosition;
@@ -501,6 +509,10 @@ export class CharacterController {
     sanitizeVec3(this.attachedOffset, this.safePosition);
     this.attachedOffset.sub(center);
     sanitizeVec3(this.attachedOffset, _zeroVector);
+
+    if (this.visualHoverOffset !== 0) {
+      this.attachedOffset.y -= this.visualHoverOffset;
+    }
 
     this.syncAttachedObject();
   }

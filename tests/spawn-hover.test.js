@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import * as THREE from 'three';
+
+import { CharacterController } from '../src/controls/CharacterController.ts';
 
 test('CHARACTER_HOVER scales with character height', () => {
   // This test verifies that CHARACTER_HOVER is calculated based on CHARACTER_HEIGHT
@@ -61,4 +64,35 @@ test('spawn hover consistency requirement', () => {
   // the spawn search keeps the collider at CHARACTER_HOVER × scale above ground,
   // and the subsequent snap also uses CHARACTER_HOVER × scale,
   // preventing large characters from intersecting the terrain.
+});
+
+test('character controller compensates for spawn hover', () => {
+  const CHARACTER_HEIGHT = 1.7;
+  const CHARACTER_HOVER = Math.min(0.1, Math.max(0.03, CHARACTER_HEIGHT * 0.03));
+  const sampledGroundY = 0;
+
+  const halfHeight = CHARACTER_HEIGHT * 0.5;
+  const playerMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, CHARACTER_HEIGHT, 0.5));
+  playerMesh.position.set(0, sampledGroundY + halfHeight + CHARACTER_HOVER, 0);
+
+  const camera = new THREE.PerspectiveCamera();
+  const controllerStart = new THREE.Vector3(0, sampledGroundY + halfHeight, 0);
+  const controller = new CharacterController(camera, controllerStart.clone(), {
+    height: CHARACTER_HEIGHT,
+    autoUpdateCamera: false,
+    visualHoverOffset: CHARACTER_HOVER
+  });
+
+  controller.attach(playerMesh);
+  playerMesh.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(playerMesh);
+  assert.ok(
+    Math.abs(box.min.y - sampledGroundY) < 1e-6,
+    'player mesh should rest on the ground after attach'
+  );
+  assert.ok(
+    Math.abs(controller.position.y - controllerStart.y) < 1e-6,
+    'controller center should remain unchanged when compensating hover'
+  );
 });
