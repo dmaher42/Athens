@@ -23,7 +23,8 @@ function normalizeBaseCandidate(candidate) {
   if (/^https?:\/\//i.test(trimmed)) {
     try {
       const absolute = new URL(trimmed);
-      return ensureTrailingSlash(absolute.pathname || '/');
+      const originAndPath = `${absolute.origin}${absolute.pathname || '/'}`;
+      return ensureTrailingSlash(originAndPath);
     } catch (error) {
       logger.warn('[asset-paths] Invalid absolute BASE_URL candidate.', error);
       return null;
@@ -35,7 +36,8 @@ function normalizeBaseCandidate(candidate) {
     if (typeof location !== 'undefined' && typeof location.href === 'string') {
       try {
         const relative = new URL(trimmed, location.href);
-        return ensureTrailingSlash(relative.pathname || '/');
+        const originAndPath = `${relative.origin}${relative.pathname || '/'}`;
+        return ensureTrailingSlash(originAndPath);
       } catch (error) {
         logger.warn('[asset-paths] Unable to resolve relative BASE_URL candidate.', error);
       }
@@ -49,12 +51,26 @@ function normalizeBaseCandidate(candidate) {
 }
 
 function computeFromEnv() {
-  if (typeof import.meta === 'undefined') {
-    return null;
+  let candidate = null;
+
+  if (typeof import.meta !== 'undefined') {
+    const env = import.meta.env ?? null;
+    if (env && typeof env.BASE_URL !== 'undefined') {
+      candidate = env.BASE_URL;
+    }
   }
-  const env = import.meta.env ?? null;
-  const base = env && typeof env.BASE_URL === 'string' ? env.BASE_URL : null;
-  return normalizeBaseCandidate(base);
+
+  if (
+    candidate === null &&
+    typeof process !== 'undefined' &&
+    process &&
+    process.env &&
+    typeof process.env.BASE_URL !== 'undefined'
+  ) {
+    candidate = process.env.BASE_URL;
+  }
+
+  return normalizeBaseCandidate(candidate);
 }
 
 function computeFromLocation() {
