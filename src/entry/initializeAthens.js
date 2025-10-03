@@ -531,6 +531,35 @@ function findSafePlayerSpawn({
   return _spawnCandidate.clone();
 }
 
+async function waitForSpawnPrerequisites({
+  collectGroundMeshes,
+  collisionWorldRef,
+  requireBvh,
+  pollIntervalMs = 50,
+  timeoutMs = 3000
+} = {}) {
+  const pollInterval = Number.isFinite(pollIntervalMs) && pollIntervalMs > 0 ? pollIntervalMs : 50;
+  const hasTimeout = Number.isFinite(timeoutMs) && timeoutMs > 0;
+  const start = Date.now();
+
+  while (true) {
+    const groundMeshes = typeof collectGroundMeshes === 'function' ? collectGroundMeshes() : [];
+    const hasGround = Array.isArray(groundMeshes) && groundMeshes.length > 0;
+    const world = typeof collisionWorldRef === 'function' ? collisionWorldRef() : null;
+    const hasBvh = !requireBvh || Boolean(world?.bvh);
+
+    if (hasGround && hasBvh) {
+      return groundMeshes;
+    }
+
+    if (hasTimeout && Date.now() - start >= timeoutMs) {
+      return groundMeshes;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
+  }
+}
+
 function ensureContainerElement(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('initializeAthens requires a browser document.');
@@ -1172,10 +1201,7 @@ export async function initializeAthens(options = {}) {
 
   // Ground registry + snapping
   markGround(scene);
-  const groundMeshes = collectGround(scene);
-  if (!groundMeshes.length) {
-    logger.warn('[npc] no ground meshes');
-  }
+  let groundMeshes = collectGround(scene);
   // PLACER_START
   const landmarkSequence = [...KNOWN_LANDMARK_KEYS];
   const devLandmarkOptions = options?.dev?.landmarkPlacer;
@@ -1336,12 +1362,6 @@ export async function initializeAthens(options = {}) {
     scene.userData.landmarkPlacer = landmarkPlacer;
   }
   // PLACER_END
-  if (cityRoot && groundMeshes.length) {
-    const snapOpts = { hover: 0.03, fromY: 300 };
-    snapChildrenToGround(cityRoot, groundMeshes, snapOpts);
-    snapGroupToGround(cityRoot, groundMeshes, snapOpts);
-  }
-
   markColliders(scene);
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
@@ -1355,6 +1375,23 @@ export async function initializeAthens(options = {}) {
     } catch (error) {
       logger.warn('[Athens][CollisionWorld] Failed to load collision world.', error);
     }
+  }
+
+  groundMeshes = await waitForSpawnPrerequisites({
+    collectGroundMeshes: () => collectGround(scene),
+    collisionWorldRef: () => collisionWorld,
+    requireBvh: Boolean(collisionWorldUrl),
+    pollIntervalMs: 50,
+    timeoutMs: 3000
+  });
+  if (!groundMeshes.length) {
+    logger.warn('[npc] no ground meshes');
+  }
+
+  if (cityRoot && groundMeshes.length) {
+    const snapOpts = { hover: 0.03, fromY: 300 };
+    snapChildrenToGround(cityRoot, groundMeshes, snapOpts);
+    snapGroupToGround(cityRoot, groundMeshes, snapOpts);
   }
 
   const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
@@ -1546,7 +1583,7 @@ export async function initializeAthens(options = {}) {
         : undefined
     }
   });
-  controller.attach(playerObject ?? null);
+  controller.attach(playerObject ?? null, { visualHoverOffset: CHARACTER_HOVER });
   if (playerObject?.position) {
     controller.setPosition(playerObject.position);
   }
@@ -1560,7 +1597,7 @@ const ensureMainCharacterPlacement = () => {
   placeAtSpawn(resolvedPlayer);
   sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
   playerObject = resolvedPlayer;
-  controller.attach(resolvedPlayer);
+  controller.attach(resolvedPlayer, { visualHoverOffset: CHARACTER_HOVER });
   controller.setPosition(resolvedPlayer.position);
   return resolvedPlayer;
 };
@@ -1800,7 +1837,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
         sanitizeEuler(resolvedPlayer.rotation);
         sanitizeQuaternion(resolvedPlayer.quaternion);
-        controller.attach(resolvedPlayer);
+        controller.attach(resolvedPlayer, { visualHoverOffset: CHARACTER_HOVER });
         controller.setPosition(resolvedPlayer.position);
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
