@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { movementConfig } from '../config/movement.ts';
 import { createNpc } from './npcSystem.js';
 
@@ -72,6 +73,21 @@ export function createMainCharacter(scene, options = {}) {
   }
 
   applyScale(npc.object3d, scale);
+
+  // Ensure feet at local y=0 (prevents visual hovering from model pivot offsets)
+  {
+    const box = new THREE.Box3().setFromObject(npc.object3d);
+    if (box.isEmpty() === false) {
+      const minY = box.min.y;
+      if (Number.isFinite(minY)) {
+        npc.object3d.position.y -= minY; // shift down so feet are at 0
+      } else {
+        npc.object3d.position.y += 1e-5;
+      }
+    } else {
+      npc.object3d.position.y += 1e-5;
+    }
+  }
 
   if (scene && typeof scene.add === 'function') {
     scene.add(npc.object3d);
