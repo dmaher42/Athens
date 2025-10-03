@@ -1545,11 +1545,8 @@ export async function initializeAthens(options = {}) {
     sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
   }
 
-  const controllerHeight = Number.isFinite(movementConfig?.character?.height)
-    ? Math.max(1, movementConfig.character.height)
-    : 1.7;
   const controllerStart = playerSpawn.clone();
-  controllerStart.y = controllerStart.y - CHARACTER_HOVER + controllerHeight * 0.5;
+  controllerStart.y = controllerStart.y - CHARACTER_HOVER + CHARACTER_HEIGHT * 0.5;
   sanitizeVec3(controllerStart, SAFE_PLAYER_FALLBACK);
 
   const flightConfig = movementConfig?.flight ?? {};
@@ -1560,13 +1557,13 @@ export async function initializeAthens(options = {}) {
     : undefined;
 
   const controller = new CharacterController(camera, controllerStart, {
-    height: controllerHeight,
+    height: CHARACTER_HEIGHT,
     walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
     runMultiplier: Number.isFinite(movementConfig?.runMultiplier)
       ? Math.max(movementConfig.runMultiplier, 1)
       : 1.7,
     damping: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : undefined,
-    autoUpdateCamera: true,
+    autoUpdateCamera: false,
     safePosition: SAFE_PLAYER_FALLBACK,
     visualHoverOffset: CHARACTER_HOVER,
     flight: {
@@ -1583,7 +1580,7 @@ export async function initializeAthens(options = {}) {
         : undefined
     }
   });
-  controller.attach(playerObject ?? null, { visualHoverOffset: CHARACTER_HOVER });
+  controller.attach(playerObject ?? null);
   if (playerObject?.position) {
     controller.setPosition(playerObject.position);
   }
@@ -1597,7 +1594,7 @@ const ensureMainCharacterPlacement = () => {
   placeAtSpawn(resolvedPlayer);
   sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
   playerObject = resolvedPlayer;
-  controller.attach(resolvedPlayer, { visualHoverOffset: CHARACTER_HOVER });
+  controller.attach(resolvedPlayer);
   controller.setPosition(resolvedPlayer.position);
   return resolvedPlayer;
 };
@@ -1837,7 +1834,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
         sanitizeEuler(resolvedPlayer.rotation);
         sanitizeQuaternion(resolvedPlayer.quaternion);
-        controller.attach(resolvedPlayer, { visualHoverOffset: CHARACTER_HOVER });
+        controller.attach(resolvedPlayer);
         controller.setPosition(resolvedPlayer.position);
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
