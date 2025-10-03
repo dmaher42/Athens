@@ -13,6 +13,7 @@ const DEFAULT_YAW_SPEED = 2.0; // radians per second
 const DEFAULT_PITCH_SPEED = 1.6; // radians per second
 const MAX_DT = 0.25;
 const DEFAULT_DT = 1 / 60;
+const DEFAULT_POINTER_SENSITIVITY = 0.0025;
 
 function computeBaseParameters(offset) {
   const offsetVector = offset.clone();
@@ -31,7 +32,8 @@ export function createFollowCamera(
     lerp = 0.12,
     lookAtOffset = new THREE.Vector3(0, 1.5, 0),
     yawSpeed = DEFAULT_YAW_SPEED,
-    pitchSpeed = DEFAULT_PITCH_SPEED
+    pitchSpeed = DEFAULT_PITCH_SPEED,
+    pointerSensitivity = DEFAULT_POINTER_SENSITIVITY
   } = {}
 ) {
   const options = {
@@ -39,7 +41,11 @@ export function createFollowCamera(
     lerp: Number.isFinite(lerp) ? lerp : 0.12,
     lookAtOffset: lookAtOffset.clone(),
     yawSpeed: Number.isFinite(yawSpeed) ? yawSpeed : DEFAULT_YAW_SPEED,
-    pitchSpeed: Number.isFinite(pitchSpeed) ? pitchSpeed : DEFAULT_PITCH_SPEED
+    pitchSpeed: Number.isFinite(pitchSpeed) ? pitchSpeed : DEFAULT_PITCH_SPEED,
+    pointerSensitivity:
+      Number.isFinite(pointerSensitivity) && pointerSensitivity > 0
+        ? pointerSensitivity
+        : DEFAULT_POINTER_SENSITIVITY
   };
 
   let currentTarget = target || null;
@@ -72,6 +78,200 @@ export function createFollowCamera(
       return 0;
     }
     return THREE.MathUtils.clamp(value, MIN_PITCH, MAX_PITCH);
+  };
+
+  let pointerElement = null;
+  let pointerPointerId = null;
+  let pointerLastX = 0;
+  let pointerLastY = 0;
+  let pointerActive = false;
+  let pointerLookDeltaX = 0;
+  let pointerLookDeltaY = 0;
+
+  const resetPointerState = () => {
+    pointerPointerId = null;
+    pointerActive = false;
+  };
+
+  const applyPointerDelta = (deltaX = 0, deltaY = 0) => {
+    if (Number.isFinite(deltaX) && deltaX !== 0) {
+      pointerLookDeltaX += deltaX;
+    }
+    if (Number.isFinite(deltaY) && deltaY !== 0) {
+      pointerLookDeltaY += deltaY;
+    }
+  };
+
+  const handlePointerMove = (event) => {
+    if (!event) {
+      return;
+    }
+    const doc = typeof document !== 'undefined' ? document : null;
+    const hasPointerLock = doc && doc.pointerLockElement === pointerElement;
+    if (!pointerActive && !hasPointerLock) {
+      return;
+    }
+
+    if (hasPointerLock) {
+      const deltaX = Number.isFinite(event.movementX) ? event.movementX : 0;
+      const deltaY = Number.isFinite(event.movementY) ? event.movementY : 0;
+      if (deltaX !== 0 || deltaY !== 0) {
+        applyPointerDelta(deltaX, -deltaY);
+      }
+      return;
+    }
+
+    if (!pointerActive) {
+      return;
+    }
+
+    const nextX = Number.isFinite(event.clientX) ? event.clientX : pointerLastX;
+    const nextY = Number.isFinite(event.clientY) ? event.clientY : pointerLastY;
+    const deltaX = Number.isFinite(nextX - pointerLastX) ? nextX - pointerLastX : 0;
+    const deltaY = Number.isFinite(nextY - pointerLastY) ? nextY - pointerLastY : 0;
+    pointerLastX = nextX;
+    pointerLastY = nextY;
+    if (deltaX !== 0 || deltaY !== 0) {
+      applyPointerDelta(deltaX, -deltaY);
+    }
+  };
+
+  const handlePointerUp = (event) => {
+    if (!event) {
+      resetPointerState();
+      return;
+    }
+    if (pointerPointerId !== null && event.pointerId !== pointerPointerId) {
+      return;
+    }
+    if (pointerElement && typeof pointerElement.releasePointerCapture === 'function') {
+      try {
+        pointerElement.releasePointerCapture(event.pointerId);
+      } catch {}
+    }
+    resetPointerState();
+  };
+
+  const handlePointerDown = (event) => {
+    if (!event || (event.button !== 0 && event.button !== 2) || event.pointerType === 'touch') {
+      return;
+    }
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    pointerPointerId = event.pointerId;
+    pointerActive = true;
+    pointerLastX = Number.isFinite(event.clientX) ? event.clientX : 0;
+    pointerLastY = Number.isFinite(event.clientY) ? event.clientY : 0;
+    if (pointerElement && typeof pointerElement.setPointerCapture === 'function') {
+      try {
+        pointerElement.setPointerCapture(event.pointerId);
+      } catch {}
+    }
+    if (pointerElement && typeof pointerElement.requestPointerLock === 'function') {
+      try {
+        pointerElement.requestPointerLock();
+      } catch {}
+    }
+  };
+
+  const handlePointerCancel = (event) => {
+    if (pointerPointerId !== null && event?.pointerId !== pointerPointerId) {
+      return;
+    }
+    resetPointerState();
+  };
+
+  const handlePointerLockChange = () => {
+    const doc = typeof document !== 'undefined' ? document : null;
+    if (!doc) {
+      return;
+    }
+    if (doc.pointerLockElement !== pointerElement) {
+      resetPointerState();
+    }
+  };
+
+  const documentListeners = [];
+  const windowListeners = [];
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('pointerlockchange', handlePointerLockChange);
+    document.addEventListener('pointerlockerror', handlePointerLockChange);
+    documentListeners.push(['pointerlockchange', handlePointerLockChange]);
+    documentListeners.push(['pointerlockerror', handlePointerLockChange]);
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('blur', resetPointerState);
+    windowListeners.push(['blur', resetPointerState]);
+  }
+
+  const detachPointerElement = () => {
+    if (!pointerElement) {
+      return;
+    }
+    const element = pointerElement;
+    element.removeEventListener?.('pointerdown', handlePointerDown);
+    element.removeEventListener?.('pointermove', handlePointerMove);
+    element.removeEventListener?.('pointerup', handlePointerUp);
+    element.removeEventListener?.('pointercancel', handlePointerCancel);
+    element.removeEventListener?.('lostpointercapture', handlePointerCancel);
+    element.removeEventListener?.('pointerleave', handlePointerCancel);
+    element.removeEventListener?.('pointerout', handlePointerCancel);
+    if (pointerPointerId !== null && typeof element.releasePointerCapture === 'function') {
+      try {
+        element.releasePointerCapture(pointerPointerId);
+      } catch {}
+    }
+    const doc = typeof document !== 'undefined' ? document : null;
+    if (doc && doc.pointerLockElement === element && typeof doc.exitPointerLock === 'function') {
+      try {
+        doc.exitPointerLock();
+      } catch {}
+    }
+    pointerElement = null;
+    resetPointerState();
+  };
+
+  const attachPointerElement = (element) => {
+    if (!element || typeof element.addEventListener !== 'function') {
+      return;
+    }
+    pointerElement = element;
+    pointerElement.addEventListener('pointerdown', handlePointerDown);
+    pointerElement.addEventListener('pointermove', handlePointerMove);
+    pointerElement.addEventListener('pointerup', handlePointerUp);
+    pointerElement.addEventListener('pointercancel', handlePointerCancel);
+    pointerElement.addEventListener('lostpointercapture', handlePointerCancel);
+    pointerElement.addEventListener('pointerleave', handlePointerCancel);
+    pointerElement.addEventListener('pointerout', handlePointerCancel);
+  };
+
+  const setPointerElement = (element) => {
+    if (element === pointerElement) {
+      return;
+    }
+    detachPointerElement();
+    pointerLookDeltaX = 0;
+    pointerLookDeltaY = 0;
+    if (element) {
+      attachPointerElement(element);
+    }
+  };
+
+  const dispose = () => {
+    detachPointerElement();
+    if (typeof document !== 'undefined') {
+      for (const [name, handler] of documentListeners) {
+        document.removeEventListener(name, handler);
+      }
+    }
+    if (typeof window !== 'undefined') {
+      for (const [name, handler] of windowListeners) {
+        window.removeEventListener(name, handler);
+      }
+    }
   };
 
   const computeDesired = (out = desiredPosition) => {
@@ -156,6 +356,19 @@ export function createFollowCamera(
     rigState.yaw += lookX * options.yawSpeed * dtSafe;
     rigState.pitch += lookY * options.pitchSpeed * dtSafe;
 
+    const pointerDeltaX = pointerLookDeltaX;
+    const pointerDeltaY = pointerLookDeltaY;
+    pointerLookDeltaX = 0;
+    pointerLookDeltaY = 0;
+
+    if (Number.isFinite(pointerDeltaX) && pointerDeltaX !== 0) {
+      rigState.yaw += pointerDeltaX * options.pointerSensitivity;
+    }
+
+    if (Number.isFinite(pointerDeltaY) && pointerDeltaY !== 0) {
+      rigState.pitch += pointerDeltaY * options.pointerSensitivity;
+    }
+
     rigState.pitch = sanitizePitch(rigState.pitch);
     rigState.yaw = sanitizeYaw(rigState.yaw);
 
@@ -217,9 +430,10 @@ export function createFollowCamera(
     setTarget,
     syncImmediate,
     options,
-    setPointerLockElement() {
-      // Mouse look has been disabled; this is now a no-op for compatibility.
+    setPointerLockElement(element) {
+      setPointerElement(element);
     },
+    dispose,
     get target() {
       return currentTarget;
     }
