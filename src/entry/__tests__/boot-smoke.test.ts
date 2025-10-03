@@ -359,6 +359,7 @@ async function stubAppModules(THREE: ThreeModule) {
     privateAutoUpdate = false;
     privateAttached: THREE.Object3D | null = null;
     privateFlying = false;
+    updateCalls: Array<{ dt: number; input: any; world: any }> = [];
 
     constructor(camera: THREE.PerspectiveCamera, start = new THREE.Vector3(), options: any = {}) {
       this.camera = camera;
@@ -378,7 +379,9 @@ async function stubAppModules(THREE: ThreeModule) {
       return this.privatePosition;
     }
 
-    update() {}
+    update(dt: number, input: any, world: any) {
+      this.updateCalls.push({ dt, input, world });
+    }
 
     dispose() {}
 
@@ -587,6 +590,51 @@ test('initializeAthens resolves with stubbed environment', async () => {
 
     context.dispose?.();
   } finally {
+    mock.restoreAll();
+    teardownDom();
+  }
+});
+
+test('character controller updates even when skippedLargeDt is true', async () => {
+  mock.restoreAll();
+  const THREE = await stubThree();
+  setupDom(THREE);
+  await stubAppModules(THREE);
+
+  const loopModule = await import('../../engine/loop.js');
+  let capturedUpdate: ((dt: number, meta: { skippedLargeDt?: boolean }) => void) | null = null;
+  mock.method(loopModule, 'createGameLoop', (update) => {
+    capturedUpdate = update;
+    return {
+      start: () => {},
+      stop: () => {},
+      pause: () => {},
+      resume: () => {},
+      dispose: () => {},
+      isRunning: () => true,
+      resetClock: () => {},
+    };
+  });
+
+  const { initializeAthens } = await import('../initializeAthens.js');
+  const container = createFakeContainer();
+
+  let context: Awaited<ReturnType<typeof initializeAthens>> | null = null;
+  try {
+    context = await initializeAthens({ container, layout: 'classic', layoutConfig: {} });
+    assert.ok(context, 'expected initialization context');
+    const controller: any = context.controller;
+    assert.ok(controller, 'expected controller to exist');
+    assert.ok(Array.isArray(controller.updateCalls), 'expected controller to record update calls');
+    assert.strictEqual(controller.updateCalls.length, 0, 'no updates should be recorded before ticking');
+    assert.ok(typeof capturedUpdate === 'function', 'expected game loop update handler');
+
+    capturedUpdate?.(0.25, { skippedLargeDt: true });
+
+    assert.strictEqual(controller.updateCalls.length, 1, 'controller should update even when skippedLargeDt is true');
+    assert.strictEqual(controller.updateCalls[0]?.dt, 0.25, 'controller should receive the clamped delta');
+  } finally {
+    context?.dispose?.();
     mock.restoreAll();
     teardownDom();
   }

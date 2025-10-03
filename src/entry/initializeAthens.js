@@ -1894,9 +1894,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       npcSystem?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
       landmarks.update?.(camera);
 
-      if (!skippedLargeDt) {
-        controller.update(delta, getInput(), collisionWorld);
-      }
+      controller.update(delta, getInput(), collisionWorld);
 
       flyBypassState.isFlying = controller.isFlying();
 
