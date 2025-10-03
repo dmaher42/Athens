@@ -1656,14 +1656,14 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     globalWindow.__athensDebug.controller = controller;
   }
 
-  const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 2.2, z: -6 };
+  const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 50, z: -10 };
   const followLookOffset = cameraFollowConfig?.lookAtOffset ?? { x: 0, y: 1.5, z: 0 };
   const followLerp = Number.isFinite(cameraFollowConfig?.lerp) ? cameraFollowConfig.lerp : 0.12;
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(
       Number.isFinite(followOffset?.x) ? followOffset.x : 0,
-      Number.isFinite(followOffset?.y) ? followOffset.y : 2.2,
-      Number.isFinite(followOffset?.z) ? followOffset.z : -6
+      Number.isFinite(followOffset?.y) ? followOffset.y : 50,
+      Number.isFinite(followOffset?.z) ? followOffset.z : -10
     ),
     lerp: followLerp,
     lookAtOffset: new THREE.Vector3(
