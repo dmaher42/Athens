@@ -1380,7 +1380,7 @@ export async function initializeAthens(options = {}) {
   groundMeshes = await waitForSpawnPrerequisites({
     collectGroundMeshes: () => collectGround(scene),
     collisionWorldRef: () => collisionWorld,
-    requireBvh: Boolean(collisionWorldUrl),
+    requireBvh: true,
     pollIntervalMs: 50,
     timeoutMs: 3000
   });
@@ -1549,7 +1549,7 @@ export async function initializeAthens(options = {}) {
     ? Math.max(1, movementConfig.character.height)
     : 1.7;
   const controllerStart = playerSpawn.clone();
-  controllerStart.y += controllerHeight * 0.5;
+  controllerStart.y = controllerStart.y - CHARACTER_HOVER + controllerHeight * 0.5;
   sanitizeVec3(controllerStart, SAFE_PLAYER_FALLBACK);
 
   const flightConfig = movementConfig?.flight ?? {};
