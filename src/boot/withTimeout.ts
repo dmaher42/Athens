@@ -2,26 +2,31 @@ export async function withTimeout<T>(
   p: Promise<T>,
   ms: number,
   label: string,
-  fallback?: () => T | Promise<T>
+  fallback?: (error: unknown) => T | Promise<T>
 ): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | number | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutError = new Error(`timeout:${label}`);
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
-      reject(new Error(`timeout:${label}`));
+      reject(timeoutError);
     }, ms);
   });
 
   try {
     return await Promise.race([p, timeoutPromise]);
   } catch (error) {
-    console.warn('[Athens][Boot] timed out:', label, error);
     if (fallback) {
-      return await fallback();
+      console.warn(
+        `[Athens][Boot] ${label} timed out after ${ms}ms; running fallback.`,
+        error
+      );
+      return await fallback(error);
     }
-    return undefined as unknown as T;
+
+    throw (error instanceof Error ? error : timeoutError);
   } finally {
     if (typeof timer !== 'undefined') {
-      clearTimeout(timer as ReturnType<typeof setTimeout>);
+      clearTimeout(timer);
     }
   }
 }
