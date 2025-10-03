@@ -27,6 +27,8 @@ const _capsuleHit = {
 
 const _zeroVector = { x: 0, y: 0, z: 0 };
 
+const _attachedPosition = new THREE.Vector3();
+
 const EPSILON = 1e-5;
 const MAX_SWEEP_ITERATIONS = 5;
 
@@ -88,6 +90,7 @@ export class CharacterController {
   private readonly safePosition = { x: DEFAULT_PLAYER.x, y: DEFAULT_PLAYER.y, z: DEFAULT_PLAYER.z };
   private readonly autoUpdateCamera: boolean;
   private attachedObject: THREE.Object3D | null = null;
+  private readonly attachedOffset = new THREE.Vector3();
   private flightEnabled = true;
   private flightToggleDown = false;
   private _isFlying = false;
@@ -412,7 +415,9 @@ export class CharacterController {
 
     const center = this.getCapsuleCenter(_capsuleCenter);
     sanitizeVec3(center, this.safePosition);
-    this.attachedObject.position.copy(center);
+    _attachedPosition.copy(center).add(this.attachedOffset);
+    sanitizeVec3(_attachedPosition, this.safePosition);
+    this.attachedObject.position.copy(_attachedPosition);
     sanitizeVec3(this.attachedObject.position, this.safePosition);
   }
 
@@ -485,10 +490,19 @@ export class CharacterController {
 
   public attach(object: THREE.Object3D | null) {
     this.attachedObject = object ?? null;
-    if (this.attachedObject?.position) {
-      this.attachedObject.position.copy(this.position);
-      sanitizeVec3(this.attachedObject.position, this.safePosition);
+    if (!this.attachedObject?.position) {
+      this.attachedOffset.set(0, 0, 0);
+      return;
     }
+
+    const center = this.getCapsuleCenter(_capsuleCenter);
+    sanitizeVec3(center, this.safePosition);
+    this.attachedOffset.copy(this.attachedObject.position);
+    sanitizeVec3(this.attachedOffset, this.safePosition);
+    this.attachedOffset.sub(center);
+    sanitizeVec3(this.attachedOffset, _zeroVector);
+
+    this.syncAttachedObject();
   }
 
   public setPosition(position: THREE.Vector3) {
@@ -497,6 +511,10 @@ export class CharacterController {
     }
 
     _capsuleCenter.copy(position);
+    sanitizeVec3(_capsuleCenter, this.safePosition);
+    if (this.attachedObject) {
+      _capsuleCenter.sub(this.attachedOffset);
+    }
     sanitizeVec3(_capsuleCenter, this.safePosition);
     this.capsule.start.copy(_capsuleCenter).sub(this._halfSegment);
     this.capsule.end.copy(_capsuleCenter).add(this._halfSegment);
