@@ -420,7 +420,7 @@ function attachModelToNpc(npc, model) {
     object3d.updateMatrixWorld(true);
 
     const groundTarget = npc.groundTarget || null;
-    if (groundTarget) {
+    if (groundTarget && !object3d.userData?.isMainCharacter) {
       placeOnGround(object3d, groundTarget, { clearance: GROUND_CLEARANCE, rayStart: SNAP_OPTIONS.rayStart });
       if (npc.state && typeof npc.state === 'object') {
         npc.state.lastGoodY = (object3d.position.y || 0) - GROUND_CLEARANCE;
@@ -524,7 +524,7 @@ function createNpcEntity(config = {}, { scene = null, navContext = null, groundM
 
   const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
   const groundTarget = surfaces.length ? surfaces : scene;
-  if (groundTarget) {
+  if (groundTarget && !object3d.userData?.isMainCharacter) {
     placeOnGround(object3d, groundTarget, { clearance: GROUND_CLEARANCE, rayStart: SNAP_OPTIONS.rayStart });
   }
 
@@ -635,7 +635,9 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
     if (npc.pathIndex >= npc.pathPoints.length) {
       handlePathCompletion(npc, navContext);
     }
-    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    if (!skipGroundSnap) {
+      snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    }
     keepUpright(npc.object3d, npc.state.yaw, npc.turn);
     return;
   }
