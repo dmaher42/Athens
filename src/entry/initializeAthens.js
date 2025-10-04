@@ -60,7 +60,7 @@ import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
 import { withTimeout as withBootTimeout } from '../boot/withTimeout.ts';
 
-const ENVIRONMENT_MODULE_TIMEOUT_MS = 2500;
+const ENVIRONMENT_MODULE_TIMEOUT_MS = 8000;
 
 function createDeferredEnvironmentModule(modulePromise) {
   return {
@@ -692,6 +692,18 @@ function createPlaceholderPlayer() {
 }
 
 export async function initializeAthens(options = {}) {
+  const now =
+    typeof performance !== 'undefined' && typeof performance.now === 'function'
+      ? () => performance.now()
+      : () => Date.now();
+  const bootStartTime = now();
+  const markBootPhase = (phase) => {
+    try {
+      const elapsed = (now() - bootStartTime).toFixed(1);
+      console.log(`[Athens][Boot] ${phase} @ ${elapsed}ms`);
+    } catch {}
+  };
+
   const setPhase = getPhaseSetter();
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
@@ -857,6 +869,16 @@ export async function initializeAthens(options = {}) {
   if (typeof window !== 'undefined') {
     globalWindow = window;
     searchParams = new URLSearchParams(globalWindow.location.search);
+    try {
+      const url = new URL(globalWindow.location.href);
+      const bootTimeoutMsParam = url.searchParams.get('bootTimeoutMs');
+      if (bootTimeoutMsParam !== null) {
+        const parsed = Number(bootTimeoutMsParam);
+        if (Number.isFinite(parsed)) {
+          globalWindow.__ATHENS_BOOT_TIMEOUT = Math.max(2500, parsed);
+        }
+      }
+    } catch {}
   }
 
   try {
@@ -957,25 +979,64 @@ export async function initializeAthens(options = {}) {
     } catch {}
   };
 
+  let environmentUsedFallback = false;
+  const ensureFallbackEnvironment = () => {
+    environmentUsedFallback = true;
+    try {
+      const existing = scene.getObjectByName?.('athens-env-fallback-hemi');
+      if (!existing) {
+        const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+        hemi.name = 'athens-env-fallback-hemi';
+        scene.add(hemi);
+      }
+    } catch {}
+    try {
+      environmentManager?.setMode?.('day');
+    } catch {}
+    try {
+      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    } catch {}
+    try {
+      scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+    } catch {}
+    try {
+      scene.environment = null;
+    } catch {}
+  };
+
+  const handleEnvironmentFallback = (error) => {
+    ensureFallbackEnvironment();
+    try {
+      if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+        console.warn('[Athens][Boot] env-fallback', error);
+      }
+    } catch {}
+    return undefined;
+  };
+
+  markBootPhase('env-start');
+  console.info('[Athens][Boot] env-start');
   try {
     setPhase('env-start');
   } catch {}
 
-  await withBootTimeout(
-    applyInitialEnvironment(),
-    2000,
-    'environment',
-    async () => {
-      try {
-        environmentManager?.setMode?.('day');
-      } catch {}
-      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
-      try {
-        scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
-      } catch {}
-    }
-  );
+  try {
+    await withBootTimeout(
+      applyInitialEnvironment(),
+      2000,
+      'environment-module',
+      async (error) => handleEnvironmentFallback(error)
+    );
+  } catch (error) {
+    handleEnvironmentFallback(error);
+  }
 
+  if (!environmentUsedFallback) {
+    console.info('[Athens][Boot] env-ready');
+  } else {
+    console.info('[Athens][Boot] env-ready (fallback)');
+  }
+  markBootPhase('env-ready');
   try {
     setPhase('env-ready');
   } catch {}
@@ -1409,23 +1470,36 @@ export async function initializeAthens(options = {}) {
   sanitizeVec3(playerSpawn, SAFE_PLAYER_FALLBACK);
 
   // Landmarks & overlay
-  const landmarks = await loadLandmarks({
-    scene,
-    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
-    groundMeshes,
-    // CITYPLAN_START
-    layout,
-    layoutConfig
-    // CITYPLAN_END
-  });
-  registerDisposables(landmarks);
+  let landmarks = null;
+  try {
+    landmarks = await loadLandmarks({
+      scene,
+      geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
+      groundMeshes,
+      // CITYPLAN_START
+      layout,
+      layoutConfig
+      // CITYPLAN_END
+    });
+    registerDisposables(landmarks);
+  } catch (error) {
+    logger.warn('[Athens][Landmarks] Failed to load landmarks.', error);
+    landmarks = null;
+  }
 
   const overlayCanvasId = options.overlayCanvasId ?? DEFAULT_OVERLAY_ID;
   const overlayCanvas = ensureOverlayCanvas(container, overlayCanvasId);
-  const overlay = await createLandmarkOverlay(overlayCanvas, {
-    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
-  });
-  landmarks.featureLines?.updateResolution?.();
+  let overlay = null;
+  try {
+    overlay = await createLandmarkOverlay(overlayCanvas, {
+      geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
+    });
+    registerDisposables(overlay);
+  } catch (error) {
+    logger.warn('[Athens][Landmarks] Failed to create landmark overlay.', error);
+    overlay = null;
+  }
+  landmarks?.featureLines?.updateResolution?.();
 
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
@@ -1767,6 +1841,8 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   try {
     setPhase('scene-ready');
   } catch {}
+  markBootPhase('scene-ready');
+  console.info('[Athens][Boot] scene-ready');
 
   const resolveSavedState = () => {
     if (options?.savedState) {
@@ -2146,6 +2222,8 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   try {
     setPhase('first-frame');
   } catch {}
+  markBootPhase('first-frame');
+  console.info('[Athens][Boot] first-frame');
   gameLoop.start();
 
   function startTimeOfDayCycle({ minutesPerDay = 10 } = {}) {
@@ -2254,6 +2332,9 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     window.CHARACTER_HEIGHT =
       typeof CHARACTER_HEIGHT !== 'undefined' ? CHARACTER_HEIGHT : window.CHARACTER_HEIGHT;
   }
+
+  markBootPhase('ready');
+  console.info('[Athens][Boot] ready');
 
   return context;
 }
