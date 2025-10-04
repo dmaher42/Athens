@@ -6,86 +6,109 @@ declare global {
   }
 }
 
-const resolveDebugTimeout = () => {
-  if (typeof globalThis === 'undefined') return undefined;
-  const candidate = (globalThis as typeof window | undefined)?.__ATHENS_BOOT_TIMEOUT;
-  return typeof candidate === 'number' && Number.isFinite(candidate) ? candidate : undefined;
+const resolveDebugTimeout = (): number | undefined => {
+  try {
+    const candidate = (globalThis as typeof window | undefined)?.__ATHENS_BOOT_TIMEOUT;
+    return typeof candidate === 'number' && Number.isFinite(candidate) ? candidate : undefined;
+  } catch {
+    return undefined;
+  }
 };
 
-export async function withTimeout<T>(
+const toError = (value: unknown, fallbackError: Error): Error => {
+  if (value instanceof Error) return value;
+  const message = typeof value === 'string' ? value : `${value}`;
+  return message && message !== '[object Object]' ? new Error(message) : fallbackError;
+};
+
+export function withTimeout<T>(
   p: Promise<T>,
   ms: number | undefined,
   label: string,
   fallback?: TimeoutFallback<T>
 ): Promise<T> {
-  const providedMs = typeof ms === 'number' && Number.isFinite(ms) ? ms : undefined;
-  const debugOverrideMs = resolveDebugTimeout();
+  const providedMs = typeof ms === 'number' && Number.isFinite(ms) ? ms : 0;
+
+  // Only allow debug override for non-environment-module labels.
+  const debugOverride = label === 'environment-module' ? undefined : resolveDebugTimeout();
+
+  // Enforce a larger minimum for environment-module; otherwise prefer debug override, then provided, then default.
   const timeoutMs =
     label === 'environment-module'
-      ? providedMs
-        ? Math.max(providedMs, 5000)
-        : 8000
-      : debugOverrideMs ?? providedMs ?? 2500;
+      ? (providedMs > 0 ? Math.max(providedMs, 5000) : 8000)
+      : (debugOverride ?? (providedMs > 0 ? providedMs : 2500));
+
   const timeoutError = new Error(`timeout:${label}`);
 
   return new Promise<T>((resolve, reject) => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     let settled = false;
-    const finalize = (cb: () => void) => {
-      if (!settled) {
-        settled = true;
-        cb();
-      }
-    };
 
-    const clear = (timer?: ReturnType<typeof setTimeout>) => {
+    const clearTimer = () => {
       if (typeof timer !== 'undefined') {
         clearTimeout(timer);
+        timer = undefined;
       }
     };
 
-    const onResolve = (value: T) => {
-      finalize(() => {
-        clear(timer);
-        resolve(value);
-      });
+    const settleResolve = (value: T) => {
+      if (settled) return;
+      settled = true;
+      clearTimer();
+      resolve(value);
     };
 
-    const runFallback = async (error: unknown) => {
-      if (!fallback) {
-        reject(error instanceof Error ? error : timeoutError);
-        return;
-      }
-      try {
-        const next = await fallback(error);
-        resolve(next);
-      } catch (fbError) {
-        reject(fbError instanceof Error ? fbError : error);
-      }
+    const settleReject = (reason: unknown) => {
+      if (settled) return;
+      settled = true;
+      clearTimer();
+      reject(reason);
     };
 
-    const onReject = (error: unknown) => {
-      finalize(() => {
-        clear(timer);
-        runFallback(error);
-      });
-    };
-
-    const timer = setTimeout(() => {
-      console.warn('[Boot][withTimeout] timed out:', label, '→ using fallback');
-      if (label === 'environment-module') {
-        clear(timer);
-        if (fallback) {
-          Promise.resolve(fallback(timeoutError)).then(resolve, reject);
-        } else {
-          // @ts-expect-error allow undefined fallback for env
-          resolve(undefined);
+    const runFallback = (error: unknown, allowUndefined: boolean) => {
+      if (fallback) {
+        try {
+          Promise.resolve(fallback(error))
+            .then((value) => settleResolve(value))
+            .catch((fbError) => {
+              settleReject(toError(fbError, toError(error, timeoutError)));
+            });
+        } catch (fbError) {
+          settleReject(toError(fbError, toError(error, timeoutError)));
         }
-        settled = true;
         return;
       }
-      onReject(timeoutError);
-    }, timeoutMs);
 
-    p.then(onResolve).catch(onReject);
+      if (allowUndefined) {
+        // For environment-module we permit resolving to undefined if no fallback is provided.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error allow undefined fallback for environment timeouts
+        settleResolve(undefined);
+        return;
+      }
+
+      settleReject(toError(error, timeoutError));
+    };
+
+    const handleTimeout = () => {
+      if (settled) return;
+      clearTimer();
+      // eslint-disable-next-line no-console
+      console.warn('[Boot][withTimeout] timed out:', label, '→ using fallback');
+      runFallback(timeoutError, label === 'environment-module');
+    };
+
+    timer = setTimeout(handleTimeout, timeoutMs);
+
+    p.then(
+      (value) => {
+        settleResolve(value);
+      },
+      (error) => {
+        if (settled) return;
+        clearTimer();
+        runFallback(error, label === 'environment-module');
+      }
+    );
   });
 }
