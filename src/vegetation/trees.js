@@ -321,7 +321,14 @@ function buildInstancingData(group, height) {
 
 async function loadTreeDefinition(name, file) {
   let gltfScene = null;
-  const url = assetUrl(`assets/models/${file}`);
+  let normalizedFile = typeof file === 'string' ? file : '';
+  if (normalizedFile.startsWith('Athens/')) {
+    normalizedFile = normalizedFile.slice('Athens/'.length);
+  }
+  const relativePath = normalizedFile.startsWith('assets/')
+    ? normalizedFile
+    : `assets/models/${normalizedFile}`;
+  const url = assetUrl(relativePath);
   try {
     const gltf = await loadGLTF(url);
     gltfScene = gltf.scene || (gltf.scenes && gltf.scenes[0]) || null;
