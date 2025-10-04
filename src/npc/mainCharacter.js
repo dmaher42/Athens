@@ -59,15 +59,20 @@ export function createMainCharacter(scene, options = {}) {
 
   const start = sanitizeVector(initialPosition);
 
+  const preconfiguredRoot = new THREE.Group();
+  preconfiguredRoot.name = 'MainCharacter';
+  preconfiguredRoot.userData = { ...(preconfiguredRoot.userData || {}), isMainCharacter: true };
+
   const npc = createNpc({
     modelUrl,
     initialPosition: start,
-    waypoints: [start]
+    waypoints: [start],
+    object3d: preconfiguredRoot
   });
 
   const root = npc.object3d;
-  root.name = 'MainCharacter';
-  root.userData.isMainCharacter = true;
+  root.name = root.name || 'MainCharacter';
+  root.userData = { ...(root.userData || {}), isMainCharacter: true };
 
   if (typeof headingRadians === 'number' && Number.isFinite(headingRadians)) {
     root.rotation.y = headingRadians;
@@ -76,7 +81,7 @@ export function createMainCharacter(scene, options = {}) {
   applyScale(root, scale);
 
   root.up.set(0, 1, 0);
-  if (root.scale.y < 0) {
+  if (root.scale?.y < 0) {
     root.scale.y = Math.abs(root.scale.y);
   }
 
