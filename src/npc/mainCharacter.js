@@ -71,6 +71,8 @@ export function createMainCharacter(scene, options = {}) {
   });
 
   const root = npc.object3d;
+
+  // Ensure name + flag are set without clobbering existing userData
   root.name = root.name || 'MainCharacter';
   root.userData = { ...(root.userData || {}), isMainCharacter: true };
 
