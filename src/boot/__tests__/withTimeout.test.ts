@@ -20,3 +20,8 @@ test('withTimeout rejects when there is no fallback', async () => {
     /timeout:unit-test-no-fallback/
   );
 });
+
+test('environment-module timeout resolves softly without fallback', async () => {
+  const result = await withTimeout(new Promise<never>(() => {}), 5, 'environment-module');
+  assert.equal(result, undefined);
+});
