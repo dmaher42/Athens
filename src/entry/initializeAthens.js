@@ -60,6 +60,18 @@ import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
 import { withTimeout as withBootTimeout } from '../boot/withTimeout.ts';
 
+const __t0 = (typeof performance !== 'undefined' && typeof performance.now === 'function'
+  ? performance.now()
+  : Date.now());
+const __mark = (phase) => {
+  const now = typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+  try {
+    console.log(`[Athens][Boot] ${phase} @ ${(now - __t0).toFixed(1)}ms`);
+  } catch {}
+};
+
 const ENVIRONMENT_MODULE_TIMEOUT_MS = 8000;
 
 function createDeferredEnvironmentModule(modulePromise) {
@@ -764,7 +776,7 @@ export async function initializeAthens(options = {}) {
     environmentModulePromise,
     ENVIRONMENT_MODULE_TIMEOUT_MS,
     'environment-module',
-    () => createDeferredEnvironmentModule(environmentModulePromise)
+    () => createDeferredEnvironmentModule(environmentModulePromise) // fallback: never reject
   );
   const { createEnvironment } = environmentModule;
 
@@ -875,7 +887,7 @@ export async function initializeAthens(options = {}) {
       if (bootTimeoutMsParam !== null) {
         const parsed = Number(bootTimeoutMsParam);
         if (Number.isFinite(parsed)) {
-          globalWindow.__ATHENS_BOOT_TIMEOUT = Math.max(2500, parsed);
+          globalWindow.__ATHENS_BOOT_TIMEOUT = Math.max(8000, parsed);
         }
       }
     } catch {}
@@ -949,6 +961,7 @@ export async function initializeAthens(options = {}) {
     try {
       return await Promise.race([p, to]);
     } catch {
+      // SOFT TIMEOUT: resolve fallback, never propagate
       return typeof fb === 'function' ? fb() : fb;
     } finally {
       if (t) {
@@ -1016,6 +1029,7 @@ export async function initializeAthens(options = {}) {
 
   markBootPhase('env-start');
   console.info('[Athens][Boot] env-start');
+  __mark('env-start');
   try {
     setPhase('env-start');
   } catch {}
@@ -1023,8 +1037,8 @@ export async function initializeAthens(options = {}) {
   try {
     await withBootTimeout(
       applyInitialEnvironment(),
-      2000,
-      'environment-module',
+      7000,
+      'environment',
       async (error) => handleEnvironmentFallback(error)
     );
   } catch (error) {
@@ -1037,6 +1051,7 @@ export async function initializeAthens(options = {}) {
     console.info('[Athens][Boot] env-ready (fallback)');
   }
   markBootPhase('env-ready');
+  __mark('env-ready');
   try {
     setPhase('env-ready');
   } catch {}
@@ -1838,6 +1853,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     playerNameCandidates: ['MainCharacter', 'Player']
   });
 
+  __mark('scene-ready');
   try {
     setPhase('scene-ready');
   } catch {}
@@ -2219,6 +2235,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
 
   const flyBypass = installFlyBypass({ state: flyBypassState, input: flyBypassInput });
 
+  __mark('first-frame');
   try {
     setPhase('first-frame');
   } catch {}
@@ -2333,6 +2350,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       typeof CHARACTER_HEIGHT !== 'undefined' ? CHARACTER_HEIGHT : window.CHARACTER_HEIGHT;
   }
 
+  __mark('ready');
   markBootPhase('ready');
   console.info('[Athens][Boot] ready');
 
