@@ -1553,7 +1553,7 @@ export async function initializeAthens(options = {}) {
 
   const halfHeight = CHARACTER_HEIGHT * 0.5;
   const controllerStart = playerSpawn.clone();
-  controllerStart.y = controllerStart.y - CHARACTER_HOVER + halfHeight;
+  controllerStart.y = controllerStart.y + halfHeight;
   sanitizeVec3(controllerStart, SAFE_PLAYER_FALLBACK);
 
   const flightConfig = movementConfig?.flight ?? {};
@@ -1641,7 +1641,7 @@ export async function initializeAthens(options = {}) {
       fromY: 400,
       camera
     });
-    corrected.y = (corrected.y - CHARACTER_HOVER) + halfHeight;
+    corrected.y = corrected.y + halfHeight;
     sanitizeVec3(corrected, SAFE_PLAYER_FALLBACK);
     controller.setPosition?.(corrected);
     if (attachedObject) {
@@ -2243,6 +2243,15 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     window.__athens.toggleSky = context.toggleSky;
     window.__athens.toggleStats = context.toggleStats;
     window.__athens.sanityGeometry = sanityGeometry;
+
+    window.scene = scene;
+    window.camera = camera;
+    window.mainCharacter = mainCharacter;
+    window.controller = controller;
+    window.CHARACTER_HOVER =
+      typeof CHARACTER_HOVER !== 'undefined' ? CHARACTER_HOVER : window.CHARACTER_HOVER;
+    window.CHARACTER_HEIGHT =
+      typeof CHARACTER_HEIGHT !== 'undefined' ? CHARACTER_HEIGHT : window.CHARACTER_HEIGHT;
   }
 
   return context;
