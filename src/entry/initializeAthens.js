@@ -1553,7 +1553,7 @@ export async function initializeAthens(options = {}) {
 
   const halfHeight = CHARACTER_HEIGHT * 0.5;
   const controllerStart = playerSpawn.clone();
-  controllerStart.y = controllerStart.y - CHARACTER_HOVER + halfHeight;
+  controllerStart.y = controllerStart.y + halfHeight;
   sanitizeVec3(controllerStart, SAFE_PLAYER_FALLBACK);
 
   const flightConfig = movementConfig?.flight ?? {};
@@ -1641,7 +1641,7 @@ export async function initializeAthens(options = {}) {
       fromY: 400,
       camera
     });
-    corrected.y = (corrected.y - CHARACTER_HOVER) + halfHeight;
+    corrected.y = corrected.y + halfHeight;
     sanitizeVec3(corrected, SAFE_PLAYER_FALLBACK);
     controller.setPosition?.(corrected);
     if (attachedObject) {
