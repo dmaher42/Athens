@@ -484,18 +484,20 @@ function pointIntersectsColliders(x, y, z, colliders, margin = PLAYER_COLLIDER_M
 
 function findSafePlayerSpawn({
   hint,
+  baseStart = null,
   groundMeshes,
   colliders,
   hover = CHARACTER_HOVER,
-  fromY = 400
+  fromY = 400,
+  camera = null
 } = {}) {
-  const base = toVector3(hint, DEFAULT_PLAYER_START);
+  const base = toVector3(baseStart ?? hint, DEFAULT_PLAYER_START);
   if (!groundMeshes?.length) {
     return base.clone();
   }
 
   const attemptPosition = (x, z) => {
-    const groundY = sampleGroundY(x, z, groundMeshes, { fromY });
+    const groundY = sampleGroundY(x, z, groundMeshes, { fromY, camera });
     if (groundY == null) {
       return null;
     }
@@ -525,7 +527,7 @@ function findSafePlayerSpawn({
     }
   }
 
-  const fallbackY = sampleGroundY(base.x, base.z, groundMeshes, { fromY });
+  const fallbackY = sampleGroundY(base.x, base.z, groundMeshes, { fromY, camera });
   const resolvedY = fallbackY == null ? base.y : fallbackY + hover;
   _spawnCandidate.set(base.x, resolvedY, base.z);
   return _spawnCandidate.clone();
@@ -1401,7 +1403,8 @@ export async function initializeAthens(options = {}) {
     groundMeshes,
     colliders,
     hover: CHARACTER_HOVER,
-    fromY: 400
+    fromY: 400,
+    camera
   });
   sanitizeVec3(playerSpawn, SAFE_PLAYER_FALLBACK);
 
@@ -1520,6 +1523,9 @@ export async function initializeAthens(options = {}) {
     if (!object) return;
     object.position.copy(playerSpawn);
     sanitizeVec3(object.position, SAFE_PLAYER_FALLBACK);
+    if (object?.userData?.isMainCharacter) {
+      return;
+    }
     if (groundMeshes?.length) {
       const snapped = snapObjectToGround(object, groundMeshes, { hover: CHARACTER_HOVER, fromY: 400 });
       if (snapped) {
@@ -1545,8 +1551,9 @@ export async function initializeAthens(options = {}) {
     sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
   }
 
+  const halfHeight = CHARACTER_HEIGHT * 0.5;
   const controllerStart = playerSpawn.clone();
-  controllerStart.y = controllerStart.y - CHARACTER_HOVER + CHARACTER_HEIGHT * 0.5;
+  controllerStart.y = controllerStart.y - CHARACTER_HOVER + halfHeight;
   sanitizeVec3(controllerStart, SAFE_PLAYER_FALLBACK);
 
   const flightConfig = movementConfig?.flight ?? {};
@@ -1556,6 +1563,25 @@ export async function initializeAthens(options = {}) {
     ? flightConfig.verticalMaxSpeed
     : undefined;
 
+  const flightOptions = {
+    enabled: false
+  };
+  if (Number.isFinite(flightConfig.horizontalSpeed)) {
+    flightOptions.horizontalSpeed = Math.max(flightConfig.horizontalSpeed, 0);
+  }
+  if (Number.isFinite(flightVerticalSpeed)) {
+    flightOptions.verticalSpeed = Math.max(flightVerticalSpeed, 0);
+  }
+  if (Number.isFinite(flightConfig.nudgeUp)) {
+    flightOptions.nudgeUp = flightConfig.nudgeUp;
+  }
+  if (Number.isFinite(flightConfig.exitHover)) {
+    flightOptions.exitHover = flightConfig.exitHover;
+  }
+  if (Number.isFinite(flightConfig.startGraceFrames)) {
+    flightOptions.startGraceFrames = flightConfig.startGraceFrames;
+  }
+
   const controller = new CharacterController(camera, controllerStart, {
     height: CHARACTER_HEIGHT,
     walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
@@ -1563,27 +1589,67 @@ export async function initializeAthens(options = {}) {
       ? Math.max(movementConfig.runMultiplier, 1)
       : 1.7,
     damping: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : undefined,
-    autoUpdateCamera: false,
+    autoUpdateCamera: true,
     safePosition: SAFE_PLAYER_FALLBACK,
     visualHoverOffset: CHARACTER_HOVER,
-    flight: {
-      horizontalSpeed: Number.isFinite(flightConfig.horizontalSpeed)
-        ? Math.max(flightConfig.horizontalSpeed, 0)
-        : undefined,
-      verticalSpeed: Number.isFinite(flightVerticalSpeed)
-        ? Math.max(flightVerticalSpeed, 0)
-        : undefined,
-      nudgeUp: Number.isFinite(flightConfig.nudgeUp) ? flightConfig.nudgeUp : undefined,
-      exitHover: Number.isFinite(flightConfig.exitHover) ? flightConfig.exitHover : undefined,
-      startGraceFrames: Number.isFinite(flightConfig.startGraceFrames)
-        ? flightConfig.startGraceFrames
-        : undefined
-    }
+    flight: flightOptions
   });
-  controller.attach(playerObject ?? null);
-  if (playerObject?.position) {
-    controller.setPosition(playerObject.position);
-  }
+  controller.setPosition(controllerStart);
+
+  let attachedObject = null;
+  const attachControllerTo = (object, { force = false } = {}) => {
+    if (!object) {
+      return;
+    }
+    if (!force && attachedObject === object) {
+      return;
+    }
+    controller.attach(object, { visualHoverOffset: CHARACTER_HOVER });
+    attachedObject = object;
+    playerObject = object;
+  };
+
+  const syncControllerToObject = (object) => {
+    if (!object?.position) {
+      return;
+    }
+    const meshPosition = object.position.clone();
+    sanitizeVec3(meshPosition, SAFE_PLAYER_FALLBACK);
+    meshPosition.y = meshPosition.y - CHARACTER_HOVER + halfHeight;
+    controller.setPosition?.(meshPosition);
+  };
+
+  attachControllerTo(playerObject ?? null);
+
+  let didGroundSnap = false;
+  const groundSnapOnce = () => {
+    if (didGroundSnap) {
+      return;
+    }
+    didGroundSnap = true;
+    const center = new THREE.Vector3();
+    const currentPosition = controller.position;
+    if (currentPosition?.isVector3) {
+      center.copy(currentPosition);
+    } else {
+      center.copy(controllerStart);
+    }
+    const corrected = findSafePlayerSpawn({
+      baseStart: center,
+      groundMeshes,
+      colliders,
+      hover: CHARACTER_HOVER,
+      fromY: 400,
+      camera
+    });
+    corrected.y = (corrected.y - CHARACTER_HOVER) + halfHeight;
+    sanitizeVec3(corrected, SAFE_PLAYER_FALLBACK);
+    controller.setPosition?.(corrected);
+    if (attachedObject) {
+      attachControllerTo(attachedObject, { force: true });
+    }
+  };
+  setTimeout(groundSnapOnce, 0);
 
 // CHAR_MAIN_HEIGHT_START
 const ensureMainCharacterPlacement = () => {
@@ -1593,9 +1659,12 @@ const ensureMainCharacterPlacement = () => {
   }
   placeAtSpawn(resolvedPlayer);
   sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
-  playerObject = resolvedPlayer;
-  controller.attach(resolvedPlayer);
-  controller.setPosition(resolvedPlayer.position);
+  if (placeholderPlayer?.parent) {
+    placeholderPlayer.parent.remove(placeholderPlayer);
+  }
+  placeholderPlayer = null;
+  attachControllerTo(resolvedPlayer);
+  groundSnapOnce();
   return resolvedPlayer;
 };
 
@@ -1610,7 +1679,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       logger.warn('[Athens][MainCharacter] Failed to load character before resolving placement.', error);
       ensureMainCharacterPlacement();
     });
-} else {
+} else if (mainCharacter?.object3d) {
   ensureMainCharacterPlacement();
 }
 
@@ -1651,6 +1720,14 @@ if (readyPromise && typeof readyPromise.then === 'function') {
 
   if (globalWindow && typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
     globalWindow.__athensDebug.controller = controller;
+  }
+
+  if (globalWindow) {
+    globalWindow.scene = scene;
+    globalWindow.controller = controller;
+    globalWindow.mainCharacter = mainCharacter;
+    globalWindow.CHARACTER_HOVER = CHARACTER_HOVER;
+    globalWindow.CHARACTER_HEIGHT = CHARACTER_HEIGHT;
   }
 
   const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 50, z: -10 };
@@ -1763,7 +1840,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     }
 
     if (playerObject?.position) {
-      controller.setPosition(playerObject.position);
+      syncControllerToObject(playerObject);
     }
 
     if (cameraState?.pos) {
@@ -1834,16 +1911,17 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
         sanitizeEuler(resolvedPlayer.rotation);
         sanitizeQuaternion(resolvedPlayer.quaternion);
-        controller.attach(resolvedPlayer);
-        controller.setPosition(resolvedPlayer.position);
+        attachControllerTo(resolvedPlayer);
+        groundSnapOnce();
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
         flyBypassState.position = playerObject?.position || flyBypassFallbackPosition;
         if (savedState) {
           restoreCameraAndPlayer(savedState);
+          syncControllerToObject(playerObject);
         } else {
           sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
-          controller.setPosition(playerObject.position);
+          syncControllerToObject(playerObject);
           seedCameraBehindPlayer(playerObject, camera, {
             followDistance: Number.isFinite(cameraSeedConfig?.followDistance)
               ? cameraSeedConfig.followDistance
@@ -1905,7 +1983,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
 
       if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
         sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
-        controller.setPosition(playerObject.position);
+        syncControllerToObject(playerObject);
       }
       if (!isFiniteVec3(camera.position)) {
         sanitizeVec3(camera.position, DEFAULT_CAMERA);
@@ -1948,7 +2026,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       }
       if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
         sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
-        controller.setPosition(playerObject.position);
+        syncControllerToObject(playerObject);
       }
       if (!isFiniteVec3(camera.position)) {
         sanitizeVec3(camera.position, DEFAULT_CAMERA);
@@ -1984,7 +2062,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
         }
         if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
           sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
-          controller.setPosition(playerObject.position);
+          syncControllerToObject(playerObject);
         }
         if (!isFiniteVec3(camera.position)) {
           sanitizeVec3(camera.position, DEFAULT_CAMERA);
