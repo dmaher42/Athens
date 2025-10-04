@@ -30,6 +30,8 @@ let initializedContext = null;
 let bootPromise = null;
 let bootLogEmitted = false;
 
+const DEFAULT_BOOT_DEADLINE_MS = 10000;
+
 const watchdog = attachWatchdog();
 registerSW();
 setLoopWatchdog(watchdog);
@@ -110,6 +112,57 @@ function renderBootFailureOverlay(error) {
   buttonRow.appendChild(swButton);
 
   document.body.appendChild(overlay);
+}
+
+function renderBootSoftTimeoutNotice(lastPhase) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  const id = 'athens-boot-soft-timeout';
+  const message = lastPhase
+    ? `Athens is still starting… (last phase: ${lastPhase || 'unknown'})`
+    : 'Athens is still starting…';
+
+  const updateContent = (node) => {
+    try {
+      node.textContent = message;
+    } catch {}
+  };
+
+  const existing = document.getElementById(id);
+  if (existing) {
+    updateContent(existing);
+    return;
+  }
+
+  if (!document.body) {
+    return;
+  }
+
+  const notice = document.createElement('div');
+  notice.id = id;
+  notice.style.cssText =
+    'position:fixed;bottom:16px;right:16px;z-index:9998;padding:12px 16px;border-radius:8px;background:rgba(17,25,40,0.88);color:#fff;font-family:system-ui,sans-serif;font-size:13px;max-width:280px;box-shadow:0 12px 24px rgba(0,0,0,0.35);pointer-events:none;';
+  updateContent(notice);
+  document.body.appendChild(notice);
+
+  try {
+    setTimeout(() => {
+      try {
+        notice.remove();
+      } catch {}
+    }, 20000);
+  } catch {}
+}
+
+function resolveBootDeadlineMs() {
+  try {
+    const candidate = typeof window !== 'undefined' ? window.__ATHENS_BOOT_TIMEOUT : undefined;
+    if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+      return Math.max(8000, candidate);
+    }
+  } catch {}
+  return DEFAULT_BOOT_DEADLINE_MS;
 }
 
 const ensureFallback = () => {
@@ -293,17 +346,29 @@ async function runAthens(options = {}) {
     setPhase('init-start');
 
     const initializationTask = initializeAthens({ ...options, container });
+    const bootDeadlineMs = resolveBootDeadlineMs();
     let bootTimer = null;
     let context;
     try {
-      const watchdogTimer = new Promise((_, reject) => {
-        bootTimer = setTimeout(() => {
-          const lastPhase = window.__athensBoot?.phase;
-          reject(new Error(`Boot timeout; last phase=${lastPhase}`));
-        }, 10000);
-      });
+      bootTimer = setTimeout(() => {
+        let lastPhase;
+        try {
+          lastPhase = typeof window !== 'undefined' ? window.__athensBoot?.phase : undefined;
+        } catch {}
+        try {
+          console.warn(`[Boot] Soft timeout; last phase=${lastPhase}. Continuing with fallbacks.`);
+        } catch {}
+        try {
+          if (typeof window !== 'undefined') {
+            window.__athensBootWarned = true;
+          }
+        } catch {}
+        try {
+          renderBootSoftTimeoutNotice(lastPhase);
+        } catch {}
+      }, bootDeadlineMs);
 
-      context = await Promise.race([initializationTask, watchdogTimer]);
+      context = await initializationTask;
     } finally {
       if (bootTimer) {
         clearTimeout(bootTimer);
