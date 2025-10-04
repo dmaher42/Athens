@@ -60,7 +60,7 @@ import { setExternalGroundTexture } from '../materials/groundGrass.js';
 // SKYSYS_END
 import { withTimeout as withBootTimeout } from '../boot/withTimeout.ts';
 
-const ENVIRONMENT_MODULE_TIMEOUT_MS = 2500;
+const ENVIRONMENT_MODULE_TIMEOUT_MS = 8000;
 
 function createDeferredEnvironmentModule(modulePromise) {
   return {
@@ -696,6 +696,22 @@ export async function initializeAthens(options = {}) {
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
 
+  const now = () => {
+    if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+      return performance.now();
+    }
+    return Date.now();
+  };
+  const bootStartTime = now();
+  const markBootPhase = (phase) => {
+    try {
+      const elapsed = (now() - bootStartTime).toFixed(1);
+      console.log(`[Athens][Boot] ${phase} @ ${elapsed}ms`);
+    } catch {
+      // ignore console errors
+    }
+  };
+
   const { width: initialWidth, height: initialHeight } = computeContainerSize(container);
 
   // CITYPLAN_START
@@ -857,6 +873,13 @@ export async function initializeAthens(options = {}) {
   if (typeof window !== 'undefined') {
     globalWindow = window;
     searchParams = new URLSearchParams(globalWindow.location.search);
+    const bootTimeoutOverride = searchParams.get('bootTimeoutMs');
+    if (bootTimeoutOverride) {
+      const parsed = Number(bootTimeoutOverride);
+      if (Number.isFinite(parsed) && parsed >= 2500) {
+        globalWindow.__ATHENS_BOOT_TIMEOUT = parsed;
+      }
+    }
   }
 
   try {
@@ -957,24 +980,66 @@ export async function initializeAthens(options = {}) {
     } catch {}
   };
 
+  let environmentUsedFallback = false;
+  const ensureFallbackEnvironment = () => {
+    environmentUsedFallback = true;
+    try {
+      const existing = scene.getObjectByName?.('athens-env-fallback-hemi');
+      if (!existing) {
+        const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+        hemi.name = 'athens-env-fallback-hemi';
+        scene.add(hemi);
+      }
+    } catch {}
+    try {
+      environmentManager?.setMode?.('day');
+    } catch {}
+    try {
+      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    } catch {}
+    try {
+      scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+    } catch {}
+    try {
+      scene.environment = null;
+    } catch {}
+  };
+
+  const handleEnvironmentFallback = (error) => {
+    ensureFallbackEnvironment();
+    try {
+      console.warn('[Athens][Boot] env-fallback', error);
+    } catch {}
+    return undefined;
+  };
+
+  markBootPhase('env-start');
+  try {
+    console.info('[Athens][Boot] env-start');
+  } catch {}
   try {
     setPhase('env-start');
   } catch {}
 
-  await withBootTimeout(
-    applyInitialEnvironment(),
-    2000,
-    'environment',
-    async () => {
-      try {
-        environmentManager?.setMode?.('day');
-      } catch {}
-      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
-      try {
-        scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
-      } catch {}
+  try {
+    await withBootTimeout(
+      applyInitialEnvironment(),
+      2000,
+      'environment',
+      (error) => handleEnvironmentFallback(error)
+    );
+  } catch (error) {
+    handleEnvironmentFallback(error);
+  }
+
+  try {
+    if (environmentUsedFallback) {
+      console.info('[Athens][Boot] env-ready (fallback)');
+    } else {
+      console.info('[Athens][Boot] env-ready');
     }
-  );
+  } catch {}
+  markBootPhase('env-ready');
 
   try {
     setPhase('env-ready');
@@ -1409,23 +1474,37 @@ export async function initializeAthens(options = {}) {
   sanitizeVec3(playerSpawn, SAFE_PLAYER_FALLBACK);
 
   // Landmarks & overlay
-  const landmarks = await loadLandmarks({
-    scene,
-    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
-    groundMeshes,
-    // CITYPLAN_START
-    layout,
-    layoutConfig
-    // CITYPLAN_END
-  });
-  registerDisposables(landmarks);
+  let landmarks = null;
+  try {
+    landmarks = await loadLandmarks({
+      scene,
+      geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
+      groundMeshes,
+      // CITYPLAN_START
+      layout,
+      layoutConfig
+      // CITYPLAN_END
+    });
+    if (landmarks) {
+      registerDisposables(landmarks);
+    }
+  } catch (error) {
+    logger.warn('[Athens][Boot] Failed to load landmarks.', error);
+    landmarks = null;
+  }
 
   const overlayCanvasId = options.overlayCanvasId ?? DEFAULT_OVERLAY_ID;
   const overlayCanvas = ensureOverlayCanvas(container, overlayCanvasId);
-  const overlay = await createLandmarkOverlay(overlayCanvas, {
-    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
-  });
-  landmarks.featureLines?.updateResolution?.();
+  let overlay = null;
+  try {
+    overlay = await createLandmarkOverlay(overlayCanvas, {
+      geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
+    });
+  } catch (error) {
+    logger.warn('[Athens][Boot] Failed to create landmark overlay.', error);
+    overlay = null;
+  }
+  landmarks?.featureLines?.updateResolution?.();
 
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
@@ -1764,6 +1843,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   });
 
   try {
+    console.info('[Athens][Boot] scene-ready');
+  } catch {}
+  markBootPhase('scene-ready');
+  try {
     setPhase('scene-ready');
   } catch {}
 
@@ -1952,8 +2035,8 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       camera.aspect = aspect;
     }
     camera.updateProjectionMatrix();
-    overlay.requestRender();
-    landmarks.featureLines?.updateResolution?.();
+    overlay?.requestRender?.();
+    landmarks?.featureLines?.updateResolution?.();
   };
   window.addEventListener('resize', resizeHandler);
 
@@ -2004,7 +2087,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       const npcContext = { groundMeshes, skippedLargeDt: Boolean(skippedLargeDt) };
       mainCharacter?.update?.(delta, npcContext);
       npcSystem?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
-      landmarks.update?.(camera);
+      landmarks?.update?.(camera);
 
       controller.update(delta, getInput(), collisionWorld);
 
@@ -2143,6 +2226,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const flyBypass = installFlyBypass({ state: flyBypassState, input: flyBypassInput });
 
   try {
+    console.info('[Athens][Boot] first-frame');
+  } catch {}
+  markBootPhase('first-frame');
+  try {
     setPhase('first-frame');
   } catch {}
   gameLoop.start();
@@ -2253,6 +2340,11 @@ if (readyPromise && typeof readyPromise.then === 'function') {
     window.CHARACTER_HEIGHT =
       typeof CHARACTER_HEIGHT !== 'undefined' ? CHARACTER_HEIGHT : window.CHARACTER_HEIGHT;
   }
+
+  try {
+    console.info('[Athens][Boot] ready');
+  } catch {}
+  markBootPhase('ready');
 
   return context;
 }
