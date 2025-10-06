@@ -14,6 +14,7 @@ const DEFAULT_PITCH_SPEED = 1.6; // radians per second
 const MAX_DT = 0.25;
 const DEFAULT_DT = 1 / 60;
 const DEFAULT_POINTER_SENSITIVITY = 0.0025;
+const DEFAULT_ZOOM_SPEED = 0.0015;
 
 function computeBaseParameters(offset) {
   const offsetVector = offset.clone();
@@ -33,7 +34,10 @@ export function createFollowCamera(
     lookAtOffset = new THREE.Vector3(0, 1.5, 0),
     yawSpeed = DEFAULT_YAW_SPEED,
     pitchSpeed = DEFAULT_PITCH_SPEED,
-    pointerSensitivity = DEFAULT_POINTER_SENSITIVITY
+    pointerSensitivity = DEFAULT_POINTER_SENSITIVITY,
+    minDistance = null,
+    maxDistance = null,
+    zoomSpeed = DEFAULT_ZOOM_SPEED
   } = {}
 ) {
   const options = {
@@ -45,26 +49,72 @@ export function createFollowCamera(
     pointerSensitivity:
       Number.isFinite(pointerSensitivity) && pointerSensitivity > 0
         ? pointerSensitivity
-        : DEFAULT_POINTER_SENSITIVITY
+        : DEFAULT_POINTER_SENSITIVITY,
+    zoomSpeed:
+      Number.isFinite(zoomSpeed) && zoomSpeed > 0
+        ? zoomSpeed
+        : DEFAULT_ZOOM_SPEED
   };
 
   let currentTarget = target || null;
   const base = computeBaseParameters(options.offset);
+  options.minDistance = Number.isFinite(minDistance) && minDistance > 0
+    ? Math.max(minDistance, 1e-3)
+    : Math.max(1, base.radius * 0.35);
+  options.maxDistance = Number.isFinite(maxDistance) && maxDistance > options.minDistance
+    ? maxDistance
+    : Math.max(base.radius, options.minDistance * 4);
   const rigState = (() => {
     if (!camera || typeof camera !== 'object') {
-      return { yaw: 0, pitch: 0, distance: base.radius };
+      return {
+        yaw: 0,
+        pitch: 0,
+        distance: base.radius,
+        minDistance: options.minDistance,
+        maxDistance: options.maxDistance
+      };
     }
     const existing = (camera).__rigState;
     if (existing && typeof existing === 'object') {
       if (!Number.isFinite(existing.distance) || existing.distance <= 0) {
         existing.distance = base.radius;
       }
+      if (!Number.isFinite(existing.minDistance) || existing.minDistance <= 0) {
+        existing.minDistance = options.minDistance;
+      }
+      if (!Number.isFinite(existing.maxDistance) || existing.maxDistance <= 0) {
+        existing.maxDistance = options.maxDistance;
+      }
       return existing;
     }
-    const state = { yaw: 0, pitch: 0, distance: base.radius };
+    const state = {
+      yaw: 0,
+      pitch: 0,
+      distance: base.radius,
+      minDistance: options.minDistance,
+      maxDistance: options.maxDistance
+    };
     (camera).__rigState = state;
     return state;
   })();
+
+  const clampDistance = (value) => {
+    const currentMin = Number.isFinite(rigState.minDistance) && rigState.minDistance > 0
+      ? rigState.minDistance
+      : options.minDistance;
+    const currentMax = Number.isFinite(rigState.maxDistance) && rigState.maxDistance > currentMin
+      ? rigState.maxDistance
+      : options.maxDistance;
+    if (!Number.isFinite(value)) {
+      return THREE.MathUtils.clamp(base.radius, currentMin, currentMax);
+    }
+    const clamped = THREE.MathUtils.clamp(value, currentMin, currentMax);
+    return clamped > 1e-6 ? clamped : currentMin;
+  };
+
+  rigState.minDistance = clampDistance(rigState.minDistance);
+  rigState.maxDistance = Math.max(clampDistance(rigState.maxDistance), rigState.minDistance + 1e-3);
+  rigState.distance = clampDistance(rigState.distance);
 
   const sanitizeYaw = (value) => {
     if (!Number.isFinite(value)) {
@@ -87,6 +137,7 @@ export function createFollowCamera(
   let pointerActive = false;
   let pointerLookDeltaX = 0;
   let pointerLookDeltaY = 0;
+  let wheelListenerAttached = false;
 
   const resetPointerState = () => {
     pointerPointerId = null;
@@ -192,6 +243,29 @@ export function createFollowCamera(
     }
   };
 
+  const applyZoomFactor = (deltaY = 0) => {
+    if (!Number.isFinite(deltaY) || deltaY === 0) {
+      return;
+    }
+    const current = clampDistance(rigState.distance);
+    const scale = Math.exp(deltaY * options.zoomSpeed);
+    rigState.distance = clampDistance(current * scale);
+  };
+
+  const handleWheel = (event) => {
+    if (!event) {
+      return;
+    }
+    const deltaY = Number.isFinite(event.deltaY) ? event.deltaY : 0;
+    if (deltaY === 0) {
+      return;
+    }
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    applyZoomFactor(deltaY);
+  };
+
   const documentListeners = [];
   const windowListeners = [];
 
@@ -219,6 +293,10 @@ export function createFollowCamera(
     element.removeEventListener?.('lostpointercapture', handlePointerCancel);
     element.removeEventListener?.('pointerleave', handlePointerCancel);
     element.removeEventListener?.('pointerout', handlePointerCancel);
+    if (wheelListenerAttached) {
+      element.removeEventListener?.('wheel', handleWheel);
+      wheelListenerAttached = false;
+    }
     if (pointerPointerId !== null && typeof element.releasePointerCapture === 'function') {
       try {
         element.releasePointerCapture(pointerPointerId);
@@ -246,6 +324,10 @@ export function createFollowCamera(
     pointerElement.addEventListener('lostpointercapture', handlePointerCancel);
     pointerElement.addEventListener('pointerleave', handlePointerCancel);
     pointerElement.addEventListener('pointerout', handlePointerCancel);
+    if (!wheelListenerAttached) {
+      pointerElement.addEventListener('wheel', handleWheel, { passive: false });
+      wheelListenerAttached = true;
+    }
   };
 
   const setPointerElement = (element) => {
@@ -281,9 +363,10 @@ export function createFollowCamera(
 
     const yaw = sanitizeYaw(rigState.yaw);
     const pitch = sanitizePitch(rigState.pitch);
+    rigState.distance = clampDistance(rigState.distance);
     const radius = Number.isFinite(rigState.distance) && rigState.distance > 1e-3
       ? rigState.distance
-      : base.radius;
+      : clampDistance(base.radius);
 
     currentTarget.getWorldPosition(targetWorldPosition);
 
@@ -369,6 +452,14 @@ export function createFollowCamera(
       rigState.pitch += pointerDeltaY * options.pointerSensitivity;
     }
 
+    const axisZoom = keyboardState?.axis && Object.prototype.hasOwnProperty.call(keyboardState.axis, 'zoom')
+      ? keyboardState.axis.zoom
+      : null;
+    if (Number.isFinite(axisZoom) && axisZoom !== 0) {
+      const zoomDelta = axisZoom * dtSafe * -60;
+      applyZoomFactor(zoomDelta);
+    }
+
     rigState.pitch = sanitizePitch(rigState.pitch);
     rigState.yaw = sanitizeYaw(rigState.yaw);
 
@@ -414,7 +505,9 @@ export function createFollowCamera(
     const worldPitch = horizontal > 1e-6 ? Math.atan2(tempPosition.y, horizontal) : 0;
     const worldYaw = Math.atan2(tempPosition.x, tempPosition.z);
     if (!Number.isFinite(rigState.distance) || rigState.distance <= 0) {
-      rigState.distance = distance > 1e-6 ? distance : base.radius;
+      rigState.distance = clampDistance(distance > 1e-6 ? distance : base.radius);
+    } else {
+      rigState.distance = clampDistance(distance);
     }
     rigState.pitch = sanitizePitch(worldPitch);
     rigState.yaw = sanitizeYaw(worldYaw);
