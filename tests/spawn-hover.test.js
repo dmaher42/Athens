@@ -3,6 +3,7 @@ import test from 'node:test';
 import * as THREE from 'three';
 
 import { CharacterController } from '../src/controls/CharacterController.ts';
+import { ensureFeetAtLocalZero } from '../src/utils/spawn.ts';
 
 test('CHARACTER_HOVER scales with character height', () => {
   // This test verifies that CHARACTER_HOVER is calculated based on CHARACTER_HEIGHT
@@ -125,5 +126,41 @@ test('character controller allows overriding hover compensation on attach', () =
   assert.ok(
     Math.abs(controller.position.y - controllerStart.y) < 1e-6,
     'controller center should remain unchanged when overriding hover'
+  );
+});
+
+test('ensureFeetAtLocalZero lowers floating models to parent local zero', () => {
+  const parent = new THREE.Group();
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1));
+  mesh.position.y = 1.5;
+  parent.add(mesh);
+  parent.position.y = 3;
+  parent.updateMatrixWorld(true);
+
+  ensureFeetAtLocalZero(parent);
+  parent.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(parent);
+  assert.ok(Math.abs(box.min.y) < 1e-6, 'model feet should rest at world zero after normalization');
+});
+
+test('ensureFeetAtLocalZero respects parent transforms when adjusting children', () => {
+  const parent = new THREE.Group();
+  parent.position.y = 5;
+
+  const child = new THREE.Group();
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1));
+  mesh.position.y = 1.25;
+  child.add(mesh);
+  parent.add(child);
+  parent.updateMatrixWorld(true);
+
+  ensureFeetAtLocalZero(child);
+  parent.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(child);
+  assert.ok(
+    Math.abs(box.min.y - parent.position.y) < 1e-6,
+    'child model feet should align with parent local origin in world space'
   );
 });
