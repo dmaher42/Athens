@@ -30,3 +30,9 @@ Use `src/entry/initializeAthens.js` as the runtime entry point for embedding Ath
 - Building interiors and walkable areas should have dedicated collider meshes in the GLB.
 - Prefix collider meshes with `COL_` **or** set `userData.collision = true` in the authoring tool to ensure they are picked up by the collision BVH builder.
 - Colliders should be closed volumes or have sufficient thickness. Single-sided planes only collide from one side and may allow the player to tunnel through.
+
+## Documentation
+
+Additional documentation lives under [`docs/`](./docs).
+
+- [Keyboard Hotkeys](./docs/hotkeys.md) — default bindings and how to change them.
