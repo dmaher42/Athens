@@ -17,6 +17,9 @@ export interface CameraFollowConfig {
   offset?: { x: number; y: number; z: number };
   lerp?: number;
   lookAtOffset?: { x: number; y: number; z: number };
+  minDistance?: number;
+  maxDistance?: number;
+  zoomSpeed?: number;
 }
 
 export interface CameraSeedConfig {
@@ -90,7 +93,10 @@ export const movementConfig: MovementConfig = {
     follow: {
       offset: { x: 0, y: 3.5, z: -8 },
       lerp: 0.12,
-      lookAtOffset: { x: 0, y: 1.5, z: 0 }
+      lookAtOffset: { x: 0, y: 1.5, z: 0 },
+      minDistance: 4,
+      maxDistance: 18,
+      zoomSpeed: 0.0012
     },
     seed: {
       followDistance: 6,
