@@ -2258,7 +2258,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   console.info('[Athens][Boot] first-frame');
   gameLoop.start();
 
-  function startTimeOfDayCycle({ minutesPerDay = 10 } = {}) {
+  function startTimeOfDayCycle({ minutesPerDay = 20 } = {}) {
     const order = ['dawn', 'day', 'golden_hour', 'dusk', 'night', 'midnight'];
     let i = Math.max(0, order.indexOf(String(environmentController.mode).toLowerCase()));
     const stepMs = Math.max(5000, (minutesPerDay * 60_000) / order.length);
