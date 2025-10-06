@@ -50,6 +50,7 @@ import {
   sanitizeVec3,
   safeSetVec3
 } from '../utils/sanitize.ts';
+import { ensureFeetAtLocalZero } from '../utils/spawn.ts';
 import { CUSTOM_AMBIENT_TRACKS } from '../audio/customAmbientTracks.generated.ts';
 import { initAmbient, AmbientAPI, AMBIENT_TRACKS, registerExternalAmbientTracks } from '../audio/ambient.ts';
 import { createSanityGeometryController } from '../debug/sanityGeometry.js';
@@ -1746,6 +1747,8 @@ const ensureMainCharacterPlacement = () => {
   if (!resolvedPlayer) {
     return null;
   }
+  ensureFeetAtLocalZero(resolvedPlayer);
+  resolvedPlayer.updateMatrixWorld?.(true);
   placeAtSpawn(resolvedPlayer);
   sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
   if (placeholderPlayer?.parent) {
@@ -1822,6 +1825,15 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 50, z: -10 };
   const followLookOffset = cameraFollowConfig?.lookAtOffset ?? { x: 0, y: 1.5, z: 0 };
   const followLerp = Number.isFinite(cameraFollowConfig?.lerp) ? cameraFollowConfig.lerp : 0.12;
+  const followMinDistance = Number.isFinite(cameraFollowConfig?.minDistance)
+    ? Math.max(cameraFollowConfig.minDistance, 0.5)
+    : null;
+  const followMaxDistance = Number.isFinite(cameraFollowConfig?.maxDistance)
+    ? Math.max(cameraFollowConfig.maxDistance, followMinDistance ? followMinDistance + 0.01 : 0.5)
+    : null;
+  const followZoomSpeed = Number.isFinite(cameraFollowConfig?.zoomSpeed) && cameraFollowConfig.zoomSpeed > 0
+    ? cameraFollowConfig.zoomSpeed
+    : undefined;
   const followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(
       Number.isFinite(followOffset?.x) ? followOffset.x : 0,
@@ -1833,7 +1845,10 @@ if (readyPromise && typeof readyPromise.then === 'function') {
       Number.isFinite(followLookOffset?.x) ? followLookOffset.x : 0,
       Number.isFinite(followLookOffset?.y) ? followLookOffset.y : 1.5,
       Number.isFinite(followLookOffset?.z) ? followLookOffset.z : 0
-    )
+    ),
+    minDistance: followMinDistance ?? undefined,
+    maxDistance: followMaxDistance ?? undefined,
+    zoomSpeed: followZoomSpeed
   });
   followCamera.setPointerLockElement?.(renderer.domElement);
 
