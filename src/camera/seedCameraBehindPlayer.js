@@ -75,6 +75,12 @@ export function seedCameraBehindPlayer(player, camera, opts = {}) {
     rigState.yaw = yaw;
     rigState.pitch = pitch;
     rigState.distance = followDistance;
+    if (Number.isFinite(rigState.minDistance) && rigState.minDistance > 0) {
+      rigState.distance = Math.max(rigState.distance, rigState.minDistance);
+    }
+    if (Number.isFinite(rigState.maxDistance) && rigState.maxDistance > 0) {
+      rigState.distance = Math.min(rigState.distance, rigState.maxDistance);
+    }
   }
 }
 
