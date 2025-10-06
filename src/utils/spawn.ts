@@ -34,18 +34,34 @@ export function collectMeshesByName(root: THREE.Object3D, substrings: string[]):
 
 export function footOffsetY(obj: THREE.Object3D): number {
   const box = new THREE.Box3().setFromObject(obj);
-  if (!isFinite(box.min.y) || !isFinite(box.max.y)) {
+  if (!Number.isFinite(box.min.y) || !Number.isFinite(box.max.y)) {
     return 0;
   }
-  return box.min.y - obj.position.y;
+
+  const parent = obj.parent;
+  const min = box.min.clone();
+
+  if (parent?.isObject3D) {
+    parent.worldToLocal(min);
+  }
+
+  return Number.isFinite(min.y) ? min.y : 0;
 }
 
 export function ensureFeetAtLocalZero(obj: THREE.Object3D) {
-  const offset = footOffsetY(obj);
-  if (isFinite(offset) && offset < 0) {
-    obj.position.y -= offset;
-    obj.updateMatrixWorld(true);
+  if (!obj) {
+    return;
   }
+
+  obj.updateMatrixWorld(true);
+
+  const offset = footOffsetY(obj);
+  if (!Number.isFinite(offset) || Math.abs(offset) <= 1e-6) {
+    return;
+  }
+
+  obj.position.y -= offset;
+  obj.updateMatrixWorld(true);
 }
 
 export function groundYAt(
