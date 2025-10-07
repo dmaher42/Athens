@@ -28,7 +28,7 @@ export function createFollowCamera(
   camera,
   target,
   {
-    offset = new THREE.Vector3(0, 2.2, -6),
+    offset = new THREE.Vector3(0, 4, -9),
     lerp = 0.12,
     lookAtOffset = new THREE.Vector3(0, 1.5, 0),
     yawSpeed = DEFAULT_YAW_SPEED,

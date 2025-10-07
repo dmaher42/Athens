@@ -88,12 +88,12 @@ export const movementConfig: MovementConfig = {
   },
   camera: {
     follow: {
-      offset: { x: 0, y: 2.2, z: -6 },
+      offset: { x: 0, y: 4, z: -9 },
       lerp: 0.12,
       lookAtOffset: { x: 0, y: 1.5, z: 0 }
     },
     seed: {
-      followDistance: 6,
+      followDistance: 9.8,
       shoulderHeight: 1.6,
       pitchDeg: -15
     }
