@@ -6,24 +6,41 @@
   "scripts": {
     "predev": "npm run generate:assets && node ./scripts/generate-favicon.js",
     "dev": "vite",
-    "dev:clean": "rimraf node_modules/.vite node_modules/.vite-* .vite || true",
+    "dev:clean": "node ./scripts/dev-clean.js",
     "dev:force": "vite --force --open --port 4173",
     "generate:assets": "node ./scripts/generate-static-assets.js",
+    "gen:ambient": "node -e \"require('./scripts/generate-custom-ambient-tracks.js')\"",
     "build": "npm run generate:assets && node ./scripts/generate-favicon.js && vite build && touch dist/.nojekyll",
     "preview": "vite preview",
-    "test": "node --test",
-    "html:no-ts": "./scripts/check-html-no-ts.sh"
+    "test": "tsx --test",
+    "lint": "npm run lint:unused",
+    "html:no-ts": "./scripts/check-html-no-ts.sh",
+    "serve:dist": "http-server dist -p 4173 -s",
+    "depcheck": "npx depcheck --ignores='vite,three'",
+    "size-report": "tsx scripts/file-sizes.ts",
+    "tag:checkpoint": "node -e \"const d=new Date();const p=n=>String(n).padStart(2,'0');const v=`v${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-a`;console.log(v)\" | xargs -I {} git tag -a {} -m \"Checkpoint\" && git push --tags",
+    "lint:unused": "eslint 'src/**/*.{ts,tsx,js}' --max-warnings=0",
+    "reachability": "node ./scripts/reachability.mjs && tsx scripts/check-cycles.ts",
+    "gen:skyground": "node scripts/generate-sky-ground-assets.js"
   },
   "dependencies": {
-    "cannon": "^0.6.2",
     "three": "^0.180.0",
-    "tone": "^14.7.77"
+    "three-mesh-bvh": "^0.7.3"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.2.1",
+<<<<<<< HEAD
     "http-server": "^14.1.1",
     "puppeteer": "^24.22.3",
     "rimraf": "^6.0.1",
+=======
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.17.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-unused-imports": "^3.2.0",
+    "http-server": "^14.1.1",
+    "tsx": "^4.20.6",
+>>>>>>> 8c2a7e4dbd5470fd44fb9af40ede59091f055718
     "vite": "^5.4.0"
   }
 }

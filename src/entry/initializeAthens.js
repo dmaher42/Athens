@@ -1,31 +1,340 @@
 import * as THREE from 'three';
-// Expose THREE globally for console-driven debugging
-if (typeof window !== 'undefined') window.THREE = THREE;
+import { installRenderGuard } from '../safety/hardenPositions';
 import { createStats } from '../debug/statsShim.js';
-import { setupGround, updateTrees } from '../main.js';
+import { logger } from '../utils/logger.ts';
+import { setupGround, updateTrees, resetTrees } from '../main.js';
+import { disposeTreeGroves } from '../vegetation/trees.js';
+import { disposeAll } from '../utils/disposable.ts';
 import { loadLandmarks } from '../landmarks-loader.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
+// PLACER_START
+import { createLandmarkPlacer } from '../dev/landmarkPlacer.js';
+// PLACER_END
 import { buildRoadNetwork } from '../roads/roadNetwork.js';
 import { collectRoadPoints } from '../roads/collectRoadPoints.js';
-import { createNpcManager } from '../npc/npcSystem.js';
+import { createNpcSystem } from '../npc/npcSystem.js';
 import { createMainCharacter } from '../npc/mainCharacter.js';
 import { createKeyboard } from '../input/keyboard.js';
+import { RELEVANT_KEYS, HOTKEY_IDS, getHotkeyDisplayEntries } from '../config/hotkeys.ts';
 import { createFollowCamera } from '../camera/followCamera.js';
-import { createPlayerController } from '../player/playerController.js';
-import { assetUrl } from '../utils/assetUrl.js';
+import { seedCameraBehindPlayer } from '../camera/seedCameraBehindPlayer.js';
+import { installFlyBypass } from '../dev/flyBypass.js';
+import { bindHotkeyActions } from '../input/bindHotkeyActions.js';
+import { registerScopedHotkeys } from '../input/hotkeyScopes.js';
 import { createGameLoop } from '../engine/loop.js';
+import { movementConfig } from '../config/movement.ts';
 import { markGround, collectGround } from '../physics/groundRegistry.js';
 import { markColliders, collectColliders, buildAABBs } from '../physics/colliderRegistry.js';
 import { sampleGroundY, snapGroupToGround, snapObjectToGround, snapChildrenToGround } from '../physics/groundProject.js';
 import { createCity } from '../buildings/createCity.js';
-import { createCityExtended } from '../buildings/createCityExtended.js';
 import { createOriginalUi } from '../ui/originalUi.js';
-import { createTimeSky, setTimeOfDay, getTimeOfDay, attachTimeHotkeys } from '../sky/timeSky.js';
 import { loadGrassMaterial } from '../materials/groundGrass.js';
 import { buildNavMeshFromMeshes } from '../navmesh/buildNavMesh.js';
 import { createNavMeshPathfinder } from '../navmesh/pathfinder.js';
+import { loadWorldWithColliders } from '../physics/collisionWorld.ts';
+import { CharacterController } from '../controls/CharacterController.ts';
+import { getInput } from '../controls/input.ts';
+import {
+  LANDMARK_ALIASES,
+  KNOWN_LANDMARK_KEYS,
+  createLandmarkLayoutResolver,
+  getLandmarkKeysForLayout
+} from '../config/landmarkLayout.ts';
+import {
+  DEFAULT_CAMERA,
+  DEFAULT_PLAYER,
+  finiteNumber,
+  isFiniteVec3,
+  sanitizeEuler,
+  sanitizeQuaternion,
+  sanitizeVec3,
+  safeSetVec3
+} from '../utils/sanitize.ts';
+import { ensureFeetAtLocalZero } from '../utils/spawn.ts';
+import { CUSTOM_AMBIENT_TRACKS } from '../audio/customAmbientTracks.generated.ts';
+import { initAmbient, AmbientAPI, AMBIENT_TRACKS, registerExternalAmbientTracks } from '../audio/ambient.ts';
+import { createSanityGeometryController } from '../debug/sanityGeometry.js';
+// SKYSYS_START
+import { SKY_JPGS, GROUND_JPGS } from '../assets/skyGround.generated.ts';
+import { installSkyDev } from '../dev/skyDebugHooks.js';
+import { setExternalGroundTexture } from '../materials/groundGrass.js';
+// SKYSYS_END
+import { withTimeout as withBootTimeout } from '../boot/withTimeout.ts';
+
+const __t0 = (typeof performance !== 'undefined' && typeof performance.now === 'function'
+  ? performance.now()
+  : Date.now());
+const __mark = (phase) => {
+  const now = typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+  try {
+    console.log(`[Athens][Boot] ${phase} @ ${(now - __t0).toFixed(1)}ms`);
+  } catch {}
+};
+
+const ENVIRONMENT_MODULE_TIMEOUT_MS = 8000;
+
+function createDeferredEnvironmentModule(modulePromise) {
+  return {
+    createEnvironment(deps) {
+      let disposed = false;
+      let realEnvironment = null;
+      const pendingCalls = [];
+
+      const flushPending = async () => {
+        if (!realEnvironment || pendingCalls.length === 0 || disposed) {
+          return;
+        }
+
+        while (pendingCalls.length > 0 && !disposed) {
+          const task = pendingCalls.shift();
+          if (!task) continue;
+          const { method, args } = task;
+          try {
+            const result = realEnvironment[method](...args);
+            if (result && typeof result.then === 'function') {
+              await result;
+            }
+          } catch (error) {
+            try {
+              logger?.warn?.('[Athens][Boot] deferred environment call failed:', method, error);
+            } catch {}
+          }
+        }
+      };
+
+      modulePromise
+        ?.then(async (module) => {
+          if (disposed) {
+            return;
+          }
+          try {
+            realEnvironment = module?.createEnvironment?.(deps) || null;
+          } catch (error) {
+            try {
+              logger?.warn?.('[Athens][Boot] failed to upgrade environment module after timeout:', error);
+            } catch {}
+            realEnvironment = null;
+            return;
+          }
+
+          await flushPending();
+        })
+        ?.catch((error) => {
+          try {
+            logger?.warn?.('[Athens][Boot] failed to recover environment module after timeout:', error);
+          } catch {}
+          pendingCalls.length = 0;
+        });
+
+      const enqueue = (method, args) => {
+        if (disposed) {
+          return;
+        }
+        if (realEnvironment) {
+          try {
+            const result = realEnvironment[method](...args);
+            if (result && typeof result.then === 'function') {
+              result.catch((error) => {
+                try {
+                  logger?.warn?.('[Athens][Boot] deferred environment call failed:', method, error);
+                } catch {}
+              });
+            }
+          } catch (error) {
+            try {
+              logger?.warn?.('[Athens][Boot] deferred environment call failed:', method, error);
+            } catch {}
+          }
+          return;
+        }
+        pendingCalls.push({ method, args });
+      };
+
+      return {
+        async applySkyMode(...args) {
+          if (disposed) {
+            return;
+          }
+          if (realEnvironment) {
+            await realEnvironment.applySkyMode(...args);
+            return;
+          }
+          enqueue('applySkyMode', args);
+        },
+        async applySkyImage(...args) {
+          if (disposed) {
+            return;
+          }
+          if (realEnvironment) {
+            await realEnvironment.applySkyImage(...args);
+            return;
+          }
+          enqueue('applySkyImage', args);
+        },
+        setMode(...args) {
+          if (disposed) {
+            return;
+          }
+          if (realEnvironment) {
+            realEnvironment.setMode(...args);
+            return;
+          }
+          enqueue('setMode', args);
+        },
+        dispose() {
+          if (disposed) {
+            return;
+          }
+          disposed = true;
+          pendingCalls.length = 0;
+          try {
+            realEnvironment?.dispose?.();
+          } catch {}
+        }
+      };
+    }
+  };
+}
+
+if (typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production') {
+  console.log('[hotkeys] sample:', [...RELEVANT_KEYS].slice(0, 8));
+}
+
+// CHAR_MAIN_HEIGHT_START
+// Height scaling for the main character is no longer required.
+// CHAR_MAIN_HEIGHT_END
+
+// LANDMARK_SPREAD_START
+const _TMP_WORLD = new THREE.Vector3();
+const _TMP_LOCAL = new THREE.Vector3();
+const _TMP_GROUND = new THREE.Vector3();
+
+function getPhaseSetter() {
+  if (typeof window !== 'undefined' && typeof window.__athensSetPhase === 'function') {
+    return window.__athensSetPhase;
+  }
+  return () => {};
+}
+
+function _setWorldPosition(object, x, y, z) {
+  if (!object?.isObject3D) return false;
+  object.updateMatrixWorld(true);
+  const parent = object.parent;
+  if (parent?.isObject3D) {
+    parent.updateMatrixWorld(true);
+    _TMP_LOCAL.set(x, y, z);
+    object.position.copy(parent.worldToLocal(_TMP_LOCAL));
+  } else {
+    object.position.set(x, y, z);
+  }
+  object.updateMatrixWorld(true);
+  return true;
+}
+
+function _findLandmarkObject(scene, key) {
+  if (!scene) return null;
+  const aliases = LANDMARK_ALIASES[key] || [key];
+  for (const name of aliases) {
+    const exact = scene.getObjectByName(name);
+    if (exact) return exact;
+  }
+  const lowered = aliases.map((name) => String(name).toLowerCase());
+  let fallback = null;
+  scene.traverse((obj) => {
+    if (fallback || !obj?.name) return;
+    const candidate = obj.name.toLowerCase();
+    for (const needle of lowered) {
+      if (candidate === needle || candidate.includes(needle)) {
+        fallback = obj;
+        break;
+      }
+    }
+  });
+  return fallback;
+}
+
+function _sampleSceneGround(x, z, fallbackY) {
+  const baseY = Number.isFinite(fallbackY) ? fallbackY : 0;
+  try {
+    if (typeof raycastGroundY === 'function') {
+      _TMP_GROUND.set(x, baseY, z);
+      const gy = raycastGroundY(_TMP_GROUND);
+      if (Number.isFinite(gy)) {
+        return gy;
+      }
+    }
+  } catch {}
+  return fallbackY;
+}
+
+function _applyLandmarkLayout(scene, options, keys, { label = 'Landmarks' } = {}) {
+  if (!scene || !Array.isArray(keys) || keys.length === 0) {
+    return {};
+  }
+
+  const resolver = createLandmarkLayoutResolver({
+    layout: options?.layout,
+    layoutConfig: options?.layoutConfig,
+    plateauHeight: options?.layoutConfig?.plateauHeight,
+    sampleGround: _sampleSceneGround
+  });
+
+  const results = {};
+  for (const key of keys) {
+    const target = _findLandmarkObject(scene, key);
+    if (!target) {
+      results[key] = 'not-found';
+      continue;
+    }
+    const fallback = target.getWorldPosition(_TMP_WORLD.set(0, 0, 0));
+    const { position } = resolver(key, fallback);
+    const ok = _setWorldPosition(target, position.x, position.y, position.z);
+    results[key] = ok ? 'moved' : 'failed';
+  }
+
+  try { logger.info(`[${label}]`, results); } catch {}
+  return results;
+}
+
+function _applyLandmarkSpread(scene, options, { force = false } = {}) {
+  const shouldRun = force || options?.layout === 'athensPlan';
+  if (!shouldRun) return;
+
+  const keys = new Set();
+  getLandmarkKeysForLayout(options?.layout).forEach((key) => keys.add(key));
+  const overrides = options?.layoutConfig?.positions;
+  if (overrides && typeof overrides === 'object') {
+    Object.keys(overrides).forEach((key) => keys.add(key));
+  }
+  KNOWN_LANDMARK_KEYS.forEach((key) => keys.add(key));
+
+  _applyLandmarkLayout(scene, options, [...keys], { label: 'LandmarkSpread' });
+}
+
+function _installLandmarkDev(scene, options) {
+  if (typeof window === 'undefined') return;
+  window.dev = window.dev || {};
+  window.dev.landmarks = window.dev.landmarks || {};
+  window.dev.landmarks.spread = (customPositions) => {
+    const opts = customPositions ? { layoutConfig: { positions: customPositions } } : options;
+    _applyLandmarkSpread(scene, opts, { force: true });
+  };
+  // convenience: show names containing a token
+  window.dev.landmarks.find = (token='agora') => {
+    token = String(token).toLowerCase();
+    const hits = [];
+    scene.traverse(o => { if (o?.name && o.name.toLowerCase().includes(token)) hits.push(o.name); });
+    logger.info('[find]', token, hits);
+    return hits;
+  };
+}
+// LANDMARK_SPREAD_END
 
 const DEFAULT_STATS_STYLE = 'position:fixed;left:0;top:0;z-index:9999';
+
+const DEFAULT_BACKGROUND_HEX = 0x202834;
 
 let stats = null;
 let statsVisible = true;
@@ -55,6 +364,15 @@ const registerGlobalStatsHelpers = () => {
     updateStatsVisibility();
     return statsVisible;
   };
+};
+
+const toggleStatsPanel = () => {
+  if (typeof window !== 'undefined' && typeof window.toggleStatsVisibility === 'function') {
+    return window.toggleStatsVisibility();
+  }
+  statsVisible = !statsVisible;
+  updateStatsVisibility();
+  return statsVisible;
 };
 
 const statsReady = (async () => {
@@ -88,52 +406,72 @@ const DEFAULT_CONTAINER_ID = 'app';
 const DEFAULT_OVERLAY_ID = 'landmark-overlay';
 const DEFAULT_GEOJSON_URL = 'data/athens_places.geojson';
 
-const DEFAULT_NPC_MODEL_URLS = [
-  'models/Adventurer1.glb',
-  'models/brokenCHar.glb',
-  'models/character3.glb',
-  assetUrl('assets/models/hoplite_npc.glb'),
-  assetUrl('assets/models/npc_athenian.glb')
+const DEFAULT_PLAYER_START = new THREE.Vector3(-76, -25, -230);
+const LEGACY_PLAYER_STARTS = [
+  new THREE.Vector3(0, 0, 0),
+  new THREE.Vector3(0, 1, 0)
 ];
-
-function buildNpcPatrolPath(radius, angle, height = 0) {
-  const baseX = Math.cos(angle) * radius;
-  const baseZ = Math.sin(angle) * radius;
-  const offset = Math.max(2, radius * 0.25);
-  const waypoint = (x, z) => ({ x, y: height, z });
-  return [
-    waypoint(baseX, baseZ),
-    waypoint(baseX + Math.cos(angle + Math.PI / 4) * offset, baseZ + Math.sin(angle + Math.PI / 4) * offset),
-    waypoint(baseX + Math.cos(angle - Math.PI / 4) * offset, baseZ + Math.sin(angle - Math.PI / 4) * offset)
-  ];
-}
-
-function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
-  if (!Array.isArray(modelUrls) || modelUrls.length === 0) return [];
-  const radius = 18;
-  return modelUrls.map((modelUrl, index) => {
-    const angle = (index / modelUrls.length) * Math.PI * 2;
-    const waypoints = buildNpcPatrolPath(radius, angle);
-    return { modelUrl, initialPosition: waypoints[0], waypoints };
-  });
-}
-
-const DEFAULT_PLAYER_START = new THREE.Vector3(6, 0, -12);
+const LEGACY_PLAYER_RADIUS_SQ = 36; // ~6 meters from the legacy plaza spawn
 const PLAYER_SEARCH_STEP = 4;
 const PLAYER_SEARCH_RINGS = 10;
 const PLAYER_COLLIDER_MARGIN = 1.5;
 
+function deriveScaleFactor(scaleConfig) {
+  if (typeof scaleConfig === 'number' && Number.isFinite(scaleConfig) && scaleConfig > 0) {
+    return scaleConfig;
+  }
+  if (scaleConfig && typeof scaleConfig === 'object') {
+    const { y, x, z } = scaleConfig;
+    if (Number.isFinite(y) && y > 0) {
+      return y;
+    }
+    const candidates = [x, z].filter((value) => Number.isFinite(value) && value > 0);
+    if (candidates.length) {
+      return candidates.reduce((sum, value) => sum + value, 0) / candidates.length;
+    }
+  }
+  return 1;
+}
+
+const characterConfig = movementConfig?.character ?? {};
+const DEFAULT_CHARACTER_HEIGHT = 1.7;
+const CHARACTER_SCALE = deriveScaleFactor(characterConfig?.scale);
+const CHARACTER_HEIGHT = Number.isFinite(characterConfig?.height)
+  ? Math.max(0.5, characterConfig.height)
+  : Math.max(0.5, DEFAULT_CHARACTER_HEIGHT * CHARACTER_SCALE);
+const CHARACTER_HOVER = Math.min(0.1, Math.max(0.03, CHARACTER_HEIGHT * 0.03));
+const SAFE_PLAYER_FALLBACK = {
+  x: Number.isFinite(movementConfig?.safePosition?.x) ? movementConfig.safePosition.x : DEFAULT_PLAYER.x,
+  y: Number.isFinite(movementConfig?.safePosition?.y)
+    ? movementConfig.safePosition.y
+    : Math.max(DEFAULT_PLAYER.y, CHARACTER_HEIGHT * 0.55),
+  z: Number.isFinite(movementConfig?.safePosition?.z) ? movementConfig.safePosition.z : DEFAULT_PLAYER.z
+};
+const SAFE_PLAYER_VECTOR = new THREE.Vector3(
+  SAFE_PLAYER_FALLBACK.x,
+  SAFE_PLAYER_FALLBACK.y,
+  SAFE_PLAYER_FALLBACK.z
+);
+
 const _spawnCandidate = new THREE.Vector3();
 
 function toVector3(input, fallback = DEFAULT_PLAYER_START) {
-  if (!input) return fallback.clone();
-  if (input.isVector3) return input.clone();
-  const result = fallback.clone();
+  const base = fallback?.isVector3 ? fallback : DEFAULT_PLAYER_START;
+  const result = base.clone();
+  if (!input) {
+    return sanitizeVec3(result, DEFAULT_PLAYER_START);
+  }
+  if (input.isVector3) {
+    result.copy(input);
+    return sanitizeVec3(result, DEFAULT_PLAYER_START);
+  }
   const { x, y, z } = input;
-  if (Number.isFinite(x)) result.x = Number(x);
-  if (Number.isFinite(y)) result.y = Number(y);
-  if (Number.isFinite(z)) result.z = Number(z);
-  return result;
+  result.set(
+    finiteNumber(Number(x), result.x),
+    finiteNumber(Number(y), result.y),
+    finiteNumber(Number(z), result.z)
+  );
+  return sanitizeVec3(result, DEFAULT_PLAYER_START);
 }
 
 function pointIntersectsColliders(x, y, z, colliders, margin = PLAYER_COLLIDER_MARGIN) {
@@ -159,18 +497,20 @@ function pointIntersectsColliders(x, y, z, colliders, margin = PLAYER_COLLIDER_M
 
 function findSafePlayerSpawn({
   hint,
+  baseStart = null,
   groundMeshes,
   colliders,
-  hover = 0.05,
-  fromY = 400
+  hover = CHARACTER_HOVER,
+  fromY = 400,
+  camera = null
 } = {}) {
-  const base = toVector3(hint, DEFAULT_PLAYER_START);
+  const base = toVector3(baseStart ?? hint, DEFAULT_PLAYER_START);
   if (!groundMeshes?.length) {
     return base.clone();
   }
 
   const attemptPosition = (x, z) => {
-    const groundY = sampleGroundY(x, z, groundMeshes, { fromY });
+    const groundY = sampleGroundY(x, z, groundMeshes, { fromY, camera });
     if (groundY == null) {
       return null;
     }
@@ -200,10 +540,39 @@ function findSafePlayerSpawn({
     }
   }
 
-  const fallbackY = sampleGroundY(base.x, base.z, groundMeshes, { fromY });
+  const fallbackY = sampleGroundY(base.x, base.z, groundMeshes, { fromY, camera });
   const resolvedY = fallbackY == null ? base.y : fallbackY + hover;
   _spawnCandidate.set(base.x, resolvedY, base.z);
   return _spawnCandidate.clone();
+}
+
+async function waitForSpawnPrerequisites({
+  collectGroundMeshes,
+  collisionWorldRef,
+  requireBvh,
+  pollIntervalMs = 50,
+  timeoutMs = 3000
+} = {}) {
+  const pollInterval = Number.isFinite(pollIntervalMs) && pollIntervalMs > 0 ? pollIntervalMs : 50;
+  const hasTimeout = Number.isFinite(timeoutMs) && timeoutMs > 0;
+  const start = Date.now();
+
+  while (true) {
+    const groundMeshes = typeof collectGroundMeshes === 'function' ? collectGroundMeshes() : [];
+    const hasGround = Array.isArray(groundMeshes) && groundMeshes.length > 0;
+    const world = typeof collisionWorldRef === 'function' ? collisionWorldRef() : null;
+    const hasBvh = !requireBvh || Boolean(world?.bvh);
+
+    if (hasGround && hasBvh) {
+      return groundMeshes;
+    }
+
+    if (hasTimeout && Date.now() - start >= timeoutMs) {
+      return groundMeshes;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
+  }
 }
 
 function ensureContainerElement(options = {}) {
@@ -268,6 +637,40 @@ function ensureLights(scene) {
   }
 }
 
+// Sun presets per mode (position, intensity, color). Tweak freely later.
+const SUN_PRESETS = {
+  dawn:        { pos: [-80, 120,  80], intensity: 0.9,  color: 0xfff2cf },
+  day:         { pos: [160, 260, 120], intensity: 1.05, color: 0xffffff },
+  high_noon:   { pos: [160, 260, 120], intensity: 1.05, color: 0xffffff },
+  golden_hour: { pos: [-120,140,  40], intensity: 0.95, color: 0xffd6a3 },
+  dusk:        { pos: [120, 110, -60], intensity: 0.8,  color: 0xffc7a1 },
+  night:       { pos: [ 20,  40, -20], intensity: 0.2,  color: 0xbfd4ff },
+  midnight:    { pos: [  0,  30,   0], intensity: 0.12, color: 0xcfe3ff },
+};
+
+function _findSun(scene) {
+  let sun = null;
+  scene.traverse((o) => {
+    if (!sun && o && (o.isDirectionalLight || o.type === 'DirectionalLight')) {
+      sun = o;
+    }
+  });
+  return sun;
+}
+
+/** Set first DirectionalLight to a preset that matches the mode (no-op if none). */
+function applySunForMode(scene, mode) {
+  const sun = _findSun(scene);
+  if (!sun) return;
+  const key = String(mode || 'day').toLowerCase();
+  const preset = SUN_PRESETS[key] || SUN_PRESETS.day;
+  const [x, y, z] = preset.pos;
+  sun.position.set(x, y, z);
+  if (typeof sun.intensity === 'number') sun.intensity = preset.intensity;
+  try { sun.color?.setHex?.(preset.color); } catch {}
+  sun.updateMatrixWorld?.(true);
+}
+
 function createPlaceholderPlayer() {
   const group = new THREE.Group();
   group.name = 'Player';
@@ -293,17 +696,45 @@ function createPlaceholderPlayer() {
   head.receiveShadow = true;
   group.add(head);
 
+  const placeholderScale = Math.max(0.1, CHARACTER_HEIGHT / DEFAULT_CHARACTER_HEIGHT);
+  group.scale.setScalar(placeholderScale);
+
+  sanitizeVec3(group.position, SAFE_PLAYER_FALLBACK);
+
   return group;
 }
 
 export async function initializeAthens(options = {}) {
+  const now =
+    typeof performance !== 'undefined' && typeof performance.now === 'function'
+      ? () => performance.now()
+      : () => Date.now();
+  const bootStartTime = now();
+  const markBootPhase = (phase) => {
+    try {
+      const elapsed = (now() - bootStartTime).toFixed(1);
+      console.log(`[Athens][Boot] ${phase} @ ${elapsed}ms`);
+    } catch {}
+  };
+
+  const setPhase = getPhaseSetter();
   const container = ensureContainerElement(options);
   container.style.position = container.style.position || 'relative';
 
   const { width: initialWidth, height: initialHeight } = computeContainerSize(container);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); // avoid page-white if background=null
+  // CITYPLAN_START
+  const layout = options?.layout === 'athensPlan' ? 'athensPlan' : 'classic';
+  const layoutConfig = options?.layoutConfig ?? {};
+  // CITYPLAN_END
+
+  const environmentModulePromise = import('../environment/envCore.ts');
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.shadowMap.enabled = true;
+  renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+  // Ensure opaque clear so the canvas never shows the page background
+  renderer.setClearAlpha(1.0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(initialWidth, initialHeight, false);
   renderer.domElement.style.width = '100%';
@@ -315,25 +746,378 @@ export async function initializeAthens(options = {}) {
     container.appendChild(renderer.domElement);
   }
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
+  try {
+    setPhase('renderer-ready');
+  } catch {}
 
-  // Minimal debug hook for smoke tests / console
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+  const camera = new THREE.PerspectiveCamera(60, initialWidth / initialHeight, 0.1, 2000);
+  camera.position.set(90, 110, 180);
+  sanitizeVec3(camera.position, DEFAULT_CAMERA);
+  const el = renderer.domElement;
+  const w = el?.clientWidth ?? 0;
+  const h = el?.clientHeight ?? 0;
+  camera.aspect = (w > 0 && h > 0) ? (w / h) : (16 / 9);
+  camera.updateProjectionMatrix();
+
+  const initialLookTarget = new THREE.Vector3(0, 0, 0);
+  sanitizeVec3(initialLookTarget, DEFAULT_PLAYER);
+  camera.lookAt(initialLookTarget);
+  scene.add(camera);
+
+  const sanityGeometry = createSanityGeometryController(scene);
+
+// Ensure we can actually see distant background
+  if (camera.far < 50000) { camera.far = 50000; camera.updateProjectionMatrix(); }
+
+  renderer.setClearAlpha(1);
+
+  const environmentModule = await withBootTimeout(
+    environmentModulePromise,
+    ENVIRONMENT_MODULE_TIMEOUT_MS,
+    'environment-module',
+    () => createDeferredEnvironmentModule(environmentModulePromise) // fallback: never reject
+  );
+  const { createEnvironment } = environmentModule;
+
+  const environmentManager = createEnvironment({ scene, renderer });
+
+  const sanitizeSkyToken = (value) =>
+    typeof value === 'string'
+      ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      : '';
+
+  const SKY_MODE_ALIASES = new Map([
+    ['dawn', 'dawn'],
+    ['sunrise', 'dawn'],
+    ['day', 'day'],
+    ['high-noon', 'day'],
+    ['high_noon', 'day'],
+    ['highnoon', 'day'],
+    ['noon', 'day'],
+    ['midday', 'day'],
+    ['dusk', 'dusk'],
+    ['sunset', 'dusk'],
+    ['evening', 'dusk'],
+    ['golden-hour', 'dusk'],
+    ['goldenhour', 'dusk'],
+    ['blue-hour', 'dusk'],
+    ['night', 'night'],
+    ['midnight', 'night'],
+    ['night-sky', 'night'],
+    ['starlit-night', 'night'],
+    ['night-4k', 'night'],
+    ['night4k', 'night'],
+    ['procedural', 'day'],
+    ['image', 'day']
+  ]);
+
+  const resolveSkyMode = (mode) => SKY_MODE_ALIASES.get(sanitizeSkyToken(mode)) || 'day';
+
+  let lastAppliedSkyMode = 'day';
+  let environmentMode = 'day';
+  let skySuppressed = false;
+
+  // Register discovered assets (safe no-ops if arrays are empty)
+  try {
+    if (Array.isArray(GROUND_JPGS) && GROUND_JPGS.length > 0) {
+      // Use the first ground jpg as default override (non-breaking: only affects grass when feature is used)
+      setExternalGroundTexture(GROUND_JPGS[0].url);
+    }
+  } catch {}
+
+  const trackedDisposables = new Set();
+  const registerDisposables = (...items) => {
+    for (const item of items) {
+      if (!item) continue;
+      if (typeof item.dispose === 'function') {
+        trackedDisposables.add(item);
+        continue;
+      }
+      if (
+        item instanceof THREE.Object3D ||
+        item instanceof THREE.Material ||
+        item instanceof THREE.Texture ||
+        item instanceof THREE.BufferGeometry
+      ) {
+        trackedDisposables.add(item);
+      }
+    }
+  };
+  const disposeTracked = () => {
+    disposeTreeGroves();
+    resetTrees();
+    if (!trackedDisposables.size) return;
+    disposeAll(...trackedDisposables);
+  };
+  let beforeUnloadCleanup = null;
+
+  registerDisposables(renderer, environmentManager, sanityGeometry);
+
   if (typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('headlessSmoke') === '1') {
-      window.__athensDebug = { scene, camera, renderer };
+    window.scene = window.scene || scene;
+    window.renderer = window.renderer || renderer;
+    window.camera = window.camera || camera;
+    installSkyDev({ scene, renderer, camera });
+
+    window.dev = window.dev || {};
+    window.dev.sky = window.dev.sky || {};
+    window.dev.sky.on = (mode = 'day') => {
+      const skyMode = resolveSkyMode(mode);
+      lastAppliedSkyMode = skyMode;
+      environmentManager.setMode('procedural');
+      return environmentManager.applySkyMode(skyMode);
+    };
+    window.dev.sky.off = () => { scene.background = null; scene.environment = null; };
+    window.dev.sky.color = (hex = 0x87ceeb) => {
+      renderer.setClearAlpha(1);
+      renderer.setClearColor(hex, 1);
+    };
+  }
+
+  let globalWindow = null;
+  let searchParams = null;
+  let collisionWorld = { colliderMesh: null, bvh: null };
+  if (typeof window !== 'undefined') {
+    globalWindow = window;
+    searchParams = new URLSearchParams(globalWindow.location.search);
+    try {
+      const url = new URL(globalWindow.location.href);
+      const bootTimeoutMsParam = url.searchParams.get('bootTimeoutMs');
+      if (bootTimeoutMsParam !== null) {
+        const parsed = Number(bootTimeoutMsParam);
+        if (Number.isFinite(parsed)) {
+          globalWindow.__ATHENS_BOOT_TIMEOUT = Math.max(8000, parsed);
+        }
+      }
+    } catch {}
+  }
+
+  try {
+    const ambientTask = initAmbient(camera);
+    if (ambientTask && typeof ambientTask.catch === 'function') {
+      ambientTask.catch((error) => {
+        logger.warn('[Athens] Ambient initialization failed.', error);
+      });
+    }
+  } catch (error) {
+    logger.warn('[Athens] Ambient initialization threw synchronously.', error);
+  }
+
+  try {
+    // Register all discovered mp3 tracks before the environment mode picks a track.
+    if (Array.isArray(CUSTOM_AMBIENT_TRACKS)) {
+      registerExternalAmbientTracks(CUSTOM_AMBIENT_TRACKS);
+    }
+  } catch {}
+
+  if (globalWindow) {
+    const existingDebug =
+      globalWindow.__athensDebug && typeof globalWindow.__athensDebug === 'object'
+        ? globalWindow.__athensDebug
+        : {};
+
+    const headlessSmoke = searchParams?.get('headlessSmoke') === '1';
+    globalWindow.THREE = THREE;
+
+    if (headlessSmoke) {
+      globalWindow.__athensDebug = { ...existingDebug, scene, camera, renderer, controller: null };
+    } else {
+      globalWindow.__athensDebug = {
+        ...existingDebug,
+        scene,
+        camera,
+        renderer,
+        controller: null,
+        audioAPI: AmbientAPI,
+        customAmbientTracks: Array.isArray(CUSTOM_AMBIENT_TRACKS)
+          ? CUSTOM_AMBIENT_TRACKS.map((track) => track.id)
+          : []
+      };
+    }
+
+    if (typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
+      globalWindow.__athensDebug.collision = collisionWorld;
+      globalWindow.__athensDebug.skyJpgs = (SKY_JPGS || []).map((x) => ({
+        id: x.id,
+        url: x.url,
+        tags: x.tags
+      }));
+      globalWindow.__athensDebug.setSkyImage = async (idOrUrl) => {
+        const item = (SKY_JPGS || []).find((x) => x.id === idOrUrl || x.url === idOrUrl);
+        if (item) {
+          await environmentManager.applySkyImage(item.url);
+          environmentManager.setMode('image');
+        }
+      };
     }
   }
 
-  camera.position.set(90, 110, 180);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
-  scene.add(camera);
+  const withTimeout = async (p, ms, fb) => {
+    let t;
+    const to = new Promise((_, r) => {
+      t = setTimeout(() => r(new Error('timeout')), ms);
+    });
+    try {
+      return await Promise.race([p, to]);
+    } catch {
+      // SOFT TIMEOUT: resolve fallback, never propagate
+      return typeof fb === 'function' ? fb() : fb;
+    } finally {
+      if (t) {
+        clearTimeout(t);
+      }
+    }
+  };
 
-  // Publish a lightweight debug context for DevTools
-  if (typeof window !== 'undefined') {
-    window.__athensDebug = { scene, camera, renderer };
+  const applyInitialEnvironment = async () => {
+    await withTimeout(environmentManager.applySkyMode('day'), 2000, () => {
+      try {
+        logger.warn('[Athens] applySkyMode("day") timed out; using clear color fallback.');
+      } catch {}
+      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    });
+
+    lastAppliedSkyMode = 'day';
+    environmentManager.setMode('procedural');
+    try {
+      const currentMode = environmentMode || lastAppliedSkyMode || 'day';
+      const match = (SKY_JPGS || []).find((i) =>
+        (i.tags || []).some((t) => t.toLowerCase() === String(currentMode).toLowerCase())
+      );
+      if (match) {
+        await environmentManager.applySkyImage(match.url);
+        environmentManager.setMode('image');
+      }
+    } catch {}
+  };
+
+  let environmentUsedFallback = false;
+  const ensureFallbackEnvironment = () => {
+    environmentUsedFallback = true;
+    try {
+      const existing = scene.getObjectByName?.('athens-env-fallback-hemi');
+      if (!existing) {
+        const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+        hemi.name = 'athens-env-fallback-hemi';
+        scene.add(hemi);
+      }
+    } catch {}
+    try {
+      environmentManager?.setMode?.('day');
+    } catch {}
+    try {
+      renderer.setClearColor(DEFAULT_BACKGROUND_HEX, 1);
+    } catch {}
+    try {
+      scene.background = new THREE.Color(DEFAULT_BACKGROUND_HEX);
+    } catch {}
+    try {
+      scene.environment = null;
+    } catch {}
+  };
+
+  const handleEnvironmentFallback = (error) => {
+    ensureFallbackEnvironment();
+    try {
+      if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+        console.warn('[Athens][Boot] env-fallback', error);
+      }
+    } catch {}
+    return undefined;
+  };
+
+  markBootPhase('env-start');
+  console.info('[Athens][Boot] env-start');
+  __mark('env-start');
+  try {
+    setPhase('env-start');
+  } catch {}
+
+  try {
+    await withBootTimeout(
+      applyInitialEnvironment(),
+      7000,
+      'environment',
+      async (error) => handleEnvironmentFallback(error)
+    );
+  } catch (error) {
+    handleEnvironmentFallback(error);
   }
+
+  if (!environmentUsedFallback) {
+    console.info('[Athens][Boot] env-ready');
+  } else {
+    console.info('[Athens][Boot] env-ready (fallback)');
+  }
+  markBootPhase('env-ready');
+  __mark('env-ready');
+  try {
+    setPhase('env-ready');
+  } catch {}
+
+  let ambientMuted = searchParams ? searchParams.get('mute') === '1' : false;
+  const ambientOverrideSelected = searchParams ? searchParams.has('amb') : false;
+  const ambientTrackIds = new Set(AMBIENT_TRACKS.map((track) => track.id));
+  const defaultAmbientTrack = AMBIENT_TRACKS.length > 0 ? AMBIENT_TRACKS[0].id : null;
+  const MODE_TO_AMBIENT = {
+    dawn: ['day'],
+    day: ['day'],
+    high_noon: ['day'],
+    dusk: ['day'],
+    golden_hour: ['day'],
+    night: ['day'],
+    midnight: ['day']
+  };
+
+  const selectAmbientTrack = (mode) => {
+    const normalized = typeof mode === 'string' ? mode.toLowerCase() : '';
+    const candidates = MODE_TO_AMBIENT[normalized] || [];
+    for (const candidate of candidates) {
+      if (ambientTrackIds.has(candidate)) {
+        return candidate;
+      }
+    }
+    for (const trackId of ambientTrackIds) {
+      return trackId;
+    }
+    return defaultAmbientTrack;
+  };
+
+  const applyAmbientForMode = (mode, allowPlayback = true) => {
+    if (ambientMuted || ambientTrackIds.size === 0) {
+      return null;
+    }
+    const trackId = selectAmbientTrack(mode);
+    if (trackId && allowPlayback) {
+      AmbientAPI.play(trackId).catch(() => {});
+    }
+    return trackId;
+  };
+
+  const setAmbientMuted = (muted) => {
+    const next = Boolean(muted);
+    if (ambientMuted === next) {
+      return ambientMuted;
+    }
+    ambientMuted = next;
+    if (ambientMuted) {
+      try {
+        AmbientAPI.stop?.();
+      } catch (error) {
+        logger.warn('[Athens] Failed to stop ambient audio.', error);
+      }
+    } else {
+      applyAmbientForMode(environmentMode, true);
+    }
+    return ambientMuted;
+  };
+
+  const toggleAmbientMuted = () => {
+    setAmbientMuted(!ambientMuted);
+    return ambientMuted;
+  };
 
   ensureLights(scene);
 
@@ -356,76 +1140,338 @@ export async function initializeAthens(options = {}) {
       // Ignore stats setup errors.
     });
 
-  await createTimeSky(renderer, scene, 'day');
-  if (typeof attachTimeHotkeys === 'function') {
-    try {
-      attachTimeHotkeys();
-    } catch (error) {
-      console.warn('[Athens] Failed to attach sky hotkeys.', error);
+  const setEnvironmentMode = (mode, { allowAmbient = true } = {}) => {
+    const normalized = typeof mode === 'string' && mode ? mode : 'day';
+    environmentMode = normalized;
+    if (allowAmbient) {
+      applyAmbientForMode(normalized, true);
     }
-  }
+    return environmentMode;
+  };
 
   const environmentController = {
-    mode: getTimeOfDay() || 'day',
-    async setMode(mode) {
+    get mode() {
+      return environmentMode;
+    },
+    async setMode(mode, envOptions = {}) {
+      const allowAmbient = envOptions?.playAmbient !== false;
+      const next = setEnvironmentMode(mode, { allowAmbient });
+      const skyMode = resolveSkyMode(next);
       try {
-        const resolved = await setTimeOfDay(mode);
-        if (resolved) this.mode = resolved;
-        return this.mode;
-      } catch (error) {
-        console.warn('[Athens] Failed to set time of day.', error);
-        return this.mode;
+        await environmentManager.applySkyMode(skyMode);
+        lastAppliedSkyMode = skyMode;
+        environmentManager.setMode('procedural');
+      } catch {
+        // keep running if sky load fails
       }
+
+      // OPTIONAL SUN TWEAK (only if you add Part C below)
+      try {
+        if (typeof applySunForMode === 'function') {
+          applySunForMode(scene, next);
+        }
+      } catch {}
+
+      return next;
+    },
+    applySky(mode) {
+      const skyMode = resolveSkyMode(mode);
+      lastAppliedSkyMode = skyMode;
+      environmentManager.setMode('procedural');
+      return environmentManager.applySkyMode(skyMode);
     },
     dispose() {
-      // placeholder for compatibility
+      environmentManager.dispose();
     }
   };
 
-  await setupGround(scene, renderer);
+  const setSkySuppressedState = (hidden) => {
+    const next = Boolean(hidden);
+    if (skySuppressed === next) {
+      return skySuppressed;
+    }
+    skySuppressed = next;
+    if (skySuppressed) {
+      scene.background = null;
+      scene.environment = null;
+    } else {
+      const target = lastAppliedSkyMode || resolveSkyMode(environmentMode);
+      environmentManager.setMode('procedural');
+      environmentManager.applySkyMode(target).catch(() => {});
+    }
+    return skySuppressed;
+  };
 
-  const city = await createCity({ renderer, scene });
+  const toggleSkySuppressed = () => {
+    setSkySuppressedState(!skySuppressed);
+    return skySuppressed;
+  };
+  registerDisposables(environmentController);
+
+  if (!ambientOverrideSelected) {
+    setEnvironmentMode(environmentController.mode, { allowAmbient: true });
+  }
+
+
+  // CITYPLAN_START
+  const ground = await setupGround(scene, renderer, { layout, layoutConfig });
+  registerDisposables(ground);
+  const layeredGroundRoot = ground?.root ?? null;
+  const hasLayeredGround = Boolean(layeredGroundRoot?.userData?.layeredGround);
+  // CITYPLAN_END
+
+  // CITYPLAN_START
+  const cityVariant = options?.city?.variant ?? options?.cityVariant;
+
+  const city = await createCity({
+    renderer,
+    scene,
+    layout,
+    layoutConfig,
+    variant: cityVariant,
+    ground: hasLayeredGround ? { existing: ground } : undefined,
+  });
+
+  const cityRoot = city?.root ?? null;
+  registerDisposables(cityRoot);
+  const cityMaterials = city?.materials ?? null;
+  // CITYPLAN_END
+
+
+  // LANDMARK_SPREAD_START
+  _applyLandmarkSpread(scene, options);
+  _installLandmarkDev(scene, options);
+  // LANDMARK_SPREAD_END
 
   // Grass material application for main ground
-  const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
-  if (mainGround?.isMesh) {
-    try {
-      const grassMaterial = await loadGrassMaterial(renderer, { repeat: 80 });
-      if (grassMaterial) {
-        const previous = mainGround.material;
-        mainGround.material = grassMaterial;
-        if (previous && previous !== grassMaterial && typeof previous.dispose === 'function') {
-          previous.dispose();
+  if (!hasLayeredGround) {
+    const mainGround = city?.root?.getObjectByName?.('Ground:MainGrass');
+    if (mainGround?.isMesh) {
+      try {
+        const grassMaterial = await loadGrassMaterial(renderer, { repeat: 80 });
+        if (grassMaterial) {
+          const previous = mainGround.material;
+          mainGround.material = grassMaterial;
+          if (previous && previous !== grassMaterial && typeof previous.dispose === 'function') {
+            previous.dispose();
+          }
         }
+      } catch (error) {
+        logger.warn('[Athens] Unable to apply grass material to main ground plane.', error);
       }
-    } catch (error) {
-      console.warn('[Athens] Unable to apply grass material to main ground plane.', error);
     }
   }
 
-  // Extended city (provides root + shared materials)
-  const extendedRes = await createCityExtended({ renderer, scene });
-  const extendedCity = extendedRes?.root ?? null;
-  const sharedMaterials = extendedRes?.materials ?? null;
+  // LANDMARK_OVERRIDE_START
+  // Apply runtime landmark overrides (world-space), if provided
+  _applyLandmarkOverrides(scene, options);
+
+  // Dev convenience: allow re-applying from console
+  if (typeof window !== 'undefined') {
+    window.dev = window.dev || {};
+    window.dev.landmarks = window.dev.landmarks || {};
+    window.dev.landmarks.applyPositions = (positions) => {
+      const opts = { layoutConfig: { positions } };
+      _applyLandmarkOverrides(scene, opts);
+    };
+    logger.info('[LandmarkOverride] dev.landmarks.applyPositions({ Agora:{x,y,z} }) is available');
+  }
+  // LANDMARK_OVERRIDE_END
 
   // Ground registry + snapping
   markGround(scene);
-  const groundMeshes = collectGround(scene);
-  if (!groundMeshes.length) {
-    console.warn('[npc] no ground meshes');
-  }
-  if (city?.root && groundMeshes.length) {
-    const snapOpts = { hover: 0.03, fromY: 300 };
-    snapChildrenToGround(city.root, groundMeshes, snapOpts);
-    snapGroupToGround(city.root, groundMeshes, snapOpts);
-  }
-  if (extendedCity && groundMeshes.length) {
-    snapGroupToGround(extendedCity, groundMeshes, { hover: 0.03, fromY: 300 });
-  }
+  let groundMeshes = collectGround(scene);
+  // PLACER_START
+  const landmarkSequence = [...KNOWN_LANDMARK_KEYS];
+  const devLandmarkOptions = options?.dev?.landmarkPlacer;
+  const shouldAttachLandmarkPlacer = devLandmarkOptions !== false;
+  let landmarkPlacer = null;
+  if (typeof window !== 'undefined' && shouldAttachLandmarkPlacer) {
+    const activeList = Array.isArray(devLandmarkOptions?.landmarks) && devLandmarkOptions.landmarks.length
+      ? [...devLandmarkOptions.landmarks]
+      : landmarkSequence;
+    const groundSampler = (x, z) => sampleGroundY(x, z, groundMeshes, { fromY: 400 });
+    const ensureDevNamespace = () => {
+      window.dev = window.dev || {};
+      window.dev.landmarks = window.dev.landmarks || {};
+      return window.dev.landmarks;
+    };
+    const handleSave = (positions = {}) => {
+      const devApi = ensureDevNamespace();
+      const payload = {
+        layout: 'athensPlan',
+        layoutConfig: { positions: {} }
+      };
+      const parseNumber = (value) => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+      const names = typeof landmarkPlacer?.list === 'function' ? landmarkPlacer.list() : activeList;
+      names.forEach((name) => {
+        const entry = positions?.[name];
+        if (entry && typeof entry === 'object') {
+          const x = parseNumber(entry.x);
+          const y = parseNumber(entry.y);
+          const z = parseNumber(entry.z);
+          if (x != null && y != null && z != null) {
+            payload.layoutConfig.positions[name] = { x, y, z };
+          }
+        }
+      });
+      const exportString = JSON.stringify(payload, null, 2);
+      devApi.lastExport = exportString;
+      devApi.lastPayload = payload;
+      // eslint-disable-next-line no-console
+      logger.info('[Athens][Landmarks] Exported landmark positions:', exportString);
+      if (typeof devApi.onSave === 'function') {
+        try {
+          devApi.onSave(payload);
+        } catch (error) {
+          logger.warn('[Athens][Landmarks] onSave handler error.', error);
+        }
+      }
+    };
 
+    landmarkPlacer = createLandmarkPlacer({
+      scene,
+      camera,
+      renderer,
+      groundSampler,
+      onSave: handleSave
+    });
+    registerDisposables(landmarkPlacer);
+    if (typeof landmarkPlacer?.setList === 'function') {
+      landmarkPlacer.setList(activeList);
+    }
+    scene.userData.landmarkPlacer = landmarkPlacer;
+
+    const devApi = ensureDevNamespace();
+    devApi.enable = () => {
+      landmarkPlacer.enable?.();
+      return landmarkPlacer.isEnabled?.() ?? false;
+    };
+    devApi.disable = () => {
+      landmarkPlacer.disable?.();
+      return landmarkPlacer.isEnabled?.() ?? false;
+    };
+    devApi.toggle = () => {
+      if (landmarkPlacer.isEnabled?.()) {
+        landmarkPlacer.disable?.();
+      } else {
+        landmarkPlacer.enable?.();
+      }
+      return landmarkPlacer.isEnabled?.() ?? false;
+    };
+    devApi.next = () => landmarkPlacer.next?.();
+    devApi.prev = () => landmarkPlacer.prev?.();
+    devApi.save = () => {
+      landmarkPlacer.save?.();
+      return devApi.lastExport ?? null;
+    };
+    devApi.set = (name, position) => landmarkPlacer.set?.(name, position);
+    devApi.setList = (list) => landmarkPlacer.setList?.(list);
+    devApi.list = () => (typeof landmarkPlacer.list === 'function' ? landmarkPlacer.list() : [...activeList]);
+    devApi.export = () => {
+      const positions = landmarkPlacer.export?.() || {};
+      const payload = {
+        layout: 'athensPlan',
+        layoutConfig: { positions: {} }
+      };
+      devApi.list().forEach((name) => {
+        const entry = positions?.[name];
+        if (entry && typeof entry === 'object') {
+          payload.layoutConfig.positions[name] = { ...entry };
+        }
+      });
+      return payload;
+    };
+    devApi.positions = () => landmarkPlacer.export?.() || {};
+    devApi.getState = () => landmarkPlacer.getState?.();
+    devApi.refreshGround = () => landmarkPlacer.refreshGround?.();
+    devApi.lastExport = devApi.lastExport ?? null;
+    devApi.lastPayload = devApi.lastPayload ?? null;
+    if (typeof devApi.saveToFile !== 'function') {
+      devApi.saveToFile = () => {
+        logger.info('[Athens][Landmarks] saveToFile hook not implemented.');
+      };
+    }
+
+    const toggleKey = typeof devLandmarkOptions?.toggleKey === 'string'
+      ? devLandmarkOptions.toggleKey.toLowerCase()
+      : 'l';
+    const shouldIgnoreEvent = (event) => {
+      const target = event?.target;
+      if (!target || typeof target !== 'object') {
+        return false;
+      }
+      if (target.isContentEditable) {
+        return true;
+      }
+      const element = typeof HTMLElement !== 'undefined' && target instanceof HTMLElement ? target : null;
+      if (!element) {
+        return false;
+      }
+      const tag = element.tagName;
+      if (!tag) return false;
+      const normalized = tag.toLowerCase();
+      if (normalized === 'input' || normalized === 'textarea' || normalized === 'select') {
+        return true;
+      }
+      return Boolean(element.closest?.('input, textarea, select, [contenteditable="true"]'));
+    };
+    const toggleHandler = (event) => {
+      if (!landmarkPlacer) return;
+      if (typeof event?.key !== 'string') return;
+      if (shouldIgnoreEvent(event)) return;
+      const keyLower = event.key.toLowerCase();
+      if (keyLower !== toggleKey) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.repeat) return;
+      devApi.toggle();
+    };
+    if (window.__athensLandmarkToggleHandler) {
+      window.removeEventListener('keydown', window.__athensLandmarkToggleHandler, true);
+      window.removeEventListener('keydown', window.__athensLandmarkToggleHandler);
+    }
+    window.__athensLandmarkToggleHandler = toggleHandler;
+    window.addEventListener('keydown', toggleHandler, { capture: true });
+  }
+  if (!scene.userData.landmarkPlacer) {
+    scene.userData.landmarkPlacer = landmarkPlacer;
+  }
+  // PLACER_END
   markColliders(scene);
   const colliderMeshes = collectColliders(scene);
   const colliders = buildAABBs(colliderMeshes);
+
+  const collisionWorldUrl =
+    options?.collisionWorldUrl ?? options?.collision?.url ?? options?.worldUrl ?? null;
+
+  if (collisionWorldUrl) {
+    try {
+      collisionWorld = await loadWorldWithColliders(collisionWorldUrl, scene);
+    } catch (error) {
+      logger.warn('[Athens][CollisionWorld] Failed to load collision world.', error);
+    }
+  }
+
+  groundMeshes = await waitForSpawnPrerequisites({
+    collectGroundMeshes: () => collectGround(scene),
+    collisionWorldRef: () => collisionWorld,
+    requireBvh: true,
+    pollIntervalMs: 50,
+    timeoutMs: 3000
+  });
+  if (!groundMeshes.length) {
+    logger.warn('[npc] no ground meshes');
+  }
+
+  if (cityRoot && groundMeshes.length) {
+    const snapOpts = { hover: 0.03, fromY: 300 };
+    snapChildrenToGround(cityRoot, groundMeshes, snapOpts);
+    snapGroupToGround(cityRoot, groundMeshes, snapOpts);
+  }
 
   const mainCharacterOptions = options.mainCharacter ?? options.mainCharacterConfig ?? null;
   const spawnHint = mainCharacterOptions?.initialPosition ?? DEFAULT_PLAYER_START;
@@ -433,41 +1479,84 @@ export async function initializeAthens(options = {}) {
     hint: spawnHint,
     groundMeshes,
     colliders,
-    hover: 0.05,
-    fromY: 400
+    hover: CHARACTER_HOVER,
+    fromY: 400,
+    camera
   });
+  sanitizeVec3(playerSpawn, SAFE_PLAYER_FALLBACK);
 
   // Landmarks & overlay
-  const landmarks = await loadLandmarks({
-    scene,
-    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
-    groundMeshes
-  });
+  let landmarks = null;
+  try {
+    landmarks = await loadLandmarks({
+      scene,
+      geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL,
+      groundMeshes,
+      // CITYPLAN_START
+      layout,
+      layoutConfig
+      // CITYPLAN_END
+    });
+    registerDisposables(landmarks);
+  } catch (error) {
+    logger.warn('[Athens][Landmarks] Failed to load landmarks.', error);
+    landmarks = null;
+  }
 
   const overlayCanvasId = options.overlayCanvasId ?? DEFAULT_OVERLAY_ID;
   const overlayCanvas = ensureOverlayCanvas(container, overlayCanvasId);
-  const overlay = await createLandmarkOverlay(overlayCanvas, {
-    geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
-  });
-  landmarks.featureLines?.updateResolution?.();
+  let overlay = null;
+  try {
+    overlay = await createLandmarkOverlay(overlayCanvas, {
+      geoJsonUrl: options.geoJsonUrl ?? DEFAULT_GEOJSON_URL
+    });
+    registerDisposables(overlay);
+  } catch (error) {
+    logger.warn('[Athens][Landmarks] Failed to create landmark overlay.', error);
+    overlay = null;
+  }
+  landmarks?.featureLines?.updateResolution?.();
 
   const ui = createOriginalUi({ container, overlayCanvas, environmentController });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
+  const applyHudInstructions = (manifest) => {
+    const entries = getHotkeyDisplayEntries('hud', manifest);
+    const mapped = entries.map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      description: entry.description
+    }));
+    ui?.setHotkeyInstructions?.(mapped);
+  };
+  applyHudInstructions();
+  const hudHotkeys = registerScopedHotkeys('gameplay', {
+    onActivate(manifest) {
+      applyHudInstructions(manifest);
+    },
+    onDeactivate() {
+      ui?.setHotkeyInstructions?.([]);
+    }
+  });
+  registerDisposables(hudHotkeys);
+  registerDisposables(ui);
 
   // Roads built from collected points (use extended/shared materials if available)
   let roadNetwork = null;
   if (options.enableRoads !== false) {
-    const roadPoints = collectRoadPoints(scene);
+    // CITYPLAN_START
+    const roadPoints = collectRoadPoints(scene, { layout, layoutConfig });
+    // CITYPLAN_END
     if (roadPoints.length >= 2) {
       const roadGroup = buildRoadNetwork({
         scene,
         points: roadPoints,
-        materials: sharedMaterials || city?.materials || {},
+        materials: cityMaterials || city?.materials || {},
         options: { width: 3.0, tileScale: 6.0 }
       });
       roadGroup.name = 'RoadNetwork';
       scene.add(roadGroup);
       roadNetwork = roadGroup;
+      registerDisposables(roadNetwork);
     }
   }
 
@@ -487,52 +1576,26 @@ export async function initializeAthens(options = {}) {
       navMesh = buildNavMeshFromMeshes(navSources);
       if (navMesh) {
         navPathfinder = createNavMeshPathfinder(navMesh);
+        registerDisposables(navMesh, navPathfinder);
       }
     } catch (error) {
-      console.warn('[Athens][NavMesh] Failed to build navmesh.', error);
+      logger.warn('[Athens][NavMesh] Failed to build navmesh.', error);
       navMesh = null;
       navPathfinder = null;
     }
   }
 
   // NPCs
-  let npcManager = null;
+  let npcSystem = null;
   if (options.enableNpcs !== false) {
-    // merged: pass both navmesh/timeSource and colliders
-    npcManager = createNpcManager(scene, groundMeshes, {
-      colliders,
-      navMesh,
-      pathfinder: navPathfinder,
-      timeSource: getTimeOfDay
+    npcSystem = createNpcSystem({
+      groundMeshes,
+      timeSource: () => environmentController.mode,
+      npcModelUrls: options.npcModelUrls,
+      npcConfigs: options.npcConfigs
     });
-
-    // Example extra NPC with simple path
-    const p0 = new THREE.Vector3(5, 0, 5);
-    const p1 = new THREE.Vector3(20, 0, 5);
-    const npcRoot = scene.getObjectByName('NPC_1') || new THREE.Object3D();
-    npcRoot.name = 'NPC_1';
-    if (!npcRoot.parent) scene.add(npcRoot);
-    npcManager.spawn({
-      object3d: npcRoot,
-      waypoints: [p0, p1],
-      walkSpeed: 1.6,
-      accel: 5.0,
-      turn: 0.18
-    });
-
-    const defaultNpcConfigs = createDefaultNpcConfigs(
-      Array.isArray(options.npcModelUrls) && options.npcModelUrls.length
-        ? options.npcModelUrls
-        : DEFAULT_NPC_MODEL_URLS
-    );
-    const npcConfigs = Array.isArray(options.npcConfigs) && options.npcConfigs.length
-      ? options.npcConfigs
-      : defaultNpcConfigs;
-
-    npcConfigs.forEach((config) => {
-      if (!config || typeof config !== 'object') return;
-      npcManager.spawn(config);
-    });
+    npcSystem.initializeNpcs(scene, { navMesh, pathfinder: navPathfinder });
+    registerDisposables(npcSystem);
   }
 
   // Main character
@@ -542,18 +1605,24 @@ export async function initializeAthens(options = {}) {
         ...(mainCharacterOptions || {}),
         initialPosition: playerSpawn
       });
+  registerDisposables(mainCharacter);
 
   const findPlayerObject = () => scene.getObjectByName('Player') || scene.getObjectByName('Hero');
 
   const placeAtSpawn = (object) => {
     if (!object) return;
     object.position.copy(playerSpawn);
+    sanitizeVec3(object.position, SAFE_PLAYER_FALLBACK);
+    if (object?.userData?.isMainCharacter) {
+      return;
+    }
     if (groundMeshes?.length) {
-      const snapped = snapObjectToGround(object, groundMeshes, { hover: 0.05, fromY: 400 });
+      const snapped = snapObjectToGround(object, groundMeshes, { hover: CHARACTER_HOVER, fromY: 400 });
       if (snapped) {
         playerSpawn.y = object.position.y;
       }
     }
+    sanitizeVec3(object.position, SAFE_PLAYER_FALLBACK);
   };
 
   let playerObject = findPlayerObject() || mainCharacter?.object3d || null;
@@ -568,32 +1637,409 @@ export async function initializeAthens(options = {}) {
     placeAtSpawn(playerObject);
   }
 
-  // Controls & camera
-  const keyboard = createKeyboard();
-  const controller = createPlayerController(playerObject, keyboard, {
-    walkSpeed: 5.5,
-    runMultiplier: 2.5,
-    acceleration: 12,
-    turnLerp: 0.18,
-    colliders
-  });
-  controller.setGroundMeshes(groundMeshes);
-  controller.setColliders?.(colliders);
+  if (playerObject?.position) {
+    sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+  }
 
-  const followCamera = createFollowCamera(camera, playerObject, {
-    offset: new THREE.Vector3(0, 2.2, -6),
-    lerp: 0.12,
-    lookAtOffset: new THREE.Vector3(0, 1.5, 0)
+  const halfHeight = CHARACTER_HEIGHT * 0.5;
+  const controllerStart = playerSpawn.clone();
+  controllerStart.y = controllerStart.y - CHARACTER_HOVER + halfHeight;
+  sanitizeVec3(controllerStart, SAFE_PLAYER_FALLBACK);
+
+  const flightConfig = movementConfig?.flight ?? {};
+  const flightVerticalSpeed = Number.isFinite(flightConfig.verticalSpeed)
+    ? flightConfig.verticalSpeed
+    : Number.isFinite(flightConfig.verticalMaxSpeed)
+    ? flightConfig.verticalMaxSpeed
+    : undefined;
+
+  const flightOptions = {
+    enabled: false
+  };
+  if (Number.isFinite(flightConfig.horizontalSpeed)) {
+    flightOptions.horizontalSpeed = Math.max(flightConfig.horizontalSpeed, 0);
+  }
+  if (Number.isFinite(flightVerticalSpeed)) {
+    flightOptions.verticalSpeed = Math.max(flightVerticalSpeed, 0);
+  }
+  if (Number.isFinite(flightConfig.nudgeUp)) {
+    flightOptions.nudgeUp = flightConfig.nudgeUp;
+  }
+  if (Number.isFinite(flightConfig.exitHover)) {
+    flightOptions.exitHover = flightConfig.exitHover;
+  }
+  if (Number.isFinite(flightConfig.startGraceFrames)) {
+    flightOptions.startGraceFrames = flightConfig.startGraceFrames;
+  }
+
+  const controller = new CharacterController(camera, controllerStart, {
+    height: CHARACTER_HEIGHT,
+    walkSpeed: Number.isFinite(movementConfig?.walkSpeed) ? movementConfig.walkSpeed : 4,
+    runMultiplier: Number.isFinite(movementConfig?.runMultiplier)
+      ? Math.max(movementConfig.runMultiplier, 1)
+      : 1.7,
+    damping: Number.isFinite(movementConfig?.acceleration) ? movementConfig.acceleration : undefined,
+    autoUpdateCamera: true,
+    safePosition: SAFE_PLAYER_FALLBACK,
+    visualHoverOffset: CHARACTER_HOVER,
+    flight: flightOptions
   });
+  controller.setPosition(controllerStart);
+
+  let attachedObject = null;
+  const attachControllerTo = (object, { force = false } = {}) => {
+    if (!object) {
+      return;
+    }
+    if (!force && attachedObject === object) {
+      return;
+    }
+    controller.attach(object, { visualHoverOffset: CHARACTER_HOVER });
+    attachedObject = object;
+    playerObject = object;
+  };
+
+  const syncControllerToObject = (object) => {
+    if (!object?.position) {
+      return;
+    }
+    const meshPosition = object.position.clone();
+    sanitizeVec3(meshPosition, SAFE_PLAYER_FALLBACK);
+    meshPosition.y = meshPosition.y - CHARACTER_HOVER + halfHeight;
+    controller.setPosition?.(meshPosition);
+  };
+
+  attachControllerTo(playerObject ?? null);
+
+  let didGroundSnap = false;
+  const groundSnapOnce = () => {
+    if (didGroundSnap) {
+      return;
+    }
+    didGroundSnap = true;
+    const center = new THREE.Vector3();
+    const currentPosition = controller.position;
+    if (currentPosition?.isVector3) {
+      center.copy(currentPosition);
+    } else {
+      center.copy(controllerStart);
+    }
+    const corrected = findSafePlayerSpawn({
+      baseStart: center,
+      groundMeshes,
+      colliders,
+      hover: CHARACTER_HOVER,
+      fromY: 400,
+      camera
+    });
+    corrected.y = (corrected.y - CHARACTER_HOVER) + halfHeight;
+    sanitizeVec3(corrected, SAFE_PLAYER_FALLBACK);
+    controller.setPosition?.(corrected);
+    if (attachedObject) {
+      attachControllerTo(attachedObject, { force: true });
+    }
+  };
+  setTimeout(groundSnapOnce, 0);
+
+// CHAR_MAIN_HEIGHT_START
+const ensureMainCharacterPlacement = () => {
+  const resolvedPlayer = mainCharacter?.object3d || findPlayerObject() || null;
+  if (!resolvedPlayer) {
+    return null;
+  }
+  ensureFeetAtLocalZero(resolvedPlayer);
+  resolvedPlayer.updateMatrixWorld?.(true);
+  placeAtSpawn(resolvedPlayer);
+  sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
+  if (placeholderPlayer?.parent) {
+    placeholderPlayer.parent.remove(placeholderPlayer);
+  }
+  placeholderPlayer = null;
+  attachControllerTo(resolvedPlayer);
+  groundSnapOnce();
+  return resolvedPlayer;
+};
+
+const readyPromise = mainCharacter?.ready;
+
+if (readyPromise && typeof readyPromise.then === 'function') {
+  readyPromise
+    .then(() => {
+      ensureMainCharacterPlacement();
+    })
+    .catch((error) => {
+      logger.warn('[Athens][MainCharacter] Failed to load character before resolving placement.', error);
+      ensureMainCharacterPlacement();
+    });
+} else if (mainCharacter?.object3d) {
+  ensureMainCharacterPlacement();
+}
+
+  // CHAR_MAIN_HEIGHT_END
+
+  const flyBypassFallbackPosition = new THREE.Vector3();
+  const flyBypassVelocity = { y: 0 };
+  const flyBypassState = {
+    position: playerObject?.position || flyBypassFallbackPosition,
+    velocity: flyBypassVelocity,
+    isFlying: false,
+    setFlying: null
+  };
+
+  // Controls & camera
+  const cameraSettings = movementConfig?.camera ?? {};
+  const cameraFollowConfig = cameraSettings?.follow ?? {};
+  const cameraSeedConfig = cameraSettings?.seed ?? {};
+  const keyboard = createKeyboard();
+  registerDisposables(keyboard);
+
+  const actionBindings = bindHotkeyActions(
+    {
+      [HOTKEY_IDS.debug.toggleStats]: () => toggleStatsPanel(),
+      [HOTKEY_IDS.debug.toggleSound]: () => toggleAmbientMuted(),
+      [HOTKEY_IDS.debug.toggleSky]: () => toggleSkySuppressed(),
+      [HOTKEY_IDS.debug.toggleSanityGeometry]: () => sanityGeometry?.toggle?.()
+    },
+    { scope: 'gameplay' }
+  );
+  registerDisposables(actionBindings);
+
+  flyBypassState.setFlying = (active) => {
+    const desired = Boolean(active);
+    controller.setFlyingActive(desired);
+    flyBypassState.isFlying = controller.isFlying();
+  };
+
+  if (globalWindow && typeof globalWindow.__athensDebug === 'object' && globalWindow.__athensDebug) {
+    globalWindow.__athensDebug.controller = controller;
+  }
+
+  if (globalWindow) {
+    globalWindow.scene = scene;
+    globalWindow.controller = controller;
+    globalWindow.mainCharacter = mainCharacter;
+    globalWindow.CHARACTER_HOVER = CHARACTER_HOVER;
+    globalWindow.CHARACTER_HEIGHT = CHARACTER_HEIGHT;
+  }
+
+  const followOffset = cameraFollowConfig?.offset ?? { x: 0, y: 50, z: -10 };
+  const followLookOffset = cameraFollowConfig?.lookAtOffset ?? { x: 0, y: 1.5, z: 0 };
+  const followLerp = Number.isFinite(cameraFollowConfig?.lerp) ? cameraFollowConfig.lerp : 0.12;
+  const followMinDistance = Number.isFinite(cameraFollowConfig?.minDistance)
+    ? Math.max(cameraFollowConfig.minDistance, 0.5)
+    : null;
+  const followMaxDistance = Number.isFinite(cameraFollowConfig?.maxDistance)
+    ? Math.max(cameraFollowConfig.maxDistance, followMinDistance ? followMinDistance + 0.01 : 0.5)
+    : null;
+  const followZoomSpeed = Number.isFinite(cameraFollowConfig?.zoomSpeed) && cameraFollowConfig.zoomSpeed > 0
+    ? cameraFollowConfig.zoomSpeed
+    : undefined;
+  const followCamera = createFollowCamera(camera, playerObject, {
+    offset: new THREE.Vector3(
+      Number.isFinite(followOffset?.x) ? followOffset.x : 0,
+      Number.isFinite(followOffset?.y) ? followOffset.y : 50,
+      Number.isFinite(followOffset?.z) ? followOffset.z : -10
+    ),
+    lerp: followLerp,
+    lookAtOffset: new THREE.Vector3(
+      Number.isFinite(followLookOffset?.x) ? followLookOffset.x : 0,
+      Number.isFinite(followLookOffset?.y) ? followLookOffset.y : 1.5,
+      Number.isFinite(followLookOffset?.z) ? followLookOffset.z : 0
+    ),
+    minDistance: followMinDistance ?? undefined,
+    maxDistance: followMaxDistance ?? undefined,
+    zoomSpeed: followZoomSpeed
+  });
+  followCamera.setPointerLockElement?.(renderer.domElement);
+
+  followCamera.syncImmediate?.();
+  const initialFollowTarget = followCamera && followCamera.target;
+  if (initialFollowTarget) {
+    sanitizeVec3(initialFollowTarget, SAFE_PLAYER_FALLBACK);
+  }
+
+  // Install per-frame guard so NaNs cannot poison the renderer between frames
+  installRenderGuard({
+    scene,
+    camera,
+    renderer,
+    controls: followCamera,
+    defaults: { player: { ...SAFE_PLAYER_FALLBACK }, camera: { x:20, y:12, z:20 } },
+    playerNameCandidates: ['MainCharacter', 'Player']
+  });
+
+  __mark('scene-ready');
+  try {
+    setPhase('scene-ready');
+  } catch {}
+  markBootPhase('scene-ready');
+  console.info('[Athens][Boot] scene-ready');
+
+  const resolveSavedState = () => {
+    if (options?.savedState) {
+      return options.savedState;
+    }
+    if (options?.initialState) {
+      return options.initialState;
+    }
+    if (typeof window !== 'undefined') {
+      const globalWindow = window;
+      if (globalWindow.__ATHENS_SAVED_STATE && typeof globalWindow.__ATHENS_SAVED_STATE === 'object') {
+        return globalWindow.__ATHENS_SAVED_STATE;
+      }
+      try {
+        const raw = globalWindow.localStorage?.getItem?.('athens:lastState');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            return parsed;
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+    return null;
+  };
+
+  const restoreCameraAndPlayer = (saved) => {
+    const playerState = saved?.player || null;
+    const cameraState = saved?.camera || null;
+
+    if (playerObject?.position) {
+      if (playerState?.pos) {
+        safeSetVec3(playerObject.position, playerState.pos, SAFE_PLAYER_FALLBACK);
+        const isLegacySpawn = LEGACY_PLAYER_STARTS.some((anchor) =>
+          anchor && typeof anchor.distanceToSquared === 'function'
+            ? playerObject.position.distanceToSquared(anchor) <= LEGACY_PLAYER_RADIUS_SQ
+            : false
+        );
+        if (isLegacySpawn) {
+          playerObject.position.copy(playerSpawn);
+          sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+        }
+      } else {
+        sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+      }
+    }
+
+    if (playerState?.rotEuler && playerObject?.rotation) {
+      playerObject.rotation.set(
+        finiteNumber(playerState.rotEuler.x, playerObject.rotation.x),
+        finiteNumber(playerState.rotEuler.y, playerObject.rotation.y),
+        finiteNumber(playerState.rotEuler.z, playerObject.rotation.z)
+      );
+    }
+    if (playerObject?.rotation) {
+      sanitizeEuler(playerObject.rotation);
+    }
+
+    if (playerState?.rotQuat && playerObject?.quaternion) {
+      playerObject.quaternion.set(
+        finiteNumber(playerState.rotQuat.x, playerObject.quaternion.x),
+        finiteNumber(playerState.rotQuat.y, playerObject.quaternion.y),
+        finiteNumber(playerState.rotQuat.z, playerObject.quaternion.z),
+        finiteNumber(playerState.rotQuat.w, playerObject.quaternion.w)
+      );
+    }
+    if (playerObject?.quaternion) {
+      sanitizeQuaternion(playerObject.quaternion);
+    }
+
+    if (playerObject?.position) {
+      syncControllerToObject(playerObject);
+    }
+
+    if (cameraState?.pos) {
+      safeSetVec3(camera.position, cameraState.pos, DEFAULT_CAMERA);
+    } else {
+      sanitizeVec3(camera.position, DEFAULT_CAMERA);
+    }
+
+    if (cameraState?.rotEuler) {
+      camera.rotation.set(
+        finiteNumber(cameraState.rotEuler.x, camera.rotation.x),
+        finiteNumber(cameraState.rotEuler.y, camera.rotation.y),
+        finiteNumber(cameraState.rotEuler.z, camera.rotation.z)
+      );
+    }
+    sanitizeEuler(camera.rotation);
+
+    if (cameraState?.rotQuat) {
+      camera.quaternion.set(
+        finiteNumber(cameraState.rotQuat.x, camera.quaternion.x),
+        finiteNumber(cameraState.rotQuat.y, camera.quaternion.y),
+        finiteNumber(cameraState.rotQuat.z, camera.quaternion.z),
+        finiteNumber(cameraState.rotQuat.w, camera.quaternion.w)
+      );
+    }
+    sanitizeQuaternion(camera.quaternion);
+
+    if (playerObject) {
+      followCamera?.setTarget?.(playerObject);
+    }
+    const followTarget = followCamera?.target;
+    if (followTarget) {
+      if (!isFiniteVec3(followTarget)) {
+        followTarget.copy(playerObject?.position || SAFE_PLAYER_VECTOR);
+      } else {
+        sanitizeVec3(followTarget, SAFE_PLAYER_FALLBACK);
+      }
+    }
+
+    const lookTarget = playerObject?.position
+      ? playerObject.position
+      : SAFE_PLAYER_VECTOR.clone();
+    sanitizeVec3(lookTarget, SAFE_PLAYER_FALLBACK);
+    camera.lookAt(lookTarget);
+  };
+
+  const savedState = resolveSavedState();
+  restoreCameraAndPlayer(savedState);
+
+  if (!savedState?.camera?.pos) {
+    seedCameraBehindPlayer(playerObject, camera, {
+      followDistance: Number.isFinite(cameraSeedConfig?.followDistance)
+        ? cameraSeedConfig.followDistance
+        : 6,
+      shoulderHeight: Number.isFinite(cameraSeedConfig?.shoulderHeight)
+        ? cameraSeedConfig.shoulderHeight
+        : 1.6,
+      pitchDeg: Number.isFinite(cameraSeedConfig?.pitchDeg) ? cameraSeedConfig.pitchDeg : -15
+    });
+    followCamera.syncImmediate?.();
+  }
 
   if (mainCharacter?.ready?.then) {
     mainCharacter.ready.then(() => {
       const resolvedPlayer = mainCharacter.object3d || findPlayerObject() || scene.getObjectByName('MainCharacter');
       if (resolvedPlayer) {
         placeAtSpawn(resolvedPlayer);
-        controller.setObject?.(resolvedPlayer);
+        sanitizeVec3(resolvedPlayer.position, SAFE_PLAYER_FALLBACK);
+        sanitizeEuler(resolvedPlayer.rotation);
+        sanitizeQuaternion(resolvedPlayer.quaternion);
+        attachControllerTo(resolvedPlayer);
+        groundSnapOnce();
         followCamera.setTarget?.(resolvedPlayer);
         playerObject = resolvedPlayer;
+        flyBypassState.position = playerObject?.position || flyBypassFallbackPosition;
+        if (savedState) {
+          restoreCameraAndPlayer(savedState);
+          syncControllerToObject(playerObject);
+        } else {
+          sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+          syncControllerToObject(playerObject);
+          seedCameraBehindPlayer(playerObject, camera, {
+            followDistance: Number.isFinite(cameraSeedConfig?.followDistance)
+              ? cameraSeedConfig.followDistance
+              : 6,
+            shoulderHeight: Number.isFinite(cameraSeedConfig?.shoulderHeight)
+              ? cameraSeedConfig.shoulderHeight
+              : 1.6,
+            pitchDeg: Number.isFinite(cameraSeedConfig?.pitchDeg) ? cameraSeedConfig.pitchDeg : -15
+          });
+        }
+        followCamera.syncImmediate?.();
         if (placeholderPlayer && placeholderPlayer.parent) {
           placeholderPlayer.parent.remove(placeholderPlayer);
         }
@@ -601,13 +2047,18 @@ export async function initializeAthens(options = {}) {
     });
   }
 
-  followCamera.update();
+  followCamera.update(keyboard, 0);
 
   // Resize
   const resizeHandler = () => {
     const { width, height } = computeContainerSize(container);
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
+    const safeWidth = Math.max(1, finiteNumber(width, 1));
+    const safeHeight = Math.max(1, finiteNumber(height, 1));
+    renderer.setSize(safeWidth, safeHeight, false);
+    const aspect = safeHeight > 0 ? safeWidth / safeHeight : camera.aspect;
+    if (Number.isFinite(aspect) && aspect > 0) {
+      camera.aspect = aspect;
+    }
     camera.updateProjectionMatrix();
     overlay.requestRender();
     landmarks.featureLines?.updateResolution?.();
@@ -634,34 +2085,102 @@ export async function initializeAthens(options = {}) {
       try {
         updateTrees?.(delta);
       } catch (error) {
-        console.warn('[Athens] Tree animation update failed.', error);
+        logger.warn('[Athens] Tree animation update failed.', error);
       }
+
+      if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
+        sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+        syncControllerToObject(playerObject);
+      }
+      if (!isFiniteVec3(camera.position)) {
+        sanitizeVec3(camera.position, DEFAULT_CAMERA);
+      }
+      const followTarget = followCamera?.target;
+      if (followTarget) {
+        if (!isFiniteVec3(followTarget)) {
+          followTarget.copy(playerObject?.position || SAFE_PLAYER_VECTOR);
+        } else {
+          sanitizeVec3(followTarget, SAFE_PLAYER_FALLBACK);
+        }
+      }
+
+      keyboard?.update?.();
+
+      flyBypassState.position = playerObject?.position || flyBypassFallbackPosition;
+      flyBypass?.tick?.(delta);
 
       const npcContext = { groundMeshes, skippedLargeDt: Boolean(skippedLargeDt) };
       mainCharacter?.update?.(delta, npcContext);
-      npcManager?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
+      npcSystem?.update?.(delta, { skippedLargeDt: Boolean(skippedLargeDt) });
       landmarks.update?.(camera);
 
-      if (!skippedLargeDt) {
-        controller?.update?.(delta, camera);
-      }
+      controller.update(delta, getInput(), collisionWorld);
+
+      flyBypassState.isFlying = controller.isFlying();
 
       ui?.update?.(delta, {
         position: playerObject?.position,
-        isFlying: false,
-        isRunning: controller?.isRunning?.(),
+        isFlying: controller.isFlying(),
+        isRunning: controller.isRunning(),
         skippedLargeDt: Boolean(skippedLargeDt)
       });
 
-      followCamera?.update?.();
+      followCamera?.update?.(keyboard, delta);
+
+      const activePlayer = findPlayerObject() || playerObject;
+      if (activePlayer?.position && !isFiniteVec3(activePlayer.position)) {
+        sanitizeVec3(activePlayer.position, SAFE_PLAYER_FALLBACK);
+      }
+      if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
+        sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+        syncControllerToObject(playerObject);
+      }
+      if (!isFiniteVec3(camera.position)) {
+        sanitizeVec3(camera.position, DEFAULT_CAMERA);
+      }
+
+      const guardTarget = followCamera?.target;
+      if (guardTarget) {
+        if (!isFiniteVec3(guardTarget)) {
+          guardTarget.copy(activePlayer?.position || playerObject?.position || SAFE_PLAYER_VECTOR);
+        } else {
+          sanitizeVec3(guardTarget, SAFE_PLAYER_FALLBACK);
+        }
+      }
+
+      const lookTarget = activePlayer?.position
+        ? activePlayer.position
+        : playerObject?.position
+          ? playerObject.position
+          : SAFE_PLAYER_VECTOR.clone();
+      sanitizeVec3(lookTarget, SAFE_PLAYER_FALLBACK);
+      camera.lookAt(lookTarget);
     } catch (error) {
-      console.warn('[Athens] Frame update failed.', error);
+      logger.warn('[Athens] Frame update failed.', error);
     }
   };
 
   const renderFrame = () => {
     try {
       if (!disposed) {
+        const activePlayer = findPlayerObject() || playerObject;
+        if (activePlayer?.position && !isFiniteVec3(activePlayer.position)) {
+          sanitizeVec3(activePlayer.position, SAFE_PLAYER_FALLBACK);
+        }
+        if (playerObject?.position && !isFiniteVec3(playerObject.position)) {
+          sanitizeVec3(playerObject.position, SAFE_PLAYER_FALLBACK);
+          syncControllerToObject(playerObject);
+        }
+        if (!isFiniteVec3(camera.position)) {
+          sanitizeVec3(camera.position, DEFAULT_CAMERA);
+        }
+        const renderTarget = activePlayer?.position
+          ? activePlayer.position
+          : playerObject?.position
+            ? playerObject.position
+            : SAFE_PLAYER_VECTOR.clone();
+        sanitizeVec3(renderTarget, SAFE_PLAYER_FALLBACK);
+        camera.lookAt(renderTarget);
         renderer.render(scene, camera);
       }
     } finally {
@@ -671,7 +2190,87 @@ export async function initializeAthens(options = {}) {
   };
 
   const gameLoop = createGameLoop(updateFrame, renderFrame);
+  registerDisposables(gameLoop);
+
+  const flyBypassAscendAliases = new Set([
+    HOTKEY_IDS.flight.ascend,
+    'flyUp',
+    'Space',
+    'KeyE'
+  ]);
+  const flyBypassDescendAliases = new Set([
+    HOTKEY_IDS.flight.descend,
+    'flyDown',
+    'ShiftLeft',
+    'ShiftRight',
+    'ControlLeft',
+    'ControlRight',
+    'KeyQ',
+    'KeyC'
+  ]);
+
+  const flyBypassInput = {
+    held(identifier) {
+      if (!keyboard) {
+        return false;
+      }
+
+      if (flyBypassAscendAliases.has(identifier)) {
+        if (typeof keyboard.isActionDown === 'function' && keyboard.isActionDown(HOTKEY_IDS.flight.ascend)) {
+          return true;
+        }
+        return typeof keyboard.isDown === 'function'
+          ? keyboard.isDown('Space') || keyboard.isDown('KeyE')
+          : false;
+      }
+
+      if (flyBypassDescendAliases.has(identifier)) {
+        if (typeof keyboard.isActionDown === 'function' && keyboard.isActionDown(HOTKEY_IDS.flight.descend)) {
+          return true;
+        }
+        return typeof keyboard.isDown === 'function'
+          ? (
+              keyboard.isDown('ShiftLeft') ||
+              keyboard.isDown('ShiftRight') ||
+              keyboard.isDown('ControlLeft') ||
+              keyboard.isDown('ControlRight') ||
+              keyboard.isDown('KeyQ') ||
+              keyboard.isDown('KeyC')
+            )
+          : false;
+      }
+
+      if (typeof identifier === 'string' && identifier.includes('.') && typeof keyboard.isActionDown === 'function') {
+        return keyboard.isActionDown(identifier);
+      }
+
+      return typeof keyboard.isDown === 'function' ? keyboard.isDown(identifier) : false;
+    }
+  };
+
+  const flyBypass = installFlyBypass({ state: flyBypassState, input: flyBypassInput });
+
+  __mark('first-frame');
+  try {
+    setPhase('first-frame');
+  } catch {}
+  markBootPhase('first-frame');
+  console.info('[Athens][Boot] first-frame');
   gameLoop.start();
+
+  function startTimeOfDayCycle({ minutesPerDay = 20 } = {}) {
+    const order = ['dawn', 'day', 'golden_hour', 'dusk', 'night', 'midnight'];
+    let i = Math.max(0, order.indexOf(String(environmentController.mode).toLowerCase()));
+    const stepMs = Math.max(5000, (minutesPerDay * 60_000) / order.length);
+
+    let timer = null;
+    async function tick() {
+      i = (i + 1) % order.length;
+      await environmentController.setMode(order[i], { playAmbient: true });
+    }
+    timer = setInterval(tick, stepMs);
+    return () => clearInterval(timer);
+  }
 
   // Context / teardown
   const context = {
@@ -685,13 +2284,28 @@ export async function initializeAthens(options = {}) {
     roadNetwork,
     navMesh,
     navPathfinder,
-    npcManager,
+    npcSystem,
     mainCharacter,
     environmentController,
     city,
-    extendedCity,
     container,
     ui,
+    collisionWorld,
+    controller,
+    sanityGeometry,
+    toggleSound(muted) {
+      if (typeof muted === 'boolean') {
+        return setAmbientMuted(muted);
+      }
+      return toggleAmbientMuted();
+    },
+    toggleSky(hidden) {
+      if (typeof hidden === 'boolean') {
+        return setSkySuppressedState(hidden);
+      }
+      return toggleSkySuppressed();
+    },
+    toggleStats: () => toggleStatsPanel(),
     async setEnvironmentMode(mode, envOptions = {}) {
       const result = await environmentController?.setMode?.(mode, envOptions);
       const label = formatEnvironmentLabel(result || mode);
@@ -701,39 +2315,71 @@ export async function initializeAthens(options = {}) {
     dispose() {
       if (disposed) return;
       disposed = true;
-      gameLoop?.dispose?.();
       window.removeEventListener('resize', resizeHandler);
+      beforeUnloadCleanup?.();
       overlay?.destroy?.();
       if (overlayCanvas.parentNode) {
         overlayCanvas.parentNode.removeChild(overlayCanvas);
       }
-      mainCharacter?.dispose?.();
-      npcManager?.dispose?.();
-      roadNetwork?.dispose?.();
-      landmarks?.dispose?.();
-      environmentController?.dispose?.();
-      ui?.dispose?.();
+      disposeTracked();
+      trackedDisposables.clear();
       if (stats?.dom && stats.dom.parentNode === container) {
         container.removeChild(stats.dom);
       }
-      renderer.dispose();
-      keyboard?.dispose?.();
-      city?.dispose?.();
-      extendedCity?.dispose?.();
+      followCamera.setPointerLockElement?.(null);
     }
   };
+
+  if (typeof window !== 'undefined' && import.meta?.env?.DEV) {
+    const beforeUnloadHandler = () => {
+      disposeTracked();
+    };
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+    beforeUnloadCleanup = () => {
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+    };
+  }
 
   if (typeof window !== 'undefined') {
     window.__athens = window.__athens || {};
     window.__athens.environment = context.environmentController;
     window.__athens.mainCharacter = context.mainCharacter;
+    window.__athens.startTimeOfDayCycle = (opts) => startTimeOfDayCycle(opts);
     window.__athens.setSkyMode = (mode, envOptions) => context.setEnvironmentMode(mode, envOptions);
     window.__athens.city = context.city;
-    window.__athens.extendedCity = context.extendedCity;
     window.__athens.ui = context.ui;
+    window.__athens.controller = controller;
+    window.__athens.collisionWorld = collisionWorld;
+    window.__athens.toggleSound = context.toggleSound;
+    window.__athens.toggleSky = context.toggleSky;
+    window.__athens.toggleStats = context.toggleStats;
+    window.__athens.sanityGeometry = sanityGeometry;
+
+    window.scene = scene;
+    window.camera = camera;
+    window.mainCharacter = mainCharacter;
+    window.controller = controller;
+    window.CHARACTER_HOVER =
+      typeof CHARACTER_HOVER !== 'undefined' ? CHARACTER_HOVER : window.CHARACTER_HOVER;
+    window.CHARACTER_HEIGHT =
+      typeof CHARACTER_HEIGHT !== 'undefined' ? CHARACTER_HEIGHT : window.CHARACTER_HEIGHT;
   }
+
+  __mark('ready');
+  markBootPhase('ready');
+  console.info('[Athens][Boot] ready');
 
   return context;
 }
 
-export default initializeAthens;
+// LANDMARK_OVERRIDE_START
+function _applyLandmarkOverrides(scene, options){
+  const overrides = options?.layoutConfig?.positions;
+  if (!overrides || typeof overrides !== 'object') return;
+
+  const keys = Object.keys(overrides);
+  if (!keys.length) return;
+
+  _applyLandmarkLayout(scene, options, keys, { label: 'LandmarkOverride' });
+}
+// LANDMARK_OVERRIDE_END

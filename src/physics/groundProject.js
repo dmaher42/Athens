@@ -2,12 +2,47 @@ import * as THREE from 'three';
 
 const _ray = new THREE.Raycaster();
 const _box = new THREE.Box3();
+const _walkable = [];
+
+function collectWalkable(objects) {
+  _walkable.length = 0;
+  const pushCandidate = (candidate) => {
+    if (!candidate) return;
+    if (candidate.isSprite || candidate.isPoints) {
+      return;
+    }
+    if (candidate.isMesh || candidate.isInstancedMesh) {
+      _walkable.push(candidate);
+      return;
+    }
+    if (typeof candidate.traverse === 'function') {
+      candidate.traverse((child) => {
+        if (!child) return;
+        if (child.isSprite || child.isPoints) return;
+        if (child.isMesh || child.isInstancedMesh) {
+          _walkable.push(child);
+        }
+      });
+    }
+  };
+
+  if (Array.isArray(objects)) {
+    for (const entry of objects) {
+      pushCandidate(entry);
+    }
+  } else if (objects) {
+    pushCandidate(objects);
+  }
+  return _walkable;
+}
 
 // Find ground Y under a world-space (x,z) by raycasting down from a safe height.
-export function sampleGroundY(x, z, groundMeshes, { fromY = 200, far = 500 } = {}) {
+export function sampleGroundY(x, z, groundMeshes, { fromY = 200, far = 500, camera = null } = {}) {
   _ray.set(new THREE.Vector3(x, fromY, z), new THREE.Vector3(0, -1, 0));
   _ray.far = far;
-  const hit = _ray.intersectObjects(groundMeshes, true)[0];
+  _ray.camera = camera ?? _ray.camera ?? null;
+  const walkable = collectWalkable(groundMeshes);
+  const hit = walkable.length ? _ray.intersectObjects(walkable, true)[0] : undefined;
   return hit ? hit.point.y : null;
 }
 

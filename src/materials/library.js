@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assetUrl } from '../utils/assetUrl.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 
 const TEXTURE_DEFINITIONS = {
   marble: {

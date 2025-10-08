@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.ts';
+
 const KNOWN_PRESETS = ['High Noon', 'Golden Dawn', 'Golden Dusk', 'Blue Hour', 'Night Sky'];
 
 const CANONICAL_PRESETS = new Map([
@@ -32,7 +34,7 @@ export function resolvePreset(name) {
   }
 
   if (!warnedUnknownPreset) {
-    console.warn('[Athens] Unknown preset name:', name, '→ defaulting');
+    logger.warn('[Athens] Unknown preset name:', name, '→ defaulting');
     warnedUnknownPreset = true;
   }
 

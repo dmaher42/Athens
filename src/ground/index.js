@@ -1,7 +1,8 @@
 // src/ground/index.js
 import * as THREE from 'three';
-import { createDirtGround } from './dirt.js';
+import { createDirtGround, createDirtMaterial } from './dirt.js';
 import { createGrassGround } from './grass.js';
+import { disposeAll } from '../utils/disposable.ts';
 
 /**
  * Enumerates available ground types.
@@ -12,44 +13,47 @@ export const GroundType = Object.freeze({
 });
 
 const DEFAULT_TILE_GRID = Object.freeze({ columns: 5, rows: 5 });
+const BUILDING_NAME_PATTERN = /(foundation|building|pad)/i;
+const BUILDING_USERDATA_KEYS = ['building', 'buildingPad', 'foundation', 'isBuilding', 'isFoundation'];
+const CORNER_KEYS = ['nw', 'ne', 'sw', 'se'];
+
+// Skirt tuning values (world units).
+const SKIRT_MIN_DELTA = 0.03;
+const SKIRT_THICKNESS = 0.02;
+const SKIRT_EDGE_TOLERANCE_RATIO = 0.005;
+const SKIRT_POSITION_TOLERANCE_MIN = 0.05;
+const SKIRT_POSITION_TOLERANCE_MAX = 2;
+
+// Foundation blend ring config
+const FOUNDATION_BLEND_RING_OFFSET = 0.03;
+const FOUNDATION_BLEND_RING_WIDTH_RATIO = 0.08;
+const FOUNDATION_BLEND_RING_MIN_WIDTH = 0.25;
+const FOUNDATION_BLEND_RING_SEGMENTS = 48;
+
+const SKIRT_MATERIAL_CACHE = new WeakMap();
+const FOUNDATION_BLEND_RING_MATERIAL_CACHE = new Map();
 
 function toVector3(position) {
-  if (position instanceof THREE.Vector3) {
-    return position.clone();
-  }
-
+  if (position instanceof THREE.Vector3) return position.clone();
   if (Array.isArray(position)) {
     const [x = 0, y = 0, z = 0] = position;
     return new THREE.Vector3(x, y, z);
   }
-
   const source = position && typeof position === 'object' ? position : {};
   const { x = 0, y = 0, z = 0 } = source;
   return new THREE.Vector3(x, y, z);
 }
 
 function parseSpacing(spacing) {
-  if (typeof spacing === 'number') {
-    return { x: spacing, z: spacing };
-  }
-
+  if (typeof spacing === 'number') return { x: spacing, z: spacing };
   if (spacing && typeof spacing === 'object') {
     const { x = 0, z = 0 } = spacing;
-    return {
-      x: typeof x === 'number' ? x : 0,
-      z: typeof z === 'number' ? z : 0,
-    };
+    return { x: typeof x === 'number' ? x : 0, z: typeof z === 'number' ? z : 0 };
   }
-
   return { x: 0, z: 0 };
 }
 
-function createGridTiles({
-  grid,
-  size,
-  repeat,
-  spacing,
-}) {
+function createGridTiles({ grid, size, repeat, spacing }) {
   const columns = Math.max(1, Math.floor(grid?.columns ?? grid?.x ?? 1));
   const rows = Math.max(1, Math.floor(grid?.rows ?? grid?.z ?? 1));
   const { x: spacingX, z: spacingZ } = parseSpacing(spacing);
@@ -64,17 +68,17 @@ function createGridTiles({
     for (let col = 0; col < columns; col += 1) {
       const x = col * stepX - offsetX;
       const z = row * stepZ - offsetZ;
-
       tiles.push({
         size,
         repeat,
         position: new THREE.Vector3(x, 0, z),
         enableDirt: true,
         enableGrass: true,
+        gridX: col,
+        gridZ: row,
       });
     }
   }
-
   return tiles;
 }
 
@@ -86,6 +90,10 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
       position: new THREE.Vector3(),
       enableDirt: true,
       enableGrass: true,
+      gridX: undefined,
+      gridZ: undefined,
+      disableUnderBuilding: false,
+      addFoundationBlendRing: undefined,
     };
   }
 
@@ -93,9 +101,7 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     size = defaultSize,
     repeat = defaultRepeat,
     position,
-    x,
-    y,
-    z,
+    x, y, z,
     enableDirt,
     enableGrass,
     dirt,
@@ -105,6 +111,13 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     dirtName,
     grassName,
     name,
+    gridX,
+    gridZ,
+    disableUnderBuilding,
+    addFoundationBlendRing,
+    foundationBlendOptions,
+    userData,
+    objects,
   } = tile;
 
   const vectorPosition = position ? toVector3(position) : toVector3({ x, y, z });
@@ -119,6 +132,17 @@ function normalizeTile(tile, { defaultSize, defaultRepeat }) {
     grassOptions: grassOptions && typeof grassOptions === 'object' ? { ...grassOptions } : undefined,
     dirtName: dirtName ?? (name ? `${name}:dirt` : undefined),
     grassName: grassName ?? (name ? `${name}:grass` : undefined),
+    gridX: typeof gridX === 'number' ? gridX : undefined,
+    gridZ: typeof gridZ === 'number' ? gridZ : undefined,
+    disableUnderBuilding: Boolean(disableUnderBuilding),
+    addFoundationBlendRing: typeof addFoundationBlendRing === 'boolean' ? addFoundationBlendRing : undefined,
+    foundationBlendOptions:
+      foundationBlendOptions && typeof foundationBlendOptions === 'object'
+        ? { ...foundationBlendOptions }
+        : undefined,
+    userData: userData && typeof userData === 'object' ? { ...userData } : undefined,
+    objects: Array.isArray(objects) ? objects : undefined,
+    name: typeof name === 'string' ? name : undefined,
   };
 }
 
@@ -137,7 +161,13 @@ function buildTileDefinitions({
   let definitions = [];
 
   if (Array.isArray(tiles) && tiles.length > 0) {
-    definitions = tiles.map(t => normalizeTile(t, { defaultSize: effectiveSize, defaultRepeat: effectiveRepeat }));
+    definitions = tiles
+      .map(t => normalizeTile(t, { defaultSize: effectiveSize, defaultRepeat: effectiveRepeat }))
+      .map((tile, index) => ({
+        ...tile,
+        gridX: typeof tile.gridX === 'number' ? tile.gridX : index,
+        gridZ: typeof tile.gridZ === 'number' ? tile.gridZ : 0,
+      }));
   } else {
     const gridTiles = createGridTiles({
       grid: tileGrid ?? DEFAULT_TILE_GRID,
@@ -155,13 +185,319 @@ function buildTileDefinitions({
   return definitions;
 }
 
+function hasBuildingFlag(userData) {
+  if (!userData || typeof userData !== 'object') return false;
+  return BUILDING_USERDATA_KEYS.some((key) => userData[key]);
+}
+
+function shouldDisableTileGround(tile) {
+  if (!tile || typeof tile !== 'object') return false;
+
+  if (tile.disableUnderBuilding === true) return true;
+  if (hasBuildingFlag(tile.userData)) return true;
+  if (hasBuildingFlag(tile.dirtOptions?.userData) || hasBuildingFlag(tile.grassOptions?.userData)) return true;
+
+  const namesToCheck = [tile.name, tile.dirtName, tile.grassName, tile.dirtOptions?.name, tile.grassOptions?.name];
+  if (namesToCheck.some((v) => typeof v === 'string' && BUILDING_NAME_PATTERN.test(v))) return true;
+
+  if (Array.isArray(tile.objects)) {
+    for (const obj of tile.objects) {
+      if (!obj) continue;
+      if (hasBuildingFlag(obj.userData)) return true;
+      if (typeof obj.name === 'string' && BUILDING_NAME_PATTERN.test(obj.name)) return true;
+    }
+  }
+
+  return false;
+}
+
+function computeTileBounds(position, size) {
+  const effectiveSize = typeof size === 'number' ? size : 0;
+  const half = effectiveSize / 2;
+  return {
+    minX: position.x - half,
+    maxX: position.x + half,
+    minZ: position.z - half,
+    maxZ: position.z + half,
+  };
+}
+
+function normalizeCornerHeights(value) {
+  if (!value) return null;
+
+  let source = null;
+  if (Array.isArray(value)) {
+    const [nw, ne, sw, se] = value;
+    source = { nw, ne, sw, se };
+  } else if (typeof value === 'object') {
+    source = value;
+  } else {
+    return null;
+  }
+
+  const result = { nw: 0, ne: 0, sw: 0, se: 0 };
+  let hasData = false;
+
+  CORNER_KEYS.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      hasData = true;
+    }
+    const valueForKey = source[key];
+    if (typeof valueForKey === 'number' && Number.isFinite(valueForKey)) {
+      result[key] = valueForKey;
+      hasData = true;
+    }
+  });
+
+  return hasData ? result : null;
+}
+
+function combineCornerHeights(...values) {
+  let combined = null;
+  values.forEach((value) => {
+    const normalized = normalizeCornerHeights(value);
+    if (!normalized) return;
+    if (!combined) {
+      combined = { nw: 0, ne: 0, sw: 0, se: 0 };
+    }
+    CORNER_KEYS.forEach((key) => {
+      combined[key] += normalized[key] ?? 0;
+    });
+  });
+  return combined;
+}
+
+function cornerHeightsToArray(value) {
+  const normalized = normalizeCornerHeights(value);
+  if (!normalized) return null;
+  return [
+    normalized.nw ?? 0,
+    normalized.ne ?? 0,
+    normalized.sw ?? 0,
+    normalized.se ?? 0,
+  ];
+}
+
+function safeSampleHeight(fn, x, z) {
+  if (typeof fn !== 'function') return 0;
+  try {
+    const value = fn(x, z);
+    return (typeof value === 'number' && Number.isFinite(value)) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function averageCornerHeight(cornerHeights) {
+  const normalized = normalizeCornerHeights(cornerHeights);
+  if (!normalized) return 0;
+
+  let total = 0;
+  let count = 0;
+  CORNER_KEYS.forEach((key) => {
+    const value = normalized[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      total += value;
+      count += 1;
+    }
+  });
+
+  return count > 0 ? total / count : 0;
+}
+
+const SKIRT_DIRECTIONS = [
+  { key: 'east',  axis: 'x', dir:  1, axisCoord: 'x', perpCoord: 'z', axisMin: 'minX', axisMax: 'maxX', perpMin: 'minZ', perpMax: 'maxZ' },
+  { key: 'west',  axis: 'x', dir: -1, axisCoord: 'x', perpCoord: 'z', axisMin: 'minX', axisMax: 'maxX', perpMin: 'minZ', perpMax: 'maxZ' },
+  { key: 'south', axis: 'z', dir:  1, axisCoord: 'z', perpCoord: 'x', axisMin: 'minZ', axisMax: 'maxZ', perpMin: 'minX', perpMax: 'maxX' },
+  { key: 'north', axis: 'z', dir: -1, axisCoord: 'z', perpCoord: 'x', axisMin: 'minZ', axisMax: 'maxZ', perpMin: 'minX', perpMax: 'maxX' },
+];
+
+function getSkirtMaterial(baseMaterial) {
+  if (!baseMaterial) return null;
+  let material = SKIRT_MATERIAL_CACHE.get(baseMaterial);
+  if (!material) {
+    material = baseMaterial.clone();
+    material.side = THREE.DoubleSide;
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = 1;
+    material.polygonOffsetUnits = 1;
+    material.color?.multiplyScalar?.(0.9);
+    SKIRT_MATERIAL_CACHE.set(baseMaterial, material);
+  }
+  return material;
+}
+
+function findNeighborForDirection(instances, tile, direction) {
+  const bounds = tile.bounds;
+  if (!bounds) return null;
+
+  const targetEdge = direction.dir > 0 ? bounds[direction.axisMax] : bounds[direction.axisMin];
+
+  let best = null;
+
+  for (const candidate of instances) {
+    if (candidate === tile || !candidate.bounds) continue;
+
+    const candidateEdge = direction.dir > 0
+      ? candidate.bounds[direction.axisMin]
+      : candidate.bounds[direction.axisMax];
+
+    const sizeForTolerance = Math.max(tile.coverageSize ?? 0, candidate.coverageSize ?? 0);
+    const tolerance = Math.max(
+      SKIRT_POSITION_TOLERANCE_MIN,
+      Math.min(SKIRT_POSITION_TOLERANCE_MAX, sizeForTolerance * SKIRT_EDGE_TOLERANCE_RATIO),
+    );
+
+    const distance = Math.abs(candidateEdge - targetEdge);
+    if (distance > tolerance) continue;
+
+    const overlapMin = Math.max(bounds[direction.perpMin], candidate.bounds[direction.perpMin]);
+    const overlapMax = Math.min(bounds[direction.perpMax], candidate.bounds[direction.perpMax]);
+    const overlapLength = overlapMax - overlapMin;
+    if (overlapLength <= 0) continue;
+
+    if (!best ||
+        overlapLength > best.overlapLength ||
+        (Math.abs(overlapLength - best.overlapLength) < 1e-6 && distance < best.distance)) {
+      best = { instance: candidate, overlapMin, overlapMax, overlapLength, distance };
+    }
+  }
+
+  return best;
+}
+
+function applyElevationSkirts(instances) {
+  const records = [];
+
+  instances.forEach((tile) => {
+    if (!tile?.dirtGroup || !tile.bounds) return;
+
+    const baseMesh = tile.dirtMesh ?? tile.dirtGroup.children.find(child => child?.isMesh);
+    const skirtMaterial = getSkirtMaterial(baseMesh?.material);
+    if (!skirtMaterial) return;
+
+    SKIRT_DIRECTIONS.forEach((direction) => {
+      const neighborInfo = findNeighborForDirection(instances, tile, direction);
+      if (!neighborInfo) return;
+
+      const neighbor = neighborInfo.instance;
+      const tileSurface = typeof tile.surfaceY === 'number' ? tile.surfaceY : tile.position?.y ?? 0;
+      const neighborSurface = typeof neighbor.surfaceY === 'number' ? neighbor.surfaceY : neighbor.position?.y ?? 0;
+      const height = tileSurface - neighborSurface;
+      if (!(height > SKIRT_MIN_DELTA)) return;
+
+      const length = neighborInfo.overlapLength;
+      if (!(length > 0.001)) return;
+
+      const width = direction.axis === 'x' ? SKIRT_THICKNESS : length;
+      const depth = direction.axis === 'x' ? length : SKIRT_THICKNESS;
+      const geometry = new THREE.BoxGeometry(width, height, depth);
+
+      const mesh = new THREE.Mesh(geometry, skirtMaterial);
+      mesh.castShadow = baseMesh.castShadow;
+      mesh.receiveShadow = baseMesh.receiveShadow;
+      mesh.name = `${baseMesh.name || 'ground:dirt'}:skirt:${direction.key}:${tile.index}`;
+
+      const tilePosition = tile.position;
+      const bounds = tile.bounds;
+      const overlapCenter = neighborInfo.overlapMin + (neighborInfo.overlapLength / 2);
+
+      const axisThickness = direction.axis === 'x' ? width : depth;
+      const axisEdgeWorld = direction.dir > 0
+        ? bounds[direction.axisMax] - (axisThickness / 2)
+        : bounds[direction.axisMin] + (axisThickness / 2);
+
+      const centerAxisLocal = axisEdgeWorld - tilePosition[direction.axisCoord];
+      const centerPerpLocal = overlapCenter - tilePosition[direction.perpCoord];
+
+      const bottomLocal = neighborSurface - tilePosition.y;
+      const centerYLocal = bottomLocal + (height / 2);
+
+      if (direction.axis === 'x') {
+        mesh.position.set(centerAxisLocal, centerYLocal, centerPerpLocal);
+      } else {
+        mesh.position.set(centerPerpLocal, centerYLocal, centerAxisLocal);
+      }
+
+      tile.dirtGroup.add(mesh);
+
+      const topLocalY = bottomLocal + height;
+      const topLocal = direction.axis === 'x'
+        ? new THREE.Vector3(centerAxisLocal, topLocalY, centerPerpLocal)
+        : new THREE.Vector3(centerPerpLocal, topLocalY, centerAxisLocal);
+      const bottomLocalVec = direction.axis === 'x'
+        ? new THREE.Vector3(centerAxisLocal, bottomLocal, centerPerpLocal)
+        : new THREE.Vector3(centerPerpLocal, bottomLocal, centerAxisLocal);
+
+      const record = {
+        mesh,
+        tileIndex: tile.index,
+        neighborIndex: neighbor.index,
+        direction: direction.key,
+        height,
+        tileSurface,
+        neighborSurface,
+        topLocal,
+        bottomLocal: bottomLocalVec,
+      };
+
+      tile.skirts = tile.skirts || [];
+      tile.skirts.push(record);
+      mesh.userData = mesh.userData || {};
+      mesh.userData.groundSkirt = record;
+      records.push(record);
+    });
+  });
+
+  return records;
+}
+
+function getFoundationBlendRingMaterial({ repeat, anisotropy }) {
+  const repeatKey = typeof repeat === 'number' ? repeat : 'auto';
+  const anisotropyKey = typeof anisotropy === 'number' ? anisotropy : 'auto';
+  const cacheKey = `${repeatKey}:${anisotropyKey}`;
+
+  if (!FOUNDATION_BLEND_RING_MATERIAL_CACHE.has(cacheKey)) {
+    const material = createDirtMaterial({ repeat, anisotropy });
+    material.side = THREE.DoubleSide;
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = 1;
+    material.polygonOffsetUnits = 1;
+    material.color?.multiplyScalar?.(0.92);
+    FOUNDATION_BLEND_RING_MATERIAL_CACHE.set(cacheKey, material);
+  }
+  return FOUNDATION_BLEND_RING_MATERIAL_CACHE.get(cacheKey);
+}
+
+function createFoundationBlendRingMesh({ size, repeat, anisotropy } = {}) {
+  if (!(size > 0)) return null;
+
+  const outerRadius = size / 2;
+  const ringWidth = Math.min(
+    outerRadius,
+    Math.max(FOUNDATION_BLEND_RING_MIN_WIDTH, outerRadius * FOUNDATION_BLEND_RING_WIDTH_RATIO),
+  );
+  const innerRadius = outerRadius - ringWidth;
+  if (!(innerRadius > 0)) return null;
+
+  const geometry = new THREE.RingGeometry(innerRadius, outerRadius, FOUNDATION_BLEND_RING_SEGMENTS);
+  const material = getFoundationBlendRingMaterial({ repeat, anisotropy });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+
+  return mesh;
+}
+
 /**
  * Builds a layered ground group containing separate dirt and grass groups.
  * You can toggle visibility on each layer independently.
  *
  * @param {Object} options
- * @param {Object} [options.dirtOptions]  - Options passed to createDirtGround
- * @param {Object} [options.grassOptions] - Options passed to createGrassGround
+ * @param {Object} [options.dirtOptions]  - Options passed to createDirtGround (supports height, slope, cornerHeights, etc.)
+ * @param {Object} [options.grassOptions] - Options passed to createGrassGround (supports height, slope, cornerHeights, etc.)
  * @param {boolean} [options.showDirt=true]
  * @param {boolean} [options.showGrass=true]
  * @param {Object[]} [options.tiles]      - Explicit tile definitions. If omitted a grid will be generated.
@@ -169,8 +505,26 @@ function buildTileDefinitions({
  * @param {number} [options.tileSize]     - Base tile size (used for generated tiles and as fallback for explicit tiles).
  * @param {number} [options.tileRepeat]   - Base texture repeat for generated tiles.
  * @param {number|{x?:number,z?:number}} [options.tileSpacing=0] - Gap/overlap between generated tiles.
- * @returns {{ root: THREE.Group, dirt: THREE.Group, grass: THREE.Group }}
- */
+ * @param {boolean} [options.addElevationSkirts=false] - Adds skirts between tiles with height differences.
+ * @param {boolean} [options.addFoundationBlendRing=false] - Adds optional blend ring when dirt is disabled.
+ * @param {boolean} [options.preventTileSeams=true] - Expand tile geometry slightly to hide seams.
+ * @param {boolean} [options.stabilizeTileOverlap=true] - Apply a subtle alternating height bias to dirt tiles.
+ * @param {(x:number, z:number)=>number} [options.heightFn] - Optional sampler returning additional height per world X/Z corner.
+ *
+ * Tile definitions may specify `disableUnderBuilding` to suppress dirt/grass meshes and
+ * `addFoundationBlendRing` to render a subtle inset ring around pads.
+ * Per-tile `dirtOptions` and `grassOptions` are forwarded to the respective ground builders,
+ * allowing custom `height`, `slope`, or `cornerHeights` per tile.
+ * @returns {{
+ *   root: THREE.Group,
+ *   dirt: THREE.Group,
+ *   grass: THREE.Group,
+ *   foundationBlend: THREE.Group,
+ *   tiles: Array,
+ *   skirts: Array,
+ *   config: { preventTileSeams: boolean, stabilizeTileOverlap: boolean, addElevationSkirts: boolean }
+ * }}
+*/
 export function createGroundLayered({
   dirtOptions = {},
   grassOptions = {},
@@ -181,6 +535,11 @@ export function createGroundLayered({
   tileSize,
   tileRepeat,
   tileSpacing = 0,
+  addElevationSkirts = false,
+  addFoundationBlendRing = false,
+  preventTileSeams = true,
+  stabilizeTileOverlap = true,
+  heightFn,
 } = {}) {
   const root = new THREE.Group();
   root.name = 'ground:root';
@@ -191,19 +550,21 @@ export function createGroundLayered({
   const grassLayer = new THREE.Group();
   grassLayer.name = 'ground:grass';
 
+  const foundationLayer = new THREE.Group();
+  foundationLayer.name = 'ground:foundationBlend';
+
   root.add(dirtLayer);
   root.add(grassLayer);
+  root.add(foundationLayer);
 
   const defaultSize =
     (typeof tileSize === 'number' && tileSize > 0) ? tileSize :
     (typeof grassOptions.size === 'number' ? grassOptions.size : dirtOptions.size);
-
   const resolvedDefaultSize = typeof defaultSize === 'number' ? defaultSize : 200;
 
   const defaultRepeat =
     (typeof tileRepeat === 'number' && tileRepeat > 0) ? tileRepeat :
     (typeof grassOptions.repeat === 'number' ? grassOptions.repeat : dirtOptions.repeat);
-
   const resolvedDefaultRepeat = typeof defaultRepeat === 'number' ? defaultRepeat : 16;
 
   const tileDefinitions = buildTileDefinitions({
@@ -216,34 +577,183 @@ export function createGroundLayered({
     defaultRepeat: resolvedDefaultRepeat,
   });
 
+  const enableSeamPrevention = !!preventTileSeams;
+  const enableTileStabilization = !!stabilizeTileOverlap;
+  const sampleHeightFn = typeof heightFn === 'function' ? heightFn : null;
+
+  const tileInstances = [];
+
   tileDefinitions.forEach((tile, index) => {
-    if (tile.enableDirt) {
-      const dirt = createDirtGround({
-        ...dirtOptions,
-        ...(tile.dirtOptions ?? {}),
-        size: tile.dirtOptions?.size ?? tile.size ?? dirtOptions.size ?? resolvedDefaultSize,
-        repeat: tile.dirtOptions?.repeat ?? tile.repeat ?? dirtOptions.repeat ?? resolvedDefaultRepeat,
-      });
+    const fallbackSize = tile.size ?? resolvedDefaultSize;
+    const fallbackRepeat = tile.repeat ?? resolvedDefaultRepeat;
+
+    const disableForBuilding = shouldDisableTileGround(tile);
+
+    // Alternating micro height bias to reduce coplanar z-fighting
+    const ix = Math.floor(typeof tile.gridX === 'number' ? tile.gridX : index);
+    const iz = Math.floor(typeof tile.gridZ === 'number' ? tile.gridZ : 0);
+    const stabilizationBias = ((ix + iz) & 1) ? 0.001 : 0;
+
+    const dirtConfig = {
+      ...dirtOptions,
+      ...(tile.dirtOptions ?? {}),
+      size: tile.dirtOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
+      repeat: tile.dirtOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
+      expandForSeams: tile.dirtOptions?.expandForSeams ?? dirtOptions.expandForSeams ?? enableSeamPrevention,
+      heightBias: tile.dirtOptions?.heightBias ?? dirtOptions.heightBias ?? (enableTileStabilization ? stabilizationBias : 0),
+    };
+
+    const grassConfig = {
+      ...grassOptions,
+      ...(tile.grassOptions ?? {}),
+      size: tile.grassOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
+      repeat: tile.grassOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
+      expandForSeams: tile.grassOptions?.expandForSeams ?? grassOptions.expandForSeams ?? enableSeamPrevention,
+    };
+
+    const sizeForSampling = typeof dirtConfig.size === 'number'
+      ? dirtConfig.size
+      : (typeof grassConfig.size === 'number' ? grassConfig.size : fallbackSize ?? resolvedDefaultSize);
+
+    let coverageSize = typeof sizeForSampling === 'number' ? sizeForSampling : resolvedDefaultSize;
+    let bounds = computeTileBounds(tile.position, coverageSize);
+
+    let sampledCorners = null;
+    if (sampleHeightFn) {
+      sampledCorners = {
+        nw: safeSampleHeight(sampleHeightFn, bounds.minX, bounds.maxZ),
+        ne: safeSampleHeight(sampleHeightFn, bounds.maxX, bounds.maxZ),
+        sw: safeSampleHeight(sampleHeightFn, bounds.minX, bounds.minZ),
+        se: safeSampleHeight(sampleHeightFn, bounds.maxX, bounds.minZ),
+      };
+    }
+
+    const existingDirtCorners = dirtConfig.cornerHeights;
+    const existingGrassCorners = grassConfig.cornerHeights;
+
+    const combinedDirtCorners = combineCornerHeights(sampledCorners, existingDirtCorners);
+    const combinedGrassCorners = combineCornerHeights(sampledCorners, existingGrassCorners);
+
+    const finalDirtCornerArray = combinedDirtCorners
+      ? cornerHeightsToArray(combinedDirtCorners)
+      : cornerHeightsToArray(existingDirtCorners);
+    if (finalDirtCornerArray) {
+      dirtConfig.cornerHeights = finalDirtCornerArray;
+    } else {
+      delete dirtConfig.cornerHeights;
+    }
+
+    const finalGrassCornerArray = combinedGrassCorners
+      ? cornerHeightsToArray(combinedGrassCorners)
+      : cornerHeightsToArray(existingGrassCorners);
+    if (finalGrassCornerArray) {
+      grassConfig.cornerHeights = finalGrassCornerArray;
+    } else {
+      delete grassConfig.cornerHeights;
+    }
+
+    const baseDirtHeight = typeof dirtConfig.height === 'number' ? dirtConfig.height : 0;
+    const baseDirtBias = typeof dirtConfig.heightBias === 'number' ? dirtConfig.heightBias : 0;
+    const baseCornerAverage = averageCornerHeight(dirtConfig.cornerHeights);
+
+    let dirtGroup = null;
+    let dirtMesh = null;
+    let dirtSize;
+    let surfaceY = tile.position.y + baseDirtHeight + baseDirtBias + baseCornerAverage;
+
+    if (!disableForBuilding && tile.enableDirt) {
+      const dirt = createDirtGround(dirtConfig);
       dirt.name = tile.dirtName ?? `ground:dirt:tile:${index}`;
       dirt.position.copy(tile.position);
       dirtLayer.add(dirt);
+
+      dirtGroup = dirt;
+      dirtMesh = dirt.children.find(child => child?.isMesh) ?? null;
+      dirtSize = dirtConfig.size;
+      surfaceY = tile.position.y + baseDirtHeight + baseDirtBias + baseCornerAverage;
     }
 
-    if (tile.enableGrass) {
-      const grass = createGrassGround({
-        ...grassOptions,
-        ...(tile.grassOptions ?? {}),
-        size: tile.grassOptions?.size ?? tile.size ?? grassOptions.size ?? resolvedDefaultSize,
-        repeat: tile.grassOptions?.repeat ?? tile.repeat ?? grassOptions.repeat ?? resolvedDefaultRepeat,
-      });
+    if (!disableForBuilding && tile.enableGrass) {
+      const grass = createGrassGround(grassConfig);
       grass.name = tile.grassName ?? `ground:grass:tile:${index}`;
       grass.position.copy(tile.position);
       grassLayer.add(grass);
     }
+
+    if (typeof dirtSize === 'number' && Number.isFinite(dirtSize)) {
+      coverageSize = dirtSize;
+    }
+    if (!(coverageSize > 0)) {
+      coverageSize = fallbackSize ?? resolvedDefaultSize;
+    }
+    bounds = computeTileBounds(tile.position, coverageSize);
+
+    // Optional foundation blend ring around disabled (building pad) tiles
+    if (addFoundationBlendRing && tile.addFoundationBlendRing && disableForBuilding) {
+      const blendOptions = tile.foundationBlendOptions ?? {};
+      const ringSize = blendOptions.size ?? coverageSize;
+      const blendMesh = createFoundationBlendRingMesh({
+        size: ringSize,
+        repeat: blendOptions.repeat ?? tile.dirtOptions?.repeat ?? tile.repeat ?? dirtOptions.repeat ?? resolvedDefaultRepeat,
+        anisotropy: blendOptions.anisotropy ?? tile.dirtOptions?.anisotropy ?? dirtOptions.anisotropy ?? undefined,
+      });
+      if (blendMesh) {
+        blendMesh.name = blendOptions.name ?? `${tile.name ?? `tile:${index}`}:foundationBlend`;
+        blendMesh.position.copy(tile.position);
+        blendMesh.position.y += FOUNDATION_BLEND_RING_OFFSET;
+        foundationLayer.add(blendMesh);
+      }
+    }
+
+    tileInstances.push({
+      index,
+      definition: tile,
+      position: tile.position.clone(),
+      disableUnderBuilding: Boolean(tile.disableUnderBuilding),
+      addFoundationBlendRing: tile.addFoundationBlendRing,
+      dirtGroup,
+      dirtMesh,
+      dirtHeight: baseDirtHeight,
+      dirtSize,
+      coverageSize,
+      surfaceY,
+      bounds,
+      skirts: [],
+    });
   });
+
+  const skirtRecords = addElevationSkirts ? applyElevationSkirts(tileInstances) : [];
 
   dirtLayer.visible = !!showDirt;
   grassLayer.visible = !!showGrass;
 
-  return { root, dirt: dirtLayer, grass: grassLayer };
+  const config = {
+    preventTileSeams: enableSeamPrevention,
+    stabilizeTileOverlap: enableTileStabilization,
+    addElevationSkirts: !!addElevationSkirts,
+  };
+
+  root.userData = root.userData || {};
+  root.userData.tileInstances = tileInstances;
+  root.userData.groundConfig = config;
+
+  function dispose() {
+    if (root.parent) {
+      root.parent.remove(root);
+    }
+    disposeAll(root);
+    tileInstances.length = 0;
+    skirts.length = 0;
+  }
+
+  return {
+    root,
+    dirt: dirtLayer,
+    grass: grassLayer,
+    foundationBlend: foundationLayer,
+    tiles: tileInstances,
+    skirts: skirtRecords,
+    config,
+    dispose,
+  };
 }

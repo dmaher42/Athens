@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { logger } from '../utils/logger.ts';
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -90,7 +91,6 @@ function createAssemblyBuffer(context) {
     let value = 0;
 
     drones.forEach((tone, index) => {
-      const modulation = 0.07 + index * 0.02;
       const amp = 0.07 + index * 0.03;
       value += Math.sin(tone.phase) * amp * (0.8 + 0.2 * Math.sin(time * 2 * Math.PI * 0.1));
       tone.phase += (2 * Math.PI * tone.freq) / sampleRate;
@@ -326,7 +326,7 @@ export class AmbientZoneManager {
 
     zone.loading = loadBuffer()
       .catch((error) => {
-        console.warn(`[ambient-zones] Unable to create buffer for ${zone.id}`, error);
+        logger.warn(`[ambient-zones] Unable to create buffer for ${zone.id}`, error);
         if (zone.audio) {
           zone.audio.removeFromParent();
         }

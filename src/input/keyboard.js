@@ -1,44 +1,73 @@
-const INV_SQRT2 = 1 / Math.sqrt(2);
+import {
+  RELEVANT_KEYS,
+  KEY_FALLBACK_MAP,
+  HOTKEY_AXIS_METADATA,
+  getActionCodes
+} from '../config/hotkeys.ts';
 
-const MOVEMENT_KEYS = [
+const DEV_FALLBACK_CODES = [
   'KeyW',
   'KeyA',
   'KeyS',
-  'KeyD'
-];
-
-const LOOK_KEYS = [
+  'KeyD',
+  'ArrowLeft',
+  'ArrowRight',
   'ArrowUp',
   'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight'
+  'ShiftLeft',
+  'ShiftRight',
+  'Space'
 ];
 
-const MODIFIER_KEYS = ['ShiftLeft', 'ShiftRight'];
+const axisCodeBindings = new Map();
+const runningActionCodes = new Set();
+let hasWarnedForRelevantKeyFallback = false;
 
-const EXTRA_KEYS = ['Space', 'KeyX', 'KeyC', 'KeyE', 'KeyQ', 'KeyZ', 'ControlLeft', 'ControlRight'];
+const createCodeSet = (actionId) => {
+  const set = new Set();
+  if (!actionId) {
+    return set;
+  }
+  const codes = getActionCodes(actionId);
+  if (!Array.isArray(codes)) {
+    return set;
+  }
+  for (const code of codes) {
+    if (typeof code === 'string' && code) {
+      set.add(code);
+    }
+  }
+  return set;
+};
 
-const RELEVANT_KEYS = new Set([...MOVEMENT_KEYS, ...LOOK_KEYS, ...MODIFIER_KEYS, ...EXTRA_KEYS]);
+for (const binding of HOTKEY_AXIS_METADATA) {
+  if (!binding) continue;
+  if (binding.type === 'paired') {
+    axisCodeBindings.set(binding.axis, {
+      positive: createCodeSet(binding.positive),
+      negative: createCodeSet(binding.negative)
+    });
+  } else if (binding.type === 'binary' && binding.axis === 'running') {
+    for (const actionId of binding.actions ?? []) {
+      const codes = getActionCodes(actionId);
+      if (!Array.isArray(codes)) {
+        continue;
+      }
+      for (const code of codes) {
+        if (typeof code === 'string' && code) {
+          runningActionCodes.add(code);
+        }
+      }
+    }
+  }
+}
 
-const KEY_FALLBACK_MAP = new Map([
-  ['w', 'KeyW'],
-  ['a', 'KeyA'],
-  ['s', 'KeyS'],
-  ['d', 'KeyD'],
-  ['arrowup', 'ArrowUp'],
-  ['arrowdown', 'ArrowDown'],
-  ['arrowleft', 'ArrowLeft'],
-  ['arrowright', 'ArrowRight'],
-  [' ', 'Space'],
-  ['space', 'Space'],
-  ['spacebar', 'Space'],
-  ['x', 'KeyX'],
-  ['c', 'KeyC'],
-  ['e', 'KeyE'],
-  ['q', 'KeyQ'],
-  ['z', 'KeyZ'],
-  ['shift', 'ShiftLeft'],
-  ['control', 'ControlLeft']
+const PREVENT_DEFAULT_CODES = new Set([
+  'Space',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown'
 ]);
 
 const normalizeCode = (event) => {
@@ -48,11 +77,11 @@ const normalizeCode = (event) => {
 
   const { code, key } = event;
 
-  if (code && code !== '' && code !== 'Unidentified') {
+  if (typeof code === 'string' && code !== '' && code !== 'Unidentified') {
     return code;
   }
 
-  if (!key && key !== 0) {
+  if (key === undefined || key === null) {
     return undefined;
   }
 
@@ -62,26 +91,169 @@ const normalizeCode = (event) => {
 
 export function createKeyboard(target = typeof window !== 'undefined' ? window : null) {
   const pressed = new Set();
+  const justPressed = new Set();
   const listeners = new Map();
-  const axisVector = { x: 0, z: 0 };
-  const lookVector = { x: 0, y: 0 };
+  const axisState = {
+    x: 0,
+    z: 0,
+    turn: 0,
+    running: false,
+    lookX: 0,
+    lookY: 0
+  };
+  const lookState = { x: 0, y: 0 };
+  let frameJustPressed = new Set();
+
+  const isDevEnvironment =
+    typeof process === 'undefined' || process?.env?.NODE_ENV !== 'production';
+
+  let activeRelevantKeys = RELEVANT_KEYS;
+  if (!(activeRelevantKeys instanceof Set)) {
+    activeRelevantKeys = new Set(activeRelevantKeys ? [...activeRelevantKeys] : []);
+  }
+  if ((!activeRelevantKeys || activeRelevantKeys.size === 0) && isDevEnvironment) {
+    activeRelevantKeys = new Set(DEV_FALLBACK_CODES);
+    if (!hasWarnedForRelevantKeyFallback) {
+      console.warn('[hotkeys] empty RELEVANT_KEYS; enabling dev fallback');
+      hasWarnedForRelevantKeyFallback = true;
+    }
+  }
+
+  const resolveActionCodes = (actionId) => getActionCodes(actionId);
+
+  const shouldPreventDefault = (event, normalizedCode) => {
+    if (!normalizedCode || !PREVENT_DEFAULT_CODES.has(normalizedCode)) {
+      return false;
+    }
+    if (!event) {
+      return false;
+    }
+
+    const isWindowTarget = typeof window !== 'undefined' && target === window;
+    if (!target || isWindowTarget) {
+      return true;
+    }
+    const eventTarget = event.target;
+    if (eventTarget) {
+      if (eventTarget === target) {
+        return true;
+      }
+      if (typeof target.contains === 'function' && target.contains(eventTarget)) {
+        return true;
+      }
+    }
+    if (typeof document !== 'undefined') {
+      const activeElement = document.activeElement;
+      if (activeElement) {
+        if (activeElement === target) {
+          return true;
+        }
+        if (typeof target.contains === 'function' && target.contains(activeElement)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const getActionState = (actionId) => {
+    const codes = resolveActionCodes(actionId);
+    if (!codes.length) {
+      return { id: actionId, isDown: false, justPressed: false, codes };
+    }
+    let isDown = false;
+    let wasJustPressed = false;
+    for (const code of codes) {
+      if (!isDown && pressed.has(code)) {
+        isDown = true;
+      }
+      if (!wasJustPressed && (frameJustPressed.has(code) || justPressed.has(code))) {
+        wasJustPressed = true;
+      }
+      if (isDown && wasJustPressed) {
+        break;
+      }
+    }
+    return { id: actionId, isDown, justPressed: wasJustPressed, codes };
+  };
+
+  const isActionDown = (actionId) => {
+    const codes = resolveActionCodes(actionId);
+    if (!codes.length) {
+      return false;
+    }
+    for (const code of codes) {
+      if (pressed.has(code)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const hasAnyPressed = (codes) => {
+    if (!codes || typeof codes.size !== 'number' || codes.size === 0) {
+      return false;
+    }
+    for (const code of codes) {
+      if (pressed.has(code)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const axisValueFromCodes = (axisId) => {
+    const binding = axisCodeBindings.get(axisId);
+    if (!binding) {
+      return 0;
+    }
+    const positive = hasAnyPressed(binding.positive) ? 1 : 0;
+    const negative = hasAnyPressed(binding.negative) ? 1 : 0;
+    return positive - negative;
+  };
 
   const handleKeyDown = (event) => {
     const code = normalizeCode(event);
 
-    if (!RELEVANT_KEYS.has(code)) {
+    if (shouldPreventDefault(event, code)) {
+      if (typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      if (typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+    }
+
+    if (!code || !activeRelevantKeys.has(code)) {
       return;
     }
-    pressed.add(code);
+
+    if (!pressed.has(code)) {
+      justPressed.add(code);
+      pressed.add(code);
+      updateState();
+      return;
+    }
   };
 
   const handleKeyUp = (event) => {
     const code = normalizeCode(event);
 
-    if (!RELEVANT_KEYS.has(code)) {
+    if (shouldPreventDefault(event, code)) {
+      if (typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      if (typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+    }
+
+    if (!code || !activeRelevantKeys.has(code)) {
       return;
     }
-    pressed.delete(code);
+    if (pressed.delete(code)) {
+      updateState();
+    }
   };
 
   if (target && target.addEventListener) {
@@ -93,73 +265,70 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
 
   const isDown = (code) => pressed.has(code);
 
-  const computeAxis = () => {
-    let x = 0;
-    let z = 0;
+  const updateState = () => {
+    const axisX = axisValueFromCodes('x');
+    const axisZ = axisValueFromCodes('z');
+    axisState.x = axisX;
+    axisState.z = axisZ;
 
-    if (isDown('KeyA')) {
-      x -= 1;
-    }
-    if (isDown('KeyD')) {
-      x += 1;
-    }
-    if (isDown('KeyW')) {
-      z -= 1;
-    }
-    if (isDown('KeyS')) {
-      z += 1;
+    const magnitudeSq = axisState.x * axisState.x + axisState.z * axisState.z;
+    if (magnitudeSq > 1) {
+      const invMagnitude = 1 / Math.sqrt(magnitudeSq);
+      axisState.x *= invMagnitude;
+      axisState.z *= invMagnitude;
     }
 
-    if (x !== 0 && z !== 0) {
-      x *= INV_SQRT2;
-      z *= INV_SQRT2;
-    }
+    axisState.turn = 0;
 
-    axisVector.x = x;
-    axisVector.z = z;
-    return axisVector;
+    const lookX = axisValueFromCodes('lookX');
+    const lookY = axisValueFromCodes('lookY');
+    axisState.lookX = Math.max(-1, Math.min(1, lookX));
+    axisState.lookY = Math.max(-1, Math.min(1, lookY));
+
+    axisState.running = hasAnyPressed(runningActionCodes);
+
+    lookState.x = axisState.lookX;
+    lookState.y = axisState.lookY;
   };
 
-  const computeLook = () => {
-    let x = 0;
-    let y = 0;
-
-    if (isDown('ArrowLeft')) {
-      x -= 1;
-    }
-    if (isDown('ArrowRight')) {
-      x += 1;
-    }
-    if (isDown('ArrowUp')) {
-      y += 1;
-    }
-    if (isDown('ArrowDown')) {
-      y -= 1;
-    }
-
-    lookVector.x = x;
-    lookVector.y = y;
-    return lookVector;
-  };
+  updateState();
 
   const axis = {};
   Object.defineProperties(axis, {
     x: {
       enumerable: true,
       get() {
-        return computeAxis().x;
+        return axisState.x;
       }
     },
     z: {
       enumerable: true,
       get() {
-        return computeAxis().z;
+        return axisState.z;
+      }
+    },
+    turn: {
+      enumerable: true,
+      get() {
+        return axisState.turn;
       }
     },
     running: {
       enumerable: true,
       get() {
-        return MODIFIER_KEYS.some((code) => isDown(code));
+        return axisState.running;
+      }
+    },
+    lookX: {
+      enumerable: true,
+      get() {
+        return axisState.lookX;
+      }
+    },
+    lookY: {
+      enumerable: true,
+      get() {
+        return axisState.lookY;
       }
     }
   });
@@ -169,16 +338,32 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     x: {
       enumerable: true,
       get() {
-        return computeLook().x;
+        return lookState.x;
       }
     },
     y: {
       enumerable: true,
       get() {
-        return computeLook().y;
+        return lookState.y;
       }
     }
   });
+
+  const update = () => {
+    updateState();
+    frameJustPressed = new Set(justPressed);
+    justPressed.clear();
+    return axisState;
+  };
+
+  const wasPressed = (code) => {
+    if (!code) return false;
+    if (frameJustPressed.has(code)) {
+      frameJustPressed.delete(code);
+      return true;
+    }
+    return false;
+  };
 
   const dispose = () => {
     if (!target || !target.removeEventListener) {
@@ -189,12 +374,19 @@ export function createKeyboard(target = typeof window !== 'undefined' ? window :
     });
     listeners.clear();
     pressed.clear();
+    justPressed.clear();
+    frameJustPressed.clear();
+    updateState();
   };
 
   return {
     isDown,
+    isActionDown,
+    getActionState,
+    update,
     axis,
     look,
+    wasPressed,
     dispose
   };
 }

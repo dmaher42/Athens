@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.ts';
+
 const ENVIRONMENT_LABELS = {
   high_noon: 'High Noon',
   day: 'High Noon',
@@ -282,30 +284,48 @@ export function createOriginalUi({
     return badge;
   };
 
-  const appendInstruction = (keys, description) => {
-    if (instructionRow.childNodes.length) {
-      const divider = doc.createElement('span');
-      divider.textContent = '|';
-      applyStyles(divider, { opacity: '0.65' });
-      instructionRow.appendChild(divider);
+  let hotkeyInstructions = [];
+
+  const renderInstructions = () => {
+    while (instructionRow.firstChild) {
+      instructionRow.removeChild(instructionRow.firstChild);
     }
-    const keyLabel = Array.isArray(keys) ? keys.join(' / ') : keys;
-    instructionRow.appendChild(createKeyBadge(keyLabel));
-    const text = doc.createElement('span');
-    text.textContent = ` ${description}`;
-    applyStyles(text, { opacity: '0.85' });
-    instructionRow.appendChild(text);
+    if (!hotkeyInstructions.length) {
+      return;
+    }
+    const fragment = doc.createDocumentFragment();
+    hotkeyInstructions.forEach((entry, index) => {
+      if (index > 0) {
+        const divider = doc.createElement('span');
+        divider.textContent = '|';
+        applyStyles(divider, { opacity: '0.65' });
+        fragment.appendChild(divider);
+      }
+      fragment.appendChild(createKeyBadge(entry.label));
+      const text = doc.createElement('span');
+      text.textContent = ` ${entry.description}`;
+      applyStyles(text, { opacity: '0.85' });
+      fragment.appendChild(text);
+    });
+    instructionRow.appendChild(fragment);
   };
 
-  appendInstruction('WASD', 'Move');
-  appendInstruction('Arrows', 'Orbit Camera');
-  appendInstruction('Shift', 'Hold to Run');
-  appendInstruction('E', 'Interact');
-  appendInstruction('X', 'Toggle Flight');
-  appendInstruction(['Space', 'Shift'], 'Fly Up / Down');
-  appendInstruction('M', 'Sound');
-  appendInstruction('P', 'FPS');
-  appendInstruction('K', 'Toggle Sky');
+  const setHotkeyInstructions = (instructions = []) => {
+    if (!Array.isArray(instructions)) {
+      hotkeyInstructions = [];
+      renderInstructions();
+      return;
+    }
+    hotkeyInstructions = instructions
+      .filter((entry) => entry && typeof entry.label === 'string' && entry.label && typeof entry.description === 'string')
+      .map((entry) => ({
+        label: entry.label,
+        description: entry.description
+      }));
+    renderInstructions();
+  };
+
+  setHotkeyInstructions();
 
   const hudRight = doc.createElement('div');
   applyStyles(hudRight, {
@@ -438,6 +458,7 @@ export function createOriginalUi({
     setCurrentLocation(value) {
       currentLocationEl.textContent = value || '';
     },
+    setHotkeyInstructions,
     update(deltaSeconds, state) {
       updateStatus(deltaSeconds, state);
     },
@@ -447,7 +468,7 @@ export function createOriginalUi({
         try {
           fn();
         } catch (error) {
-          console.warn('[Athens][UI] Failed to run cleanup handler.', error);
+          logger.warn('[Athens][UI] Failed to run cleanup handler.', error);
         }
       });
       cleanupFns.length = 0;

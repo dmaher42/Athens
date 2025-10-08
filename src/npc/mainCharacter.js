@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+import { movementConfig } from '../config/movement.ts';
 import { createNpc } from './npcSystem.js';
 
 function sanitizeVector(input) {
@@ -45,32 +47,56 @@ function applyScale(object3d, scale) {
  * @returns {{ object3d: import('three').Object3D; update(deltaSeconds: number): void; dispose(): void; ready: Promise<any>; }}
  */
 export function createMainCharacter(scene, options = {}) {
+  const characterConfig = movementConfig?.character ?? {};
   const {
     modelUrl = 'models/character.glb',
     initialPosition = { x: 0, y: 0, z: 0 },
     headingRadians = 0,
-    scale = 1
+    scale: overrideScale
   } = options;
 
+  const scale = overrideScale ?? characterConfig.scale ?? 1;
+
   const start = sanitizeVector(initialPosition);
+
+  const preconfiguredRoot = new THREE.Group();
+  preconfiguredRoot.name = 'MainCharacter';
+  preconfiguredRoot.userData = { ...(preconfiguredRoot.userData || {}), isMainCharacter: true };
 
   const npc = createNpc({
     modelUrl,
     initialPosition: start,
-    waypoints: [start]
+    waypoints: [start],
+    object3d: preconfiguredRoot
   });
 
-  npc.object3d.name = 'MainCharacter';
-  npc.object3d.userData.isMainCharacter = true;
+  const root = npc.object3d;
+
+  // Ensure name + flag are set without clobbering existing userData
+  root.name = root.name || 'MainCharacter';
+  root.userData = { ...(root.userData || {}), isMainCharacter: true };
 
   if (typeof headingRadians === 'number' && Number.isFinite(headingRadians)) {
-    npc.object3d.rotation.y = headingRadians;
+    root.rotation.y = headingRadians;
   }
 
-  applyScale(npc.object3d, scale);
+  applyScale(root, scale);
+
+  root.up.set(0, 1, 0);
+  if (root.scale?.y < 0) {
+    root.scale.y = Math.abs(root.scale.y);
+  }
+
+  const box = new THREE.Box3().setFromObject(root);
+  if (!box.isEmpty()) {
+    const minY = box.min.y;
+    if (Number.isFinite(minY)) {
+      root.position.y -= minY;
+    }
+  }
 
   if (scene && typeof scene.add === 'function') {
-    scene.add(npc.object3d);
+    scene.add(root);
   }
 
   return npc;

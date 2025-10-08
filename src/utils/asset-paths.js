@@ -1,4 +1,5 @@
-import { assetUrl } from './assetUrl.js';
+import { assetUrl } from './assetUrl.ts';
+import { logger } from './logger.ts';
 
 function ensureTrailingSlash(value) {
   if (typeof value !== 'string' || value.length === 0) {
@@ -22,9 +23,10 @@ function normalizeBaseCandidate(candidate) {
   if (/^https?:\/\//i.test(trimmed)) {
     try {
       const absolute = new URL(trimmed);
-      return ensureTrailingSlash(absolute.pathname || '/');
+      const originAndPath = `${absolute.origin}${absolute.pathname || '/'}`;
+      return ensureTrailingSlash(originAndPath);
     } catch (error) {
-      console.warn('[asset-paths] Invalid absolute BASE_URL candidate.', error);
+      logger.warn('[asset-paths] Invalid absolute BASE_URL candidate.', error);
       return null;
     }
   }
@@ -34,9 +36,10 @@ function normalizeBaseCandidate(candidate) {
     if (typeof location !== 'undefined' && typeof location.href === 'string') {
       try {
         const relative = new URL(trimmed, location.href);
-        return ensureTrailingSlash(relative.pathname || '/');
+        const originAndPath = `${relative.origin}${relative.pathname || '/'}`;
+        return ensureTrailingSlash(originAndPath);
       } catch (error) {
-        console.warn('[asset-paths] Unable to resolve relative BASE_URL candidate.', error);
+        logger.warn('[asset-paths] Unable to resolve relative BASE_URL candidate.', error);
       }
     }
     const sanitized = trimmed.replace(/^\.\//, '/');
@@ -48,12 +51,26 @@ function normalizeBaseCandidate(candidate) {
 }
 
 function computeFromEnv() {
-  if (typeof import.meta === 'undefined') {
-    return null;
+  let candidate = null;
+
+  if (typeof import.meta !== 'undefined') {
+    const env = import.meta.env ?? null;
+    if (env && typeof env.BASE_URL !== 'undefined') {
+      candidate = env.BASE_URL;
+    }
   }
-  const env = import.meta.env ?? null;
-  const base = env && typeof env.BASE_URL === 'string' ? env.BASE_URL : null;
-  return normalizeBaseCandidate(base);
+
+  if (
+    candidate === null &&
+    typeof process !== 'undefined' &&
+    process &&
+    process.env &&
+    typeof process.env.BASE_URL !== 'undefined'
+  ) {
+    candidate = process.env.BASE_URL;
+  }
+
+  return normalizeBaseCandidate(candidate);
 }
 
 function computeFromLocation() {
@@ -103,7 +120,7 @@ function computeFromModuleUrl() {
       return ensureTrailingSlash(pathname.slice(0, lastSlash + 1) || '/');
     }
   } catch (error) {
-    console.warn('[asset-paths] Unable to infer base from module URL.', error);
+    logger.warn('[asset-paths] Unable to infer base from module URL.', error);
   }
 
   return null;
@@ -140,10 +157,6 @@ export function getAssetBase() {
   return ASSET_BASE;
 }
 
-export function getAssetBaseSource() {
-  return assetBaseSource;
-}
-
 export function resolveAssetUrl(path = '') {
   if (!path) {
     return assetUrl('');
@@ -163,6 +176,21 @@ export function resolveAssetUrl(path = '') {
   }
 
   sanitized = sanitized.replace(/^\/+/, '');
+
+  try {
+    const absoluteCandidate = new URL(sanitized);
+    if (absoluteCandidate.protocol) {
+      return sanitized;
+    }
+  } catch (_) {
+    // ignore parsing errors, the path is not an absolute URL
+  }
+
+  const baseRoot = assetUrl('');
+  const baseWithoutLeadingSlash = baseRoot.replace(/^\/+/, '');
+  if (baseWithoutLeadingSlash && sanitized.startsWith(baseWithoutLeadingSlash)) {
+    sanitized = sanitized.slice(baseWithoutLeadingSlash.length);
+  }
 
   if (sanitized.startsWith('public/')) {
     sanitized = sanitized.slice('public/'.length);

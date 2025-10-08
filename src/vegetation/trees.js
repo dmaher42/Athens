@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { createProceduralTree } from './procTree.js';
-import { assetUrl } from '../utils/assetUrl.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { applyCompressionToVector3 } from '../world/scale.js';
 import { loadGLTF } from '../loaders/safeGltf.js';
 import { logOnce } from '../utils/logOnce.js';
+import { logger } from '../utils/logger.ts';
 
 const TREE_MODEL_FILES = {
   olive: 'olive.glb',
@@ -25,6 +26,74 @@ const windTimeUniform = { value: 0 };
 
 let libraryPromise = null;
 let libraryHandle = null;
+
+const trackedTreeGroves = new Set();
+
+function createGroveTracker() {
+  return {
+    lods: new Set(),
+    instancedMeshes: new Set(),
+    geometries: new Set(),
+    materials: new Set()
+  };
+}
+
+function trackMaterial(target, tracker) {
+  if (!target) {
+    return;
+  }
+
+  if (Array.isArray(target)) {
+    target.forEach((material) => {
+      if (material) {
+        tracker.materials.add(material);
+      }
+    });
+    return;
+  }
+
+  tracker.materials.add(target);
+}
+
+function collectResourcesForObject(object, tracker) {
+  if (!object || !tracker) {
+    return;
+  }
+
+  object.traverse((child) => {
+    if (!child) {
+      return;
+    }
+
+    if (child.isLOD) {
+      tracker.lods.add(child);
+    }
+
+    if (child.isInstancedMesh) {
+      tracker.instancedMeshes.add(child);
+    }
+
+    if (child.isMesh || child.isInstancedMesh) {
+      if (child.geometry) {
+        tracker.geometries.add(child.geometry);
+      }
+      trackMaterial(child.material, tracker);
+    }
+  });
+}
+
+function hasTrackedResources(tracker) {
+  if (!tracker) {
+    return false;
+  }
+
+  return (
+    tracker.lods.size > 0 ||
+    tracker.instancedMeshes.size > 0 ||
+    tracker.geometries.size > 0 ||
+    tracker.materials.size > 0
+  );
+}
 
 function ensureStandardMaterial(material) {
   if (!material) {
@@ -252,7 +321,14 @@ function buildInstancingData(group, height) {
 
 async function loadTreeDefinition(name, file) {
   let gltfScene = null;
-  const url = assetUrl(`assets/models/${file}`);
+  let normalizedFile = typeof file === 'string' ? file : '';
+  if (normalizedFile.startsWith('Athens/')) {
+    normalizedFile = normalizedFile.slice('Athens/'.length);
+  }
+  const relativePath = normalizedFile.startsWith('assets/')
+    ? normalizedFile
+    : `assets/models/${normalizedFile}`;
+  const url = assetUrl(relativePath);
   try {
     const gltf = await loadGLTF(url);
     gltfScene = gltf.scene || (gltf.scenes && gltf.scenes[0]) || null;
@@ -324,7 +400,7 @@ function getTreeDefinition(name) {
   return definition;
 }
 
-export async function loadTreeLibrary(renderer) {
+export async function loadTreeLibrary(_renderer) {
   if (libraryHandle) {
     return libraryHandle;
   }
@@ -503,7 +579,6 @@ function createInstancedGrove(definition, placements) {
     return null;
   }
 
-  const { trunkGeometry, trunkMaterial, leavesGeometry, leavesMaterial } = instancing;
   const count = placements.length;
   if (count === 0) {
     return null;
@@ -511,6 +586,13 @@ function createInstancedGrove(definition, placements) {
 
   const group = new THREE.Group();
   group.name = `${definition.name}-instanced`;
+
+  const trunkGeometry = instancing.trunkGeometry.clone();
+  const leavesGeometry = instancing.leavesGeometry.clone();
+  const trunkMaterial = instancing.trunkMaterial.clone();
+  const leavesMaterial = instancing.leavesMaterial.clone();
+
+  enableWind(leavesMaterial, instancing.height);
 
   const trunkMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, count);
   const leavesMesh = new THREE.InstancedMesh(leavesGeometry, leavesMaterial, count);
@@ -550,7 +632,7 @@ export function scatterTrees({
   maxLod = 32
 } = {}) {
   if (!treeLibrary.size) {
-    console.warn('[trees] Tree library not loaded before scatterTrees call');
+    logger.warn('[trees] Tree library not loaded before scatterTrees call');
   }
 
   const definition = getTreeDefinition(name);
@@ -561,6 +643,11 @@ export function scatterTrees({
   if (!placements.length) {
     return group;
   }
+
+  const tracker = createGroveTracker();
+  tracker.group = group;
+  group.userData = group.userData || {};
+  group.userData.treeResources = tracker;
 
   const lodCount = Math.min(placements.length, Math.max(1, maxLod));
   const lodPlacements = placements.slice(0, lodCount);
@@ -573,12 +660,14 @@ export function scatterTrees({
       scale: placement.scale
     });
     group.add(tree);
+    collectResourcesForObject(tree, tracker);
   });
 
   if (useInstancing && instancedPlacements.length > 0) {
     const instanced = createInstancedGrove(definition, instancedPlacements);
     if (instanced) {
       group.add(instanced);
+      collectResourcesForObject(instanced, tracker);
     } else {
       instancedPlacements.forEach((placement) => {
         const tree = createTreeInstance(name, {
@@ -587,6 +676,7 @@ export function scatterTrees({
           scale: placement.scale
         });
         group.add(tree);
+        collectResourcesForObject(tree, tracker);
       });
     }
   } else {
@@ -597,10 +687,73 @@ export function scatterTrees({
         scale: placement.scale
       });
       group.add(tree);
+      collectResourcesForObject(tree, tracker);
     });
   }
 
+  if (hasTrackedResources(tracker)) {
+    trackedTreeGroves.add(tracker);
+  }
+
   return group;
+}
+
+export function disposeTreeGroves() {
+  if (!trackedTreeGroves.size) {
+    return;
+  }
+
+  trackedTreeGroves.forEach((tracker) => {
+    tracker.lods.forEach((lod) => {
+      if (!lod) {
+        return;
+      }
+      try {
+        if (typeof lod.dispose === 'function') {
+          lod.dispose();
+        }
+      } catch {}
+      lod.onBeforeRender = null;
+    });
+
+    tracker.instancedMeshes.forEach((mesh) => {
+      if (!mesh) {
+        return;
+      }
+      try {
+        if (typeof mesh.dispose === 'function') {
+          mesh.dispose();
+        }
+      } catch {}
+    });
+
+    tracker.geometries.forEach((geometry) => {
+      if (geometry && typeof geometry.dispose === 'function') {
+        try {
+          geometry.dispose();
+        } catch {}
+      }
+    });
+
+    tracker.materials.forEach((material) => {
+      if (material && typeof material.dispose === 'function') {
+        try {
+          material.dispose();
+        } catch {}
+      }
+    });
+
+    tracker.lods.clear();
+    tracker.instancedMeshes.clear();
+    tracker.geometries.clear();
+    tracker.materials.clear();
+    if (tracker.group && tracker.group.userData) {
+      delete tracker.group.userData.treeResources;
+    }
+    tracker.group = null;
+  });
+
+  trackedTreeGroves.clear();
 }
 
 export function updateTrees(delta) {

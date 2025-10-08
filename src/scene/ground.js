@@ -1,5 +1,6 @@
 // src/scene/ground.js
 import { createGroundLayered } from '../ground/index.js';
+import { updateGroundDebugOverlay, clearGroundDebugOverlay } from '../ground/debug.js';
 
 let __groundSingleton = null;
 
@@ -31,7 +32,26 @@ function ensureWindowGroundAccessor(groundLayers) {
   window.showGround = () => {
     if (groundLayers?.dirt) groundLayers.dirt.visible = true;
     if (groundLayers?.grass) groundLayers.grass.visible = true;
+    if (groundLayers?.foundationBlend) groundLayers.foundationBlend.visible = true;
   };
+}
+
+function isGroundDebugEnabled() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location.search).get('groundDebug') === '1';
+  } catch {
+    return false;
+  }
+}
+
+function isSlopeDemoEnabled() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location.search).get('slopeDemo') === '1';
+  } catch {
+    return false;
+  }
 }
 
 // Signature stays the same as your current code expects.
@@ -51,6 +71,11 @@ export async function loadGround(scene, renderer, options = {}) {
     tileSize = size,
     tileRepeat = repeat,
     tileSpacing = 0,
+    addElevationSkirts = false,
+    addFoundationBlendRing = false,
+    preventTileSeams,
+    stabilizeTileOverlap,
+    heightFn,
   } = options;
 
   const hasShowDirtOverride = Object.prototype.hasOwnProperty.call(options, 'showDirt');
@@ -60,7 +85,12 @@ export async function loadGround(scene, renderer, options = {}) {
   const initialShowGrass = hasShowGrassOverride ? !!showGrass : true;
 
   if (!__groundSingleton) {
-    __groundSingleton = createGroundLayered({
+    let effectiveHeightFn = typeof heightFn === 'function' ? heightFn : undefined;
+    if (!effectiveHeightFn && isSlopeDemoEnabled()) {
+      effectiveHeightFn = (x) => 0.002 * x;
+    }
+
+    const layeredOptions = {
       dirtOptions: { size, repeat, height: 0, ...dirtOptions },
       grassOptions: { size, repeat, height: 0.02, ...grassOptions },
       showDirt: initialShowDirt,
@@ -70,7 +100,30 @@ export async function loadGround(scene, renderer, options = {}) {
       tileSize,
       tileRepeat,
       tileSpacing,
-    });
+      addElevationSkirts,
+      addFoundationBlendRing,
+    };
+
+    if (effectiveHeightFn) {
+      layeredOptions.heightFn = effectiveHeightFn;
+    }
+
+    if (typeof preventTileSeams === 'boolean') {
+      layeredOptions.preventTileSeams = preventTileSeams;
+    }
+    if (typeof stabilizeTileOverlap === 'boolean') {
+      layeredOptions.stabilizeTileOverlap = stabilizeTileOverlap;
+    }
+
+    const layered = createGroundLayered(layeredOptions);
+    const originalDispose = layered?.dispose?.bind(layered);
+    layered.dispose = () => {
+      originalDispose?.();
+      if (__groundSingleton === layered) {
+        __groundSingleton = null;
+      }
+    };
+    __groundSingleton = layered;
 
     if (__groundSingleton?.root) {
       __groundSingleton.root.userData.layeredGround = true;
@@ -91,6 +144,18 @@ export async function loadGround(scene, renderer, options = {}) {
 
   hideLegacyGroundPlanes(scene, __groundSingleton?.root);
   ensureWindowGroundAccessor(__groundSingleton);
+
+  const debugEnabled = isGroundDebugEnabled();
+  if (debugEnabled) {
+    updateGroundDebugOverlay(scene, __groundSingleton, {
+      enabled: true,
+      preventTileSeams: __groundSingleton?.config?.preventTileSeams ?? true,
+      stabilizeTileOverlap: __groundSingleton?.config?.stabilizeTileOverlap ?? true,
+      addElevationSkirts: __groundSingleton?.config?.addElevationSkirts ?? !!addElevationSkirts,
+    });
+  } else {
+    clearGroundDebugOverlay();
+  }
 
   return __groundSingleton;
 }

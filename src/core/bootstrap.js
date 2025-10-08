@@ -1,15 +1,24 @@
 import { main } from '../main.js';
+import { logger } from '../utils/logger.ts';
 
 let bootReadyResolve;
 let bootReadyReject;
-const bootReady = new Promise((resolve, reject) => {
-  bootReadyResolve = resolve;
-  bootReadyReject = reject;
-});
+let bootReady;
 
-if (typeof window !== 'undefined') {
-  window.__AthensBootReady = bootReady;
-}
+const initializeBootReady = () => {
+  bootReady = new Promise((resolve, reject) => {
+    bootReadyResolve = resolve;
+    bootReadyReject = reject;
+  });
+
+  if (typeof window !== 'undefined') {
+    window.__AthensBootReady = bootReady;
+  }
+
+  return bootReady;
+};
+
+initializeBootReady();
 
 export function whenBootReady() {
   if (typeof window !== 'undefined' && window.__AthensBootReady) {
@@ -32,6 +41,18 @@ const describeBootstrapEntrypoint = (entrypoint) => {
 
 let startedAt = null;
 let lastError = null;
+let bootInvocation = null;
+let scheduledBootStart = null;
+let hasScheduledDomReadyListener = false;
+let domReadyListener = null;
+
+const resolveBootstrapEntrypoint = () => {
+  if (typeof window !== 'undefined' && typeof window.__AthensBootEntrypoint === 'function') {
+    return window.__AthensBootEntrypoint;
+  }
+
+  return main;
+};
 
 function showErrorOverlay(msg, err) {
   try {
@@ -67,23 +88,27 @@ export default async function boot(opts = {}) {
 
   const options = opts && typeof opts === 'object' ? { ...opts } : {};
 
+  const entrypoint = resolveBootstrapEntrypoint();
+
   if (!options?.preset && !options?.skydomePreset) {
     options.preset = 'High Noon';
   }
 
-  console.info('[Athens][Bootstrap] Booting', {
-    entrypoint: describeBootstrapEntrypoint(main),
+  logger.info('[Athens][Bootstrap] Booting', {
+    entrypoint: describeBootstrapEntrypoint(entrypoint),
     options
   });
 
   try {
-    await main(options);
-    console.info('[Athens][Bootstrap] Boot complete', {
+    await entrypoint(options);
+    logger.info('[Athens][Bootstrap] Boot complete', {
       elapsedMs: Date.now() - startedAt
     });
     bootReadyResolve?.(true);
     bootReadyResolve = undefined;
     bootReadyReject = undefined;
+    scheduledBootStart = null;
+    domReadyListener = null;
   } catch (err) {
     lastError = err;
     console.error('🏛️ Athens Initialization Error - Boot Wrapper', err);
@@ -91,6 +116,7 @@ export default async function boot(opts = {}) {
     bootReadyReject?.(err);
     bootReadyResolve = undefined;
     bootReadyReject = undefined;
+    domReadyListener = null;
     throw err;
   }
 }
@@ -98,13 +124,53 @@ export default async function boot(opts = {}) {
 if (typeof window !== 'undefined') {
   window.Athens = window.Athens || {};
   window.Athens.boot = (o) => {
-    const startBoot = () => boot(o);
+    if (bootInvocation) {
+      return bootInvocation;
+    }
+
+    const startBoot = () => {
+      const result = boot(o);
+      bootInvocation = result;
+      scheduledBootStart = null;
+      return result;
+    };
 
     if (typeof document !== 'undefined' && document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', startBoot, { once: true });
-    } else {
-      startBoot();
+      scheduledBootStart = startBoot;
+      if (!hasScheduledDomReadyListener) {
+        hasScheduledDomReadyListener = true;
+        domReadyListener = () => {
+          const scheduled = scheduledBootStart;
+          scheduledBootStart = null;
+          hasScheduledDomReadyListener = false;
+          domReadyListener = null;
+          scheduled?.();
+        };
+        window.addEventListener('DOMContentLoaded', domReadyListener, { once: true });
+      }
+
+      bootInvocation = whenBootReady();
+      return bootInvocation;
     }
+
+    return startBoot();
   };
   window.Athens.getBootInfo = () => ({ startedAt, lastError });
+}
+
+export function __resetBootstrapStateForTests() {
+  startedAt = null;
+  lastError = null;
+  bootInvocation = null;
+  scheduledBootStart = null;
+  hasScheduledDomReadyListener = false;
+
+  if (typeof window !== 'undefined') {
+    if (domReadyListener && typeof window.removeEventListener === 'function') {
+      window.removeEventListener('DOMContentLoaded', domReadyListener);
+    }
+    domReadyListener = null;
+  }
+
+  initializeBootReady();
 }

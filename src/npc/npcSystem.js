@@ -1,16 +1,30 @@
 import * as THREE from 'three';
 import { resolveAssetUrl } from '../utils/asset-paths.js';
-import { assetUrl } from '../utils/assetUrl.js';
+import { assetUrl } from '../utils/assetUrl.ts';
 import { snapToGround } from '../physics/groundSnap.js';
 import { keepUpright } from '../physics/upright.js';
 import { loadGLTF } from '../loaders/safeGltf.js';
 import { logOnce } from '../utils/logOnce.js';
+import { ensureFeetAtLocalZero, placeOnGround } from '../utils/spawn.ts';
+import { logger } from '../utils/logger.ts';
+import { disposeAll } from '../utils/disposable.ts';
 
-const SNAP_OPTIONS = { gravity: 12, stepMax: 0.6, hover: 0.03 };
+const SNAP_OPTIONS = { gravity: 12, maxStepUp: 0.6, maxDrop: 4, hover: 0.03, rayStart: 1000 };
+const GROUND_CLEARANCE = typeof SNAP_OPTIONS.hover === 'number' ? SNAP_OPTIONS.hover : 0.03;
 const DEFAULT_WALK_SPEED = 1.5;
 const DEFAULT_RUN_SPEED = 3.0;
 const DEFAULT_ACCEL = 6.0;
 const DEFAULT_TURN = 0.18;
+
+const DEFAULT_NPC_MODEL_URLS = [
+  'models/Adventurer1.glb',
+  'models/character3.glb',
+  'models/character4.glb',
+  'models/hoplite_npc.glb',
+  'models/npc_athenian.glb'
+];
+
+const KING_MODEL_URL = 'models/King.glb';
 
 const STEP_DIRECTION = new THREE.Vector3();
 const INIT_DIRECTION = new THREE.Vector3();
@@ -266,24 +280,6 @@ function fixModelTilt(object3d) {
   }
 }
 
-function disposeObject3D(object) {
-  if (!object) return;
-  object.traverse((child) => {
-    if (child.isMesh || child.isSkinnedMesh) {
-      child.geometry?.dispose?.();
-      if (Array.isArray(child.material)) {
-        child.material.forEach((mat) => mat?.dispose?.());
-      } else {
-        child.material?.dispose?.();
-      }
-    }
-    if (child.isSprite) {
-      child.material?.map?.dispose?.();
-      child.material?.dispose?.();
-    }
-  });
-}
-
 function normalizeModelUrl(input) {
   if (!input) return null;
   if (typeof input !== 'string') return resolveAssetUrl(input);
@@ -330,6 +326,79 @@ function sanitizeWaypoints(waypoints, fallbackPosition) {
   return result;
 }
 
+function buildNpcPatrolPath(radius, angle, height = 0) {
+  const baseX = Math.cos(angle) * radius;
+  const baseZ = Math.sin(angle) * radius;
+  const offset = Math.max(2, radius * 0.25);
+  const waypoint = (x, z) => ({ x, y: height, z });
+  return [
+    waypoint(baseX, baseZ),
+    waypoint(baseX + Math.cos(angle + Math.PI / 4) * offset, baseZ + Math.sin(angle + Math.PI / 4) * offset),
+    waypoint(baseX + Math.cos(angle - Math.PI / 4) * offset, baseZ + Math.sin(angle - Math.PI / 4) * offset)
+  ];
+}
+
+function createDefaultNpcConfigs(modelUrls = DEFAULT_NPC_MODEL_URLS) {
+  if (!Array.isArray(modelUrls) || modelUrls.length === 0) return [];
+  const radius = 18;
+  return modelUrls.map((modelUrl, index) => {
+    const angle = (index / modelUrls.length) * Math.PI * 2;
+    const waypoints = buildNpcPatrolPath(radius, angle);
+    return { modelUrl, initialPosition: waypoints[0], waypoints };
+  });
+}
+
+function createKingPatrolConfigs() {
+  const baseSpeed = 1.45;
+  const patrols = [
+    {
+      name: 'KingAgoraPatrol',
+      waypoints: [
+        { x: 18, y: 0, z: -24 },
+        { x: -20, y: 0, z: -32 },
+        { x: -24, y: 0, z: 18 },
+        { x: 22, y: 0, z: 24 }
+      ]
+    },
+    {
+      name: 'KingTheaterPromenade',
+      waypoints: [
+        { x: 190, y: 0, z: 240 },
+        { x: 230, y: 0, z: 280 },
+        { x: 170, y: 0, z: 320 },
+        { x: 150, y: 0, z: 270 }
+      ]
+    },
+    {
+      name: 'KingSouthRoadMarch',
+      waypoints: [
+        { x: 28, y: 0, z: -470 },
+        { x: 68, y: 0, z: -520 },
+        { x: 16, y: 0, z: -570 },
+        { x: -18, y: 0, z: -520 }
+      ]
+    }
+  ];
+
+  return patrols.map((patrol) => {
+    const waypoints = patrol.waypoints.map((point) => ({
+      x: Number(point.x) || 0,
+      y: Number(point.y) || 0,
+      z: Number(point.z) || 0
+    }));
+    const initialPosition = waypoints[0] || { x: 0, y: 0, z: 0 };
+    return {
+      name: patrol.name,
+      modelUrl: KING_MODEL_URL,
+      walkSpeed: baseSpeed,
+      accel: 5.0,
+      turn: 0.2,
+      initialPosition,
+      waypoints
+    };
+  });
+}
+
 function attachModelToNpc(npc, model) {
   if (!npc || !npc.object3d) return;
   const { object3d } = npc;
@@ -337,7 +406,7 @@ function attachModelToNpc(npc, model) {
     object3d.remove(npc.modelRoot);
   }
   if (npc.modelRoot && npc.modelRoot !== model) {
-    disposeObject3D(npc.modelRoot);
+    disposeAll(npc.modelRoot);
   }
   npc.modelRoot = model || null;
   if (model) {
@@ -346,6 +415,17 @@ function attachModelToNpc(npc, model) {
     enableMeshShadows(model);
     fixModelTilt(model);
     object3d.add(model);
+
+    ensureFeetAtLocalZero(model);
+    object3d.updateMatrixWorld(true);
+
+    const groundTarget = npc.groundTarget || null;
+    if (groundTarget && !object3d.userData?.isMainCharacter) {
+      placeOnGround(object3d, groundTarget, { clearance: GROUND_CLEARANCE, rayStart: SNAP_OPTIONS.rayStart });
+      if (npc.state && typeof npc.state === 'object') {
+        npc.state.lastGoodY = (object3d.position.y || 0) - GROUND_CLEARANCE;
+      }
+    }
   }
 }
 
@@ -374,8 +454,17 @@ function loadNpcModel(npc, modelUrl) {
 
       if (Array.isArray(gltf?.animations) && gltf.animations.length) {
         npc.mixer = new THREE.AnimationMixer(scene || object3d);
-        const clip = gltf.animations[0];
-        const action = npc.mixer.clipAction(clip);
+        let clip = gltf.animations[0];
+        for (const candidate of gltf.animations) {
+          if (candidate?.name && typeof candidate.name === 'string') {
+            if (candidate.name.toLowerCase().includes('walk')) {
+              clip = candidate;
+              break;
+            }
+          }
+        }
+        const action = clip ? npc.mixer.clipAction(clip) : null;
+        action?.setLoop?.(THREE.LoopRepeat, Infinity);
         action?.play();
       }
 
@@ -402,16 +491,16 @@ function disposeNpcEntity(npc) {
   npc.mixer = null;
   if (npc.modelRoot) {
     if (npc.modelRoot.parent === npc.object3d) npc.object3d.remove(npc.modelRoot);
-    disposeObject3D(npc.modelRoot);
+    disposeAll(npc.modelRoot);
     npc.modelRoot = null;
   }
   if (npc.object3d?.parent) {
     npc.object3d.parent.remove(npc.object3d);
   }
-  disposeObject3D(npc.object3d);
+  disposeAll(npc.object3d);
 }
 
-function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) {
+function createNpcEntity(config = {}, { scene = null, navContext = null, groundMeshes = [] } = {}) {
   const {
     object3d: providedObject = null,
     modelUrl = null,
@@ -428,8 +517,18 @@ function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) 
   object3d.rotation.x = 0;
   object3d.rotation.z = 0;
 
-  const startPosition = toVector3(initialPosition) || object3d.position.clone();
+  let startPosition = toVector3(initialPosition) || object3d.position.clone();
   object3d.position.copy(startPosition);
+
+  ensureFeetAtLocalZero(object3d);
+
+  const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
+  const groundTarget = surfaces.length ? surfaces : scene;
+  if (groundTarget && !object3d.userData?.isMainCharacter) {
+    placeOnGround(object3d, groundTarget, { clearance: GROUND_CLEARANCE, rayStart: SNAP_OPTIONS.rayStart });
+  }
+
+  startPosition = object3d.position.clone();
 
   if (scene && !object3d.parent) {
     scene.add(object3d);
@@ -449,7 +548,7 @@ function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) 
     speed: 0,
     state: {
       vy: 0,
-      lastGoodY: object3d.position.y || 0,
+      lastGoodY: (object3d.position.y || 0) - GROUND_CLEARANCE,
       yaw: object3d.rotation.y || 0
     },
     modelRoot: null,
@@ -468,7 +567,8 @@ function createNpcEntity(config = {}, { scene = null, navContext = null } = {}) 
     scheduleTarget: null,
     navContext: navContext || null,
     blockedTimer: 0,
-    lastProgress: object3d.position.clone()
+    lastProgress: object3d.position.clone(),
+    groundTarget
   };
 
   if (sanitizedWaypoints.length > 1) {
@@ -500,13 +600,17 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
 
   skipReachedPoints(npc);
 
+  const skipGroundSnap = Boolean(npc?.object3d?.userData?.isMainCharacter);
+
   if (npc.pathIndex >= npc.pathPoints.length) {
     if (npc.hasDestination) {
       handlePathCompletion(npc, navContext);
     }
     const accelFactor = Math.min(1, Math.max(0, npc.accel * dt));
     npc.speed += (0 - npc.speed) * accelFactor;
-    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    if (!skipGroundSnap) {
+      snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    }
     keepUpright(npc.object3d, npc.state.yaw, npc.turn);
     return;
   }
@@ -514,7 +618,9 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
   const target = npc.pathPoints[npc.pathIndex];
   if (!target) {
     npc.pathIndex += 1;
-    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    if (!skipGroundSnap) {
+      snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    }
     keepUpright(npc.object3d, npc.state.yaw, npc.turn);
     return;
   }
@@ -529,7 +635,9 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
     if (npc.pathIndex >= npc.pathPoints.length) {
       handlePathCompletion(npc, navContext);
     }
-    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    if (!skipGroundSnap) {
+      snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+    }
     keepUpright(npc.object3d, npc.state.yaw, npc.turn);
     return;
   }
@@ -547,14 +655,17 @@ function stepNpc(npc, deltaSeconds, groundMeshes, navContextOverride = null) {
     npc.object3d.position.z += STEP_DIRECTION.z * npc.speed * dt;
   }
 
-  snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+  if (!skipGroundSnap) {
+    snapToGround(npc.object3d, surfaces, npc.state, dt, SNAP_OPTIONS);
+  }
   keepUpright(npc.object3d, npc.state.yaw, npc.turn);
   checkBlocked(npc, dt, navContext);
 }
 
 export function createNpc(options = {}) {
-  const { navContext = null, ...npcOptions } = options || {};
-  const npc = createNpcEntity(npcOptions, { navContext });
+  const { navContext = null, groundMeshes: initialGroundMeshes = [], ...npcOptions } = options || {};
+  const defaultGround = Array.isArray(initialGroundMeshes) ? initialGroundMeshes : [];
+  const npc = createNpcEntity(npcOptions, { navContext, groundMeshes: defaultGround });
   return {
     object3d: npc.object3d,
     update(deltaSeconds, context = {}) {
@@ -562,7 +673,8 @@ export function createNpc(options = {}) {
         return;
       }
       const nav = context.navContext || navContext || npc.navContext || null;
-      stepNpc(npc, deltaSeconds, context.groundMeshes, nav);
+      const ground = Array.isArray(context.groundMeshes) ? context.groundMeshes : defaultGround;
+      stepNpc(npc, deltaSeconds, ground, nav);
     },
     dispose() {
       npc.dispose();
@@ -571,7 +683,7 @@ export function createNpc(options = {}) {
   };
 }
 
-export function createNpcManager(scene, groundMeshes, options = {}) {
+function createNpcManager(scene, groundMeshes, options = {}) {
   const npcs = [];
   const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
   let warnedGround = false;
@@ -581,7 +693,7 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
   let activeSchedule = mapModeToSchedule(lastTimeMode);
 
   function spawn(config = {}) {
-    const npc = createNpcEntity(config, { scene, navContext });
+    const npc = createNpcEntity(config, { scene, navContext, groundMeshes: surfaces });
     npcs.push(npc);
     const originalDispose = npc.dispose;
     npc.dispose = () => {
@@ -608,7 +720,7 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
     if (dt === 0) return;
 
     if (!warnedGround && surfaces.length === 0) {
-      console.warn('[npc] no ground meshes');
+      logger.warn('[npc] no ground meshes');
       warnedGround = true;
     }
 
@@ -634,4 +746,141 @@ export function createNpcManager(scene, groundMeshes, options = {}) {
   }
 
   return { spawn, update, dispose, _npcs: npcs };
+}
+
+export function createNpcSystem(options = {}) {
+  const {
+    groundMeshes = [],
+    timeSource = null,
+    npcModelUrls = null,
+    npcConfigs = null
+  } = options || {};
+
+  const surfaces = Array.isArray(groundMeshes) ? groundMeshes : [];
+  const configuredModelUrls = Array.isArray(npcModelUrls) && npcModelUrls.length
+    ? npcModelUrls
+    : DEFAULT_NPC_MODEL_URLS;
+  const hasCustomConfigs = Array.isArray(npcConfigs) && npcConfigs.length;
+  const baseNpcConfigs = (hasCustomConfigs ? npcConfigs : createDefaultNpcConfigs(configuredModelUrls))
+    .filter((config) => config && typeof config === 'object')
+    .map((config) => ({ ...config }));
+
+  if (!hasCustomConfigs) {
+    baseNpcConfigs.push(...createKingPatrolConfigs());
+  }
+
+  let manager = null;
+  let currentScene = null;
+
+  function normalizeNavContext(input) {
+    if (!input) {
+      return { navMesh: null, pathfinder: null };
+    }
+    if (typeof input === 'object' && (Object.prototype.hasOwnProperty.call(input, 'navMesh') || Object.prototype.hasOwnProperty.call(input, 'pathfinder'))) {
+      return {
+        navMesh: input.navMesh ?? null,
+        pathfinder: input.pathfinder ?? null
+      };
+    }
+    return { navMesh: input, pathfinder: null };
+  }
+
+  function createPatrolPath(points = []) {
+    const fallback = Array.isArray(points) && points.length ? points[0] : points;
+    const sanitized = sanitizeWaypoints(points, fallback);
+    const start = sanitized[0]?.clone?.() || new THREE.Vector3();
+    return { waypoints: sanitized, start };
+  }
+
+  function spawnNpcAt(position, { patrol = null, ...config } = {}) {
+    if (!manager) {
+      logger.warn('[npc] Attempted to spawn NPC before initialization.');
+      return null;
+    }
+
+    const initialCandidate = config.initialPosition ?? position ?? (Array.isArray(config.waypoints) ? config.waypoints[0] : null);
+    const initial = toVector3(initialCandidate) || new THREE.Vector3();
+    const waypointSource = (Array.isArray(patrol?.waypoints) && patrol.waypoints.length
+      ? patrol.waypoints
+      : config.waypoints) || [initial.clone()];
+    const normalizedWaypoints = sanitizeWaypoints(waypointSource, initial);
+
+    const spawnConfig = {
+      ...config,
+      initialPosition: initial.clone(),
+      waypoints: normalizedWaypoints
+    };
+
+    return manager.spawn(spawnConfig);
+  }
+
+  function dispose() {
+    manager?.dispose?.();
+    manager = null;
+    currentScene = null;
+  }
+
+  function spawnExampleNpc() {
+    if (!manager || !currentScene) {
+      return null;
+    }
+    const start = new THREE.Vector3(5, 0, 5);
+    const end = new THREE.Vector3(20, 0, 5);
+    const patrol = createPatrolPath([start, end]);
+    const npcRoot = currentScene.getObjectByName('NPC_1') || new THREE.Object3D();
+    npcRoot.name = 'NPC_1';
+    if (!npcRoot.parent) currentScene.add(npcRoot);
+    return spawnNpcAt(start, {
+      object3d: npcRoot,
+      patrol,
+      walkSpeed: 1.6,
+      accel: 5.0,
+      turn: 0.18
+    });
+  }
+
+  function spawnConfiguredNpcs() {
+    const results = [];
+    for (const config of baseNpcConfigs) {
+      if (!config) continue;
+      const spawnPosition = config.initialPosition ?? (Array.isArray(config.waypoints) ? config.waypoints[0] : null);
+      const npc = spawnNpcAt(spawnPosition, config);
+      if (npc) results.push(npc);
+    }
+    return results;
+  }
+
+  function initializeNpcs(scene, navmesh) {
+    if (!scene) {
+      logger.warn('[npc] Cannot initialize NPCs without a scene.');
+      return;
+    }
+
+    if (manager) {
+      dispose();
+    }
+
+    const context = normalizeNavContext(navmesh);
+    currentScene = scene;
+    manager = createNpcManager(scene, surfaces, {
+      navMesh: context.navMesh,
+      pathfinder: context.pathfinder,
+      timeSource
+    });
+
+    spawnExampleNpc();
+    spawnConfiguredNpcs();
+  }
+
+  function update(deltaSeconds, context = {}) {
+    manager?.update?.(deltaSeconds, context);
+  }
+
+  return {
+    initializeNpcs,
+    createPatrolPath,
+    spawnNpcAt,
+    update,
+    dispose
+  };
 }
