@@ -290,6 +290,60 @@ function createPlaneTreeDocument() {
   return document;
 }
 
+function createOliveTreeDocument() {
+  const document = new Document();
+  const buffer = document.createBuffer('olive-buffer');
+  const scene = document.createScene('OliveTreeScene');
+
+  const trunkMaterial = document
+    .createMaterial('OliveTrunkMaterial')
+    .setBaseColorFactor([0.4, 0.3, 0.2, 1])
+    .setMetallicFactor(0.04)
+    .setRoughnessFactor(0.88);
+
+  const canopyMaterial = document
+    .createMaterial('OliveCanopyMaterial')
+    .setBaseColorFactor([0.32, 0.45, 0.28, 1])
+    .setMetallicFactor(0.02)
+    .setRoughnessFactor(0.7);
+
+  const trunkGeom = buildCylinder({
+    height: 1.8,
+    topRadius: 0.2,
+    bottomRadius: 0.35,
+    radialSegments: 12
+  });
+
+  const canopyGeom = buildSphere({ radius: 1.05, widthSegments: 18, heightSegments: 14 });
+
+  const trunkPrimitive = createPrimitive(document, buffer, trunkGeom, trunkMaterial, 'olive-trunk');
+  const canopyPrimitive = createPrimitive(document, buffer, canopyGeom, canopyMaterial, 'olive-canopy');
+
+  const trunkMesh = document.createMesh('OliveTrunkMesh').addPrimitive(trunkPrimitive);
+  const canopyMesh = document.createMesh('OliveCanopyMesh').addPrimitive(canopyPrimitive);
+
+  const trunkNode = document.createNode('OliveTrunk').setMesh(trunkMesh);
+
+  const primaryCanopy = document
+    .createNode('OliveCanopyPrimary')
+    .setMesh(canopyMesh)
+    .setTranslation([0, 1.6, 0])
+    .setScale([1.15, 0.85, 1.15]);
+
+  const secondaryCanopy = document
+    .createNode('OliveCanopySecondary')
+    .setMesh(canopyMesh)
+    .setTranslation([0.4, 1.4, -0.3])
+    .setScale([0.9, 0.75, 1])
+    .setRotation([0, Math.PI / 5, 0]);
+
+  scene.addChild(trunkNode);
+  scene.addChild(primaryCanopy);
+  scene.addChild(secondaryCanopy);
+
+  return document;
+}
+
 async function writeGlb(document, targetPath) {
   const io = new NodeIO();
   await mkdir(dirname(targetPath), { recursive: true });
@@ -332,6 +386,7 @@ async function copyNpcModels() {
 async function main() {
   await writeGlb(createCypressDocument(), join(PUBLIC_MODELS_DIR, 'cypress.glb'));
   await writeGlb(createPlaneTreeDocument(), join(PUBLIC_MODELS_DIR, 'plane.glb'));
+  await writeGlb(createOliveTreeDocument(), join(PUBLIC_MODELS_DIR, 'olive.glb'));
   await copyNpcModels();
 
   // The legacy README file in the public models directory was unused by runtime code

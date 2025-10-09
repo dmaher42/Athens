@@ -29,18 +29,14 @@
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.2.1",
-<<<<<<< HEAD
-    "http-server": "^14.1.1",
-    "puppeteer": "^24.22.3",
-    "rimraf": "^6.0.1",
-=======
     "@typescript-eslint/eslint-plugin": "^7.17.0",
     "@typescript-eslint/parser": "^7.17.0",
     "eslint": "^8.57.0",
     "eslint-plugin-unused-imports": "^3.2.0",
     "http-server": "^14.1.1",
+    "puppeteer": "^24.22.3",
+    "rimraf": "^6.0.1",
     "tsx": "^4.20.6",
->>>>>>> 8c2a7e4dbd5470fd44fb9af40ede59091f055718
     "vite": "^5.4.0"
   }
 }
