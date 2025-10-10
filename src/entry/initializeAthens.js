@@ -1618,6 +1618,13 @@ export async function initializeAthens(options = {}) {
 
   const placeAtSpawn = (object) => {
     if (!object) return;
+    if (object?.userData?.isMainCharacter && groundMeshes?.length) {
+      const groundY = sampleGroundY(playerSpawn.x, playerSpawn.z, groundMeshes, { fromY: 400, camera });
+      if (Number.isFinite(groundY)) {
+        playerSpawn.y = groundY + CHARACTER_HOVER;
+        sanitizeVec3(playerSpawn, SAFE_PLAYER_FALLBACK);
+      }
+    }
     object.position.copy(playerSpawn);
     sanitizeVec3(object.position, SAFE_PLAYER_FALLBACK);
     if (object?.userData?.isMainCharacter) {
