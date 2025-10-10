@@ -222,6 +222,28 @@ function computeTileBounds(position, size) {
   };
 }
 
+function computeStabilizationBias(tile, fallbackSize, defaultSize) {
+  if (!tile) return 0;
+
+  const quantizeSource = typeof fallbackSize === 'number' && Number.isFinite(fallbackSize) && Math.abs(fallbackSize) > 1e-6
+    ? Math.abs(fallbackSize)
+    : (typeof defaultSize === 'number' && Number.isFinite(defaultSize) && Math.abs(defaultSize) > 1e-6
+        ? Math.abs(defaultSize)
+        : 1);
+
+  const quantize = quantizeSource > 1e-6 ? quantizeSource : 1;
+
+  const ix = Number.isFinite(tile.gridX)
+    ? Math.floor(tile.gridX)
+    : Math.round((tile.position?.x ?? 0) / quantize);
+
+  const iz = Number.isFinite(tile.gridZ)
+    ? Math.floor(tile.gridZ)
+    : Math.round((tile.position?.z ?? 0) / quantize);
+
+  return ((ix + iz) & 1) ? 0.001 : 0;
+}
+
 function normalizeCornerHeights(value) {
   if (!value) return null;
 
@@ -589,10 +611,14 @@ export function createGroundLayered({
 
     const disableForBuilding = shouldDisableTileGround(tile);
 
-    // Alternating micro height bias to reduce coplanar z-fighting
-    const ix = Math.floor(typeof tile.gridX === 'number' ? tile.gridX : index);
-    const iz = Math.floor(typeof tile.gridZ === 'number' ? tile.gridZ : 0);
-    const stabilizationBias = ((ix + iz) & 1) ? 0.001 : 0;
+    // Alternating micro height bias to reduce coplanar z-fighting. Base the
+    // parity on tile position rather than iteration order so tiles stay
+    // stable across rebuilds or data reshuffles.
+    const stabilizationBias = enableTileStabilization
+      ? computeStabilizationBias(tile, fallbackSize, resolvedDefaultSize)
+      : 0;
+    const baseHeightBias = tile.dirtOptions?.heightBias ?? dirtOptions.heightBias;
+    const finalHeightBias = baseHeightBias ?? stabilizationBias;
 
     const dirtConfig = {
       ...dirtOptions,
@@ -600,7 +626,7 @@ export function createGroundLayered({
       size: tile.dirtOptions?.size ?? fallbackSize ?? resolvedDefaultSize,
       repeat: tile.dirtOptions?.repeat ?? fallbackRepeat ?? resolvedDefaultRepeat,
       expandForSeams: tile.dirtOptions?.expandForSeams ?? dirtOptions.expandForSeams ?? enableSeamPrevention,
-      heightBias: tile.dirtOptions?.heightBias ?? dirtOptions.heightBias ?? (enableTileStabilization ? stabilizationBias : 0),
+      heightBias: finalHeightBias,
     };
 
     const grassConfig = {
