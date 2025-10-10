@@ -1695,7 +1695,7 @@ export async function initializeAthens(options = {}) {
     : undefined;
 
   const flightOptions = {
-    enabled: false
+    enabled: typeof flightConfig.enabled === 'boolean' ? flightConfig.enabled : true
   };
   if (Number.isFinite(flightConfig.horizontalSpeed)) {
     flightOptions.horizontalSpeed = Math.max(flightConfig.horizontalSpeed, 0);
