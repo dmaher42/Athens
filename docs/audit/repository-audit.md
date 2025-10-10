@@ -6,7 +6,7 @@
 
 ## 1. File Audit
 ### Files that should be ignored
-- Generated glTF assets under `public/assets/models/` are tracked even though the build script outputs them and the readme marks them as generated.【F:scripts/generate-static-assets.js†L12-L23】【F:public/assets/models/README.txt†L1-L2】  Add a blanket ignore (or remove them from git) instead of the current per-file allowlist.【F:.gitignore†L4-L12】
+- Generated glTF assets under `public/assets/models/` (cypress/plane/olive plus NPC copies) are tracked even though the build script outputs them on demand.【F:scripts/generate-static-assets.js†L334-L425】 Add a blanket ignore (or remove them from git) instead of the current per-file allowlist.【F:.gitignore†L4-L12】
 - Production audio MP3s live under `public/assets/audio/` despite `.gitignore` excluding that pattern.【F:.gitignore†L22-L23】【b5c65e†L1-L7】  Several files contradict the README statement that binaries stay local.【F:public/assets/audio/README.md†L3-L16】
 - The vendored `Tone.js` bundle in `public/assets/vendor/Tone.js` duplicates the npm package and inflates the repo without use.
 
@@ -64,7 +64,7 @@
 - Redundant sky/audio assets in `public/` can be trimmed to the minimal set required for the deployed scene.
 
 ## Prioritized deletion candidates
-1. **Tracked generated models** – remove `public/assets/models/*.glb` from git and regenerate during build to save ~20 MB.【F:public/assets/models/README.txt†L1-L2】【44647b†L1-L1】
+1. **Tracked generated models** – remove `public/assets/models/*.glb` from git and regenerate during build to save ~20 MB.【F:scripts/generate-static-assets.js†L334-L425】【44647b†L1-L1】
 2. **Legacy `assets/models/` tree** – consolidate onto `models/` (script source) or vice versa; deleting the unused tree frees ~24 MB.【F:scripts/generate-static-assets.js†L12-L23】【44647b†L1-L1】
 3. **Unused audio bundle** – delete `public/assets/audio/wolf-howl.mp3` and align footstep filenames to code expectations.【F:src/audio/footsteps.js†L24-L55】
 4. **Legacy ambient module `src/audio/ambience.js`** – remove to avoid confusion with the active TypeScript version.【F:src/audio/ambience.js†L1-L95】
