@@ -8,6 +8,20 @@ Visit the site: https://dmaher42.github.io/Athens/
 
 Static files under `public/` are served without the `public` segment. Use `${BASE}assets/...` in code for GitHub Pages compatibility.
 
+### Landmarks & points of interest
+
+Landmark pins, labels, and feature outlines are now driven entirely by GeoJSON data rather than pre-authored GLB meshes. By default
+`src/landmarks-loader.js` resolves `data/athens_places.geojson` through the asset-path helper so the file can be loaded in both the
+dev server and the GitHub Pages build. To add or adjust landmarks:
+
+1. Edit `data/athens_places.geojson` (or supply an alternate URL when calling `loadLandmarks`).
+2. Each point feature becomes a pin/label pair and will snap to the ground meshes at runtime.
+3. Line and polygon features render as feature outlines using the same dataset.
+
+Because the loader operates on GeoJSON, there is no longer a `public/models/landmarks/` directory or fallback GLB pipeline to
+maintain. Existing code automatically warns (without crashing) if the GeoJSON fails to load so the experience continues even when
+landmarks are unavailable.
+
 <!-- Rebuild trigger for GitHub Pages deployment -->
 
 ## Debug utilities
