@@ -523,6 +523,13 @@ export function createFollowCamera(
     setTarget,
     syncImmediate,
     options,
+    applyZoomDelta(delta = 0) {
+      if (!Number.isFinite(delta) || delta === 0) {
+        return rigState.distance;
+      }
+      applyZoomFactor(delta);
+      return rigState.distance;
+    },
     setPointerLockElement(element) {
       setPointerElement(element);
     },
