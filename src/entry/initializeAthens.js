@@ -6,6 +6,7 @@ import { setupGround, updateTrees, resetTrees } from '../main.js';
 import { disposeTreeGroves } from '../vegetation/trees.js';
 import { disposeAll } from '../utils/disposable.ts';
 import { loadLandmarks } from '../landmarks-loader.js';
+import { prefetchLandmarkModels } from '../landmarks.js';
 import { createLandmarkOverlay } from '../map/landmarks.js';
 // PLACER_START
 import { createLandmarkPlacer } from '../dev/landmarkPlacer.js';
@@ -1543,6 +1544,12 @@ export async function initializeAthens(options = {}) {
     overlay = null;
   }
   landmarks?.featureLines?.updateResolution?.();
+
+  prefetchLandmarkModels().catch((error) => {
+    if (logger && typeof logger.debug === 'function') {
+      logger.debug('[Athens][Landmarks] Prefetch models failed.', error);
+    }
+  });
 
   let followCamera = null;
   const ui = createOriginalUi({
