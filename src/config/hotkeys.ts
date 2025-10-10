@@ -393,14 +393,14 @@ const HOTKEY_DISPLAY_CONFIG: HotkeyDisplayConfig[] = [
     id: 'flight.toggle',
     actions: [flightActions.toggle.id],
     description: 'Toggle Flight',
-    contexts: ['hud'],
+    contexts: ['hud', 'docs'],
     order: 40
   },
   {
     id: 'flight.vertical',
     actions: [flightActions.ascend.id, flightActions.descend.id],
     description: 'Fly Up / Down',
-    contexts: ['hud'],
+    contexts: ['hud', 'docs'],
     order: 50
   },
   {

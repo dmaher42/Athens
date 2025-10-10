@@ -13,6 +13,9 @@ This project maps movement, camera, and interaction inputs through the hotkey sy
 | Look Right | `→` | Keyboard only camera yaw. |
 | Look Up | `↑` | Keyboard only camera pitch. |
 | Look Down | `↓` | Keyboard only camera pitch. |
+| Toggle Flight | `X` | Alias `F` also toggles flight mode. |
+| Fly Up | `Space` | Aliases `E`, fallback for the space bar, and `Space` key code variations. |
+| Fly Down | `Shift` | Aliases `Q`, `C`, and either control key also descend. |
 
 ## Changing the bindings
 
