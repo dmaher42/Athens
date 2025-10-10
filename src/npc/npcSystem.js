@@ -19,7 +19,6 @@ const DEFAULT_TURN = 0.18;
 const DEFAULT_NPC_MODEL_URLS = [
   'models/Adventurer1.glb',
   'models/character3.glb',
-  'models/character4.glb',
   'models/hoplite_npc.glb',
   'models/npc_athenian.glb'
 ];
