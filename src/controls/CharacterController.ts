@@ -205,7 +205,9 @@ export class CharacterController {
 
     this.handleFlightToggle(input);
     this.resolveMovement(clampedDt, input);
-    this.integratePhysics(clampedDt, input);
+    const hasCollisionWorld = world?.bvh instanceof MeshBVH;
+
+    this.integratePhysics(clampedDt, input, hasCollisionWorld);
 
     _movement.copy(this.velocity).multiplyScalar(clampedDt);
 
@@ -278,7 +280,7 @@ export class CharacterController {
     this._isRunning = Boolean(!this._isFlying && sprint && hasMoveInput && horizontalSpeed > baseSpeed);
   }
 
-  private integratePhysics(dt: number, input: CharacterInput) {
+  private integratePhysics(dt: number, input: CharacterInput, hasCollisionWorld: boolean) {
     const { jump = false } = input ?? {};
 
     if (this._isFlying) {
@@ -290,6 +292,13 @@ export class CharacterController {
       } else {
         this.velocity.y = 0;
       }
+      sanitizeVec3(this.velocity, _zeroVector);
+      return;
+    }
+
+    if (!hasCollisionWorld) {
+      this.velocity.y = 0;
+      this.onGround = true;
       sanitizeVec3(this.velocity, _zeroVector);
       return;
     }
@@ -345,9 +354,14 @@ export class CharacterController {
       return true;
     }
 
+    const hasCollisionWorld = world?.bvh instanceof MeshBVH;
+
     this.onGround = false;
 
-    if (!(world?.bvh instanceof MeshBVH)) {
+    if (!hasCollisionWorld) {
+      if (!this._isFlying) {
+        this.onGround = true;
+      }
       this.capsule.translate(delta);
       return true;
     }

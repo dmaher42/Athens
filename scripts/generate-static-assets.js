@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, copyFile, readdir, open, unlink } from 'node:fs/promises';
+import { mkdir, readFile, copyFile, readdir, open } from 'node:fs/promises';
 import { basename, dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -355,20 +355,6 @@ async function writeGlb(document, targetPath) {
   console.log(`Generated ${basename(targetPath)}`);
 }
 
-async function removeStaleTarget(targetPath, reason) {
-  if (!existsSync(targetPath)) {
-    return;
-  }
-
-  try {
-    await unlink(targetPath);
-    const filename = basename(targetPath);
-    console.log(`Removed stale ${filename} (${reason}).`);
-  } catch (error) {
-    console.warn(`Unable to remove stale asset at ${targetPath}:`, error);
-  }
-}
-
 async function isValidGlb(filePath) {
   try {
     const handle = await open(filePath, 'r');
@@ -408,16 +394,11 @@ async function copyNpcModel(filename) {
   const targetPath = join(PUBLIC_MODELS_DIR, filename);
 
   if (!found) {
-    await removeStaleTarget(targetPath, 'no valid source');
     console.warn(`Skipping ${filename}: no valid GLB source found.`);
     return;
   }
 
   const { path: sourcePath, directory } = found;
-
-  if (existsSync(targetPath) && !(await isValidGlb(targetPath))) {
-    await removeStaleTarget(targetPath, 'existing output was invalid');
-  }
 
   await mkdir(dirname(targetPath), { recursive: true });
 

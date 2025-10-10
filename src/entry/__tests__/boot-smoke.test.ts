@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mock } from 'node:test';
+import type { Vector3 } from 'three';
+import { movementConfig } from '../../config/movement.ts';
 
 type ThreeModule = typeof import('three');
+
+type StubAppOptions = {
+  sampleGround?: number | null | ((...args: any[]) => number | null);
+  onControllerConstruct?: (start: Vector3) => void;
+};
 
 class FakeElement {
   style: Record<string, string> = {};
@@ -249,7 +256,14 @@ async function stubEnvironmentModule() {
   }));
 }
 
-async function stubAppModules(THREE: ThreeModule) {
+async function stubAppModules(THREE: ThreeModule, options: StubAppOptions = {}) {
+  const sampleOverride = options.sampleGround;
+  const sampleGroundFn =
+    typeof sampleOverride === 'function'
+      ? sampleOverride
+      : () => (sampleOverride ?? null);
+  const onControllerConstruct = options.onControllerConstruct ?? null;
+
   await stubEnvironmentModule();
 
   const mainModule = await import('../../main.js');
@@ -288,8 +302,9 @@ async function stubAppModules(THREE: ThreeModule) {
   }));
 
   const mainCharModule = await import('../../npc/mainCharacter.js');
+  const mainCharacterObject = new THREE.Object3D();
   mock.method(mainCharModule, 'createMainCharacter', () => ({
-    object3d: new THREE.Object3D(),
+    object3d: mainCharacterObject,
     ready: Promise.resolve(),
     update: () => {},
     dispose: () => {},
@@ -341,7 +356,7 @@ async function stubAppModules(THREE: ThreeModule) {
   mock.method(colliderRegistryModule, 'buildAABBs', () => []);
 
   const groundProjectModule = await import('../../physics/groundProject.js');
-  mock.method(groundProjectModule, 'sampleGroundY', () => null);
+  mock.method(groundProjectModule, 'sampleGroundY', (...args: any[]) => sampleGroundFn(...args));
   mock.method(groundProjectModule, 'snapGroupToGround', () => false);
   mock.method(groundProjectModule, 'snapObjectToGround', () => false);
   mock.method(groundProjectModule, 'snapChildrenToGround', () => {});
@@ -369,6 +384,9 @@ async function stubAppModules(THREE: ThreeModule) {
         this.headOffset.set(0, offsetY, 0);
       }
       this.privatePosition.copy(start);
+      if (start?.isVector3) {
+        onControllerConstruct?.(start.clone());
+      }
       this.privateAutoUpdate = Boolean(options?.autoUpdateCamera);
       if (this.privateAutoUpdate) {
         this.camera.position.copy(this.privatePosition).add(this.headOffset);
@@ -590,6 +608,38 @@ test('initializeAthens resolves with stubbed environment', async () => {
 
     context.dispose?.();
   } finally {
+    mock.restoreAll();
+    teardownDom();
+  }
+});
+
+test('main character spawn height uses sampled ground height', async () => {
+  mock.restoreAll();
+  const THREE = await stubThree();
+  setupDom(THREE);
+  const groundHeight = 5;
+  let recordedStart: Vector3 | null = null;
+  await stubAppModules(THREE, {
+    sampleGround: () => groundHeight,
+    onControllerConstruct: (start) => {
+      recordedStart = start.clone();
+    }
+  });
+
+  const { initializeAthens } = await import('../initializeAthens.js');
+  const container = createFakeContainer();
+
+  let context: Awaited<ReturnType<typeof initializeAthens>> | null = null;
+  try {
+    context = await initializeAthens({ container, layout: 'classic', layoutConfig: {} });
+    assert.ok(recordedStart, 'expected controller start to be recorded');
+    const rawHeight = movementConfig?.character?.height;
+    const characterHeight = Number.isFinite(rawHeight) ? Number(rawHeight) : 1.7;
+    const expectedY = groundHeight + characterHeight * 0.5;
+    const actualY = recordedStart!.y;
+    assert.ok(Math.abs(actualY - expectedY) < 1e-6, 'controller should start centered on sampled ground');
+  } finally {
+    context?.dispose?.();
     mock.restoreAll();
     teardownDom();
   }
