@@ -30,7 +30,9 @@ const formatEnvironmentLabel = (mode) => {
 export function createOriginalUi({
   container,
   overlayCanvas,
-  environmentController
+  environmentController,
+  onZoomIn,
+  onZoomOut
 } = {}) {
   const doc = container?.ownerDocument ?? (typeof document !== 'undefined' ? document : null);
   if (!container || !doc) {
@@ -152,6 +154,14 @@ export function createOriginalUi({
   });
   hudLeft.appendChild(miniMapWrapper);
 
+  const miniMapContentRow = doc.createElement('div');
+  applyStyles(miniMapContentRow, {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
+  });
+  miniMapWrapper.appendChild(miniMapContentRow);
+
   const miniMapContainer = doc.createElement('div');
   miniMapContainer.className = 'athens-mini-map';
   applyStyles(miniMapContainer, {
@@ -166,7 +176,48 @@ export function createOriginalUi({
     pointerEvents: 'auto',
     transition: 'opacity 0.2s ease, transform 0.2s ease'
   });
-  miniMapWrapper.appendChild(miniMapContainer);
+  miniMapContentRow.appendChild(miniMapContainer);
+
+  const zoomControls = doc.createElement('div');
+  applyStyles(zoomControls, {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    pointerEvents: 'auto'
+  });
+  miniMapContentRow.appendChild(zoomControls);
+
+  const makeZoomButton = ({ label, ariaLabel }) => {
+    const button = doc.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    if (ariaLabel) {
+      button.setAttribute('aria-label', ariaLabel);
+    }
+    applyStyles(button, {
+      width: '38px',
+      height: '38px',
+      borderRadius: '50%',
+      border: '1px solid rgba(255, 215, 0, 0.7)',
+      background: 'rgba(0, 0, 0, 0.55)',
+      color: '#fcefb4',
+      fontFamily: "'Cinzel', serif",
+      fontSize: '20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      pointerEvents: 'auto',
+      boxShadow: '0 0 12px rgba(255, 215, 0, 0.25)',
+      transition: 'transform 0.2s ease, opacity 0.2s ease'
+    });
+    return button;
+  };
+
+  const zoomInButton = makeZoomButton({ label: '+', ariaLabel: 'Zoom in' });
+  const zoomOutButton = makeZoomButton({ label: '−', ariaLabel: 'Zoom out' });
+  zoomControls.appendChild(zoomInButton);
+  zoomControls.appendChild(zoomOutButton);
 
   const miniMapToggle = doc.createElement('button');
   miniMapToggle.type = 'button';
@@ -193,12 +244,18 @@ export function createOriginalUi({
       miniMapToggle.textContent = 'Show Map';
       miniMapContainer.style.pointerEvents = 'none';
       miniMapContainer.style.opacity = '0';
+      zoomControls.style.pointerEvents = 'none';
+      zoomControls.style.opacity = '0';
+      zoomControls.style.transform = 'translateY(6px)';
     } else {
       miniMapWrapper.style.opacity = '1';
       miniMapWrapper.style.transform = 'scale(1)';
       miniMapToggle.textContent = 'Hide Map';
       miniMapContainer.style.pointerEvents = 'auto';
       miniMapContainer.style.opacity = '1';
+      zoomControls.style.pointerEvents = 'auto';
+      zoomControls.style.opacity = '1';
+      zoomControls.style.transform = 'translateY(0)';
     }
   };
 
@@ -209,6 +266,35 @@ export function createOriginalUi({
   };
   miniMapToggle.addEventListener('click', handleMiniMapToggle);
   cleanupFns.push(() => miniMapToggle.removeEventListener('click', handleMiniMapToggle));
+
+  const handleZoomIn = (event) => {
+    event?.preventDefault?.();
+    if (typeof onZoomIn === 'function') {
+      try {
+        onZoomIn();
+      } catch (error) {
+        logger.warn('[Athens][UI] Zoom in handler failed.', error);
+      }
+    }
+  };
+
+  const handleZoomOut = (event) => {
+    event?.preventDefault?.();
+    if (typeof onZoomOut === 'function') {
+      try {
+        onZoomOut();
+      } catch (error) {
+        logger.warn('[Athens][UI] Zoom out handler failed.', error);
+      }
+    }
+  };
+
+  zoomInButton.addEventListener('click', handleZoomIn);
+  zoomOutButton.addEventListener('click', handleZoomOut);
+  cleanupFns.push(() => {
+    zoomInButton.removeEventListener('click', handleZoomIn);
+    zoomOutButton.removeEventListener('click', handleZoomOut);
+  });
 
   const originalCanvasStyle = overlayCanvas instanceof HTMLCanvasElement ? overlayCanvas.getAttribute('style') ?? '' : '';
   if (overlayCanvas instanceof HTMLCanvasElement) {

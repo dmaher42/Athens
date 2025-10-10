@@ -1517,7 +1517,14 @@ export async function initializeAthens(options = {}) {
   }
   landmarks?.featureLines?.updateResolution?.();
 
-  const ui = createOriginalUi({ container, overlayCanvas, environmentController });
+  let followCamera = null;
+  const ui = createOriginalUi({
+    container,
+    overlayCanvas,
+    environmentController,
+    onZoomIn: () => followCamera?.applyZoomDelta?.(-120),
+    onZoomOut: () => followCamera?.applyZoomDelta?.(120)
+  });
   ui?.setTimeLabel?.(formatEnvironmentLabel(environmentController?.mode) || 'High Noon');
   const applyHudInstructions = (manifest) => {
     const entries = getHotkeyDisplayEntries('hud', manifest);
@@ -1834,7 +1841,7 @@ if (readyPromise && typeof readyPromise.then === 'function') {
   const followZoomSpeed = Number.isFinite(cameraFollowConfig?.zoomSpeed) && cameraFollowConfig.zoomSpeed > 0
     ? cameraFollowConfig.zoomSpeed
     : undefined;
-  const followCamera = createFollowCamera(camera, playerObject, {
+  followCamera = createFollowCamera(camera, playerObject, {
     offset: new THREE.Vector3(
       Number.isFinite(followOffset?.x) ? followOffset.x : 0,
       Number.isFinite(followOffset?.y) ? followOffset.y : 50,
