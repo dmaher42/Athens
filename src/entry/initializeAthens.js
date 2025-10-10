@@ -1035,6 +1035,36 @@ export async function initializeAthens(options = {}) {
     setPhase('env-start');
   } catch {}
 
+  const groundTask = (async () => {
+    markBootPhase('ground-start');
+    __mark('ground-start');
+    try {
+      setPhase('ground-start');
+    } catch {}
+
+    let groundResult = null;
+    try {
+      groundResult = await setupGround(scene, renderer, { layout, layoutConfig });
+    } catch (error) {
+      logger.warn('[Athens][Boot] Failed to initialize ground.', error);
+      markBootPhase('ground-failed');
+      __mark('ground-failed');
+      return { ground: null, layeredGroundRoot: null, hasLayeredGround: false };
+    }
+
+    registerDisposables(groundResult);
+    const layeredGroundRoot = groundResult?.root ?? null;
+    const hasLayeredGround = Boolean(layeredGroundRoot?.userData?.layeredGround);
+
+    markBootPhase('ground-ready');
+    __mark('ground-ready');
+    try {
+      setPhase('ground-ready');
+    } catch {}
+
+    return { ground: groundResult, layeredGroundRoot, hasLayeredGround };
+  })();
+
   try {
     await withBootTimeout(
       applyInitialEnvironment(),
@@ -1214,10 +1244,7 @@ export async function initializeAthens(options = {}) {
 
 
   // CITYPLAN_START
-  const ground = await setupGround(scene, renderer, { layout, layoutConfig });
-  registerDisposables(ground);
-  const layeredGroundRoot = ground?.root ?? null;
-  const hasLayeredGround = Boolean(layeredGroundRoot?.userData?.layeredGround);
+  const { ground, layeredGroundRoot, hasLayeredGround } = await groundTask;
   // CITYPLAN_END
 
   // CITYPLAN_START
