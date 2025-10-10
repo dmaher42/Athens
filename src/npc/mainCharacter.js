@@ -49,7 +49,7 @@ function applyScale(object3d, scale) {
 export function createMainCharacter(scene, options = {}) {
   const characterConfig = movementConfig?.character ?? {};
   const {
-    modelUrl = 'models/character.glb',
+    modelUrl = 'models/Adventurer1.glb',
     initialPosition = { x: 0, y: 0, z: 0 },
     headingRadians = 0,
     scale: overrideScale
