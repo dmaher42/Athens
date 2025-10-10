@@ -91,15 +91,15 @@ export const movementConfig: MovementConfig = {
   },
   camera: {
     follow: {
-      offset: { x: 0, y: 3.5, z: -8 },
+      offset: { x: 0, y: 4.5, z: -10 },
       lerp: 0.12,
       lookAtOffset: { x: 0, y: 1.5, z: 0 },
-      minDistance: 4,
+      minDistance: 6,
       maxDistance: 18,
       zoomSpeed: 0.0012
     },
     seed: {
-      followDistance: 6,
+      followDistance: 9,
       shoulderHeight: 1.6,
       pitchDeg: -15
     }
