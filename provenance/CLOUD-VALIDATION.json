@@ -1,5 +1,7 @@
 {
-  "verifiedCommit": "234870a18f88968e8d3c606d6e0f4597cfed3997",
+  "initialSourceVerifiedCommit": "234870a18f88968e8d3c606d6e0f4597cfed3997",
+  "fullBuildVerifiedCommit": "21966376c945343d93e1dd64054e184bc991ad76",
+  "correctedServedSmokeVerifiedCommit": "8a779f3c48c0960ad5eee847efab03e9cb8cf9a0",
   "environment": "Existing Athens Codex Cloud environment",
   "cloudChat": "Set up Athens",
   "checkout": "/workspace/Athens-authoritative",
@@ -15,11 +17,40 @@
   },
   "cloudResultFile": "/workspace/athens-migration/validation-234870a/RESULT.json",
   "cloudEntryEvidence": "/workspace/athens-migration/validation-234870a/ENTRY-VERIFICATION.json",
-  "fullAssetBuild": "Blocked before download: cloud proxy CONNECT HTTP 403 for api.github.com",
-  "draftReleaseAuthentication": "Not yet verified from Cloud",
-  "servedVersionCheck": "Not run pending private asset access",
-  "browserSceneLaunch": "Not run pending private asset access",
-  "networkChange": "Prepared for owner review/save in existing Cloud setup settings",
+  "privatePayload": {
+    "authenticatedDownloadPassed": true,
+    "bytes": 788418560,
+    "sha256": "f172600ac48dda16ed23d212ee219170e9d2648354a475283fa69395c0e07af1",
+    "sizeAndSHA256VerifiedInCloud": true
+  },
+  "fullAssetBuild": {
+    "passed": true,
+    "managedAppearanceGate": true,
+    "athens": "f0f663a64708",
+    "sparta": "599f3f655732",
+    "interruptedOutputPreservedBeforeRetry": true
+  },
+  "draftReleaseAuthentication": "Verified from Cloud; draft remains unpublished",
+  "servedVersionCheck": {
+    "passed": true,
+    "correctedSmokeExitCode": 0,
+    "bothGameEntryHashes": true,
+    "colourTextureAgainstSignedManifest": true,
+    "crossCityRouting": true,
+    "mediaByteRanges": true,
+    "earlierSmokeFailure": "An inherited hardcoded LUT digest had a typo. Corrected to read the signed manifest after verifying its hash. No game bytes changed."
+  },
+  "browserSceneLaunch": {
+    "passed": false,
+    "error": "Archive input differs from exact source: sanctuary-texture:5:Acropolis:",
+    "checksDecodedTextureInput": true,
+    "encodedAssetHashesMatch": true,
+    "cause": "Unconfirmed; requires browser/decoded-texture portability diagnosis",
+    "guardBypassed": false,
+    "gameBytesChangedToPass": false,
+    "cloudPlayability": "Blocked"
+  },
+  "networkChange": "Owner saved the required GitHub API/asset host access; authenticated asset retrieval subsequently passed",
   "windows5189Modified": false,
   "gameWebsitePublished": false,
   "uninstalledWorkIncludedInBuild": false

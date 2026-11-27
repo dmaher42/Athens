@@ -2,6 +2,8 @@
 
 This branch captures Windows Athens **f0f663a64708**, selected on 28 November 2026 Adelaide time. Its game entry is SHA-256 **4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1**. It retains the installed Sparta destination **599f3f655732** for the existing travel link.
 
+**Transfer status:** the clean cloud entry reproduction, private asset download, full build, managed appearance gate and served smoke checks passed. The actual cloud browser launch is blocked by `Archive input differs from exact source: sanctuary-texture:5:Acropolis:`. All encoded input and served file hashes match; the retained archive guard rejects decoded texture data. The cause is unconfirmed. Do not call this a playable cloud release, bypass the guard, or alter the captured game to hide that result. See `provenance/CLOUD-VALIDATION.json`.
+
 The earlier repository game is preserved in Git history and at `rollback/cloud-before-installed-sync-20261128-6cf306b` (commit `6cf306b60617d6cca8abd5f9c49a0fd33092f11d`). The transfer was prepared on `cloud/authoritative-f0f663a64708`, then merged by the owner into `main` through PR #549 at `21966376c945343d93e1dd64054e184bc991ad76`. The merge tree exactly matches the transferred tree. New cloud work can use `main`. The earlier website deployment workflows are absent from the transferred tree, and no game website or draft asset release was published.
 
 ## Source authority and an important limitation
