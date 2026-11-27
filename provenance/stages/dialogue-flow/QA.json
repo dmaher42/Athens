@@ -1,0 +1,266 @@
+{
+  "passed": true,
+  "visualReviewPassed": true,
+  "routesPassed": true,
+  "entrySHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+  "parent": "a1b1a4d5be64",
+  "gameplay": "GAMEPLAY-QA.json",
+  "unit": "UNIT.json",
+  "nativeClientRun": "output/playwright/dialogue-flow/candidate-runs/run-vjijfj",
+  "checks": [
+    {
+      "name": "All 72 existing actors retained",
+      "passed": true
+    },
+    {
+      "name": "Compact ordinary conversation has two actual replies and allows walking",
+      "passed": true,
+      "detail": {
+        "open": true,
+        "pending": false,
+        "walkingAllowed": true,
+        "caption": "",
+        "choices": [
+          {
+            "label": "1.People say you never give a straight answer.",
+            "disabled": false
+          },
+          {
+            "label": "2.What makes a person good?",
+            "disabled": false
+          }
+        ],
+        "text": "Socrates×Yes? Did you want to ask me something?1.People say you never give a straight answer.2.What makes a person good?1–2 reply · Esc or walk away"
+      }
+    },
+    {
+      "name": "Conversation panel is compact",
+      "passed": true,
+      "detail": {
+        "x": 370,
+        "y": 413.859375,
+        "width": 540,
+        "height": 206.140625
+      }
+    },
+    {
+      "name": "Number two follows visible reply order",
+      "passed": true
+    },
+    {
+      "name": "Repeated held number does not skip a turn",
+      "passed": true
+    },
+    {
+      "name": "Mouse replies remain available",
+      "passed": true
+    },
+    {
+      "name": "Native walking ends the conversation naturally",
+      "passed": true,
+      "detail": {
+        "moved": 3.0973799999773917
+      }
+    },
+    {
+      "name": "Workshop answer has no redundant acknowledgement button",
+      "passed": true,
+      "detail": {
+        "open": true,
+        "pending": false,
+        "walkingAllowed": true,
+        "caption": "",
+        "choices": [],
+        "text": "Hegeso×Keep the plain-rim cups apart. Don't tie them up until Myrine has picked the handles.Esc or walk away"
+      }
+    },
+    {
+      "name": "Useful information stays readable without a timer",
+      "passed": true
+    },
+    {
+      "name": "Phile conversation follows the relocated work court",
+      "passed": true
+    },
+    {
+      "name": "Existing market neighbour retains her original preference",
+      "passed": true
+    },
+    {
+      "name": "Guest conversation follows the relocated front-room volume",
+      "passed": true
+    },
+    {
+      "name": "Asking about help remains an inquiry",
+      "passed": true
+    },
+    {
+      "name": "E cannot accept an open job offer",
+      "passed": true
+    },
+    {
+      "name": "Deliberate refusal is remembered and needs no acknowledgement click",
+      "passed": true
+    },
+    {
+      "name": "Return greeting keeps prior refusal",
+      "passed": true
+    },
+    {
+      "name": "Job still requires an explicit agreement",
+      "passed": true
+    },
+    {
+      "name": "One E picks up the basket without opening a visible box",
+      "passed": true,
+      "detail": {
+        "visible": 0,
+        "f": {
+          "open": false,
+          "pending": false,
+          "walkingAllowed": true,
+          "caption": "You lift the basket.",
+          "choices": [],
+          "text": null
+        }
+      }
+    },
+    {
+      "name": "Direct pickup and actual cargo survive a real reload",
+      "passed": true
+    },
+    {
+      "name": "Existing held-input delivery walk -374,146",
+      "passed": true
+    },
+    {
+      "name": "Existing held-input delivery walk -374,155",
+      "passed": true
+    },
+    {
+      "name": "Existing held-input delivery walk -367,159",
+      "passed": true
+    },
+    {
+      "name": "Existing held-input delivery walk -357,164",
+      "passed": true
+    },
+    {
+      "name": "Existing held-input delivery walk -353.2,165.7",
+      "passed": true
+    },
+    {
+      "name": "One E puts the basket down with a brief thanks and no extra click",
+      "passed": true,
+      "detail": {
+        "visible": 0,
+        "f": {
+          "open": false,
+          "pending": false,
+          "walkingAllowed": true,
+          "caption": "Courtyard sorter: That's it. Thank you.",
+          "choices": [],
+          "text": null
+        }
+      }
+    },
+    {
+      "name": "Brief thanks fades while controls stay available",
+      "passed": true
+    },
+    {
+      "name": "Completed direct delivery remains remembered after actual reload",
+      "passed": true
+    },
+    {
+      "name": "A closing answer remains readable without a farewell button",
+      "passed": true
+    },
+    {
+      "name": "Repeat opening still avoids a repeated thank-you speech",
+      "passed": true
+    },
+    {
+      "name": "Original scenario definition retained",
+      "passed": true
+    },
+    {
+      "name": "Approved appearance and settled ownership retained",
+      "passed": true,
+      "detail": {
+        "actors": 72,
+        "look": {
+          "ground": true,
+          "colour": true
+        },
+        "unowned": [],
+        "cleanupErrors": 0,
+        "flow": {
+          "open": false,
+          "pending": false,
+          "walkingAllowed": true,
+          "caption": "",
+          "choices": [],
+          "text": null
+        }
+      }
+    }
+  ],
+  "heldInputLegs": [
+    {
+      "x": -374,
+      "z": 146,
+      "min": 0.23385734053862578,
+      "passed": true
+    },
+    {
+      "x": -374,
+      "z": 155,
+      "min": 0.25070660970908343,
+      "passed": true
+    },
+    {
+      "x": -367,
+      "z": 159,
+      "min": 0.09286376482621808,
+      "passed": true
+    },
+    {
+      "x": -357,
+      "z": 164,
+      "min": 0.2507152444664509,
+      "passed": true
+    },
+    {
+      "x": -353.2,
+      "z": 165.7,
+      "min": 0.21606102915888287,
+      "passed": true
+    }
+  ],
+  "directActions": [
+    {
+      "action": "pickup",
+      "keys": "one E press plus repeat",
+      "modalFrames": 0
+    },
+    {
+      "action": "delivery",
+      "keys": "one E",
+      "modalFrames": 0
+    }
+  ],
+  "source": {
+    "src/core/AthensDialogueFlow.ts": "a49d7c5d5e604c0582aca0249dd62aceef34a3cc1359fae6ff2e092f8760ad66",
+    "src/core/BabylonDialogueBridge.ts": "75045519eb2d5cd7d39901daaf8c288d4a034b09e5f5cd52f6841871938c57e6",
+    "src/core/BabylonFarm2Encounter.ts": "4d19471bf3b1b0c3d0471747b0da8008db3cd1463c3bb50baec564482ba3c7b1",
+    "src/core/BabylonApplication.ts": "746b10e386435acd9f624f0154d40bb6f0f20436558c9a30dc711af874f245d6",
+    "src/living/AthensNeighbourhood.ts": "2339fd9c1969071664309ea6bdbfdf7540f125076204886cbd6627f25dad756d"
+  },
+  "newDialogueErrors": 0,
+  "qualityCuts": false,
+  "ownerFeelAcceptance": false,
+  "normalLaunchPassed": true,
+  "standardClientPassed": true,
+  "normalLaunchErrors": 0
+}

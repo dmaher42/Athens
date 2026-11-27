@@ -1,0 +1,37 @@
+{
+  "installed": true,
+  "release": "f456cfea5ffa",
+  "entrySHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+  "managedSelection": {
+    "app": "athens",
+    "id": "f456cfea5ffa",
+    "pointerSHA256": "5dd94dca824e0fb4c6f0a41d0d03807869c688715a286b17fb43b146ce72d1de",
+    "manifestSHA256": "ee7c3a2406ec27b9fdc23b1b98bd7eeaecf4307237ee9559937b72f0f604c362",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\dialogue-flow-1795694556566.json",
+    "state": "committed"
+  },
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "normalServedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/f456cfea5ffa/athens-game-starter/index.html",
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "a1b1a4d5be64",
+    "manifestSHA256": "4873fe5b2e2dafb9aeef623d4cd5c4850d32683f63f4d56f436677a3e8b6afaa"
+  },
+  "spartaUnchanged": true,
+  "personalSavesTouched": false,
+  "policyAndRuntimeUnchanged": true,
+  "qualityCuts": false,
+  "serverRestarted": false,
+  "sourceCommitted": false,
+  "sourcePushed": false,
+  "onlinePublished": false,
+  "normalNativeSmokePending": false,
+  "atUTC": "2026-11-26T12:02:53.248Z",
+  "normalNativeSmokePassed": true,
+  "normalStandardClientRun": "output/playwright/dialogue-flow/normal-runs/run-j9Djz5",
+  "normalQA": "NORMAL-QA.json",
+  "normalConsoleErrors": 0,
+  "normalServedEntrySHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+  "verifiedUTC": "2026-11-26T12:05:55.739Z"
+}

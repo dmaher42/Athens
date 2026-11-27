@@ -1,0 +1,721 @@
+{
+  "phase": "normal",
+  "release": "fe29f4220f24",
+  "entrySHA256": "aa835ce28f08f2acfccaefabc5b4b97d7c4d7aefb9dc9cbbe952ae9123df8c73",
+  "views": [
+    {
+      "name": "west-overview",
+      "file": "output/acropolis-summit-wall-fix/normal-west-overview.png",
+      "camera": {
+        "p": [
+          -196,
+          68.74,
+          -114
+        ],
+        "r": [
+          -0.31570587153854857,
+          -2.0243091260209245,
+          0
+        ],
+        "fov": 0.8
+      }
+    }
+  ],
+  "routes": [
+    {
+      "start": [
+        -108,
+        -106
+      ],
+      "target": [
+        -100,
+        -106
+      ],
+      "arrival": [
+        -100.63445999995467,
+        25.5,
+        -106
+      ]
+    }
+  ],
+  "passed": true,
+  "state": {
+    "page": "http://127.0.0.1:5189/__babylon/apps/athens/releases/fe29f4220f24/athens-game-starter/index.html?place=agora",
+    "scripts": [
+      "http://127.0.0.1:5189/__babylon/apps/athens/releases/fe29f4220f24/athens-game-starter/assets/babylon-athens-acropolis-summit-ground-aa835ce28f08.js"
+    ],
+    "fullLook": true,
+    "shader": {
+      "mask": true,
+      "early": true,
+      "reliefClipped": true,
+      "roughnessClipped": true,
+      "nativeEarth": true
+    },
+    "mapsReady": true,
+    "render": {
+      "width": 1280,
+      "height": 720,
+      "shadow": 4096
+    },
+    "positions": "f3eb726e3264269f04ad5b27c2e9774cabdf96a9ca83ff7a96b37ec5db6d14f1",
+    "indices": "51fa7551e694ad5bb78b393d46304bb320bd36681b6bff1b1f04ac90ed120ea2",
+    "physical": [
+      {
+        "x": -150,
+        "z": -98,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -139,
+        "z": -104,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -121,
+        "z": -106,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -103,
+        "z": -106,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -76,
+        "z": -108,
+        "terrainY": 25.502169113159177,
+        "materialSlot": 3,
+        "floor": 25.50216911315918,
+        "cliffY": null
+      },
+      {
+        "x": -50,
+        "z": -106,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -30,
+        "z": -102,
+        "terrainY": 25.500083923339844,
+        "materialSlot": 3,
+        "floor": 25.50008392333984,
+        "cliffY": null
+      },
+      {
+        "x": -20,
+        "z": -99,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -12,
+        "z": -84,
+        "terrainY": 25.465845108032227,
+        "materialSlot": 3,
+        "floor": 25.465845108032227,
+        "cliffY": null
+      },
+      {
+        "x": -11,
+        "z": -70,
+        "terrainY": 24.780686874389644,
+        "materialSlot": 3,
+        "floor": 24.780686874389648,
+        "cliffY": null
+      },
+      {
+        "x": -12,
+        "z": -52,
+        "terrainY": 25.465127334594726,
+        "materialSlot": 3,
+        "floor": 25.465127334594726,
+        "cliffY": null
+      },
+      {
+        "x": -13,
+        "z": -32,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -70,
+        "z": -19,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -124,
+        "z": -19,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -144,
+        "z": -31,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -100,
+        "z": -54,
+        "terrainY": 25.5,
+        "materialSlot": 1,
+        "floor": 25.5,
+        "cliffY": 25.458186477915852
+      },
+      {
+        "x": -156,
+        "z": -66,
+        "terrainY": 25.5,
+        "materialSlot": 3,
+        "floor": 25.5,
+        "cliffY": null
+      },
+      {
+        "x": -166,
+        "z": -39,
+        "terrainY": 25.088930613199864,
+        "materialSlot": 3,
+        "floor": 25.08893061319987,
+        "cliffY": null
+      },
+      {
+        "x": -145,
+        "z": -117,
+        "terrainY": 8.374307556152345,
+        "materialSlot": 3,
+        "floor": 8.374307556152344,
+        "cliffY": 9.788606545916423
+      },
+      {
+        "x": -85,
+        "z": -118,
+        "terrainY": 9.611111386617026,
+        "materialSlot": 3,
+        "floor": 9.611111386617024,
+        "cliffY": 10.861010452390587
+      },
+      {
+        "x": -15,
+        "z": -109,
+        "terrainY": 8.646889425913486,
+        "materialSlot": 3,
+        "floor": 8.646889425913493,
+        "cliffY": 9.492411742853534
+      },
+      {
+        "x": -3,
+        "z": -64,
+        "terrainY": 2.003535435994465,
+        "materialSlot": 3,
+        "floor": 2.0035354359944657,
+        "cliffY": 10.088934743130551
+      },
+      {
+        "x": -40,
+        "z": -10,
+        "terrainY": 11.700600941975907,
+        "materialSlot": 3,
+        "floor": 11.700600941975912,
+        "cliffY": 12.39977956607217
+      },
+      {
+        "x": -178,
+        "z": -61,
+        "terrainY": 13.372476170857738,
+        "materialSlot": 3,
+        "floor": 13.372476170857746,
+        "cliffY": null
+      }
+    ],
+    "geometry": [
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "0888856a69c92c9110b0320fe0e9ad6f5d79a91ae6cf26388e0373020df4f134",
+        "ix": "3defbfd8ec17657ccb24b214039f5bc21ae23a286629cfd0c93fbc03857e8848",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "11d906b8981190ecbafc47754ad6afc90ab13a9527458dbc1094fa022386bdc2",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "2d932490873b0a6c377fc6112d55893e7ad284fcd024259933e9147461280a21",
+        "ix": "3defbfd8ec17657ccb24b214039f5bc21ae23a286629cfd0c93fbc03857e8848",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "46b70dd5522e59776ff890c3970594c7c387d39175b913493db6739a63e82724",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "62d20ae5f9030f63ffe17427e73bea0feb3a9cf8368cfea5a85641eb7a64a164",
+        "ix": "2c89faf9c6f1909ce9855d0f95b597a05299142686f407d61150a802941d5fb8",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "66e97c88ee015484882bfd67c40b08acc739f8bb0092ed8c693701a275d44972",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "6b2e52bbd8f3bd2349d32ee816e9430c3cd69623150ed5cc0b3d5de2c8e4b2ec",
+        "ix": "a6d867ed74cbdf5129a3dea33c5e5533f3da4d2e48980f4682495e84d80f2c23",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "74805aefbfb5db184dda470771e5e87a2cefe86091166871d257c8724e110363",
+        "ix": "48a81bf967b59caba597629bb15735bbd556f9c5838f8ebce35110979efc4f2a",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "8588d2754e519241a113268707f1848d29e4296b8204f338209c088cf04e4296",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "8590f93d3c11a65d35bfde17ce9bad90ffe05ee533183d3a131169f69b5c1aa6",
+        "ix": "cd60918799036b685e32975d27aed46077eb73e6e1f35dbe6cf21ab8b2176f92",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "8d77acdec71268ec984bcfce766dc4989a0d1befffe388c0089613c437070d43",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "995c1a9ec57e9f6419f2d9614d56a8dbac352db2aa5ce4a8b40b22461f04811c",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "b4a023167d46aa0f22e9855abf1ebb5a561030dbd5936a19fb61a0a11b67db0d",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "c3212807a15c1933260630422ea30c0350dca11be525be1362d69e4cb62e39e3",
+        "ix": "3defbfd8ec17657ccb24b214039f5bc21ae23a286629cfd0c93fbc03857e8848",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "ed362d42695b9382fe445ba41fe86ad03613489d7288717fcad724f87f7d659e",
+        "ix": "2c89faf9c6f1909ce9855d0f95b597a05299142686f407d61150a802941d5fb8",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "ede5de823163ccb9d05d1796a30f685808190122db534e83847f82b1d929b028",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "fa97e0f676d3bd16ec94a1503605d5920d2fce719d4f59654e273eb970d16de9",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "fda5be4abbe6a9caaaf67c28cd7a650c94ed06d52ae91a9c39a2d8f9a108bc0a",
+        "ix": "9136fc14265084a006744a70925c120896e46d3d08ea8337967b97633e4706e6",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis warm stratified limestone",
+        "p": "ff6fce21f3ebb1c5d0c06bcb7d23191beca2cc7c70969e7d974b23a5bd58a39e",
+        "ix": "1e3cfc2f0c36b232607c5b6c8ed06c672f99609fb4f3fe4cfee8cb010afc292f",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "material": "Acropolis:Acropolis retaining masonry",
+        "p": "362b37630f98e0301de0ae23def87806d6e88b5e4f30a26ba7006638636a7fbe",
+        "ix": "f3e431a50b6a85c9cce95b9447a61bfe81078117362d037745c5ab48a5bf8d6e",
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "unowned": []
+  }
+}

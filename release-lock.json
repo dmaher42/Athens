@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "athens": {
+    "id": "f0f663a64708",
+    "entry": "assets/babylon-athens-acropolis-recessed-entrance-4a2d46ccf265.js",
+    "sha256": "4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1",
+    "manifest": "57a666969e1a9e94181efd9111818df7e42c26a062d4cbfab5e23814e47e0fbc"
+  },
+  "foundation": {
+    "id": "d7295243de8c",
+    "sha256": "8222bd0104276f1a87476bfde59f008c1a9b386cf57a02f49f9bfe0da9b5a7d9"
+  },
+  "sparta": {
+    "id": "599f3f655732",
+    "entry": "assets/sparta-native-working-abc8821bdc90.js",
+    "sha256": "abc8821bdc90a53ea7efddb52c7728e7deff24e2b47afe53324b51a38c9546b3",
+    "manifest": "615a1a181783951db6106064131ead4931c3c9273237da174275de1cc3467a64"
+  },
+  "releases": [
+    {
+      "app": "athens",
+      "role": "active",
+      "id": "f0f663a64708",
+      "entry": "assets/babylon-athens-acropolis-recessed-entrance-4a2d46ccf265.js",
+      "sha256": "4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1",
+      "manifest": "57a666969e1a9e94181efd9111818df7e42c26a062d4cbfab5e23814e47e0fbc"
+    },
+    {
+      "app": "sparta",
+      "role": "active",
+      "id": "599f3f655732",
+      "entry": "assets/sparta-native-working-abc8821bdc90.js",
+      "sha256": "abc8821bdc90a53ea7efddb52c7728e7deff24e2b47afe53324b51a38c9546b3",
+      "manifest": "615a1a181783951db6106064131ead4931c3c9273237da174275de1cc3467a64"
+    }
+  ],
+  "controlFiles": {
+    "isolation.json": "7fb32fc9877e370b9645e6253f55ce0b76a3f681151eb92530046e1b8305e1a2",
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/registry.mjs": "7047c4dea7a7dbf3b2f5e826433a162455a10434abc62fa0268fd1ff9cfe4509",
+    "isolation-runtime/server-adapter.mjs": "ddae7c5d611e5a7ba41cbd7e45a5e4352d131fdacee267c8b3fb21f48896fb99",
+    "isolation-runtime/range-response.mjs": "b1d8d8809b957f24a436fa0a8446f3f428949cff7c9cb1f7c7a9a63029fd5918",
+    "isolation-runtime/prebuilt-context-handler.mjs": "bf7eb0aa9e5863780198c4e2bf053060d30c1f51885200ec6beab8f076c93a67",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9"
+  }
+}

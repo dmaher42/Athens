@@ -1,0 +1,49 @@
+{
+  "atUTC": "2026-11-26T06:54:46.324Z",
+  "release": "be0e7b39964f",
+  "manifestSHA256": "09866ff03e8b8851945f3f52ef7007eeb9ea3ffaefcf6bf6e430d103d2f5ad51",
+  "entry": "assets/babylon-athens-agora-second-3ef99f5cd554.js",
+  "entrySHA256": "3ef99f5cd5543b0c54c31eb174573c46fff549ffee86c67c76e96213cb0f6565",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "49564b5ab194",
+    "manifestSHA256": "3b44fb5f810977466ad29a9eb93bf41dc9d4cc697954fab1b305aca56a6235da"
+  },
+  "parentEntrySHA256": "1bf57ca82d390918dcc958edc6f3347e2456260e693ef1abea874e420dba9f1f",
+  "sourceHashes": {
+    "RoyalStoaAccess.mjs": "f9de40cb7e7385a30eb9c055dd455c1beeb0462b96f17ed86d660b2715cc8db7",
+    "AgoraMasterPlan.mjs": "a67b83f6175553756c8b4681a260b84712384ff90a50e79c971625d948e0d704",
+    "AgoraMasterTerrain.mjs": "e97ce3e860bbb99b0d76aab1d23e652a8d03a060a6a36dc198654d1790d1bca7",
+    "AgoraMasterLayout.mjs": "11caae042825f56a7a150ec68469d68c28d934e8aaa7a7102d3cc72e363615c2"
+  },
+  "canonicalOwners": [
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\AgoraMasterPlan.mjs",
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\AgoraMasterTerrain.mjs",
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\AgoraMasterLayout.mjs",
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\RoyalStoaAccess.mjs",
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\BabylonZeusSite.ts",
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\BabylonZeusSiteCamera.ts",
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\BabylonTerrainBridge.ts",
+    "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\src\\core\\BabylonZeusNeighbourSupport.ts"
+  ],
+  "canonicalApplication": "CANONICAL-APPLICATION.json",
+  "sourceProposal": "CANONICAL-PROPOSAL.json",
+  "frozenSources": "prepared/3ef99f5cd554/source/",
+  "nativePatchRecipe": "PATCHES.json",
+  "nativePatchCount": 7,
+  "buildCommand": "node output/playwright/agora-second-pass/prepare.mjs",
+  "reproductionCommand": "node output/playwright/agora-second-pass/reproduce.mjs",
+  "nativeQACommand": "node output/playwright/agora-second-pass/run-perf.mjs candidate <unique-output-label>",
+  "installationCommand": "node output/playwright/agora-second-pass/install.mjs",
+  "normalQACommand": "node output/playwright/agora-second-pass/run-normal.mjs",
+  "sourceAuthority": "Frozen four-module helper graph replaces the existing Agora Master prefix in the retained immutable native parent, with the counted guarded native spans recorded in this recipe. All other programme bytes inverse exactly. Historical preparation pins its parent; future updates must rebase on the then-selected game. The older working tree is not a standalone source for rebuilding the installed world.",
+  "wholeWorldBuild": false,
+  "qualityCuts": false,
+  "newExternalAssets": 0,
+  "terrainAndCollisionChanged": true,
+  "spartaAndPersonalSavesRetained": true,
+  "sourceCommitted": false,
+  "sourcePushed": false,
+  "onlinePublished": false
+}

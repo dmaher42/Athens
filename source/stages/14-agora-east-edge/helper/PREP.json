@@ -1,0 +1,32 @@
+{
+  "atUTC": "2026-11-27T00:05:39.207Z",
+  "selected": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "3472b819c363",
+    "manifestSHA256": "489a7f8251dcb89132d957a4f8af52a52a06389423694cf8e575f4b073aee6fa"
+  },
+  "pointerSHA256": "729dc0c9fd246fd6a926d27bbca75b6b06497638fbfd811235bbda7b7cd517c3",
+  "entry": "assets/babylon-athens-north-market-773b06221056.js",
+  "entryPath": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\releases\\3472b819c363/build/assets/babylon-athens-north-market-773b06221056.js",
+  "entrySHA256": "773b06221056635c6001de602ab7fa6cb57ec83bbb9236110b0169e9e83b310c",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/3472b819c363/athens-game-starter/index.html",
+  "protected": {
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "apps/sparta/current.json": "ec4ed714b53cf50397500d60d61d7916ea4b7b906d39e9c4191f2318a3b1e9de"
+  },
+  "home": "C:\\Users\\dmahe\\AppData\\Local/Athens-Babylon",
+  "candidateSHA256": "85455ba9523cb378964ab93459b92b194ea6cf56c60f1ef6a7b89e3642bf5957",
+  "candidateEntry": "assets/babylon-athens-east-edge-85455ba9523c.js",
+  "nativePatches": 6,
+  "source": {
+    "EastEdge.mjs": "75d3d37c487dc5d180d40a3322cf265ebaaa7bf2058f7b439a2f52aa0c82fa58",
+    "EAST-SITE.json": "08dda982a35e8925ca581c380d567ba4aa9817d0e2ec32cebc0f9fa358a2e5ad"
+  },
+  "siteAnchor": "Agora east shaded meeting edge",
+  "compilerVersion": "0.27.4",
+  "prefixSHA256": "00954e60e7cd5077184144b894b92ad063e65791bcfc31b20325bbed8bc45d96"
+}

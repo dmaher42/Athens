@@ -1,0 +1,37 @@
+{
+  "atUTC": "2026-11-25T23:10:41.159Z",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1b2a330d7293",
+    "manifestSHA256": "d466ac41427f9c7ac5ee04ffd589bc99490021cb892bce735a2648252ef57363"
+  },
+  "parentEntry": "assets/babylon-athens-kerameikos-step6-f4102ac51244.js",
+  "parentEntrySHA256": "f4102ac512443314ce52f8e32cb99cb2e473c32eb31be5eed8a8bbeb4cb7fe87",
+  "entry": "assets/babylon-athens-agora-master-5a8944f7aeb1.js",
+  "entrySHA256": "5a8944f7aeb1d8f90f105c1a310a0ffa494ba367fc9d2b774013accd6260a3b5",
+  "source": [
+    {
+      "path": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source/src/core/AgoraMasterPlan.mjs",
+      "sha256": "65f1d1b13ea473eb987fbf1445865f04b67943ebcfeea468ec7b52f9794ff6dd"
+    },
+    {
+      "path": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source/src/core/AgoraMasterTerrain.mjs",
+      "sha256": "82a47c8037cd8c52e63243681662636a7e65c48f2ab67b0f9bbc00f20620fef4"
+    },
+    {
+      "path": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source/src/core/AgoraMasterLayout.mjs",
+      "sha256": "6eb6d5778ee367c9b39b1e69ddebd93316ccd0ef45edfeecc1088a5d87c203dd"
+    }
+  ],
+  "frozenSource": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout/prepared/5a8944f7aeb1/source",
+  "exactNativeIntegrations": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout/PATCHES.json",
+  "inverseProof": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout/INVERSE-PROOF.json",
+  "reproduction": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout/REPRODUCTION.json",
+  "compilerVersion": "0.27.4",
+  "wholeWorldBuild": false,
+  "newExternalAssets": 0,
+  "newSDKs": 0,
+  "commonWorkingOwnersNotOverwritten": true,
+  "authority": "Installed immutable selected programme plus frozen three-module source and exact native call-site deltas. General working source predates several approved native owners; do not rebuild it over the game. Initial preparation pins this historical parent. Future work must rebase onto then-selected game and preserve this integrated helper, rather than applying initial insertions twice."
+}

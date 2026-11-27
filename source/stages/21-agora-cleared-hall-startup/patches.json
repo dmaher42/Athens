@@ -1,0 +1,10 @@
+{
+  "prefix": "",
+  "patches": [
+    {
+      "before": "moved=sites.flatMap(site=>{let{west,east,south,north}=site.bounds;",
+      "after": "moved=sites.filter(site=>site.id!==\"old-council\").flatMap(site=>{let{west,east,south,north}=site.bounds;",
+      "offset": 93067
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "7b57e405b05e",
+  "parent": "442e9ab63921",
+  "manifestSHA256": "ce98f98c263149c2143bcde44d6de62c31bd4ced26d25ada477abfa27961d89d",
+  "entry": "assets/babylon-athens-clean-play-hud-f12eb056aad0.js",
+  "entrySHA256": "f12eb056aad043b8b46a5dc290701a5056d94fa47acbfed6e32f5312f1fe93b7",
+  "transaction": {
+    "app": "athens",
+    "id": "7b57e405b05e",
+    "pointerSHA256": "c4509c3996f49b924713b0ac53a6c2c4210910978fe3912e0728249e3e50960c",
+    "manifestSHA256": "ce98f98c263149c2143bcde44d6de62c31bd4ced26d25ada477abfa27961d89d",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\athens-clean-play-hud-7b57e405b05e-1795727198493.json",
+    "state": "committed"
+  },
+  "delivery": {
+    "launcher": "http://127.0.0.1:5189/athens-game-starter/",
+    "url": "http://127.0.0.1:5189/__babylon/apps/athens/releases/7b57e405b05e/athens-game-starter/assets/babylon-athens-clean-play-hud-f12eb056aad0.js",
+    "entrySHA256": "f12eb056aad043b8b46a5dc290701a5056d94fa47acbfed6e32f5312f1fe93b7"
+  },
+  "look": {
+    "app": "athens",
+    "required": true,
+    "passed": true,
+    "contractSHA256": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "entry": "assets/babylon-athens-clean-play-hud-f12eb056aad0.js",
+    "entrySHA256": "f12eb056aad043b8b46a5dc290701a5056d94fa47acbfed6e32f5312f1fe93b7",
+    "lutSHA256": "aae654527340254be31af4d8b9824afc87da023f1b894fb20baec9ad6a7eaaf1",
+    "checks": {
+      "freshOpen": true,
+      "cachedOpen": true,
+      "comparisons": true,
+      "curvesExclusive": true,
+      "photometryPreserved": true,
+      "disposal": true
+    }
+  },
+  "browserTested": true,
+  "installed": true,
+  "atUTC": "2026-11-26T21:07:03.992Z",
+  "nativeCheckCount": 18,
+  "nativeReport": "PLAY-QA.json",
+  "visuallyReviewed": [
+    "play-screen.png",
+    "controls-open.png",
+    "conversation.png",
+    "market.png"
+  ],
+  "performanceBenchmarked": false
+}

@@ -1,0 +1,115 @@
+{
+  "atUTC": "2026-11-26T23:26:29.145Z",
+  "selected": "3472b819c363",
+  "entry": "assets/babylon-athens-north-market-773b06221056.js",
+  "entrySHA256": "773b06221056635c6001de602ab7fa6cb57ec83bbb9236110b0169e9e83b310c",
+  "manifestSHA256": "489a7f8251dcb89132d957a4f8af52a52a06389423694cf8e575f4b073aee6fa",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/3472b819c363/athens-game-starter/index.html",
+  "localInstallation": true,
+  "rollback": false,
+  "normalNativeSmokePending": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "7b57e405b05e",
+    "manifestSHA256": "ce98f98c263149c2143bcde44d6de62c31bd4ced26d25ada477abfa27961d89d"
+  },
+  "managedSelection": {
+    "app": "athens",
+    "id": "3472b819c363",
+    "pointerSHA256": "729dc0c9fd246fd6a926d27bbca75b6b06497638fbfd811235bbda7b7cd517c3",
+    "manifestSHA256": "489a7f8251dcb89132d957a4f8af52a52a06389423694cf8e575f4b073aee6fa",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-civic-1795735546677.json",
+    "state": "committed"
+  },
+  "sourceCommitted": false,
+  "published": false,
+  "protected": {
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "apps/sparta/current.json": "ec4ed714b53cf50397500d60d61d7916ea4b7b906d39e9c4191f2318a3b1e9de"
+  },
+  "completedUTC": "2026-11-26T23:36:27.811Z",
+  "normalNativePassed": true,
+  "normalChecks": [
+    {
+      "name": "Exact release opens with full graphics",
+      "passed": true
+    },
+    {
+      "name": "The normal Controls button stays in place",
+      "passed": true
+    },
+    {
+      "name": "North landmarks are fitted and the earlier civic and workshop buildings keep their positions",
+      "passed": true
+    },
+    {
+      "name": "The central gathering area is open on the native collision grid",
+      "passed": true
+    },
+    {
+      "name": "Rendered ground matches walkable local earth",
+      "passed": true
+    },
+    {
+      "name": "All 601 road support and clearance samples still match",
+      "passed": true
+    },
+    {
+      "name": "Workshop boundary and all 72 existing actor identities are preserved",
+      "passed": true
+    },
+    {
+      "name": "Four original market counters have open customer faces and physical tables",
+      "passed": true
+    },
+    {
+      "name": "The familiar four sellers now work at the north market",
+      "passed": true
+    },
+    {
+      "name": "Original fountain and wool service yard have working geometry on their new sites",
+      "passed": true
+    },
+    {
+      "name": "Both original cloth workshops and the cloth shop are present and linked",
+      "passed": true
+    },
+    {
+      "name": "The existing resource owners cover the finished scene",
+      "passed": true
+    },
+    {
+      "name": "Council frontage across the open square to the Painted Stoa",
+      "passed": true
+    },
+    {
+      "name": "Painted Stoa front steps and interior",
+      "passed": true
+    },
+    {
+      "name": "Open square to the market and first counter",
+      "passed": true
+    },
+    {
+      "name": "Native trade at figs",
+      "passed": true
+    },
+    {
+      "name": "Take the separate workshop branch and enter its showroom",
+      "passed": true
+    },
+    {
+      "name": "Native trade at workshop",
+      "passed": true
+    },
+    {
+      "name": "Usual game keeps the nearby main road open",
+      "passed": true
+    }
+  ],
+  "sourceRecipe": "SOURCE-RECIPE.json"
+}

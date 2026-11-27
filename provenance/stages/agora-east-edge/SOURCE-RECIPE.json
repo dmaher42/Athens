@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "inverseExact": true,
+  "entrySHA256": "85455ba9523cb378964ab93459b92b194ea6cf56c60f1ef6a7b89e3642bf5957",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "3472b819c363",
+    "manifestSHA256": "489a7f8251dcb89132d957a4f8af52a52a06389423694cf8e575f4b073aee6fa"
+  },
+  "parentEntrySHA256": "773b06221056635c6001de602ab7fa6cb57ec83bbb9236110b0169e9e83b310c",
+  "nativePatches": 6,
+  "source": {
+    "EastEdge.mjs": "75d3d37c487dc5d180d40a3322cf265ebaaa7bf2058f7b439a2f52aa0c82fa58",
+    "EAST-SITE.json": "08dda982a35e8925ca581c380d567ba4aa9817d0e2ec32cebc0f9fa358a2e5ad"
+  },
+  "frozen": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-east-edge\\prepared\\85455ba9523c\\",
+  "compiler": "0.27.4",
+  "build": "node output/playwright/agora-east-edge/prepare.mjs",
+  "reproduction": "node output/playwright/agora-east-edge/reproduce.mjs",
+  "qa": "node output/playwright/agora-east-edge/run-native.mjs candidate",
+  "install": "node output/playwright/agora-east-edge/install.mjs",
+  "sourceAuthority": "The exact selected parent, guarded original and replacement native source spans, and frozen east Agora meeting area helper.",
+  "release": "e1fbd728581f",
+  "entry": "assets/babylon-athens-east-edge-85455ba9523c.js",
+  "manifestSHA256": "cc7243b304326bbf6d8f7c19a77b91b8a55b8c99275818d60e67aa6fc8920a3f"
+}

@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "atUTC": "2026-11-25T23:38:51.725Z",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "fad94d0abc1a",
+    "manifestSHA256": "92ce01da9adf0f1bab50406ad87858bda19a456b655c361e9bc0de95753c3446"
+  },
+  "entrySHA256": "7676217a8b02fa9ca2fe2ab910bc292989acdce4858fea1df74925cfa65a7ae4",
+  "frozenSource": true,
+  "usesWorkingSources": false,
+  "wholeWorldBuild": false
+}

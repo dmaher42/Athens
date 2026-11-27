@@ -1,0 +1,113 @@
+{
+  "prefix": "const AgoraDipylonView = (() => {\n  const sites = [\n    { id: 'new-council', from: [-148, 3.15, 52], to: [-157.5, 4.15, 69], feather: 3.2,\n      former: { west: -156.942, east: -139.058, south: 40.75, north: 63.25 } },\n    { id: 'zeus-stoa', from: [-145, 4.65, 101], to: [-141, 4.65, 104.6], feather: 2.1,\n      former: { west: -154.339, east: -135.321, south: 77.762, north: 124.238 } },\n    { id: 'painted-stoa', from: [-97, 6.02, 123], to: [-93.4, 6.02, 115.6], feather: 2.5,\n      former: { west: -111.415, east: -82.557, south: 119.155, north: 126.845 } },\n  ];\n  const translate = (b, dx, dz) => ({\n    ...b, west: b.west + dx, east: b.east + dx, south: b.south + dz, north: b.north + dz,\n  });\n  const councilOrigin = { x: -157.5, z: 69 };\n  const councilDoors = [60.4, 77.6];\n  const councilFloor = 4.2;\n  const shiftCouncil = b => ({ ...translate(b, -9.5, 17), top: b.top+1 });\n  const councilCourt = b => ({ ...shiftCouncil(b), east: -138.8 });\n  const oldCourt = { west: -139.3, east: -126, south: 40.8, north: 63.2, top: 2.45 };\n  const court = councilCourt(oldCourt);\n  const oldZeusFront = { west: -135.5, east: -129.2, south: 79.1, north: 122.9 };\n  const zeusFront = { ...translate(oldZeusFront, 4, 3.6), east: -128.3, north: 115.7 };\n  const councilWalk = [\n    [-145.2, 60.4], [-139, 62.5], [-129, 64.5], [-120.5, 65.3], [-117, 70.8],\n    [-111.5, 74.75], [-104, 79.5], [-102.5, 82.4],\n  ];\n  const marketLane = [\n    [-91.9,104.9],[-90,106],[-82,109.5],[-76.25,112],[-75.9,118],\n    [-75.85,124.3],[-76,130.85],[-61,130.85],\n  ];\n  const siteMap = new Map(sites.map(site => {\n    const [dx, , dz] = site.to.map((coord, axis) => coord - site.from[axis]);\n    return [site.id, { ...site, dx, dz, bounds: translate(site.former, dx, dz) }];\n  }));\n  const pads = [\n    ...[...siteMap.values()].map(site => ({ ...site.bounds, level: site.to[1] - .06, feather: site.feather })),\n    { ...court, level: court.top - .06, feather: 2.05 },\n    { ...zeusFront, level: 4.59, feather: 3.45 },\n  ];\n  const formerBeds = [\n    { ...siteMap.get('zeus-stoa').former, feather: 2.1, relief: .42 },\n    { ...siteMap.get('new-council').former, feather: 2, relief: .32 },\n    { ...oldCourt, feather: 1.55, relief: .25 },\n  ];\n  const grow = (b, d) => ({ west: b.west-d, east: b.east+d, south: b.south-d, north: b.north+d });\n  const areas = [...pads, ...formerBeds].map(b => grow(b, b.feather + .25));\n  const distance = (x,z,b) => Math.hypot(Math.max(0,b.west-x,x-b.east),Math.max(0,b.south-z,z-b.north));\n  const ease = t => { t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); };\n  const overlaps = (a,b) => a.west<=b.east && a.east>=b.west && a.south<=b.north && a.north>=b.south;\n\n  function grade(x,z,height,inherited) {\n    let y=height, restoration=0;\n    for (const b of formerBeds) restoration=Math.max(restoration,b.relief*ease(1-distance(x,z,b)/b.feather));\n    if (restoration) y+=(inherited-y)*restoration;\n    // Building foundations take precedence where the shallow public apron overlaps.\n    let total=0, weight=0, max=0;\n    for (const b of pads) {\n      const d=distance(x,z,b);\n      if (!d) return b.level;\n      const w=ease(1-d/b.feather);\n      total+=b.level*w; weight+=w; max=Math.max(w,max);\n    }\n    return weight ? y+(total/weight-y)*max : y;\n  }\n\n  function detailCuts(bounds,axis) {\n    return pads.filter(b=>overlaps(bounds,grow(b,b.feather))).flatMap(b=>axis===0\n      ? [b.west,b.east] : [b.south,b.north]);\n  }\n\n  function relocate(root) {\n    const site=siteMap.get(root?.metadata?.id);\n    if (!site) return root;\n    if (root.position.asArray().some((value,i)=>Math.abs(value-site.from[i])>.04))\n      throw Error('Relocation requires the measured '+site.id+' anchor');\n    const nodes=[root,...root.getDescendants()];\n    const frozen=nodes.map(node=>node.isWorldMatrixFrozen);\n    for (const node of nodes) node.unfreezeWorldMatrix();\n    root.position.set(...site.to);\n    root.metadata.anchor={...root.metadata.anchor,x:site.to[0],z:site.to[2]};\n    root.metadata.dipylonView={from:site.from,to:site.to};\n    if (site.id==='new-council') root.metadata.newBouleuterion.floorWorld=councilFloor;\n    nodes.forEach((node,i)=>{node.computeWorldMatrix(true);if(frozen[i])node.freezeWorldMatrix();});\n    return root;\n  }\n\n  function remapFootprints(rows) {\n    return rows.map(row=>{\n      const id=String(row.id).replace(/^agora:/,'').replace(/:pi-\\d+$/,'');\n      const b=siteMap.get(id)?.bounds;\n      if (!b) return row;\n      return {...row,x:(b.west+b.east)/2,z:(b.south+b.north)/2,w:b.east-b.west,d:b.north-b.south,rotation:0};\n    });\n  }\n\n  function refitProbes(rows, original) {\n    return rows.map(row=>{\n      const site=siteMap.get(row.padId==='agora-painted-stoa-relocated-floor'?'painted-stoa':row.padId);\n      if (!site) return row;\n      const x=row.x+site.dx,z=row.z+site.dz;\n      const floor=site.to[1];\n      return {...row,x,z,floor,bed:floor-.06,original:original(x,z)};\n    });\n  }\n\n  function fitZone(zone) {\n    if (zone.id!=='north-approach') return zone;\n    const placements=[[-115.65,111.7],[-115.9,120.3],[-79.25,108.1]];\n    return {...zone,trees:zone.trees.map((tree,index)=>{\n      const at=placements[index];\n      return at?{...tree,x:at[0],z:at[1]}:tree;\n    })};\n  }\n\n  function civicPath(path) {\n    if (path.id!=='civic-walk') return path;\n    return {...path,points:[\n      [-136.8,139],[-132.1,139],[-129.55,139],[-130.5,129.6],[-124.2,125.5],\n      [-127.7,124.5],[-127.7,113],[-127.7,99.5],[-126,87],[-126.1,76],\n      [-129,64.5],[-139,62.5],[-144.3,59],[-150,51],[-156,40],[-160,35.5],\n    ]};\n  }\n\n  function shopperStops(id, waypoints) {\n    return id==='north-shopper'\n      ? [[-87.9,109.4,0],[-77.8,110.35],[-75.7,114.3,Math.PI],[-77.8,110.35]]\n      : waypoints;\n  }\n\n  function reseatCouncilOlive(scene, heightAt) {\n    const root=scene.getMeshByName('olive_redesign_olive_0');\n    if (!root?.isEnabled()) return;\n    const x=-169.2,z=82.7,height=heightAt(x,z);\n    if (!Number.isFinite(height)) return;\n    const current=root.getAbsolutePosition();\n    const nodes=[root,...root.getDescendants()],frozen=nodes.map(node=>node.isWorldMatrixFrozen);\n    const bottom=Math.min(...root.getChildMeshes().filter(mesh=>mesh.getTotalVertices()).map(mesh=>{\n      mesh.computeWorldMatrix(true);\n      return mesh.getBoundingInfo().boundingBox.minimumWorld.y;\n    }));\n    if (!Number.isFinite(bottom)) return;\n    nodes.forEach(node=>node.unfreezeWorldMatrix());\n    root.setAbsolutePosition(new root.position.constructor(x,current.y+height-bottom-.04,z));\n    nodes.forEach((node,i)=>{node.computeWorldMatrix(true);if(frozen[i])node.freezeWorldMatrix();});\n  }\n\n  return { sites:[...siteMap.values()],areas,detailCuts,grade,relocate,remapFootprints,refitProbes,\n    councilOrigin,councilDoors,councilFloor,shiftCouncil,councilCourt,court,zeusFront,councilWalk,marketLane,\n    fitZone,civicPath,shopperStops,reseatCouncilOlive };\n})();\n\n",
+  "patches": [
+    {
+      "owner": "Fit all three buildings to the actual rendered and walked terrain",
+      "before": "y=Math.fround(applyNorth?AgoraEntranceGround.grade(x,z,base):base)",
+      "after": "y=Math.fround(applyNorth?AgoraDipylonView.grade(x,z,AgoraEntranceGround.grade(x,z,base),a[1]):base)",
+      "offset": 98745
+    },
+    {
+      "owner": "Use the existing terrain fitter for the three measured sites",
+      "before": "applyNorth?[...activeAreas,...AthensNorthMarket.terrainAreas]:activeAreas",
+      "after": "applyNorth?[...activeAreas,...AthensNorthMarket.terrainAreas,...AgoraDipylonView.areas]:activeAreas",
+      "offset": 98331
+    },
+    {
+      "owner": "Fit terrain vertices at the measured east and west edges",
+      "before": "...AthensNorthMarket.detailCuts(bounds,0)]:xLimits",
+      "after": "...AthensNorthMarket.detailCuts(bounds,0),...AgoraDipylonView.detailCuts(bounds,0)]:xLimits",
+      "offset": 99766
+    },
+    {
+      "owner": "Fit terrain vertices at the measured north and south edges",
+      "before": "...AthensNorthMarket.detailCuts(bounds,2)]:zLimits",
+      "after": "...AthensNorthMarket.detailCuts(bounds,2),...AgoraDipylonView.detailCuts(bounds,2)]:zLimits",
+      "offset": 99900
+    },
+    {
+      "owner": "Move the three whole civic buildings with their native local supports",
+      "before": "return AthensNorthMarket.relocate(AthensCivicStage.relocate(AthensAgoraMasterLayout.relocateArchitecture(wGeAgoraOriginal(i,e,t,r,s,a))))",
+      "after": "return AgoraDipylonView.relocate(AthensNorthMarket.relocate(AthensCivicStage.relocate(AthensAgoraMasterLayout.relocateArchitecture(wGeAgoraOriginal(i,e,t,r,s,a)))))",
+      "offset": 6911418
+    },
+    {
+      "owner": "Check the three buildings at their new sites",
+      "before": "diagnostics.seatingProbes=[...AthensNorthMarket.paintedChecks(protectedPainted,original),...moved]",
+      "after": "diagnostics.seatingProbes =AgoraDipylonView.refitProbes([...AthensNorthMarket.paintedChecks(protectedPainted,original),...moved],original)",
+      "offset": 93506
+    },
+    {
+      "owner": "Fit the council forecourt, stair flights and threshold landings to its new building anchor",
+      "before": "accessBuilder(k,{x:-148,z:52},actual,k.p.marble);access.solid(\"Shared civic court\",court,k.p.pavement??k.p.marble),steps.forEach((rect,i)=>access.solid(\"Council public stair \"+(i+1),rect)),doorLandings.forEach(rect=>access.solid(\"Council threshold landing\",rect));",
+      "after": "accessBuilder(k,AgoraDipylonView.councilOrigin,actual,k.p.marble);access.solid(\"Shared civic court\",AgoraDipylonView.councilCourt(court),k.p.pavement??k.p.marble),steps.forEach((rect,i)=>access.solid(\"Council public stair \"+(i+1),AgoraDipylonView.shiftCouncil(rect))),doorLandings.forEach(rect=>access.solid(\"Council threshold landing\",AgoraDipylonView.shiftCouncil(rect)));",
+      "offset": 93694
+    },
+    {
+      "owner": "Use the moved council doorway coordinates in the native route mask",
+      "before": "doorways:[43.4,60.6],floor:3.2,residencyOwner:id",
+      "after": "doorways:AgoraDipylonView.councilDoors,floor:AgoraDipylonView.councilFloor,residencyOwner:id",
+      "offset": 95024
+    },
+    {
+      "owner": "Route the public path in front of Zeus and to both council doors",
+      "before": "...paths.map(path=>({...path,type:\"path\",role:\"civic\"})),...[43.4,60.6].map(z=>({id:`civic-council-door-${z}`,width:3.6,type:\"path\",role:\"civic\",points:[[-125,z],[-137,z],[-139.3,z]]}))",
+      "after": "...paths.map(AgoraDipylonView.civicPath).map(path=>({...path,type:\"path\",role:\"civic\"})),...AgoraDipylonView.councilDoors.map(z=>({id:`civic-council-door-${z}`,width:3.6,type:\"path\",role:\"civic\",points:[[-139.5,z],[-146.5,z],[-148.8,z]]}))",
+      "offset": 84219
+    },
+    {
+      "owner": "Clear the native planting mask using the new whole-building footprints",
+      "before": "function addFootprint(rows){let b=EAST_SITE_default.court;return[...rows,",
+      "after": "function addFootprint(rows){let b=EAST_SITE_default.court;return[...AgoraDipylonView.remapFootprints(rows),",
+      "offset": 25646
+    },
+    {
+      "owner": "Keep the approved shade trees and move only the three near the Painted Stoa pad",
+      "before": ".map(AgoraSquareLife.fitZone)),px=",
+      "after": ".map(AgoraSquareLife.fitZone).map(AgoraDipylonView.fitZone)),px=",
+      "offset": 6689010
+    },
+    {
+      "owner": "Join the established square entrance to the moved council court",
+      "before": "const approach = [\n    [-129, 62], [-125.5, 64], [-121.5, 67.5], [-117, 71],\n    [-111.5, 74.75], [-104, 79.5], [-102.5, 82.4],\n  ];",
+      "after": "const approach = AgoraDipylonView.councilWalk;",
+      "offset": 5217
+    },
+    {
+      "owner": "Start the reused gravel finish at the new north council doorway",
+      "before": "((61.3 - extent.south) / stepZ)",
+      "after": "((58.5 - extent.south) / stepZ)",
+      "offset": 6891
+    },
+    {
+      "owner": "Feather the council gravel finish off the actual frontage",
+      "before": "smooth(61.3, 64.2, z) * (1 - court)",
+      "after": "smooth(58.5, 62, z) * (1 - court)",
+      "offset": 7493
+    },
+    {
+      "owner": "Include both ends of the local council approach on the existing ground mask",
+      "before": "((-133 - extent.west) / stepX)",
+      "after": "((-149 - extent.west) / stepX)",
+      "offset": 6740
+    },
+    {
+      "owner": "Relocate the one olive previously inside the new council outline",
+      "before": "this.walkSupport=oGe(this.scene,r.getHeightAt)",
+      "after": "AgoraDipylonView.reseatCouncilOlive(this.scene,r.getHeightAt),this.walkSupport=oGe(this.scene,r.getHeightAt)",
+      "offset": 8186794
+    },
+    {
+      "owner": "Keep the market lane clear around the relocated Painted Stoa",
+      "before": "const lane = [\n    [-91.9, 104.9], [-90, 106], [-82, 111], [-79, 119],\n    [-76.5, 128], [-76, 130.85], [-61, 130.85],\n  ];",
+      "after": "const lane = AgoraDipylonView.marketLane;",
+      "offset": 452
+    },
+    {
+      "owner": "Keep the existing shopper around the new front of the stoa",
+      "before": "function actorStops(id,rows){let waypoints=NORTH_SITE_default.actors[id];",
+      "after": "function actorStops(id,rows){let waypoints=AgoraDipylonView.shopperStops(id,NORTH_SITE_default.actors[id]);",
+      "offset": 66697
+    }
+  ]
+}

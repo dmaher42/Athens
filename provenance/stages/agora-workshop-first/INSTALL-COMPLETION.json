@@ -1,0 +1,83 @@
+{
+  "atUTC": "2026-11-26T11:24:17.747Z",
+  "selected": "a1b1a4d5be64",
+  "entry": "assets/babylon-athens-pottery-workshop-5a15f3ee921f.js",
+  "entrySHA256": "5a15f3ee921f3110581d7f561b57a722bdb8fbd2255796cc72885eeea48300cf",
+  "manifestSHA256": "4873fe5b2e2dafb9aeef623d4cd5c4850d32683f63f4d56f436677a3e8b6afaa",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/a1b1a4d5be64/athens-game-starter/index.html",
+  "localInstallation": true,
+  "rollback": false,
+  "normalNativeSmokePending": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1efb686eb6a6",
+    "manifestSHA256": "c56062daa69b309e5330df53a22beeeb314cbf6815b781ef8eaee5726be00a81"
+  },
+  "managedSelection": {
+    "app": "athens",
+    "id": "a1b1a4d5be64",
+    "pointerSHA256": "ed40c8aeaa59305c78be96a57739b54757acb66f41716315975352205e6cf914",
+    "manifestSHA256": "4873fe5b2e2dafb9aeef623d4cd5c4850d32683f63f4d56f436677a3e8b6afaa",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\pottery-workshop-1795692238136.json",
+    "state": "committed"
+  },
+  "sourceCommitted": false,
+  "published": false,
+  "protected": {
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "apps/sparta/current.json": "ec4ed714b53cf50397500d60d61d7916ea4b7b906d39e9c4191f2318a3b1e9de"
+  },
+  "completedUTC": "2026-11-26T11:27:37.801Z",
+  "normalNativePassed": true,
+  "normalChecks": [
+    {
+      "label": "Selected entry and full Athens appearance",
+      "passed": true
+    },
+    {
+      "label": "Workshop terrain renders exactly where its support height is sampled",
+      "passed": true
+    },
+    {
+      "label": "Mainway centre and walking support stay open",
+      "passed": true
+    },
+    {
+      "label": "Four workshop buildings move together and the other architectural roots keep their place",
+      "passed": true
+    },
+    {
+      "label": "Walk from the mainway through the public gate to the showroom counter",
+      "passed": true
+    },
+    {
+      "label": "F trades a finished workshop jar through the real saved shop",
+      "passed": true
+    },
+    {
+      "label": "Cross the showroom and use the interior stairs to the firing yard",
+      "passed": true
+    },
+    {
+      "label": "Both kilns and their shared fire and smoke follow actual workshop production",
+      "passed": true
+    },
+    {
+      "label": "All five crew identities are at the moved workshop",
+      "passed": true
+    },
+    {
+      "label": "No settled workshop resource is left unowned",
+      "passed": true
+    },
+    {
+      "label": "Workshop workers use live performances and the tender has its working tool",
+      "passed": true
+    }
+  ],
+  "sourceRecipe": "SOURCE-RECIPE.json"
+}

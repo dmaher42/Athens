@@ -1,0 +1,568 @@
+{
+  "checks": [
+    {
+      "name": "Exact corrected entry served",
+      "passed": true
+    },
+    {
+      "name": "All architecture roots and positions retained",
+      "passed": true
+    },
+    {
+      "name": "Only Zeus wall colour image changed; stone relief and roughness retained",
+      "passed": true
+    },
+    {
+      "name": "72 actors, full approved appearance and owned resources",
+      "passed": true
+    }
+  ],
+  "views": [
+    "output/playwright/zeus-wall-finish/after-rear-corner.png",
+    "output/playwright/zeus-wall-finish/after-rear-wall.png",
+    "output/playwright/zeus-wall-finish/after-front.png"
+  ],
+  "entrySHA256": "1bf57ca82d390918dcc958edc6f3347e2456260e693ef1abea874e420dba9f1f",
+  "state": {
+    "architecture": [
+      {
+        "id": "royal-stoa",
+        "position": [
+          -128.5,
+          2.4,
+          94
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "footprint": {
+          "w": 19,
+          "d": 18
+        }
+      },
+      {
+        "id": "zeus-stoa",
+        "position": [
+          -131.5785,
+          1.5,
+          56.5
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "footprint": {
+          "w": 46.476,
+          "d": 18.677
+        }
+      },
+      {
+        "id": "hephaestus",
+        "position": [
+          -150,
+          2.4000000953674316,
+          86
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 12,
+          "d": 18
+        }
+      },
+      {
+        "id": "new-council",
+        "position": [
+          -156,
+          3,
+          46.5
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "footprint": {
+          "w": 22.5,
+          "d": 17.5
+        }
+      },
+      {
+        "id": "old-council",
+        "position": [
+          -150,
+          3.15,
+          68
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 12,
+          "d": 9
+        }
+      },
+      {
+        "id": "tholos",
+        "position": [
+          -151,
+          1.5,
+          23
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 9,
+          "d": 9
+        }
+      },
+      {
+        "id": "aiakeion",
+        "position": [
+          -143,
+          1.5000000000000002,
+          8
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 14,
+          "d": 12
+        }
+      },
+      {
+        "id": "south-stoa",
+        "position": [
+          -104,
+          1.5,
+          9
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 48,
+          "d": 14
+        }
+      },
+      {
+        "id": "fountain",
+        "position": [
+          -70,
+          1.5,
+          12
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 12,
+          "d": 4.5
+        }
+      },
+      {
+        "id": "mint",
+        "position": [
+          -58,
+          1.5,
+          12
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 9,
+          "d": 9
+        }
+      },
+      {
+        "id": "courts",
+        "position": [
+          -64,
+          3.849966033299764,
+          72
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 12,
+          "d": 8
+        }
+      },
+      {
+        "id": "painted-stoa",
+        "position": [
+          -97,
+          1.5,
+          80
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ],
+        "footprint": {
+          "w": 28,
+          "d": 7
+        }
+      },
+      {
+        "id": "altar",
+        "position": [
+          -106,
+          1.5,
+          59
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 5,
+          "d": 4
+        }
+      },
+      {
+        "id": "potters_lane_2",
+        "position": [
+          -188,
+          8.037247517903646,
+          110
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 18,
+          "d": 15
+        }
+      },
+      {
+        "id": "weavers_court_1",
+        "position": [
+          -142,
+          7.380129375457764,
+          120
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 15,
+          "d": 15
+        }
+      },
+      {
+        "id": "weavers_court_2",
+        "position": [
+          -164,
+          8.048801727294922,
+          135
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 18,
+          "d": 14
+        }
+      },
+      {
+        "id": "olive_court_home",
+        "position": [
+          -36,
+          3.971052125295003,
+          148
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 17,
+          "d": 15
+        }
+      },
+      {
+        "id": "north_garden_villa",
+        "position": [
+          -94,
+          5.783939336140951,
+          124
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 20,
+          "d": 17
+        }
+      },
+      {
+        "id": "gate-avenue-south-0",
+        "position": [
+          -243,
+          10.083619956970214,
+          45
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "footprint": {
+          "w": 7.8,
+          "d": 6
+        }
+      },
+      {
+        "id": "gate-avenue-south-1",
+        "position": [
+          -243,
+          10.055309600830078,
+          66
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "footprint": {
+          "w": 8,
+          "d": 6.4
+        }
+      },
+      {
+        "id": "gate-avenue-south-2",
+        "position": [
+          -192,
+          8.688636131286621,
+          12.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 8.2,
+          "d": 6
+        }
+      },
+      {
+        "id": "gate-avenue-side-house",
+        "position": [
+          -243,
+          10.038068377176922,
+          97
+        ],
+        "rotation": [
+          0,
+          1.5707963267948966,
+          0
+        ],
+        "footprint": {
+          "w": 7,
+          "d": 6.4
+        }
+      },
+      {
+        "id": "gate-avenue-north-0",
+        "position": [
+          -230,
+          9.800907592773438,
+          27
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ],
+        "footprint": {
+          "w": 7,
+          "d": 6
+        }
+      },
+      {
+        "id": "gate-avenue-north-1",
+        "position": [
+          -213,
+          9.380019760131836,
+          30
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ],
+        "footprint": {
+          "w": 7.2,
+          "d": 6
+        }
+      },
+      {
+        "id": "master-potter-home",
+        "position": [
+          -208,
+          7.5,
+          74
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 12,
+          "d": 26
+        }
+      },
+      {
+        "id": "master-potter-showroom",
+        "position": [
+          -185,
+          5.1,
+          72
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 12,
+          "d": 24
+        }
+      },
+      {
+        "id": "master-potter-workshop",
+        "position": [
+          -196,
+          6.2,
+          73
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 10,
+          "d": 26
+        }
+      },
+      {
+        "id": "master-potter-firing-yard",
+        "position": [
+          -190,
+          6.2,
+          92
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 22,
+          "d": 12
+        }
+      },
+      {
+        "id": "zeus-site-access",
+        "position": [
+          -125,
+          0,
+          98
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 24,
+          "d": 40
+        }
+      },
+      {
+        "id": "agora-council-access",
+        "position": [
+          -156,
+          0,
+          46.5
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "footprint": {
+          "w": 27,
+          "d": 27
+        }
+      }
+    ],
+    "materials": [
+      {
+        "name": "Zeus exterior / poros",
+        "url": "/athens-game-starter/textures/painted-stoa/poikile-v2/hand-plaster-colour-2k.jpg",
+        "tint": [
+          1.03,
+          0.97,
+          0.83
+        ],
+        "normal": "/athens-game-starter/textures/painted-stoa/poikile-v2/pale-stone-normal-dx-1k.jpg",
+        "rough": "/athens-game-starter/textures/painted-stoa/poikile-v2/pale-stone-roughness-1k.jpg",
+        "ready": true
+      }
+    ],
+    "actors": 72,
+    "unowned": [],
+    "look": {
+      "ground": true,
+      "lut": true,
+      "curves": false
+    }
+  },
+  "URL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/49564b5ab194/athens-game-starter/index.html?place=agora",
+  "passed": true,
+  "finishedUTC": "2026-11-26T00:39:14.348Z",
+  "errors": 0,
+  "warnings": 0,
+  "ownedBrowserClosed": true,
+  "rawWrapperFlags": "The stock transport deliberately leaves generic functionalComplete/visualComplete false. Actual fixture results and source/render review are retained separately."
+}

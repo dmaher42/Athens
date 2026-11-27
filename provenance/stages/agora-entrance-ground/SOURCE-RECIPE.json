@@ -1,0 +1,24 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1541598e9bc8",
+    "manifestSHA256": "41db37ac0ecc665167ada2f12e8f5021019cf236a1fcf764c8d8037d52a7ffab"
+  },
+  "parentEntrySHA256": "3b641905cd144d185a2a9ef46058a9f4049a80dbbb945e2f258bc934922bc3b4",
+  "entry": "assets/babylon-athens-agora-entrance-ground-ec9717ffb755.js",
+  "entrySHA256": "ec9717ffb7555f447bb019b436fa085c7eda6906fd437f31cfd44319b85ecf9b",
+  "inverseExact": true,
+  "nativeSpans": 1,
+  "source": "AgoraEntranceGround.mjs and PATCHES.json",
+  "build": "node output/playwright/agora-entrance-ground/prepare.mjs",
+  "reproduce": "node output/playwright/agora-entrance-ground/prepare.mjs --reproduce",
+  "bounds": {
+    "west": -134,
+    "east": -104,
+    "south": 64,
+    "north": 84
+  },
+  "release": "25f00902f6fd",
+  "manifestSHA256": "f552a16cd992b1bdda0f008d462b0a197122ae901247f078dfd20ceaef0a7e04"
+}

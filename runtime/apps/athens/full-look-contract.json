@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "required": true,
+  "ownerInstruction": "Future updates must keep the full colour, ground and foliage look on by default so it does not disappear again.",
+  "approvedReferenceRelease": "ab9d61c85311",
+  "approvedSourceRecipe": "output/playwright/athens-full-look-default/SOURCE-RECIPE.json",
+  "lut": {
+    "path": "textures/grading/mediterranean-luminous-32.png",
+    "sha256": "aae654527340254be31af4d8b9824afc87da023f1b894fb20baec9ad6a7eaaf1"
+  },
+  "requiredIntegrationTokens": [
+    "athensArtDirectionOnly",
+    "athensGroundDetailV2",
+    "medEarthPatch",
+    "med-detail-west-bench-front",
+    "AgoraGroundBlend"
+  ],
+  "policy": "Preserve approved art, small grass and default-on controls in the active entry. New source structure requires adapting and testing the release checker, never disabling it. Owner approval is required to replace the visual direction. A filename or unused retained old bundle is not proof."
+}

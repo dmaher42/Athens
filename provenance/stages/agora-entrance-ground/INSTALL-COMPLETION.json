@@ -1,0 +1,27 @@
+{
+  "atUTC": "2026-11-27T12:47:45.772Z",
+  "selected": "25f00902f6fd",
+  "manifestSHA256": "f552a16cd992b1bdda0f008d462b0a197122ae901247f078dfd20ceaef0a7e04",
+  "entry": "assets/babylon-athens-agora-entrance-ground-ec9717ffb755.js",
+  "entrySHA256": "ec9717ffb7555f447bb019b436fa085c7eda6906fd437f31cfd44319b85ecf9b",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/25f00902f6fd/athens-game-starter/index.html",
+  "managedSelection": {
+    "app": "athens",
+    "id": "25f00902f6fd",
+    "pointerSHA256": "3294d342da3c88b6d2445819ad906c8061907fb4e119693d0e317571f2b4f7f9",
+    "manifestSHA256": "f552a16cd992b1bdda0f008d462b0a197122ae901247f078dfd20ceaef0a7e04",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-entrance-ground-1795783623402.json",
+    "state": "committed"
+  },
+  "localInstallation": true,
+  "servedEntryVerified": true,
+  "browserPlaycheck": false,
+  "published": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1541598e9bc8",
+    "manifestSHA256": "41db37ac0ecc665167ada2f12e8f5021019cf236a1fcf764c8d8037d52a7ffab"
+  }
+}

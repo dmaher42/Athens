@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:5189/__babylon/apps/athens/releases/f456cfea5ffa/athens-game-starter/index.html?place=agora",
+  "opening": {
+    "open": true,
+    "pending": false,
+    "walkingAllowed": true,
+    "caption": "",
+    "choices": [
+      {
+        "label": "1.People say you never give a straight answer.",
+        "disabled": false
+      },
+      {
+        "label": "2.What makes a person good?",
+        "disabled": false
+      }
+    ],
+    "text": "Socrates×Yes? Did you want to ask me something?1.People say you never give a straight answer.2.What makes a person good?1–2 reply · Esc or walk away"
+  },
+  "reply": {
+    "open": true,
+    "pending": false,
+    "walkingAllowed": true,
+    "caption": "",
+    "choices": [
+      {
+        "label": "1.A good person. Someone who does what is right.",
+        "disabled": false
+      },
+      {
+        "label": "2.I hadn't thought of that difference.",
+        "disabled": false
+      }
+    ],
+    "text": "Socrates×Good at something, or a good person? A thief can be good at stealing.1.A good person. Someone who does what is right.2.I hadn't thought of that difference.1–2 reply · Esc or walk away"
+  },
+  "state": {
+    "actors": 72,
+    "ground": true,
+    "colour": true,
+    "unowned": [],
+    "cleanupErrors": 0,
+    "flow": {
+      "open": false,
+      "pending": false,
+      "walkingAllowed": true,
+      "caption": "",
+      "choices": [],
+      "text": null
+    }
+  },
+  "passed": true
+}

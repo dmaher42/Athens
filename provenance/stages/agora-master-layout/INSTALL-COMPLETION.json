@@ -1,0 +1,41 @@
+{
+  "installed": true,
+  "release": "fad94d0abc1a",
+  "manifestSHA256": "92ce01da9adf0f1bab50406ad87858bda19a456b655c361e9bc0de95753c3446",
+  "entry": "assets/babylon-athens-agora-master-5a8944f7aeb1.js",
+  "entrySHA256": "5a8944f7aeb1d8f90f105c1a310a0ffa494ba367fc9d2b774013accd6260a3b5",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "normalServedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/fad94d0abc1a/athens-game-starter/index.html",
+  "entryURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/fad94d0abc1a/athens-game-starter/assets/babylon-athens-agora-master-5a8944f7aeb1.js",
+  "managedSelection": {
+    "app": "athens",
+    "id": "fad94d0abc1a",
+    "pointerSHA256": "3d2ff5369388f7eed8952b10f00242121d2389f514da49541c5a5f571431981e",
+    "manifestSHA256": "92ce01da9adf0f1bab50406ad87858bda19a456b655c361e9bc0de95753c3446",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-master-layout-1795648252239.json",
+    "state": "committed"
+  },
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1b2a330d7293",
+    "manifestSHA256": "d466ac41427f9c7ac5ee04ffd589bc99490021cb892bce735a2648252ef57363"
+  },
+  "source": {
+    "AgoraMasterPlan.mjs": "65f1d1b13ea473eb987fbf1445865f04b67943ebcfeea468ec7b52f9794ff6dd",
+    "AgoraMasterTerrain.mjs": "82a47c8037cd8c52e63243681662636a7e65c48f2ab67b0f9bbc00f20620fef4",
+    "AgoraMasterLayout.mjs": "6eb6d5778ee367c9b39b1e69ddebd93316ccd0ef45edfeecc1088a5d87c203dd"
+  },
+  "spartaUnchanged": true,
+  "policyAndRuntimeUnchanged": true,
+  "qualityCuts": false,
+  "newAssets": 0,
+  "modelsRebuilt": false,
+  "potteryDistrictMoved": false,
+  "personalSavesTouched": false,
+  "sourceCommitted": false,
+  "sourcePushed": false,
+  "onlinePublished": false,
+  "normalNativeSmokePending": true,
+  "atUTC": "2026-11-25T23:11:12.070Z"
+}

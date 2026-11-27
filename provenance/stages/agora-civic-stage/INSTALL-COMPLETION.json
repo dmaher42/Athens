@@ -1,0 +1,95 @@
+{
+  "atUTC": "2026-11-26T21:00:01.117Z",
+  "selected": "442e9ab63921",
+  "entry": "assets/babylon-athens-civic-stage-c4ca3e64d104.js",
+  "entrySHA256": "c4ca3e64d1048337579aeab5e8755f8e49cac6ccb3d3d3508a2196b703ba1109",
+  "manifestSHA256": "c712d181fe78cef6b6ed1bcda10d71c5ce264886da9b560a49e741ef0f8d7ce5",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/442e9ab63921/athens-game-starter/index.html",
+  "localInstallation": true,
+  "rollback": false,
+  "normalNativeSmokePending": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "b31eab078aae",
+    "manifestSHA256": "2c8b07dc12267d187aa1589fc47163f09956fd985674f5a91773d5ae79a00c99"
+  },
+  "managedSelection": {
+    "app": "athens",
+    "id": "442e9ab63921",
+    "pointerSHA256": "13e285fea6e82ef062b35cbf2e852de83f93f0006e899b3cb14b03809a4f2038",
+    "manifestSHA256": "c712d181fe78cef6b6ed1bcda10d71c5ce264886da9b560a49e741ef0f8d7ce5",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-civic-1795726760737.json",
+    "state": "committed"
+  },
+  "sourceCommitted": false,
+  "published": false,
+  "protected": {
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "apps/sparta/current.json": "ec4ed714b53cf50397500d60d61d7916ea4b7b906d39e9c4191f2318a3b1e9de"
+  },
+  "completedUTC": "2026-11-26T21:05:59.895Z",
+  "normalNativePassed": true,
+  "normalChecks": [
+    {
+      "name": "Exact candidate under full appearance",
+      "passed": true
+    },
+    {
+      "name": "Civic buildings and complete neighbouring houses moved as planned",
+      "passed": true
+    },
+    {
+      "name": "Full twenty-metre district gap is clear of architectural footprints",
+      "passed": true
+    },
+    {
+      "name": "All actors and the workshop compound remain intact",
+      "passed": true
+    },
+    {
+      "name": "Both working kiln locations and all five crew stay in the separate compound",
+      "passed": true
+    },
+    {
+      "name": "Visible and walkable earth match at the new civic contacts",
+      "passed": true
+    },
+    {
+      "name": "All mainway support samples match and remain clear",
+      "passed": true
+    },
+    {
+      "name": "Owned native resources settle",
+      "passed": true
+    },
+    {
+      "name": "Mainway turn into the shared civic court",
+      "passed": true
+    },
+    {
+      "name": "South Council steps and real doorway",
+      "passed": true
+    },
+    {
+      "name": "Continuous civic frontage from the court to the Royal Stoa",
+      "passed": true
+    },
+    {
+      "name": "Workshop still branches from the mainway",
+      "passed": true
+    },
+    {
+      "name": "Buy a jar at the separate workshop showroom",
+      "passed": true
+    },
+    {
+      "name": "Usual game keeps the affected mainway open",
+      "passed": true
+    }
+  ],
+  "sourceRecipe": "SOURCE-RECIPE.json"
+}

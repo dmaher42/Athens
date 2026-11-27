@@ -1,0 +1,103 @@
+{
+  "atUTC": "2026-11-27T00:45:43.830Z",
+  "selected": "e1fbd728581f",
+  "entry": "assets/babylon-athens-east-edge-85455ba9523c.js",
+  "entrySHA256": "85455ba9523cb378964ab93459b92b194ea6cf56c60f1ef6a7b89e3642bf5957",
+  "manifestSHA256": "cc7243b304326bbf6d8f7c19a77b91b8a55b8c99275818d60e67aa6fc8920a3f",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/e1fbd728581f/athens-game-starter/index.html",
+  "localInstallation": true,
+  "rollback": false,
+  "normalNativeSmokePending": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "3472b819c363",
+    "manifestSHA256": "489a7f8251dcb89132d957a4f8af52a52a06389423694cf8e575f4b073aee6fa"
+  },
+  "managedSelection": {
+    "app": "athens",
+    "id": "e1fbd728581f",
+    "pointerSHA256": "6b2044961223391d27c6b173aeb256a65899560de5bcd190a2a6c6a87fa57654",
+    "manifestSHA256": "cc7243b304326bbf6d8f7c19a77b91b8a55b8c99275818d60e67aa6fc8920a3f",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-east-1795740325506.json",
+    "state": "committed"
+  },
+  "sourceCommitted": false,
+  "published": false,
+  "protected": {
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "apps/sparta/current.json": "ec4ed714b53cf50397500d60d61d7916ea4b7b906d39e9c4191f2318a3b1e9de"
+  },
+  "completedUTC": "2026-11-27T00:50:50.954Z",
+  "normalNativePassed": true,
+  "normalChecks": [
+    {
+      "name": "Usual Athens visuals and controls at the exact entry",
+      "passed": true
+    },
+    {
+      "name": "The planned end seats are rendered, supported and have clear sides",
+      "passed": true
+    },
+    {
+      "name": "Existing mature shade models stand in the new meeting area",
+      "passed": true
+    },
+    {
+      "name": "Native route anchors and all footpath clearance samples",
+      "passed": true
+    },
+    {
+      "name": "All 650 main square clearance samples pass",
+      "passed": true
+    },
+    {
+      "name": "All 601 Dipylon–harbour support samples match",
+      "passed": true
+    },
+    {
+      "name": "The separate pottery workshop and its ground match",
+      "passed": true
+    },
+    {
+      "name": "Existing buildings and all 72 actor identities stay in place",
+      "passed": true
+    },
+    {
+      "name": "Existing resource owners cover the scene",
+      "passed": true
+    },
+    {
+      "name": "Open square to the shaded east meeting edge",
+      "passed": true
+    },
+    {
+      "name": "Lower lane to the shaded east meeting edge",
+      "passed": true
+    },
+    {
+      "name": "Gathering space to the north market",
+      "passed": true
+    },
+    {
+      "name": "Trade at figs",
+      "passed": true
+    },
+    {
+      "name": "Follow the separate pottery workshop branch and enter its showroom",
+      "passed": true
+    },
+    {
+      "name": "Trade at workshop",
+      "passed": true
+    },
+    {
+      "name": "Usual game keeps the nearby main road open",
+      "passed": true
+    }
+  ],
+  "sourceRecipe": "SOURCE-RECIPE.json"
+}

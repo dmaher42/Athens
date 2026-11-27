@@ -1,0 +1,37 @@
+{
+  "atUTC": "2026-11-26T00:39:44.888Z",
+  "release": "49564b5ab194",
+  "entry": "assets/babylon-athens-zeus-wall-1bf57ca82d39.js",
+  "entrySHA256": "1bf57ca82d390918dcc958edc6f3347e2456260e693ef1abea874e420dba9f1f",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "63d94ede5f08",
+    "manifestSHA256": "983a64971719d7bafdec09db5cab7bf0b4305b11b0a5cbb328c351e84f53fe0f"
+  },
+  "canonicalOwner": "src/core/BabylonZeusExterior.ts",
+  "canonicalPatch": {
+    "path": "src/core/BabylonZeusExterior.ts",
+    "before": "material('poros',[1.03,.97,.83],prefix+'pale-stone-colour-1k.jpg'",
+    "after": "material('poros',[1.03,.97,.83],prefix+'hand-plaster-colour-2k.jpg'",
+    "beforeSHA256": "6f64498362e997b2f7eed74d8ef039811f4087c54913e47891bd110320129fa0",
+    "afterSHA256": "024343e802963f5500b712afe2b34724e96d551e30f15b513217730e63022f12"
+  },
+  "frozenBefore": "SOURCE-BEFORE.ts",
+  "frozenAfter": "SOURCE-AFTER.ts",
+  "nativePatch": {
+    "before": "material(\"poros\",[1.03,.97,.83],prefix+\"pale-stone-colour-1k.jpg\"",
+    "after": "material(\"poros\",[1.03,.97,.83],prefix+\"hand-plaster-colour-2k.jpg\""
+  },
+  "buildCommand": "node output/playwright/zeus-wall-finish/prepare.mjs (historical exact selected parent only; future work must rebase)",
+  "reproductionCommand": "node output/playwright/zeus-wall-finish/reproduce.mjs",
+  "installationCommand": "node output/playwright/zeus-wall-finish/install.mjs",
+  "compilerRequired": false,
+  "wholeWorldBuild": false,
+  "assetChange": "Reuse already-installed hand-plaster-colour-2k.jpg in Zeus poros only",
+  "geometryChanged": false,
+  "terrainChanged": false,
+  "collisionChanged": false,
+  "qualityCuts": false,
+  "newAssets": 0
+}

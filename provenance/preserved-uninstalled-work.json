@@ -1,0 +1,4249 @@
+{
+  "filename": "athens-uninstalled-working-source-20261128.zip",
+  "bytes": 6676646,
+  "sha256": "5f43f53d935054cb86c0b9afce221883459e2b146533d76932909e29b0e9d166",
+  "files": [
+    {
+      "path": "mixed-world-working-source/audio/naturalAtmosphere.js",
+      "sha256": "b367b60bb501ebc03abe62cb41eae16aef743e21c30882b63077c36a00f196d0",
+      "bytes": 6312
+    },
+    {
+      "path": "mixed-world-working-source/audio/soundscape.js",
+      "sha256": "8d4a7684313fd15c664c2606831260c37c82d13e4ce16a1e94755ed90a8bd4a1",
+      "bytes": 23139
+    },
+    {
+      "path": "mixed-world-working-source/buildings/BuildingManager.js",
+      "sha256": "a49a9f11726314e8ca57bf2653e17bac903ead9e20f187ad637c497d56b3fcee",
+      "bytes": 6918
+    },
+    {
+      "path": "mixed-world-working-source/characters/athenianDress.js",
+      "sha256": "0805ecae4455f5137a6b4226d66d7d023bb71e928d9b197cc0e4fc5cae1293cf",
+      "bytes": 13297
+    },
+    {
+      "path": "mixed-world-working-source/characters/Character.js",
+      "sha256": "65c5c2a03071aa550c529176b880a5091544a2074d3ff3dbfb1784d0c5932d87",
+      "bytes": 3905
+    },
+    {
+      "path": "mixed-world-working-source/config/AssetConfig.js",
+      "sha256": "19ea6dd0b0db3f0e06e0d3d961f88150a3fa187cec86051a7157e0d504281b9e",
+      "bytes": 4734
+    },
+    {
+      "path": "mixed-world-working-source/config/athensLayoutConfig.d.ts",
+      "sha256": "9242a4abe386d0e7457f33d9f03f5faeabc8d3418c34827d32b135852821be93",
+      "bytes": 926
+    },
+    {
+      "path": "mixed-world-working-source/config/athensLayoutConfig.js",
+      "sha256": "e96bcfc6b95a762920c060d97e24de275c2c76c2d2676fb1d350a062b1dcb93c",
+      "bytes": 8129
+    },
+    {
+      "path": "mixed-world-working-source/config/debugFlags.js",
+      "sha256": "0c9f94bd9d33d713d13516c6118accb8c152784892e2d7aafabbd61793c5f07a",
+      "bytes": 1629
+    },
+    {
+      "path": "mixed-world-working-source/config/EngineConfig.d.ts",
+      "sha256": "05326f660622b32e581c9fc65c57a7c4d89b8753b8be03f63bc08358212f4df5",
+      "bytes": 771
+    },
+    {
+      "path": "mixed-world-working-source/config/EngineConfig.js",
+      "sha256": "8cd8971776b7e4595b607b0377946d7ea58c0c46f532b3a6c14a744a9c44cfa2",
+      "bytes": 5645
+    },
+    {
+      "path": "mixed-world-working-source/config/index.js",
+      "sha256": "be2968bcd9f52457602663ca6beb6e1a1d6c931776600b237e65072f9d806f54",
+      "bytes": 1354
+    },
+    {
+      "path": "mixed-world-working-source/config/LightingConfig.js",
+      "sha256": "f58cb93b6ed26bfb5116a70aed05bfb11bb68b3868e6c1391579e83d372e0118",
+      "bytes": 3169
+    },
+    {
+      "path": "mixed-world-working-source/config/LookProfiles.js",
+      "sha256": "4237409d3ede9e3cc0e3f6dca9140d9c7f52e514e09d0022d839aa83f6b09df7",
+      "bytes": 3703
+    },
+    {
+      "path": "mixed-world-working-source/config/skyboxLightingConfig.js",
+      "sha256": "df9f325249df9d7f12ca18cca287038d5aa662eaca0e2195f0e09a5cab27e875",
+      "bytes": 392
+    },
+    {
+      "path": "mixed-world-working-source/config/terrainMaterials.js",
+      "sha256": "9bc53b227b5db81a4a0f86e9a07f1fb577736f11f947278bc6f64443375c12b4",
+      "bytes": 250
+    },
+    {
+      "path": "mixed-world-working-source/config/terrainShape.ts",
+      "sha256": "4008ee2c526ce7f828821bfe0636be72a7d1b495d0cfb2b034f16e179145ff9d",
+      "bytes": 946
+    },
+    {
+      "path": "mixed-world-working-source/config/utils.js",
+      "sha256": "b58c35fdcd3521efa2ef6c48297a3417eb8c34c4fc56099081f06fe06b823406",
+      "bytes": 2435
+    },
+    {
+      "path": "mixed-world-working-source/controls/AutoWalkGuard.js",
+      "sha256": "21f226e0b60956220cd25502bed69b4c44398036597bcd80db1bb2c5a0ba719b",
+      "bytes": 2373
+    },
+    {
+      "path": "mixed-world-working-source/controls/HarborEdgeRecovery.js",
+      "sha256": "32ca76521c64fe717efa29f71aaaf7fa8960ca372cab1e912805bb142214a5be",
+      "bytes": 3266
+    },
+    {
+      "path": "mixed-world-working-source/controls/PlayerCameraVisibility.js",
+      "sha256": "3de5d9f5400131bcec828e688d660f72a135f913fe155daeeadac8d2d04feca4",
+      "bytes": 1011
+    },
+    {
+      "path": "mixed-world-working-source/controls/PlayerController.js",
+      "sha256": "a8f2b512416aea7ced7d991e5eb87a8f05dcc0a202c8ba7124724e71c0d1fb93",
+      "bytes": 14833
+    },
+    {
+      "path": "mixed-world-working-source/controls/roofCameraObstacles.js",
+      "sha256": "cb18f807b08662e4ec8d972624ee67a7826a157c6777a7b3fb04aa2e637788a6",
+      "bytes": 2198
+    },
+    {
+      "path": "mixed-world-working-source/controls/ThirdPersonCamera.js",
+      "sha256": "48ebf325639fd1ed01c0568455939e7fdf42c24aa99f4705d966fdc6846782e7",
+      "bytes": 23353
+    },
+    {
+      "path": "mixed-world-working-source/core/AgoraMasterLayout.mjs",
+      "sha256": "11caae042825f56a7a150ec68469d68c28d934e8aaa7a7102d3cc72e363615c2",
+      "bytes": 11204
+    },
+    {
+      "path": "mixed-world-working-source/core/AgoraMasterPlan.mjs",
+      "sha256": "a67b83f6175553756c8b4681a260b84712384ff90a50e79c971625d948e0d704",
+      "bytes": 7898
+    },
+    {
+      "path": "mixed-world-working-source/core/AgoraMasterTerrain.mjs",
+      "sha256": "e97ce3e860bbb99b0d76aab1d23e652a8d03a060a6a36dc198654d1790d1bca7",
+      "bytes": 11197
+    },
+    {
+      "path": "mixed-world-working-source/core/Application.d.ts",
+      "sha256": "72b1c01ef7b6855fa485f1d02aaa2badcfa51c8d30b33512dca47647fef53e5d",
+      "bytes": 282
+    },
+    {
+      "path": "mixed-world-working-source/core/Application.ts",
+      "sha256": "96c224149bf6d8d3351a9f248ade8da71ba56ad876aafd98f5d26ee0f71b4f2a",
+      "bytes": 66487
+    },
+    {
+      "path": "mixed-world-working-source/core/ApplicationRuntimeControls.js",
+      "sha256": "d623ee36c8cb55ceb67b6c6ac09d4752dc99584c2c710e9207b06250dad9df76",
+      "bytes": 6375
+    },
+    {
+      "path": "mixed-world-working-source/core/AssetLoader.js",
+      "sha256": "4812f0b6e08ed88c6a77d2d79b76316af88eb533247e6007c4b50c040e545f6d",
+      "bytes": 18664
+    },
+    {
+      "path": "mixed-world-working-source/core/AthensDialogueFlow.ts",
+      "sha256": "a49d7c5d5e604c0582aca0249dd62aceef34a3cc1359fae6ff2e092f8760ad66",
+      "bytes": 8141
+    },
+    {
+      "path": "mixed-world-working-source/core/AthensGroundCharacter.ts",
+      "sha256": "99099cc484cb69dfdea0d61b085bef6d374cbf557ee94385c70e7ac2b913dd57",
+      "bytes": 2173
+    },
+    {
+      "path": "mixed-world-working-source/core/AthensNpcDialogue.ts",
+      "sha256": "dcd78d9ab9d1abef9dc500b63f2b853b8715589c6e5968ab0ab4322d7fc1e24a",
+      "bytes": 12263
+    },
+    {
+      "path": "mixed-world-working-source/core/AthensResidencyCoverage.ts",
+      "sha256": "56f138ee19855821e8f76cd74669c072dcf9b3de50c722322147800ee21afb98",
+      "bytes": 3860
+    },
+    {
+      "path": "mixed-world-working-source/core/auxiliaryPassShadows.js",
+      "sha256": "51a21fcd59755d7a7c53c303d6fe013579a930a9a49b324169e2a6d6f798a431",
+      "bytes": 609
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAcropolisAscentGrade.ts",
+      "sha256": "9546afb2fc5a56b3325585b33ca917ae67117e6fd9a39181028be9dcd520bdd9",
+      "bytes": 1301
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAcropolisBridge.ts",
+      "sha256": "c806e1399a5dbb6faa577e01195287aa95974408084242537a0054b30e553b48",
+      "bytes": 7247
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraActivity.ts",
+      "sha256": "5877bea4d741958441340a5803fd5c3068e0f0bc5cd9403f85322e852e24e535",
+      "bytes": 22358
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraBridge.ts",
+      "sha256": "2ce892de64f551379c87b148aa4dfbbd7136c6fafeae8f69dfa7ea4f0de9df7d",
+      "bytes": 15072
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraCompletion.ts",
+      "sha256": "fa6e195e10254734bd57aa8d6463c2937332ac0db4ed0553db5cdacc04702f87",
+      "bytes": 7934
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraEconomy.ts",
+      "sha256": "a9b73f3e2eb9cb070cd4dbcbdee5cf9d014fcca2fdb27de762ab4f21967c1b6c",
+      "bytes": 3489
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraGround.ts",
+      "sha256": "dcf1be271c2f927ec9d93d43f1073920006f6719a76e721c3a56bed191b13245",
+      "bytes": 50609
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraHouseRemoval.mjs",
+      "sha256": "fed073c102688f276b7a421dd40bc9e0c9ec90ccd82fb578314bd3f72c5f4d56",
+      "bytes": 9628
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraMarket.ts",
+      "sha256": "b317d066d2213e8f0efa1dee7c7c7d06ea1d868511de0ef5c67c62facd00420e",
+      "bytes": 10366
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAgoraVerge.ts",
+      "sha256": "a1bcfeec18fb737ba2ed1727660a009b9663d49b8deb2f27d49cab35dcdf7126",
+      "bytes": 4410
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAppearanceEditor.ts",
+      "sha256": "1aebf9bb41ba0b371e55d2229e5d950d9bc21e1da678bebe7baed9d10f05213b",
+      "bytes": 34304
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAppearanceRegistry.ts",
+      "sha256": "895efabc9a0180c8f29e314b12219108340e8a629edc703c49257e2c16621e00",
+      "bytes": 27845
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAppearanceShader.ts",
+      "sha256": "0668c79e3b11b2824153e2d51a76a822e76628b38f0cc2112220514be3d96575",
+      "bytes": 4646
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonApplication.ts",
+      "sha256": "cd7e4d512775db3922ab4faf7d64a18aa0b9ae9a93cdd99204312da7efcfeb3d",
+      "bytes": 49800
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonArchitecture.ts",
+      "sha256": "9ceca47b2dee0496624c2b6693e9e104610c401ab5988328a1774d8ae1ae9f47",
+      "bytes": 35716
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAthensLut.js",
+      "sha256": "eb6ac47e3284ed2b1d907d7aa1909c055e09c93a989b11362ecf4aa4042ac105",
+      "bytes": 4156
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAthensScatter.ts",
+      "sha256": "8f1b69478a5f974eb94cafa0009d6664267d93dde65157ffc09b83db850d7700",
+      "bytes": 6611
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAtmosphereBridge.ts",
+      "sha256": "b158d5cd6ba5714e907dbbe7b68e103db900946765ac5ea0fa6e98d7325f4398",
+      "bytes": 18685
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonAudioBridge.ts",
+      "sha256": "96db76ca6e7808d309904c34bd8391535e6691c163e163ede8b901c07049942d",
+      "bytes": 5611
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonBackdropBridge.ts",
+      "sha256": "776392e430988e831c2f30addb8270172f013d865ef4666a97914b9a9466da46",
+      "bytes": 7217
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonCharacterBridge.ts",
+      "sha256": "4e2e25b9eabb499b8e51f676bdcc1084d56e38c8b898bc616605781e935c924a",
+      "bytes": 8576
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonCityBridge.ts",
+      "sha256": "0117c9f732f036e2fd17fa28195974e5170b622560af3f3ce590f9010ecbb55f",
+      "bytes": 17626
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonCityGroundMask.ts",
+      "sha256": "9e9168e418d0b65742a380e8fa71460303be01a4beb64b54e81971fed701b36b",
+      "bytes": 7823
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonCrowdBridge.ts",
+      "sha256": "8bab86c029e037f2ba9dea77fbd0123cec050e2cc6017d4fb0f8f4e0d1d83db7",
+      "bytes": 8916
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonCrowdRenderDetail.ts",
+      "sha256": "64647fa59195b645fcba28c258942cd69fb83b5226e1f24888a181da765d59f6",
+      "bytes": 6859
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonDaylightSky.ts",
+      "sha256": "0783806ea90ea45783947bcfc3720d6668637418f581a32e91c2f85626d42a50",
+      "bytes": 5517
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonDialogueBridge.ts",
+      "sha256": "75045519eb2d5cd7d39901daaf8c288d4a034b09e5f5cd52f6841871938c57e6",
+      "bytes": 32247
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonDiolkos.ts",
+      "sha256": "9e9cc2540971ae5226fa40b05c2f1eb7163839de9ae688c731ed332756dd315f",
+      "bytes": 12117
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonDiolkosWorkshop.ts",
+      "sha256": "75e2cf4d8c6438dd17825b74e86284a11c4dc022f7aee831ef225d0119796044",
+      "bytes": 12262
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonDiphrosChariot.ts",
+      "sha256": "13c119f55d5bbc85da4e9b74af743161f90be4cd40096f44006d8b23f282c338",
+      "bytes": 4024
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonDistrictCollision.ts",
+      "sha256": "791948061b8d42af3cb141da5bd4dab0c71c71161d8993f6aa2d00e6173d9fe0",
+      "bytes": 3181
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonDistrictStreaming.ts",
+      "sha256": "cf90af8e372572ffef5d495aeeecbad60e6226e212e947d6196aee5c4bce53f7",
+      "bytes": 8537
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonEleusisSanctuary.ts",
+      "sha256": "da29a65b9292e098b05ab0d0510b5fcaa1cc73f8e42d01d786b15596261271da",
+      "bytes": 19888
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonFarm2Encounter.ts",
+      "sha256": "4d19471bf3b1b0c3d0471747b0da8008db3cd1463c3bb50baec564482ba3c7b1",
+      "bytes": 10908
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonFarmSheep.ts",
+      "sha256": "8885ede9bb24869e2b11fb75e56a1534c156b3de652063bb983aec4bda94b7c2",
+      "bytes": 3678
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonFarmstead1.ts",
+      "sha256": "cff84bbcb889ffb4dcb40dd3c6164dcb189455464ed135767021e82674641488",
+      "bytes": 9606
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonFarmstead2.ts",
+      "sha256": "d99263601b4695e4ba9bf164d241873acb76a761ae4ca8058d41c6c808ab95d2",
+      "bytes": 20291
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonFarmWorkers2.ts",
+      "sha256": "7fc3d6ce73bfa313c35880d0b61e883325e4724fbd3a79fd879ff29f6a96fb2a",
+      "bytes": 6366
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonFoliageBridge.ts",
+      "sha256": "cf2073cb970e6b872c8cad19fa3219fac4243cc26a82147866407c57572fb2e2",
+      "bytes": 5841
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonGateArrival.ts",
+      "sha256": "9c23694d73047d25ec11eb1b482f977dc4afe79e46a4a9b4d920de2cc7194574",
+      "bytes": 12268
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonGateArrivalPlanting.ts",
+      "sha256": "43444681ffa2f90e5e51a404a02fdfc93f03b02d3b459b8f1309cdea4a26fdc1",
+      "bytes": 13177
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonGateDistrict.ts",
+      "sha256": "bf98b22f9b991e63a353f15b734607d90a2479d1d16bc07bf48df111156f5c29",
+      "bytes": 12964
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonGateFinish.ts",
+      "sha256": "aa9f8426ec463de8b99d8dc0666ad468a3050e1a4f05b7117e7b699d1889a41a",
+      "bytes": 12511
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonGateHarbourMainway.ts",
+      "sha256": "ebd82cea0661f19396156278229056160aeeafef0f35168be28d0d33000ea909",
+      "bytes": 15031
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonGateRoadGrade.ts",
+      "sha256": "80bce139938ee30a210d72de5dc4e95044119cfbe9758d9166796c7144e1cafb",
+      "bytes": 2689
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonGateTowerFinish.ts",
+      "sha256": "dee65f5d74aca33959836ecf53f2fea235950360dbeb12d69d83a2602a446c1d",
+      "bytes": 16945
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonHarbourDistrict.ts",
+      "sha256": "741a9f80115a2dd55517acaa9c7183880403fc081c8936910e48348ba2161975",
+      "bytes": 55802
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonHarbourTerrain.mjs",
+      "sha256": "216fca601ffee64338408a530f5b37b07065900b26237b83dad945740f9b27d2",
+      "bytes": 19975
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonHarbourWork.ts",
+      "sha256": "1c6ada63aa2a4ffa42f093f43bdd613406ca0bfcad974daf272ab16972e6d5de",
+      "bytes": 46351
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonHopliteDriver.ts",
+      "sha256": "3990523125a983acd0c2ed59b3a2388f7e95fc2892b8f7b396c619f8837cd04b",
+      "bytes": 7357
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonHouseholdPlan.ts",
+      "sha256": "6b834ab5fd15b3da76b1e56f41c3369a5b77099b998cfa11bcd122c65f9c481b",
+      "bytes": 11142
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJourneyBridge.ts",
+      "sha256": "7c8d0313d3c360221a3fb9608e4376da3373b5d770e2c3151174c8b7611ce951",
+      "bytes": 26844
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJourneyGround.ts",
+      "sha256": "68fa2d7e7cde60ce099dd561c25ba8eebc61f695e8c50fea37741ecb8a5c2a5c",
+      "bytes": 14496
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJourneyHandling.ts",
+      "sha256": "0e4090456c7866efb303a13115bdc9b884deb1d75c5b5f7dfa6621603becdbcd",
+      "bytes": 2108
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJourneyModel.ts",
+      "sha256": "5ddd162530d7e9bcd8ebfbccf3ade1ae99c8253b5437a3353cd38fbd322127c9",
+      "bytes": 14846
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJourneyRoute.ts",
+      "sha256": "5a3a549ea267b8cbae9763aa2490c354de4be9250d6a7ad37304ba6a6b7cea3b",
+      "bytes": 5755
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJourneyScenery.ts",
+      "sha256": "2dfa8aa8f165b51049ed30cb2e5df8d581c57d54219b7081b60116842f7d8376",
+      "bytes": 21743
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJourneyState.ts",
+      "sha256": "4090842a2e2a11a46f23d355cff9be47cfd5e2b59dc01a1250808d6b2a2b33ff",
+      "bytes": 979
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJumpMotion.ts",
+      "sha256": "7b3707239d9252240981b9ddafac1ec8cb6a9d58f826a259177d43d6602c1be7",
+      "bytes": 5594
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonJumpSupport.ts",
+      "sha256": "09df0c516840b6439c793b2c2da2c2bbeccffe1bd691b3717743385261e9786e",
+      "bytes": 4078
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonKerameikosTerrain.mjs",
+      "sha256": "ab704d784eacf6e5760fa8fac8287def072c974639a23181d94e460c29ec15f9",
+      "bytes": 21351
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonKilnCycle.js",
+      "sha256": "cd8bfa304f262a168d772be99f248e545bcc583d178145152a200b099d22fe8b",
+      "bytes": 1441
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonLivingStreetMargins.ts",
+      "sha256": "828d93f4c5d4da6e9d5b65657fc729b78f8d2217218ece48041419345a20559a",
+      "bytes": 21757
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonLivingWorldBridge.ts",
+      "sha256": "6407f31e9238f1ec1b12112e21c6375caad224888f7f36c05b6a7730e33a4c29",
+      "bytes": 22129
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonMarketDistrict.ts",
+      "sha256": "107b90cd4cb0d1add38e848499224bf8bb307a5ef6d0d1b3074d3e0009de7e77",
+      "bytes": 7895
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonMarketFoliage.ts",
+      "sha256": "0b93b525f95595672f9fd6b7a3cf08023699539b80835857d3bb6d86c213ab5f",
+      "bytes": 2428
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNativeHousehold.ts",
+      "sha256": "34273ac935f23c26d1437926e9746ec323aa894fd55b2f33e610725cff90f46c",
+      "bytes": 34808
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNaturalOlive.ts",
+      "sha256": "b5906b36ec1b7d767f38119ba684d2d9bc4565112793000ff521a07126e5e4b6",
+      "bytes": 4832
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNewBouleuterion.ts",
+      "sha256": "3ebd8d1bfa6dc311350529efbc5fbb456923002fe0bf04b384b17588bb156b1e",
+      "bytes": 18570
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNiseanTeam.ts",
+      "sha256": "e9f3ae1cfe07361d5bdf474a61b9b99494c338a48e59c5f32709b57ef3bedd32",
+      "bytes": 7014
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNorthernBlockPlan.ts",
+      "sha256": "fd85b5c4b608af2b3513b04f432b29e9a27e7a72d6424afea3a7e75c269bd324",
+      "bytes": 9988
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNorthernGardenFinish.ts",
+      "sha256": "0cc8dd398a8cd76ff2fb5ad03d17a56a8f1f940146bb22d9ffc4b5c810768332",
+      "bytes": 20713
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNorthernHouseholdDistrict.ts",
+      "sha256": "fa36e03bbc0afc9c65cb9542cf402d4975ce27ca732f23eeaff4c4814aac8358",
+      "bytes": 10292
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNorthernHouseholdPlan.ts",
+      "sha256": "a0ef9c9dc4e448a4aed207c3242711f1b11064cdf756fe923f10451cf86baf6b",
+      "bytes": 5511
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonNorthernPublicCourt.ts",
+      "sha256": "8d6ce64fe2e92c1ae2ebc76c0ebeef01d8b9b57210d22157748efbdf06ff4888",
+      "bytes": 14143
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonOuterAthensLandscape.ts",
+      "sha256": "8d83701b7bc6b200e8dda4fa210df32ac05870d7630ccb05d97eddccaf7c1d41",
+      "bytes": 21069
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonOuterAthensPlan.ts",
+      "sha256": "7a1cf0e35eaa19f09d7c352ae76b5bbf5b67f38df3088dc7e6a7c881c0cc9449",
+      "bytes": 8533
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPaintedStoa.ts",
+      "sha256": "68fe3c1cb7ca38f8af96428e0fd5971ae528105ae3002edaedb9743992fc4293",
+      "bytes": 23437
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPlayerController.ts",
+      "sha256": "11968cb89047c735d78a5b054492710544c4110f7ff8844897ecc998d45aa39e",
+      "bytes": 31152
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterAccess.ts",
+      "sha256": "1049e820c3a24359edf44ebae03936695690381a827f4c1f8902cf41c8fe7740",
+      "bytes": 18427
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterApron.ts",
+      "sha256": "61dcbe29968d1996d243ba80453fd077de6d264c6ed9d3207e7c37a8195ebead",
+      "bytes": 21150
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterCraftLife.ts",
+      "sha256": "36b7601af9d0c7e85432e4e8c5b5a3e9ff0a0c7ba525a6837f0591d6b2d9fe87",
+      "bytes": 10046
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterDestination.ts",
+      "sha256": "98af83540b0ada0c961bdb18a778681cb3df225b004be7a836e8faee09f4d766",
+      "bytes": 49540
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterFoundationPolish.ts",
+      "sha256": "4e3e27907cd0d17a98cb9583e686d8bdb606e5d4b6f2e3c15eddea9f548214fe",
+      "bytes": 16592
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterGallery.ts",
+      "sha256": "a6428b8eff2514ba83daa6c2e92c028d990d981c225c6d9d4acc307ed3fc5014",
+      "bytes": 4915
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterGrade.ts",
+      "sha256": "70b1a7bb85961952787b703850e4bf92de0efd6dc9d85bce9417638ae5426733",
+      "bytes": 15096
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterKilnStation.ts",
+      "sha256": "d1dddcc649a2b05da28819067a90e1bee647a8155b2ab5cca77545246585d3fc",
+      "bytes": 19590
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterPrecinct.ts",
+      "sha256": "6e0c56e7acd1270be22579ba2a52b029fb22cc1814bd0152b6e2f2acb0421b03",
+      "bytes": 9707
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotterTender.ts",
+      "sha256": "701ee4501079dbbf9f835e8507b258e8ea2817f78a4d9dbd0c26792ebf0879c7",
+      "bytes": 1814
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonPotteryBridge.ts",
+      "sha256": "f77a677496c3d2b6ce685ca0a83b21d23484027f04b55d55ffed4d51952c596b",
+      "bytes": 11032
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonReferenceWalls.ts",
+      "sha256": "5a24af97b6b6b494df811f4b5dcedbbcf2b50c7f996b4690d8baaa9e96711082",
+      "bytes": 2317
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonRestoredCourtyardHouse.ts",
+      "sha256": "687b9951b19c12525190814ee9e6e4e08e05f869005a26bf7b7602c195a3a512",
+      "bytes": 28458
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonRoadJournal.ts",
+      "sha256": "b98313cc5902dc4fabf190ed58fb24a92fe39e69f234eb7ce34e7454f13718aa",
+      "bytes": 14022
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonRoyalStoa.ts",
+      "sha256": "5d42d1b0ddccedbabf9f110ce8d6853c540d18763ecfea1f372f2cb63389ab8b",
+      "bytes": 15693
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSanctuaryIntegration.ts",
+      "sha256": "c302912798a0f8efe67fe8e142f984f57d727daf89ad9e107eb4b587d7a0cd48",
+      "bytes": 1174
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSchoolDistrict.ts",
+      "sha256": "049af18f314092af02de7fa94aedb07c896ee50803034cdf16d035684a89e03b",
+      "bytes": 31155
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSeabed.ts",
+      "sha256": "fc3048a851fb029804f0a3f207928745822af93b0e8860a668b7b20d1af3d970",
+      "bytes": 4296
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonServiceBridge.ts",
+      "sha256": "0b22bd457d9cd84fdfe7702cc514696f33e870dad0a89021b05efa79905d746b",
+      "bytes": 2822
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonServiceState.ts",
+      "sha256": "b58f0eaae7acb589bacd0048d1c214feb4c18a8a8be6c321b322b20ac63a2b0a",
+      "bytes": 4425
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonShadowCasterIndex.ts",
+      "sha256": "fe88607bb26aab64ee3d7b7eff86f25a30061d4612fad88de5e023b8d79a5633",
+      "bytes": 4298
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpartaArrivalRide.ts",
+      "sha256": "8c8ee012ac37855b5050e01eff04c0201fc44ec84962a79538ace3b9d7b38a68",
+      "bytes": 7256
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpartaCourse.ts",
+      "sha256": "d7d49884eb4e6592c202bd2fa0cccb63d143f7cf118441ef12af236456199e4b",
+      "bytes": 16395
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpartaGeography.ts",
+      "sha256": "f8a91802c6a8a90c8e6802cd088001e4c09334a44a0663e2c9eb667bafa79486",
+      "bytes": 2326
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpartaLandscape.ts",
+      "sha256": "ae20825b04a6bad0f559685b6278a6b89792ccecbaf49481a81ef2d0c4aa2c32",
+      "bytes": 36965
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpartaRegions.ts",
+      "sha256": "49805da8634bf6db2163f48f2a3060ce75438c85547cf28a744734fd1a3f8ee5",
+      "bytes": 4813
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpartaRoadScene.ts",
+      "sha256": "e9944a6615a0b20f0552db525d34652e6aec6a2a02e39dbdc655808407b5fe44",
+      "bytes": 5234
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpartaScenery.ts",
+      "sha256": "a028334970b540a9b74c0b7348a91a09f0f3754c871012e1d0fc41ad1d45f083",
+      "bytes": 32568
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonSpatialSelection.ts",
+      "sha256": "dc4d7aed5db11def184918100f1bd53ce4d9912b388f7d9361725e0e85670df7",
+      "bytes": 7499
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonStaticDistrict.ts",
+      "sha256": "89f4de94b4d697986a6a90e0a7a253fd21d8c92023a01f3cc55e41fe3e8ed4b2",
+      "bytes": 10430
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonStreetLife.ts",
+      "sha256": "10980ac3c176e1f94a404d9fa3ee480d3082bc6311281c7a8887bc476694829e",
+      "bytes": 43873
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonTerrainBridge.ts",
+      "sha256": "3db122ea95d59659ed13b7ed8fe15a8f19b1f6e7185d66e77de2e1d7319b4201",
+      "bytes": 18006
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonTriangleHeight.ts",
+      "sha256": "74b63253c6e2defeea0d2e023cabc40885b9cb1d0ed3d0d5e9b9f8be01eb3997",
+      "bytes": 1372
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonVisualUpgradeBridge.ts",
+      "sha256": "b2df85443afee9a94cb02bd5c2aad287f1ab6280aeb265d921facebe59e18375",
+      "bytes": 8003
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonWalkSupport.ts",
+      "sha256": "4745cba54e3c60a37b93cc25ba98078d123d0296dd1e1476bd72fc9dccea7d68",
+      "bytes": 2606
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonWoolServiceYard.ts",
+      "sha256": "d8a3827ed2911a3d8a4e88365f2769996f8add3c47d2c34297c3bbf72852ea90",
+      "bytes": 35273
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusConstructionHeight.ts",
+      "sha256": "d180bd7eb899e23132ca47de3a61a6138ee8e258c6793dcdf418dd33eb60d1a3",
+      "bytes": 12307
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusExterior.ts",
+      "sha256": "024343e802963f5500b712afe2b34724e96d551e30f15b513217730e63022f12",
+      "bytes": 36810
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusIntegration.ts",
+      "sha256": "c6709f57c426bbdd86ae3d5bbd0ad82cf6e085a598cf2bacdc2eab2c1619ad80",
+      "bytes": 1518
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusInterior.ts",
+      "sha256": "b9c0da8c16f9de7d90cd9e9b5c97e08c17d8990ba13291e7db12c7d77f510686",
+      "bytes": 20751
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusInterpretation.ts",
+      "sha256": "8d75efa2620b1eab9ab87c8dc1dca4781523a53fc34c6b1abba6970ad0a28b65",
+      "bytes": 7575
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusNeighbourSupport.ts",
+      "sha256": "6c2bbd2779a2e5efd181373744e89885b4a1807347ad86005a9eaa72ac5d67bf",
+      "bytes": 4236
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusRoutes.ts",
+      "sha256": "c1ad278acb4bc295f0388db03d4cf23238f60a0b5c87abc559bd81def42c1f29",
+      "bytes": 11180
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusSite.ts",
+      "sha256": "8b73b7470b881131f994d92b3e3ad71a6883fc890533086c3e585f9845a2f697",
+      "bytes": 30247
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusSiteCamera.ts",
+      "sha256": "78939d8dfee96f77dac8fb1d137752215651a9ca4a7144e0f180db0cd6e46384",
+      "bytes": 3736
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusSiteGrade.ts",
+      "sha256": "43d2a28e3815acef7e392f8db7f9e18b16ed69c911175b1f79973f5ee2ce7445",
+      "bytes": 15895
+    },
+    {
+      "path": "mixed-world-working-source/core/BabylonZeusStoa.ts",
+      "sha256": "355a48e460ff6e424525a45323b4dc99de104d5a9f4412b7d0f8671704e3f855",
+      "bytes": 9041
+    },
+    {
+      "path": "mixed-world-working-source/core/benchmarkPlanRoutes.json",
+      "sha256": "93fdb47feb36fc0ddc56040f04aa1d176a76e030dfd97e32119d298cbf86b36e",
+      "bytes": 5251
+    },
+    {
+      "path": "mixed-world-working-source/core/CameraManager.js",
+      "sha256": "0d6703067224fba5ac3828932643c9a4ff2224b348601336530a09807ae22abb",
+      "bytes": 1744
+    },
+    {
+      "path": "mixed-world-working-source/core/ChariotDrive.mjs",
+      "sha256": "00d9e40460b25ac1035fdeb36a013f2c5616accd8f3f115605092cddb04ba302",
+      "bytes": 3110
+    },
+    {
+      "path": "mixed-world-working-source/core/ChariotRide.mjs",
+      "sha256": "b7a7419784a01e87651154f68945415fbe82265196f40ba578426109fc9dddb0",
+      "bytes": 8361
+    },
+    {
+      "path": "mixed-world-working-source/core/ChariotRoadFinish.mjs",
+      "sha256": "a7e4a6818b9feed123880d3196257a1fb6840dd407bed199852823293b82e634",
+      "bytes": 1513
+    },
+    {
+      "path": "mixed-world-working-source/core/ChariotRoadStop.mjs",
+      "sha256": "dccd64f89ef2e9ea60b165f42f473ce2419203ade3ed34e67fb8be07ae00996a",
+      "bytes": 1378
+    },
+    {
+      "path": "mixed-world-working-source/core/contactOcclusion.js",
+      "sha256": "ba869978aabb97fa1b72c1fe5c4fd6d054c376ebde363dc6d07c67e517c37700",
+      "bytes": 446
+    },
+    {
+      "path": "mixed-world-working-source/core/CountryLandscapeLayout.ts",
+      "sha256": "d1b5e9d2c7dd26c98d816e18f46d0ea11422e0b7a91dbcbe8adb690465e9e2e9",
+      "bytes": 2342
+    },
+    {
+      "path": "mixed-world-working-source/core/CountryPlantingReservations.ts",
+      "sha256": "86eca8dc062a8ab653920cd47bb041900f2d74cca49a2c49da1c9aa0357253ad",
+      "bytes": 2142
+    },
+    {
+      "path": "mixed-world-working-source/core/EnvironmentManager.js",
+      "sha256": "06e1847a5c16e59ade112d4b80c3c70f8d42532c66c4aac42979a28a884a5859",
+      "bytes": 5401
+    },
+    {
+      "path": "mixed-world-working-source/core/Farmstead2Finish.ts",
+      "sha256": "7c33a48c420079015e13bea668b8dcfee1fafce854cfeb9d363499df386b7542",
+      "bytes": 15132
+    },
+    {
+      "path": "mixed-world-working-source/core/frameWorldMatrices.js",
+      "sha256": "85dc25265d438d3436a99b9fabf1c8fc5c510826d8b86c314a68d48ba2e2993d",
+      "bytes": 494
+    },
+    {
+      "path": "mixed-world-working-source/core/GameLoop.js",
+      "sha256": "9406c8c5a6a032076beaf1bb912f2acc6f16976fb83a8ad9338ecc71667f8f66",
+      "bytes": 3427
+    },
+    {
+      "path": "mixed-world-working-source/core/HarbourTerrainPlan.mjs",
+      "sha256": "5fcd4d5c5f2ea451d75088c901ee9c0fce9ea504ab884cbbcefd9072dd28b552",
+      "bytes": 6164
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosCemeteryGrade.mjs",
+      "sha256": "2fa836d56a52affb7dedd6243f86cde07734188990024c0fd813d0313458e4f6",
+      "bytes": 2126
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosCemeterySurvey.json",
+      "sha256": "510bb5eb876b56f70c498672bd7bc0599a9f424659c69e8555650fa7129bc043",
+      "bytes": 30425
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosCoverage.mjs",
+      "sha256": "aa509f8c916b98b0bb292ed6df66a731120e0947933c7c9f5cb966bb4dda68af",
+      "bytes": 1256
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosNativePlants.mjs",
+      "sha256": "c8b04412ebfa94efee2f62c10dd00ccf192775a6b87c03d9112bc152db6c5b10",
+      "bytes": 1525
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosRockContacts.mjs",
+      "sha256": "b96e677b7084df75355f57f45bb22b6dcd616d09bf4cad5814ef863a4b31cd6e",
+      "bytes": 2315
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosSampling.mjs",
+      "sha256": "b4ce2d73d0163d3fd206464934d47b63150057b76b51da7031bd96fd0bdf4684",
+      "bytes": 4071
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosSourceFootprints.mjs",
+      "sha256": "17f8ea8f1b1f5dbf897de33b7955ac3cba2a06851653f29aaf5084bd16f284b1",
+      "bytes": 494
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosTerrainPlan.mjs",
+      "sha256": "758b13f4cbff9840a135b82fbc6327df9305ef11caf49a66a2f99f630b3d804c",
+      "bytes": 13956
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWallPlan.mjs",
+      "sha256": "aabf07617150b30e2c376c377459678f28832044706925a8c0f1ccc8b61f7e40",
+      "bytes": 2527
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWallSurvey.json",
+      "sha256": "23895cd44a6ca6278f32299b8f5f9f0db7223f5df94e9da44808b9db939bbdea",
+      "bytes": 15044
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWorkshopContract.json",
+      "sha256": "6d089b2104f469877b448b0d8c31e0af61c1752f99c37be66661f4616ad1ecd7",
+      "bytes": 7724
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWorkshopHouseClearance.mjs",
+      "sha256": "091b0af87bd62e4b51917238878fbccc0fe133b1571a927ba48ae9e4e17d9673",
+      "bytes": 984
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWorkshopPlan.mjs",
+      "sha256": "c11edb9f6a5aa4fff55f6fa7b9667e8b5175c37132069deba66c77ad278d21b2",
+      "bytes": 2606
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWorkshopPlants.json",
+      "sha256": "a55d11b6ac3eafc30b826b5eb1bdcef376fc4ad8a71cb71dd9c1bb5e1f5b9a9b",
+      "bytes": 2980
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWorkshopPlants.mjs",
+      "sha256": "cfe81a9c55106fba5559edc86117bf56427a356f9c9853582d7c1e9093e7acfb",
+      "bytes": 3584
+    },
+    {
+      "path": "mixed-world-working-source/core/KerameikosWorkshopSurfaces.mjs",
+      "sha256": "c3fb00ac679cf220b246a37aab563bf00090a669ef1a4da28412122da772b484",
+      "bytes": 2463
+    },
+    {
+      "path": "mixed-world-working-source/core/kiln-cycle.mjs",
+      "sha256": "cd8bfa304f262a168d772be99f248e545bcc583d178145152a200b099d22fe8b",
+      "bytes": 1441
+    },
+    {
+      "path": "mixed-world-working-source/core/NativeCountryBackdrop.ts",
+      "sha256": "106a17347b2c4942351a3d2cb2ed937dc6dc60a2e8c6acb643115f1c445c72d2",
+      "bytes": 11797
+    },
+    {
+      "path": "mixed-world-working-source/core/NativeCountryCollision.ts",
+      "sha256": "49530fe73bdf27ecda4f19c7e3a65d38b714d7b2ac0a955257276b85ebef1332",
+      "bytes": 990
+    },
+    {
+      "path": "mixed-world-working-source/core/NativeCountryDetails.ts",
+      "sha256": "485b49dd85c8ba3600fd443b7b1e511bce076219bb56802250ab2a081bd2b7e4",
+      "bytes": 19735
+    },
+    {
+      "path": "mixed-world-working-source/core/NativeCountryLandform.ts",
+      "sha256": "be5981801a83fd7c870a4ccdd50cc5207eb136f3196e7844b25eb1cff74efd50",
+      "bytes": 4439
+    },
+    {
+      "path": "mixed-world-working-source/core/NativeFarm2Geometry.ts",
+      "sha256": "864142358b16e4c7f9cd9022beda9f634d648df024072b3ce151281f2cb6c0df",
+      "bytes": 5383
+    },
+    {
+      "path": "mixed-world-working-source/core/NativeRideVegetation.ts",
+      "sha256": "d193c06541c14f3021e01eb89736d219e20aa66dbd56dd368f0afe1014380e24",
+      "bytes": 21956
+    },
+    {
+      "path": "mixed-world-working-source/core/newAthensOpeningCamera.js",
+      "sha256": "e8655cba422b3d757e6a41c0323a4662884f04c9d62d5fd3d3008c0e53251391",
+      "bytes": 845
+    },
+    {
+      "path": "mixed-world-working-source/core/newAthensPreviewMode.js",
+      "sha256": "53e7672718b1e97413c227af5b1005ec22627b22640b3839f9fa3f0c1898980c",
+      "bytes": 149
+    },
+    {
+      "path": "mixed-world-working-source/core/newAthensWalk.js",
+      "sha256": "28a1de863bd9ebbf93575146a68fbfe68c1accec55866ae14ab15ef2425523cc",
+      "bytes": 42119
+    },
+    {
+      "path": "mixed-world-working-source/core/NewBouleuterionGeometry.mjs",
+      "sha256": "8faf8e5143aadcf1ffe1d6fcae928101dcdef9586090298269b3d8cc08789ef7",
+      "bytes": 1968
+    },
+    {
+      "path": "mixed-world-working-source/core/NewBouleuterionRoof.mjs",
+      "sha256": "293d83743c298f8d888607ac19390946bbd175aaec4ccea7f86e60ecb0a50af1",
+      "bytes": 18039
+    },
+    {
+      "path": "mixed-world-working-source/core/NewBouleuterionSite.mjs",
+      "sha256": "239ab287925e86a3e07e33d388b9e863f8550f901ded4444b9784d7f468681c3",
+      "bytes": 10091
+    },
+    {
+      "path": "mixed-world-working-source/core/pottery-state.mjs",
+      "sha256": "e036c2370210ee5644e4fd04de89278cbaf201dfad74fdf00eb83283e92c6e90",
+      "bytes": 1535
+    },
+    {
+      "path": "mixed-world-working-source/core/pottery-transactions.mjs",
+      "sha256": "76fdb2ec4e1093727f515b8011b933230b53c32c7b344746612232c0bbc3ee9b",
+      "bytes": 8011
+    },
+    {
+      "path": "mixed-world-working-source/core/renderCheck.js",
+      "sha256": "3de750be9f017b672edd28fff09464997a6786e5d4a5410ddf194f2488509fe2",
+      "bytes": 534
+    },
+    {
+      "path": "mixed-world-working-source/core/RoyalStoaAccess.mjs",
+      "sha256": "f9de40cb7e7385a30eb9c055dd455c1beeb0462b96f17ed86d660b2715cc8db7",
+      "bytes": 17369
+    },
+    {
+      "path": "mixed-world-working-source/core/RoyalStoaRoof.mjs",
+      "sha256": "a35bfdf69a86328a8429ed721223ae1ad7f1be9ba4d40074b31cccaaa1a80a5d",
+      "bytes": 11672
+    },
+    {
+      "path": "mixed-world-working-source/core/Scene.js",
+      "sha256": "70a687a445070b3e9bda27dc2bad3ab0d7cd6663ffaa2d3919dbd269cc05195b",
+      "bytes": 14523
+    },
+    {
+      "path": "mixed-world-working-source/core/terrain/TerrainGeometry.mjs",
+      "sha256": "9a1f0966e5f980b50372f49f65cae3963876a1d71b06826005136b1281f0b048",
+      "bytes": 5013
+    },
+    {
+      "path": "mixed-world-working-source/core/terrain/TerrainPlan.mjs",
+      "sha256": "87af068d2d0c4accaa7fa39e3b377bd7f79a14293008fa5fd7329c9d05e1ada5",
+      "bytes": 6520
+    },
+    {
+      "path": "mixed-world-working-source/core/terrain/TerrainShader.mjs",
+      "sha256": "86d5bd607859733295788f02492e9d182d85440d4313567a0de87218c595cd3d",
+      "bytes": 9251
+    },
+    {
+      "path": "mixed-world-working-source/core/UIManager.js",
+      "sha256": "e2dfd5c393116705d834543d985030176e2981a18da10b2300984fe462807749",
+      "bytes": 4353
+    },
+    {
+      "path": "mixed-world-working-source/debug/assetChecks.js",
+      "sha256": "a71baef7e24d26e1010ce3dfe435b3a9f3c5eecee12ef9ecce3420548f6a86bb",
+      "bytes": 1573
+    },
+    {
+      "path": "mixed-world-working-source/debug/cityDebug.js",
+      "sha256": "30123e4e93967e34746fda3d2258c188d11af8a4eeebd6f97a8a0ba080500a44",
+      "bytes": 12678
+    },
+    {
+      "path": "mixed-world-working-source/debug/flags.js",
+      "sha256": "cc4379816316f2a86e65d20dec25e9819a9be6020293fc8c3d7f5dfdcf6ed49f",
+      "bytes": 659
+    },
+    {
+      "path": "mixed-world-working-source/debug/groundAudit.js",
+      "sha256": "4ce6dfb7af6229593cf16cb7595690cfc642e92beef8fee4d857a5ca5e5afa44",
+      "bytes": 5632
+    },
+    {
+      "path": "mixed-world-working-source/debug/terrainValidationDev.js",
+      "sha256": "979f9f9d50776970a30203783b011df19b5b6bfa40cf02acd04a3a252183c29f",
+      "bytes": 9408
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/architecturalFinishMaps.js",
+      "sha256": "a802e77543277d7efb69511dbfc9adfb0c0e8705b9ed6274928934c7d6b76d97",
+      "bytes": 2356
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/atticGroundMaps.js",
+      "sha256": "67e3400ff81a6379b962c163f981fbb26876e258f2f62d93dbce4444bfec1a54",
+      "bytes": 1913
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/cityRouteMaterials.js",
+      "sha256": "239753bf5236345b041fcd05d86208fbc757b659ea9240f859522ed61922828a",
+      "bytes": 3638
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/doorstepStone.js",
+      "sha256": "2f7028cb4e4afee8c3d9d2d4dbeaa403b671245f486cfe3c025584dce96ca578",
+      "bytes": 1620
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/gateAvenuePaving.js",
+      "sha256": "fb031598bbf11a1052bd8b5f4206092bbe012aee5eebb47c0ea35956c696a7f5",
+      "bytes": 5909
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/mineralSurfaceTexture.js",
+      "sha256": "02bd635dd82d1914fdb6f7e8be4467e2f7b2a6a494ee5b63bba82172cbcc5e11",
+      "bytes": 1989
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/naturalGroundDetail.js",
+      "sha256": "b46ed69977ac6089304e86645c0e4e8d4ddbd5858669afccc86d623ef2af537d",
+      "bytes": 869
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/packedEarthFinish.js",
+      "sha256": "751a02d5cf3bb3c6f96879915429e07a9fc1368c5ec798d00828aa27fa13764c",
+      "bytes": 1630
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/materials/potterSurfaceMaterials.js",
+      "sha256": "cfd0f71c40416ec4901935baee7974a3b45a9eabda0e20cb251a852da71e45d6",
+      "bytes": 2923
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/utils/baseUrl.js",
+      "sha256": "9e0b094c2556203c9389d55d76eca88db4bcbe94e843556f97df5d5e9c5dc5b6",
+      "bytes": 2115
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/utils/buildingCulling.js",
+      "sha256": "e2940d0765af1af1499f3466a94a57106a1e3659c3bc2cdd1f4c711bdedcbfb7",
+      "bytes": 2129
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/utils/propCulling.js",
+      "sha256": "6536b02e09f36e1f56837431bc170828caf1d59e64c10b51df26496edbba4fd3",
+      "bytes": 8367
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/utils/staticRenderBatches.js",
+      "sha256": "f535dd0a53aaceb6ce96199f322d7660592786be1cc35b25af4affd7533c2ea1",
+      "bytes": 4819
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/utils/textureSourceCache.js",
+      "sha256": "de9639bbc4af00b7aefde625ca621f32ca860d683752c5ef1b91e64a4b2ba6cd",
+      "bytes": 905
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/utils/TextureUtils.js",
+      "sha256": "d781a3e83c8a0fab28da419481d45e637f68c0ce454f4422fa65c8915f114ab8",
+      "bytes": 2124
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/agoraLife.js",
+      "sha256": "c013d1c4555655a5871bf03cafa6e8e0e85cf248cdd6ac78c64cf50113de0363",
+      "bytes": 5421
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/bakehouse.js",
+      "sha256": "401b536e1662d57d05d12c0c8cc35f7dd89c8809080776c5e840ba3b765391f4",
+      "bytes": 8147
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/bakehouseLayout.js",
+      "sha256": "27ba42f7c619716ce94b9b15236e0d5500efcec574e202b20a50d2c52203e807",
+      "bytes": 1646
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/buildingSpawner.js",
+      "sha256": "ca51d4f5045c075a823e84ae482ea96bfc19c07c8d8914126990a95180711719",
+      "bytes": 25858
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/cityCivicLayout.js",
+      "sha256": "530c60efa2193aadb7c1cfff28489c63ec7629d71868240d1a7f610c167ddad7",
+      "bytes": 597
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/cityGateAvenue.js",
+      "sha256": "63aa905b72d326f20cb1a25fc3d5c508af542cbe2d6d4712f0fadfb481fc3de8",
+      "bytes": 4228
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/cityGates.js",
+      "sha256": "01bc0a0210ddd1f34fd0760abc635d37b70d91ecef15a53ae4e551dd28efdf32",
+      "bytes": 6094
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/cityGatesLayout.js",
+      "sha256": "b76bf2528d775e258a82209df9cd50285294fa1677895464b79331599a904b22",
+      "bytes": 5141
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/cityWallMaterials.js",
+      "sha256": "c291c9b67e4225d3ae9329bca55f0f46e8ce0e0bd2519b661eeff9389f9b9e2b",
+      "bytes": 6551
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/civicCentreLayout.js",
+      "sha256": "d63c97e87378234d79aa044acd1f76d315d5381d6582ebb1ffb9ca33ab9d8e5d",
+      "bytes": 1987
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/clothWorkingCourt.js",
+      "sha256": "715335e4c8a0c749473bf970a4bad2e84512f0c40b3ab1a36f4b06e8ce8cf591",
+      "bytes": 4418
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/collectorPilotPolicy.js",
+      "sha256": "f12ffa3a0fdc35361f49a8a6b8fcf6ddb08d803953baa523998e7f23bb23cec6",
+      "bytes": 421
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/courtLinkNeighbourhood.js",
+      "sha256": "8e1f380ea16505a56da4c919c86e5bdb2d207b9c206a609399c3e3c506eb5bf9",
+      "bytes": 4043
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/courtyardEstateLayout.js",
+      "sha256": "1e21719a1f40fc90f067e37d121717945d0acf8f74d5e7497b100777936d72b4",
+      "bytes": 975
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/dipylonDistrict.js",
+      "sha256": "5df6bebb9e55ff03e2234954a769b309e56532bb361417398e81186c7f064142",
+      "bytes": 9360
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/dipylonDistrictLayout.js",
+      "sha256": "5a4bb158fad7353c7d14c2bfec30999e875836781d7dffdfdf4812d602fbffe9",
+      "bytes": 3864
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/foliage.js",
+      "sha256": "bc4c3ee78cd7935121fa137b6afc449b3313a5ed108641c2b95b8b006e8f97bd",
+      "bytes": 15547
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/groundSurfaceGeometry.js",
+      "sha256": "cde4d4a891e50f84a6368cb4ecf21f90f0a15bc0c0d08703ebd2e351bd613df7",
+      "bytes": 10786
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/groundSurfacePlan.js",
+      "sha256": "4c0380d39f646d4568571dec6b3872eded2fe52e62cea00de12a9efda4c68b1a",
+      "bytes": 6267
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/harborCoast.js",
+      "sha256": "3fdd435a7b27401fb1ea2c93b331df7339ce28a9e2fc60dad7afdcdf4f280e12",
+      "bytes": 2551
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/harborLayout.js",
+      "sha256": "0fda59ecccf81657118becb66b54edd7a2e4cc1b43530b390163c8d9533a9c85",
+      "bytes": 3174
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/kerameikosArchitecture.js",
+      "sha256": "cc88a662d9a598f6ad0653cf8c7517ca1d50dd869aa66da10571b5fdd99b660b",
+      "bytes": 11999
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/kerameikosPlaza.js",
+      "sha256": "5500c06257d400024e102e1b13d478152e23541ea7e791506bf457829c6eb823",
+      "bytes": 7892
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/kerameikosPlazaLayout.js",
+      "sha256": "6d3fca8cc09b89cbfc39d6c4b0714a2d28202a8ed4e3bfdbcc244724d9bdce9c",
+      "bytes": 1434
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/kerameikosRoadside.js",
+      "sha256": "f61b106d0aa2b1e681b3ccd3f19f06b3f2970bead99bd642cf36a3410e5d7dda",
+      "bytes": 4655
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/largeCourtyardHouseLayout.js",
+      "sha256": "dc00898a441dea881974313adf426bd54afb968d58c2e8cad2b3b9ae6985b281",
+      "bytes": 1601
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/lyceumLandscapeLayout.js",
+      "sha256": "fe212a79d92578e349689f646838f1c6565624a3afec43c041f26b1c15330c97",
+      "bytes": 3416
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/masonryGeometry.js",
+      "sha256": "520aaa45c86a6b2dfebd60a162328afe017c1e1e43bde9d4f7777fac5faf8de5",
+      "bytes": 850
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/materials.js",
+      "sha256": "302f7044b4d964a60bf982b9cfcd8e0ee7e6bac1abce337ab8f53a44a6644b44",
+      "bytes": 5909
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/newAcropolisElevation.js",
+      "sha256": "2ea1a1b8a60a0d5cf372a462cd942944e644878bfbbb09e06931ce92639502dd",
+      "bytes": 5208
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/newAcropolisLayout.js",
+      "sha256": "a33846d36f8cea5fefff4b2482cc1344211a9044784674892fa2bb76dcefc8d6",
+      "bytes": 3789
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/newAgoraLayout.js",
+      "sha256": "5e54a340b03ca821931c8c6e3491ae9ea95f7f11a66cc060045cf4cdbb3a909b",
+      "bytes": 3746
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/newAthensPlan.js",
+      "sha256": "ce52e21e4e7e0f58e78e98c59993652cbb655212598fe25812b692a8a3484105",
+      "bytes": 7947
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/oliveOpenWorkshop.js",
+      "sha256": "b3e8da35148ca1fc1b2611a424bf4f8569af679e25587f34c7d9f47a3767a706",
+      "bytes": 9027
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/philosophyDistrictLayout.js",
+      "sha256": "d518bc006cad52506a488fe66716cbddf6d655c9b4a8332408e2c8f669f1c364",
+      "bytes": 4565
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/pompeionExpandedArchitecture.js",
+      "sha256": "2e675690649da167f3ec78fba222f1c1653d764f75a3a20bc3cdafaa510862ba",
+      "bytes": 22077
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/pompeionProcessionCart.js",
+      "sha256": "bcb9fd3165aeef617eacead5089dae445973101a19e3809861e53433311d820b",
+      "bytes": 6237
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/pompeionRoofAssembly.js",
+      "sha256": "829948f0e5559b1f8ab50acfe85f373c804892546d5703f13aae3ca7eb810d4e",
+      "bytes": 8568
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/pompeionScalePlan.js",
+      "sha256": "c8e3422b3335dd67129abc54985e75f7dd345dc44f7e9d964d6a0ee87eb0aac8",
+      "bytes": 3268
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/potterQuarterLayout.js",
+      "sha256": "5d31265b3efd4277f594d41094baee861dc63f9bb96d093e32dedbd340b229f1",
+      "bytes": 7572
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/provisionCourt.js",
+      "sha256": "abc772a7c2ea37d67d700c8e3b06e00f334272569061900a68d1de2f96972594",
+      "bytes": 5964
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/residentialFacades.js",
+      "sha256": "373a2fbe53387f3a7b0b34285feceb3fdfc7d5beb447ee62fbc22da513b716f1",
+      "bytes": 7024
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/residentialGrounding.js",
+      "sha256": "7e6d515c2ebfa3979b0b8910e9ed1f941be8aea49801047fde292bf3c70ada89",
+      "bytes": 6708
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/royalStoaLayout.js",
+      "sha256": "edd45f6489e01dedf02bd7bc51d525afb0ce3103ff57c27da69a99fe9489ee7e",
+      "bytes": 3100
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/southStoaLayout.js",
+      "sha256": "e2436e5cec96a0fe97326b27836595e19024a172fddedf41cd27762798f91a46",
+      "bytes": 664
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/terracottaCourses.js",
+      "sha256": "201dfd9118a8dff11bc306ebf3dd6b64cf5fbf38a2a3744f4985fc9b40b7f5bd",
+      "bytes": 2857
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/tradingCourt.js",
+      "sha256": "c87d5f067b2fc95d34a123a27eabcc59804b9df5621a5e0934940baa8c84d55d",
+      "bytes": 8201
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/tradingCourtLayout.js",
+      "sha256": "86c554f07ea442e1f86bcf20aaa3e2f48d6bb9b612e456121996fffb357d7786",
+      "bytes": 1521
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/westernHouseholdLayout.js",
+      "sha256": "77fe90baad57bb3007d5c82a6c64bd5046e596e646186af52d84e557d426cf7d",
+      "bytes": 2392
+    },
+    {
+      "path": "mixed-world-working-source/district-reference/world/zeusStoaLayout.js",
+      "sha256": "47bc92280ed601a194c0431b144881715143bf1036b8dcd56f527b1a9df00dbc",
+      "bytes": 4079
+    },
+    {
+      "path": "mixed-world-working-source/env/EnvironmentCollider.d.ts",
+      "sha256": "87e78888b2718e0c47f0d7662383384bfe3464690ee22cc00f968a222631ca12",
+      "bytes": 1258
+    },
+    {
+      "path": "mixed-world-working-source/env/EnvironmentCollider.js",
+      "sha256": "c40b0645cd460e5b4343c2f8400829dc25d6d37dcb5436fe5df73794e7950bb5",
+      "bytes": 12852
+    },
+    {
+      "path": "mixed-world-working-source/features/aristotle-texture.js",
+      "sha256": "c0cc1205a77cac209bf643e27ac2feda5044787dca3e60dfb353e59a09f49f4c",
+      "bytes": 2717
+    },
+    {
+      "path": "mixed-world-working-source/features/athenaStatue.js",
+      "sha256": "349d1aaa64249ec5a013812f5a7a7a31b7f39fbd37f267b414cec5a1086f005a",
+      "bytes": 8405
+    },
+    {
+      "path": "mixed-world-working-source/features/buildingKit.d.ts",
+      "sha256": "2366717caee382abe2f29a223651a03dc560fac10bb4448a0b95e5b9cb8f97d4",
+      "bytes": 2465
+    },
+    {
+      "path": "mixed-world-working-source/features/buildingKit.js",
+      "sha256": "d8276bbb0245c060f4ffcf9218c5707b6dcfc3bea44c88597601a5f647415e34",
+      "bytes": 15828
+    },
+    {
+      "path": "mixed-world-working-source/features/parthenonArchitecture.js",
+      "sha256": "b54081b507bf1915e976405efabbc2236da169b6a191bb351cc38a52cd88b1fe",
+      "bytes": 10169
+    },
+    {
+      "path": "mixed-world-working-source/features/roads-gravel.js",
+      "sha256": "e9e10ffc80ec8591a6d0be1bce6dca0c862da5cb1e23edc77b237bdd7f7c147c",
+      "bytes": 7049
+    },
+    {
+      "path": "mixed-world-working-source/features/temples.js",
+      "sha256": "8228d793ad4b2b892fbe3237d8b90be513615742c326b41e51de1fce263fdda9",
+      "bytes": 8308
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/materials/architecturalFinishMaps.js",
+      "sha256": "a802e77543277d7efb69511dbfc9adfb0c0e8705b9ed6274928934c7d6b76d97",
+      "bytes": 2356
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/materials/atticGroundMaps.js",
+      "sha256": "67e3400ff81a6379b962c163f981fbb26876e258f2f62d93dbce4444bfec1a54",
+      "bytes": 1913
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/materials/doorstepStone.js",
+      "sha256": "2f7028cb4e4afee8c3d9d2d4dbeaa403b671245f486cfe3c025584dce96ca578",
+      "bytes": 1620
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/materials/mineralSurfaceTexture.js",
+      "sha256": "02bd635dd82d1914fdb6f7e8be4467e2f7b2a6a494ee5b63bba82172cbcc5e11",
+      "bytes": 1989
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/materials/potterSurfaceMaterials.js",
+      "sha256": "cfd0f71c40416ec4901935baee7974a3b45a9eabda0e20cb251a852da71e45d6",
+      "bytes": 2923
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/potterStreetReference.json",
+      "sha256": "0495971f3f1c589356c21cb1cc15ae3bd1fbe1cc5ba08c937776363a0c3beb1c",
+      "bytes": 325
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/utils/baseUrl.js",
+      "sha256": "9e0b094c2556203c9389d55d76eca88db4bcbe94e843556f97df5d5e9c5dc5b6",
+      "bytes": 2115
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/utils/buildingCulling.js",
+      "sha256": "e2940d0765af1af1499f3466a94a57106a1e3659c3bc2cdd1f4c711bdedcbfb7",
+      "bytes": 2129
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/utils/propCulling.js",
+      "sha256": "6536b02e09f36e1f56837431bc170828caf1d59e64c10b51df26496edbba4fd3",
+      "bytes": 8367
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/utils/staticRenderBatches.js",
+      "sha256": "f535dd0a53aaceb6ce96199f322d7660592786be1cc35b25af4affd7533c2ea1",
+      "bytes": 4819
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/utils/textureSourceCache.js",
+      "sha256": "de9639bbc4af00b7aefde625ca621f32ca860d683752c5ef1b91e64a4b2ba6cd",
+      "bytes": 905
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/utils/TextureUtils.js",
+      "sha256": "d781a3e83c8a0fab28da419481d45e637f68c0ce454f4422fa65c8915f114ab8",
+      "bytes": 2124
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/buildingSpawner.js",
+      "sha256": "ca51d4f5045c075a823e84ae482ea96bfc19c07c8d8914126990a95180711719",
+      "bytes": 25858
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/collectorPilotPolicy.js",
+      "sha256": "f12ffa3a0fdc35361f49a8a6b8fcf6ddb08d803953baa523998e7f23bb23cec6",
+      "bytes": 421
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/courtLinkNeighbourhood.js",
+      "sha256": "8e1f380ea16505a56da4c919c86e5bdb2d207b9c206a609399c3e3c506eb5bf9",
+      "bytes": 4043
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/foliage.js",
+      "sha256": "bc4c3ee78cd7935121fa137b6afc449b3313a5ed108641c2b95b8b006e8f97bd",
+      "bytes": 15547
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/groundSurfacePlan.js",
+      "sha256": "4c0380d39f646d4568571dec6b3872eded2fe52e62cea00de12a9efda4c68b1a",
+      "bytes": 6267
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/materials.js",
+      "sha256": "302f7044b4d964a60bf982b9cfcd8e0ee7e6bac1abce337ab8f53a44a6644b44",
+      "bytes": 5909
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/potterCourtyardHouse.js",
+      "sha256": "643bded5ac9a20c9b5df966ff4f20c393d0cfbcdcf85275106d0ac559a4fa2d8",
+      "bytes": 6059
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/potterQuarterLayout.js",
+      "sha256": "5d31265b3efd4277f594d41094baee861dc63f9bb96d093e32dedbd340b229f1",
+      "bytes": 7572
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/residentialFacades.js",
+      "sha256": "373a2fbe53387f3a7b0b34285feceb3fdfc7d5beb447ee62fbc22da513b716f1",
+      "bytes": 7024
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/residentialGrounding.js",
+      "sha256": "7e6d515c2ebfa3979b0b8910e9ed1f941be8aea49801047fde292bf3c70ada89",
+      "bytes": 6708
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/westernHouseholdLayout.js",
+      "sha256": "77fe90baad57bb3007d5c82a6c64bd5046e596e646186af52d84e557d426cf7d",
+      "bytes": 2392
+    },
+    {
+      "path": "mixed-world-working-source/household-reference/world/westernHouseholdYards.js",
+      "sha256": "695aed279c46a042f9d18bfbd9230b6029f802529b8f9c25d1b2a8dcd9198851",
+      "bytes": 5726
+    },
+    {
+      "path": "mixed-world-working-source/index.js",
+      "sha256": "a2d64a426d3b53a6a2c6bc6718886b48e99f677881f355156383313307bcb5a8",
+      "bytes": 131
+    },
+    {
+      "path": "mixed-world-working-source/input/InputMap.ts",
+      "sha256": "fca0d3115c4310574905f63971c697e2a25283dff8b3ca3c879417d1b2a132a7",
+      "bytes": 8794
+    },
+    {
+      "path": "mixed-world-working-source/input/keyBindings.ts",
+      "sha256": "90341790c51c49c316ecd4b41f6ad777feb082275ae14823c2a941b3b0459d31",
+      "bytes": 2256
+    },
+    {
+      "path": "mixed-world-working-source/journey-reference/chariotModel.js",
+      "sha256": "9f9408f7c9600cd50638fb5cd8e90a5713d03b1be5d8c0674f662e7fae97bf3f",
+      "bytes": 21286
+    },
+    {
+      "path": "mixed-world-working-source/journey-reference/rideVegetation.js",
+      "sha256": "a7b70df3e8019bb45ceff721bfad6b0b88695d4460a4f393a615cbc486b7cff9",
+      "bytes": 15207
+    },
+    {
+      "path": "mixed-world-working-source/living/AthensNeighbourhood.ts",
+      "sha256": "2339fd9c1969071664309ea6bdbfdf7540f125076204886cbd6627f25dad756d",
+      "bytes": 8359
+    },
+    {
+      "path": "mixed-world-working-source/living/NpcEncounterMemory.ts",
+      "sha256": "16611fe664674bb8ad6361bd762e7a1aee55e89d7eee6cb428c269bd9f0a6472",
+      "bytes": 3013
+    },
+    {
+      "path": "mixed-world-working-source/living/NpcReaction.ts",
+      "sha256": "e6bbd522a81c8ff28730d08e8e747f28383f0dac62930a8e30d8b9667e669cf0",
+      "bytes": 2161
+    },
+    {
+      "path": "mixed-world-working-source/living/PotterWorldAdapter.ts",
+      "sha256": "3cc80607e0df68e3a8416586ce4be94ccd3a63d0b57bc273c1d5b5e7f6ee6db2",
+      "bytes": 10775
+    },
+    {
+      "path": "mixed-world-working-source/living/PriceOfPromise.ts",
+      "sha256": "401d5c1260b5646a9af16748b8e784a13af5e282c1e8f5c4005f2b3eaf433965",
+      "bytes": 6402
+    },
+    {
+      "path": "mixed-world-working-source/living/WorldCommands.ts",
+      "sha256": "29248ab84222f0aaa543f1a3e1ff909e674c21287e763eab897f0508a6dd544e",
+      "bytes": 12758
+    },
+    {
+      "path": "mixed-world-working-source/living/WorldRepository.ts",
+      "sha256": "cb50fdab666bd75348450dcada05f4fa569942358f434429da3ecb73b741472f",
+      "bytes": 9200
+    },
+    {
+      "path": "mixed-world-working-source/living/WorldState.ts",
+      "sha256": "2ea3438a0b2954a37157e062e8a87a7b856fed963d4118795a99e9983984f00f",
+      "bytes": 22912
+    },
+    {
+      "path": "mixed-world-working-source/main.bundleless.js",
+      "sha256": "0e163fa0537ed3a089917f6f3abcfc5125bbc00b74b165eb165c0f054a2e4513",
+      "bytes": 73
+    },
+    {
+      "path": "mixed-world-working-source/main.original.ts",
+      "sha256": "77104642f805da0ec413019be60377f1a9c8a627d776a859527e356ba2e3989a",
+      "bytes": 1558
+    },
+    {
+      "path": "mixed-world-working-source/main.runtime.d.ts",
+      "sha256": "b919102fb8e2aefc116c6acfa42eb7e57dcbaafb448b88e66acf948838240828",
+      "bytes": 539
+    },
+    {
+      "path": "mixed-world-working-source/main.runtime.js",
+      "sha256": "3b5c839072dfd99b69f2852f1568ccc6bd18a8968620bfb88045a12761eada33",
+      "bytes": 4095
+    },
+    {
+      "path": "mixed-world-working-source/main.ts",
+      "sha256": "380075febf6bc29a7543ef66eeca6cc51a191aafd14ce3bcbc6348c0ae5d2ef4",
+      "bytes": 3128
+    },
+    {
+      "path": "mixed-world-working-source/materials/acropolisRockMaterial.js",
+      "sha256": "14c8c1557f503b51908792a3a6425d25430b956a83aaeba23f7349931a4399a3",
+      "bytes": 9835
+    },
+    {
+      "path": "mixed-world-working-source/materials/agoraArchitectureMaterials.js",
+      "sha256": "ebb15d4479d1992f5d0380320f5f984c12d8253806c4215d090a2709eb265638",
+      "bytes": 1890
+    },
+    {
+      "path": "mixed-world-working-source/materials/agoraB2Material.js",
+      "sha256": "96c34b797f5513f38cf9037805de5b4e0cb578caaddbeafb62d6b932b73f3aee",
+      "bytes": 1322
+    },
+    {
+      "path": "mixed-world-working-source/materials/atticGroundMaps.js",
+      "sha256": "67e3400ff81a6379b962c163f981fbb26876e258f2f62d93dbce4444bfec1a54",
+      "bytes": 1913
+    },
+    {
+      "path": "mixed-world-working-source/materials/cityGroundAtlas.js",
+      "sha256": "fd215d85a1e1578ae7e548e937ba9dedf4b69435234e058156f498ac8e53d4c4",
+      "bytes": 2982
+    },
+    {
+      "path": "mixed-world-working-source/materials/cityGroundAtlasAsset.js",
+      "sha256": "5be2e6fe949032c670edfe283b07036e7a5d413aba679b26f9aeaa190d8a4f59",
+      "bytes": 2968
+    },
+    {
+      "path": "mixed-world-working-source/materials/cityGroundAtlasLayout.js",
+      "sha256": "5148a38612c0554066681415ef1f3f74f2586717a788e0c42fed48b34f95939f",
+      "bytes": 202
+    },
+    {
+      "path": "mixed-world-working-source/materials/cityGroundAtlasSource.js",
+      "sha256": "4740ab13d026972ad62c1d2a09de9d1fdfbca127d744938b2bbdd98db5126d7e",
+      "bytes": 7425
+    },
+    {
+      "path": "mixed-world-working-source/materials/cityGroundSurface.js",
+      "sha256": "047874b6f48a533b8e1460a05ac1112e5f0f27d9a7a87f26814bc4e9822c99cf",
+      "bytes": 16631
+    },
+    {
+      "path": "mixed-world-working-source/materials/cityRouteMaterials.js",
+      "sha256": "ab5b20bf3233a6a7f2e43b1578bd355d5b1838c15c3bef02d975e259d0ce41ad",
+      "bytes": 3673
+    },
+    {
+      "path": "mixed-world-working-source/materials/civicPathMask.js",
+      "sha256": "a6412d301a2c77408c1f9a383ffb4904c32ddb392d03cf4cd51f948750bdefee",
+      "bytes": 5447
+    },
+    {
+      "path": "mixed-world-working-source/materials/doorstepStone.js",
+      "sha256": "2f7028cb4e4afee8c3d9d2d4dbeaa403b671245f486cfe3c025584dce96ca578",
+      "bytes": 1620
+    },
+    {
+      "path": "mixed-world-working-source/materials/enhanceStandardMaterial.d.ts",
+      "sha256": "4fb3cd268451779ab85d52395b72f97012dfffe269ae8a08742cc51dd4d25e66",
+      "bytes": 510
+    },
+    {
+      "path": "mixed-world-working-source/materials/enhanceStandardMaterial.js",
+      "sha256": "a3ced46613c29b8e8dbed945e91d3b94008620e5ed5e639746a6771dad39d91e",
+      "bytes": 9675
+    },
+    {
+      "path": "mixed-world-working-source/materials/exteriorGrassColour.js",
+      "sha256": "4efc4fff66dc60c4aa92888dda00e06434795f6cfdba581d6b3c38fbe3a2c5d7",
+      "bytes": 353
+    },
+    {
+      "path": "mixed-world-working-source/materials/exteriorGrassExclusions.js",
+      "sha256": "5d631dd9cfec182a908627e228b4f3d7418fce3892a1296108f12d55d7f88b88",
+      "bytes": 3872
+    },
+    {
+      "path": "mixed-world-working-source/materials/gateAvenuePaving.js",
+      "sha256": "05737eba262bac087a8f1f1966ed06dff09c19e8c4784769206b2b76635fc5cb",
+      "bytes": 7395
+    },
+    {
+      "path": "mixed-world-working-source/materials/gravellySandMaterial.js",
+      "sha256": "df9c2f1e6a43c92a98944deec4667dbf52b90d84685d9c36f41521cfb0a27b63",
+      "bytes": 1034
+    },
+    {
+      "path": "mixed-world-working-source/materials/groundMaterials.js",
+      "sha256": "017ee7472943bcf210fb96f303720adde911db841a21a9bfa1ee762d0fcfa145",
+      "bytes": 3884
+    },
+    {
+      "path": "mixed-world-working-source/materials/harborGroundFinish.js",
+      "sha256": "424d3af334fa86bdc57381060aa565ede64c7c8c08ba11ec056409b5216cb1cf",
+      "bytes": 6066
+    },
+    {
+      "path": "mixed-world-working-source/materials/materialRegistry.js",
+      "sha256": "30c82172b1ca16c7334a7b680079d4edbecc792df752cc63f0299b52296c532f",
+      "bytes": 1294
+    },
+    {
+      "path": "mixed-world-working-source/materials/mineralSurfaceTexture.js",
+      "sha256": "89068109ff57e1e1c7c0e61a303bcf3f8d1cf7a5e33f77d93da40c1c36e8a202",
+      "bytes": 3839
+    },
+    {
+      "path": "mixed-world-working-source/materials/naturalGroundDetail.js",
+      "sha256": "b46ed69977ac6089304e86645c0e4e8d4ddbd5858669afccc86d623ef2af537d",
+      "bytes": 869
+    },
+    {
+      "path": "mixed-world-working-source/materials/newCityGroundAtlasAsset.js",
+      "sha256": "51dcd14150dff874422e9c8c4d8ea0d2194df8ba7f58d06d8db5a626c810e20d",
+      "bytes": 2976
+    },
+    {
+      "path": "mixed-world-working-source/materials/normalMapUtils.js",
+      "sha256": "ca7814f503c8bdf6230496ce0304151f6f31c00b41a243b9f9088f6017f0d5f1",
+      "bytes": 1152
+    },
+    {
+      "path": "mixed-world-working-source/materials/pbr-utils.d.ts",
+      "sha256": "fb29f20419ef1f8fe26a5a34ec0aae96ecb84bb432ad3e2e5d619aa633e5170c",
+      "bytes": 600
+    },
+    {
+      "path": "mixed-world-working-source/materials/pbr-utils.js",
+      "sha256": "5d8cd34a6ffc0feef4fdaf0b119c2922b944542a6b47d117778be7b9b877c292",
+      "bytes": 3797
+    },
+    {
+      "path": "mixed-world-working-source/materials/potterSurfaceMaterials.js",
+      "sha256": "527beb4a6aa7be5a8d60fdbc92a7d94b5261c54929ef7b09dfbceef5f01b2da3",
+      "bytes": 2242
+    },
+    {
+      "path": "mixed-world-working-source/materials/streetSurfaceTextures.js",
+      "sha256": "9653e1216195acbf431dd63b569f2c06c3088c82125fa170b54490b3056abad9",
+      "bytes": 4224
+    },
+    {
+      "path": "mixed-world-working-source/materials/theatreApproachMaterial.js",
+      "sha256": "da3c8ed474d7baac3f47db1730b6ab9f9185144c8a52aa08800ba985a49dd44b",
+      "bytes": 1195
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisBuiltMaterials.ts",
+      "sha256": "769593f55a3d1029ee1fdd63a961a761e71e72f56b0a48d142c543e154bceaa5",
+      "bytes": 12648
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisCellaLighting.ts",
+      "sha256": "de909a41d857401710fe7e5633848f230bf28c05ad6ff366a37ef3a8894aec04",
+      "bytes": 2412
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisDecorations.mjs",
+      "sha256": "f37854c03b304ef2c69e70d7a43980666a8da182cf8c1b7cf8b8a758c6c5bb63",
+      "bytes": 12916
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisGeology.mjs",
+      "sha256": "dabca1337a658f7af3803ce268dace5ceb9254c9b9bbb7199079330cc6a3b172",
+      "bytes": 8960
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisLimestone.ts",
+      "sha256": "7d1ccb75c5240adf6e751e7285460a62de2cb8127e066b239a6521bea11dfef1",
+      "bytes": 7631
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisRecessedEntrance.mjs",
+      "sha256": "a8fee3b3e1f1e84eb40256e39e8635f1faaad47a9d5ee5dcfd39493445e4d7c0",
+      "bytes": 4452
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisSacredOlive.ts",
+      "sha256": "9bfc5bafea6099c3c7689f9580eb31bd835fcbb624d598d1bb766c5de060d1a6",
+      "bytes": 2231
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisSummitGround.mjs",
+      "sha256": "b14388b33a4645395c90cf6731b0b062ffdcc8d6b52a3ba24c15edaa296dc4a1",
+      "bytes": 2163
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/AcropolisTerrainUpgrade.mjs",
+      "sha256": "4bfbf14efdc5b438d973aef03451c0a0893af912dde965a55d9d435092378ee8",
+      "bytes": 27422
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/BabylonAcropolisShowcase.ts",
+      "sha256": "7a655e601f3151f7218ad99577fc15c8c7d1e5ce6a1b48011574d265a382b7e0",
+      "bytes": 23754
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/CaryatidGeometry.ts",
+      "sha256": "6e33ebe4988c10bc16b3044259a1a4dc272926ff6561629bde4b5db9f95944ca",
+      "bytes": 2647
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/ParthenonPigment.ts",
+      "sha256": "b49e54aa6334c453cc3a1bb9699648155ffd44a24e559d06701c3af3b0281ae7",
+      "bytes": 2304
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/core/renderCheck.js",
+      "sha256": "35e56687dd7e81215a31156523f4423214e2406c36b87ecfedaa8b5b125bfffa",
+      "bytes": 363
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/features/athenaStatue.js",
+      "sha256": "349d1aaa64249ec5a013812f5a7a7a31b7f39fbd37f267b414cec5a1086f005a",
+      "bytes": 8405
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/features/parthenonArchitecture.js",
+      "sha256": "b54081b507bf1915e976405efabbc2236da169b6a191bb351cc38a52cd88b1fe",
+      "bytes": 10169
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/acropolisRockMaterial.js",
+      "sha256": "14c8c1557f503b51908792a3a6425d25430b956a83aaeba23f7349931a4399a3",
+      "bytes": 9835
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/agoraArchitectureMaterials.js",
+      "sha256": "e1a4297be2b00a6db7a44e566d322556a2a0996e309201fefe2e9d8686067fb9",
+      "bytes": 2003
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/architecturalFinishMaps.js",
+      "sha256": "a802e77543277d7efb69511dbfc9adfb0c0e8705b9ed6274928934c7d6b76d97",
+      "bytes": 2356
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/atticGroundMaps.js",
+      "sha256": "67e3400ff81a6379b962c163f981fbb26876e258f2f62d93dbce4444bfec1a54",
+      "bytes": 1913
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/cityGroundAtlas.js",
+      "sha256": "fd215d85a1e1578ae7e548e937ba9dedf4b69435234e058156f498ac8e53d4c4",
+      "bytes": 2982
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/cityGroundAtlasAsset.js",
+      "sha256": "2c3143b701e4f16d687c42b610871bc758a380a3100a947223f97577e92eae0d",
+      "bytes": 3209
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/cityGroundAtlasLayout.js",
+      "sha256": "5148a38612c0554066681415ef1f3f74f2586717a788e0c42fed48b34f95939f",
+      "bytes": 202
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/cityGroundAtlasSource.js",
+      "sha256": "007df16d272f10d1f74f8f68ad23d548b0d7af7d8dbc98400813ec59842e0c33",
+      "bytes": 6992
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/cityGroundLife.js",
+      "sha256": "ee5c25e2fb4ab5093f42497d2bf27ea764ca5f7e48346cad56ae6656e93e0167",
+      "bytes": 1107
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/cityGroundSurface.js",
+      "sha256": "76a3c02c9d3f713c190e9b28cc37bfb5f3ed21469270c34fee3efedb26fda589",
+      "bytes": 17708
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/cityRouteMaterials.js",
+      "sha256": "239753bf5236345b041fcd05d86208fbc757b659ea9240f859522ed61922828a",
+      "bytes": 3638
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/civicPathMask.js",
+      "sha256": "e2ddae477fddb1426aecfd40f737e31179a6f0ac3a258aa57e0e0a9edd9bcd81",
+      "bytes": 6389
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/exteriorGrassColour.js",
+      "sha256": "4efc4fff66dc60c4aa92888dda00e06434795f6cfdba581d6b3c38fbe3a2c5d7",
+      "bytes": 353
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/exteriorGrassExclusions.js",
+      "sha256": "19028f5bdcce3165d97040929da5ce3f2d1e460d535b88bfedc8efe8bcb9e2cc",
+      "bytes": 4082
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/gateAvenuePaving.js",
+      "sha256": "fb031598bbf11a1052bd8b5f4206092bbe012aee5eebb47c0ea35956c696a7f5",
+      "bytes": 5909
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/mineralSurfaceTexture.js",
+      "sha256": "02bd635dd82d1914fdb6f7e8be4467e2f7b2a6a494ee5b63bba82172cbcc5e11",
+      "bytes": 1989
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/naturalGroundDetail.js",
+      "sha256": "b46ed69977ac6089304e86645c0e4e8d4ddbd5858669afccc86d623ef2af537d",
+      "bytes": 869
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/newCityGroundAtlasAsset.js",
+      "sha256": "b673c83b2f4b189e53532e254f15606584e40919fbb6bf2445abb100ded7fb30",
+      "bytes": 3217
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/packedEarthFinish.js",
+      "sha256": "751a02d5cf3bb3c6f96879915429e07a9fc1368c5ec798d00828aa27fa13764c",
+      "bytes": 1630
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/potterSurfaceMaterials.js",
+      "sha256": "cfd0f71c40416ec4901935baee7974a3b45a9eabda0e20cb251a852da71e45d6",
+      "bytes": 2923
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/materials/theatreApproachMaterial.js",
+      "sha256": "da3c8ed474d7baac3f47db1730b6ab9f9185144c8a52aa08800ba985a49dd44b",
+      "bytes": 1195
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/ui/speakerSpeech.js",
+      "sha256": "cf284feaa97c1bd6f69073c927fec6d22b72c88731cf76589faac261d9aa6b82",
+      "bytes": 5589
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/ui/speakerSpeechState.js",
+      "sha256": "4e98cb98e88409efd84c4e912c978f822b0bca718eaa317478a4279eb2fa9412",
+      "bytes": 2342
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/baseUrl.js",
+      "sha256": "9e0b094c2556203c9389d55d76eca88db4bcbe94e843556f97df5d5e9c5dc5b6",
+      "bytes": 2115
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/buildingCulling.js",
+      "sha256": "e2940d0765af1af1499f3466a94a57106a1e3659c3bc2cdd1f4c711bdedcbfb7",
+      "bytes": 2129
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/draco.js",
+      "sha256": "7363bb2e6521a22643e6cd999f6a2d26519d8937705e03f22b4624e80e3b5363",
+      "bytes": 3016
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/glbSafeLoader.js",
+      "sha256": "30a0dc07713345c8843938bb8b6517afc4c952c7081030bc95086aadf64860d8",
+      "bytes": 14279
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/ktx2.js",
+      "sha256": "b148b79fa20a17ad4b1e9c320e7c4ba8d8e4dc43779b2cdba75bfea00300caa4",
+      "bytes": 2926
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/propCulling.js",
+      "sha256": "6536b02e09f36e1f56837431bc170828caf1d59e64c10b51df26496edbba4fd3",
+      "bytes": 8367
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/staticRenderBatches.js",
+      "sha256": "f535dd0a53aaceb6ce96199f322d7660592786be1cc35b25af4affd7533c2ea1",
+      "bytes": 4819
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/textureBudget.js",
+      "sha256": "18ee7b8842cba9bd08e5c7dcecead07c56832d647192078f30cbea1570d23511",
+      "bytes": 14685
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/utils/TextureUtils.js",
+      "sha256": "d781a3e83c8a0fab28da419481d45e637f68c0ce454f4422fa65c8915f114ab8",
+      "bytes": 2124
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/academyGardenLayout.js",
+      "sha256": "0c99439bc885c71eb3757cb6b7615568c76cd323114dc121223a0b5c4bf0b53c",
+      "bytes": 2053
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/academyGroveLayout.js",
+      "sha256": "e0a860dbc1fb6aeb8de8796b7824ac38c58f97e4139fedadf5a250a89e960898",
+      "bytes": 777
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/acropolisCliffAnnex.js",
+      "sha256": "65fb0b184c4d7a73232c42432b3ae7d15a80d05a7fcd816cef5b34d83cccc123",
+      "bytes": 2009
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/acropolisLayout.js",
+      "sha256": "5f6d6dec96ff2167e90ff23d5514b486f77a7b5c3fbd0a84554be11a3da2dc73",
+      "bytes": 15194
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/cityCivicLayout.js",
+      "sha256": "530c60efa2193aadb7c1cfff28489c63ec7629d71868240d1a7f610c167ddad7",
+      "bytes": 597
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/cityDensityLayout.js",
+      "sha256": "f1e557b21d4c2dd9698f4689de8e6f68e5ab242cf313da7c20412aafbbe4e9aa",
+      "bytes": 8038
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/cityEdgeLayout.js",
+      "sha256": "14cb39647abb2efe4c3f2b61211ca39c8f9e6112b1705c7fcabdf1e7a0ec679a",
+      "bytes": 2202
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/cityGateAvenue.js",
+      "sha256": "63aa905b72d326f20cb1a25fc3d5c508af542cbe2d6d4712f0fadfb481fc3de8",
+      "bytes": 4228
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/cityGatesLayout.js",
+      "sha256": "b76bf2528d775e258a82209df9cd50285294fa1677895464b79331599a904b22",
+      "bytes": 5141
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/cityResidentialLayout.js",
+      "sha256": "bbaf52f44d7806aa5a04e3d5767f8fc974be91fc969df984c78f28f850192ea7",
+      "bytes": 12464
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/civicCentreLayout.js",
+      "sha256": "d63c97e87378234d79aa044acd1f76d315d5381d6582ebb1ffb9ca33ab9d8e5d",
+      "bytes": 1987
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/civicHarborAvenueLayout.js",
+      "sha256": "7d700e70fb46e6cedecbab90e295f815b23c4d0379a60751405e0b234588b64c",
+      "bytes": 1061
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/civicRoadEdges.js",
+      "sha256": "a9dea39efee6e256f55cf56e43bc1b1ef1942dd5fb47659aab37df9b60b5d583",
+      "bytes": 2295
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/collectorPilotPolicy.js",
+      "sha256": "f12ffa3a0fdc35361f49a8a6b8fcf6ddb08d803953baa523998e7f23bb23cec6",
+      "bytes": 421
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/countrysideLayout.js",
+      "sha256": "7e49f7c88822e0a4055e70f12ac23f5f782cc1304486c1b58a2f1018b63dacbf",
+      "bytes": 1030
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/courtGroundGeometry.js",
+      "sha256": "9ee472b04d4f659e4f20227033d0dc48ab100e38de3732a5bcac6e5c87293b52",
+      "bytes": 1901
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/courtyardEstateLayout.js",
+      "sha256": "1e21719a1f40fc90f067e37d121717945d0acf8f74d5e7497b100777936d72b4",
+      "bytes": 975
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/demoTour.js",
+      "sha256": "38b01e5ef2675a24a6e777f171a1e91d14aed81f2d2243de0a32e99832ad63e1",
+      "bytes": 29180
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/dipylonDistrictLayout.js",
+      "sha256": "5a4bb158fad7353c7d14c2bfec30999e875836781d7dffdfdf4812d602fbffe9",
+      "bytes": 3864
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/foliage.js",
+      "sha256": "bc4c3ee78cd7935121fa137b6afc449b3313a5ed108641c2b95b8b006e8f97bd",
+      "bytes": 15547
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/greatTheatre.js",
+      "sha256": "c0a02bf63934fd25776e99fe0589bb607818f3a270574c8aa285d2425d621056",
+      "bytes": 17624
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/greatTheatreLayout.js",
+      "sha256": "63eace6f3bf146e94f54f3ca7ae1c8222a47c13718060745fd86d2b57c4de788",
+      "bytes": 2632
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/groundSurfaceGeometry.js",
+      "sha256": "cde4d4a891e50f84a6368cb4ecf21f90f0a15bc0c0d08703ebd2e351bd613df7",
+      "bytes": 10786
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/groundSurfacePlan.js",
+      "sha256": "4c0380d39f646d4568571dec6b3872eded2fe52e62cea00de12a9efda4c68b1a",
+      "bytes": 6267
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/harborCoast.js",
+      "sha256": "3fdd435a7b27401fb1ea2c93b331df7339ce28a9e2fc60dad7afdcdf4f280e12",
+      "bytes": 2551
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/harborLayout.js",
+      "sha256": "0fda59ecccf81657118becb66b54edd7a2e4cc1b43530b390163c8d9533a9c85",
+      "bytes": 3174
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/harborPlacement.js",
+      "sha256": "db6c30b2123db39edd410606bea4a31605e22ace7346f420f108b3d1ad9e7b0a",
+      "bytes": 13071
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/hellenisticSanctuary.js",
+      "sha256": "0fad7777b68727f92f5aff74955f1fcb83d45d6e5dae6dba66471f51107122ce",
+      "bytes": 17413
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/interactions.js",
+      "sha256": "d4aec3bffbc3397f4d46899035fa0c81615de6332e1d86070fbefdd9a4a635c6",
+      "bytes": 21076
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/largeCourtyardHouseLayout.js",
+      "sha256": "dc00898a441dea881974313adf426bd54afb968d58c2e8cad2b3b9ae6985b281",
+      "bytes": 1601
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/locations.js",
+      "sha256": "a67cfee710d1e1a1c242d9b9e2700b7349ed4387d7ca8016f2ea9910702d96be",
+      "bytes": 6441
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/lyceumLandscapeLayout.js",
+      "sha256": "fe212a79d92578e349689f646838f1c6565624a3afec43c041f26b1c15330c97",
+      "bytes": 3416
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/masonryGeometry.js",
+      "sha256": "520aaa45c86a6b2dfebd60a162328afe017c1e1e43bde9d4f7777fac5faf8de5",
+      "bytes": 850
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/neighbourhoodLayout.js",
+      "sha256": "950d8bb9d8b435286a80e9b2e6aa2d4bd9b4d42705d857b23d5c5862b0c79e7d",
+      "bytes": 22454
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAcropolisAscent.js",
+      "sha256": "a3eab102f4a5657490824e2297c3fddc28452e328931358bdc8327dd36e1d304",
+      "bytes": 10970
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAcropolisCourts.js",
+      "sha256": "e27e0eb450bd02b241899673e2ea56981c1610fea14d7438c8a056eaf4b5e991",
+      "bytes": 5772
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAcropolisElevation.js",
+      "sha256": "0a938683e4088b9dd295f0b26406f51bf86cdded0239bf689ada8aa5a1401bf4",
+      "bytes": 5468
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAcropolisLayout.js",
+      "sha256": "a33846d36f8cea5fefff4b2482cc1344211a9044784674892fa2bb76dcefc8d6",
+      "bytes": 3789
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAcropolisNorthernApproaches.js",
+      "sha256": "9792665f3d03bd7031ffdca7608e5264ad5b6f7840ee352c71fd068458639dc4",
+      "bytes": 8702
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAgoraLayout.js",
+      "sha256": "5e54a340b03ca821931c8c6e3491ae9ea95f7f11a66cc060045cf4cdbb3a909b",
+      "bytes": 3746
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAthensAcropolis.js",
+      "sha256": "ae680d8ff5bb109dcf719ccacb982f45f651b8289f3f6a21b3ad56da054d9d74",
+      "bytes": 34495
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newAthensPlan.js",
+      "sha256": "ce52e21e4e7e0f58e78e98c59993652cbb655212598fe25812b692a8a3484105",
+      "bytes": 7947
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/newParthenonCollision.js",
+      "sha256": "ac71fd6ba03ef57125e0a6d91ab25cf31ec8cedd85e67f635f7122a2fb3050a7",
+      "bytes": 10243
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/parthenonCellaFixtures.js",
+      "sha256": "7096f11ab56ab08b85a96da15ad975b911d331cbd81fc435f0bf0d3821e986f9",
+      "bytes": 7558
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/parthenonDoorwayGeometry.js",
+      "sha256": "76273ab4f37f8ecf5babc6a0d60f38fee11869f80e881a128097801d6729092e",
+      "bytes": 2729
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/parthenonInterior.js",
+      "sha256": "7e8c3372ba4beef19c679a3837e874ae7740f053211f555c26b8e24d29596481",
+      "bytes": 4050
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/parthenonInteriorLayout.js",
+      "sha256": "4ab7f82278fafc8037b16b4fb42ee0c1e800b04c265ca7d6ec718f6b611518ae",
+      "bytes": 1568
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/philosophyDistrictLayout.js",
+      "sha256": "d518bc006cad52506a488fe66716cbddf6d655c9b4a8332408e2c8f669f1c364",
+      "bytes": 4565
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potterAnimator.js",
+      "sha256": "aa7ff445b5d8a3860956dbfa621f898be0a17c3e48f2658c5ade31da103f100f",
+      "bytes": 4820
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potterController.js",
+      "sha256": "bb48807c7eb402e634c1781728493832adee0aa3b0e2ee59429f6dcbf43d39de",
+      "bytes": 1456
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potterQuarterLayout.js",
+      "sha256": "5d31265b3efd4277f594d41094baee861dc63f9bb96d093e32dedbd340b229f1",
+      "bytes": 7572
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potterSite.js",
+      "sha256": "386ef6b442b0f5aea486809f8f01ece36c4ce2effcb210e391364a6bb4217f4a",
+      "bytes": 737
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potterWorkCycle.js",
+      "sha256": "c22c5b69171092ccd01bfbaf7ea81b44db70b8ad9f353cdd92293e88b71bce0a",
+      "bytes": 734
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potterYardLayout.js",
+      "sha256": "344723518b04a63baea87d921e9fde5a243c7bedeb0d2ecb9afaec246e6a4008",
+      "bytes": 2304
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potteryCollection.js",
+      "sha256": "92f5d8ee0efd6c8bc4aabf96b76cb5f576b539a03c4c08679f96798e4c3141c0",
+      "bytes": 2252
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/potteryWorkshop.js",
+      "sha256": "9d192862faba0967161b8150b235798ccc9170e23abf89cb59f5356d78aba2f8",
+      "bytes": 8938
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/precinctLifeLayout.js",
+      "sha256": "1f170c1c863b6562c9ea49570cbd86fe929305372a9fdcb9a03831922a5fa37f",
+      "bytes": 383
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/residentialFacades.js",
+      "sha256": "373a2fbe53387f3a7b0b34285feceb3fdfc7d5beb447ee62fbc22da513b716f1",
+      "bytes": 7024
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/royalStoaLayout.js",
+      "sha256": "edd45f6489e01dedf02bd7bc51d525afb0ce3103ff57c27da69a99fe9489ee7e",
+      "bytes": 3100
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/sacredPreparation.js",
+      "sha256": "58dc50e0a65f11bd3fc0511bf7f82a41ca6fbecffd420f5d0506f189c9f26a14",
+      "bytes": 3935
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/sacredWayAscentDressing.js",
+      "sha256": "564ae9b3eba43e11e71984b5714dd2a0f46da3d4b17f0015a277a00e959a664c",
+      "bytes": 13072
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/seaLevelState.js",
+      "sha256": "095c29a5d6bc5567a3945e82861967a73bdaa25b833ccc10c4935f2292cea494",
+      "bytes": 1366
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/southernAcropolisCourt.js",
+      "sha256": "1bcc36ddd8d61921de817df84681ae1bcbf05cf796f4483a23fc56c597ef8783",
+      "bytes": 13754
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/southStoaLayout.js",
+      "sha256": "e2436e5cec96a0fe97326b27836595e19024a172fddedf41cd27762798f91a46",
+      "bytes": 664
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/streetWearContours.js",
+      "sha256": "24cde808eb46bb32ece35575c057716f56e2598f353bd00140bc958b005ebd32",
+      "bytes": 1764
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/summitTreasury.js",
+      "sha256": "8d2730b282f53578873b3afaada4e49a42998cec11411aac8e5177f3f72089a2",
+      "bytes": 5093
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/westernHouseholdLayout.js",
+      "sha256": "77fe90baad57bb3007d5c82a6c64bd5046e596e646186af52d84e557d426cf7d",
+      "bytes": 2392
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/reference/world/zeusStoaLayout.js",
+      "sha256": "47bc92280ed601a194c0431b144881715143bf1036b8dcd56f527b1a9df00dbc",
+      "bytes": 4079
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/SanctuaryAssets.ts",
+      "sha256": "a85c187a3430dea4a85c6885565a160cca2c34bea83530dac5c0d38308b54ab3",
+      "bytes": 3214
+    },
+    {
+      "path": "mixed-world-working-source/sanctuary/TerminalGatewayRamp.ts",
+      "sha256": "663dbda5e8342f33ed09c5a4ecb244cd37ab38ce06123f29e2855358086781e7",
+      "bytes": 2425
+    },
+    {
+      "path": "mixed-world-working-source/sparta-entry.ts",
+      "sha256": "cd7999f9a136b42c358268eff9a7fedca8afbd5e148d9eba91c9001d917ced33",
+      "bytes": 5728
+    },
+    {
+      "path": "mixed-world-working-source/state/AgoraCommission.js",
+      "sha256": "c58ba2f86704d3acd6c6cf61fa44e68485110434822c1b5529a6d9df75ca0eb8",
+      "bytes": 9533
+    },
+    {
+      "path": "mixed-world-working-source/state/BreadMarketExample.js",
+      "sha256": "02e9e0f4ab19143a371e56738f44becebb0214eb7aaaf3c3a01a217f7a602c12",
+      "bytes": 3603
+    },
+    {
+      "path": "mixed-world-working-source/state/CityShower.js",
+      "sha256": "9df3b78f7c789f2d740a6c79cea598b79e20b6097a1e7046ed5ddcae46ca8494",
+      "bytes": 3570
+    },
+    {
+      "path": "mixed-world-working-source/state/HarborActivity.js",
+      "sha256": "01c88afcccb9e2d3919f4662ca1f9d8a223135fabbec6628def4f1ce10d0373c",
+      "bytes": 4607
+    },
+    {
+      "path": "mixed-world-working-source/state/HouseholdWater.js",
+      "sha256": "2cb58842a48174465cc4482c6411942a9a5ee58abaeed61969eee36ff68233f2",
+      "bytes": 4034
+    },
+    {
+      "path": "mixed-world-working-source/state/NewAthensRecovery.js",
+      "sha256": "0fd51a2fbe7fafd2054743787d08885c6c4b5b2a2288696c4bfd3e3db74a19a3",
+      "bytes": 3008
+    },
+    {
+      "path": "mixed-world-working-source/state/PhilosopherMeeting.js",
+      "sha256": "b12c3846a23529eeef5cf89399263eae9f26df7463210ff9152c5a5631c5a175",
+      "bytes": 5571
+    },
+    {
+      "path": "mixed-world-working-source/state/PnyxAssembly.js",
+      "sha256": "3b4a2904e2024c895207e1cf09ee7353bbb34a0adf5b5fe5993b3b1496114ab8",
+      "bytes": 5219
+    },
+    {
+      "path": "mixed-world-working-source/state/QuestManager.js",
+      "sha256": "2da9cb9a7c6d27df45fb818413aab9b7400594e0ec5a9f413e86cd6bc329ebac",
+      "bytes": 6848
+    },
+    {
+      "path": "mixed-world-working-source/state/settingsStore.ts",
+      "sha256": "1a1daf965fc506143c69008be51453c4860bdc5fd187e2107abb3017907198f3",
+      "bytes": 7643
+    },
+    {
+      "path": "mixed-world-working-source/state/TheatreRehearsal.js",
+      "sha256": "45dde25069f5a755e7a0fea76a16696f4a47ffe3783ff6d0e9ee3949c2aaa1a2",
+      "bytes": 4406
+    },
+    {
+      "path": "mixed-world-working-source/state/TriremePreparation.js",
+      "sha256": "834c0519502560dbf2dfb334b27730f4f83b7b6b402dd38d1262e8158e15d23c",
+      "bytes": 2302
+    },
+    {
+      "path": "mixed-world-working-source/systems/LightingSystem.js",
+      "sha256": "dbcc822da8b8250688f332f43b3b53ebaf9698a7c9e8ba0691bfaa5d7a7d0d3f",
+      "bytes": 29989
+    },
+    {
+      "path": "mixed-world-working-source/systems/PlayerSystem.js",
+      "sha256": "926efe0c063036eaf14dac0c79a8020162d6b020ba2b1609251a37aafea60d86",
+      "bytes": 15281
+    },
+    {
+      "path": "mixed-world-working-source/types/env.d.ts",
+      "sha256": "8fb5097d7981d08b18dea79a6bf3d36cbc13319c7539f1a1e3577a002bbcac21",
+      "bytes": 75
+    },
+    {
+      "path": "mixed-world-working-source/types/global.ts",
+      "sha256": "3ae492fe415acd457281874d37d429ea7e8f703ea4ef48639a886ef270ff0778",
+      "bytes": 440
+    },
+    {
+      "path": "mixed-world-working-source/types/index.ts",
+      "sha256": "a6610b65c4f1945f291f41568bcc8f0ed956160b4b6465aef4c358533bde58c2",
+      "bytes": 8568
+    },
+    {
+      "path": "mixed-world-working-source/types/three-augmentations.d.ts",
+      "sha256": "8928551f59f0d3f2ebee2675053e6c5bf4ffeaf5f6d0c2257e37faa86ab69e3d",
+      "bytes": 1359
+    },
+    {
+      "path": "mixed-world-working-source/ui/audioMixer.ts",
+      "sha256": "2119955609616c5275061dd73325c1527b9b77ab9fc30d766324bfcf32b15e4c",
+      "bytes": 3524
+    },
+    {
+      "path": "mixed-world-working-source/ui/demoIntro.js",
+      "sha256": "8d46d7b2ab4f6a623c67951d77253040f34c50569f2f9a66e9cb113094617002",
+      "bytes": 218
+    },
+    {
+      "path": "mixed-world-working-source/ui/devHud.ts",
+      "sha256": "10bb54c922d3002576b37a13cda64f580603288410b6bb3979574242433bcca9",
+      "bytes": 16874
+    },
+    {
+      "path": "mixed-world-working-source/ui/exposureSlider.ts",
+      "sha256": "4fa4c2996550ce6442e26319fd61a29f22e5b9f57aff0ba51162252b5234507b",
+      "bytes": 3981
+    },
+    {
+      "path": "mixed-world-working-source/ui/hotkeyOverlay.ts",
+      "sha256": "a7ecdbeb17fb7be764048bcfe4598a4f5222effcc279ad69f165ae84bd3243f7",
+      "bytes": 7368
+    },
+    {
+      "path": "mixed-world-working-source/ui/HUDCameraSettings.ts",
+      "sha256": "8e0b955c2c839561f1031b6710352ff5087baad3cdaa02d3089a24ac55460765",
+      "bytes": 8107
+    },
+    {
+      "path": "mixed-world-working-source/ui/HudManager.ts",
+      "sha256": "1eb727ddfca2d0170f52d9ffcfaccf35e8d540bab5d766e32dcf8ab1dfc189af",
+      "bytes": 5140
+    },
+    {
+      "path": "mixed-world-working-source/ui/hudShared.ts",
+      "sha256": "1bc0f549a531ba77c5c0003a99ce3788c769007a735654acdfd8c2edada50dc4",
+      "bytes": 4228
+    },
+    {
+      "path": "mixed-world-working-source/ui/interactionHud.ts",
+      "sha256": "d5938d0ca05828129c323f069953b522b5bce4ca48da9e0d097aa5666ec594b1",
+      "bytes": 2034
+    },
+    {
+      "path": "mixed-world-working-source/ui/loadingScreen.d.ts",
+      "sha256": "4a8c5aa411d44fb828615452f187f036f7ef1754b4b75e22c702788b1ce1735b",
+      "bytes": 487
+    },
+    {
+      "path": "mixed-world-working-source/ui/loadingScreen.js",
+      "sha256": "df893c1dff1f3ec7d21a01640fe7d972520207901dceec6defca520b0bb771b8",
+      "bytes": 9822
+    },
+    {
+      "path": "mixed-world-working-source/ui/miniMap.ts",
+      "sha256": "7354203555df3387062595c38bafa5f89b38cd353c40f79230b071b62090312e",
+      "bytes": 13901
+    },
+    {
+      "path": "mixed-world-working-source/ui/newAthensCameraSettings.js",
+      "sha256": "f08dfd5e7b1c2c5778a4e44127ecad3b04268427067a6d06d2c832aebd9b2d9a",
+      "bytes": 1879
+    },
+    {
+      "path": "mixed-world-working-source/ui/newAthensMap.js",
+      "sha256": "e31c3b444163e78e5779395e8f87beb87184fb03e620ffa51c7a87c16b9bd2cc",
+      "bytes": 7152
+    },
+    {
+      "path": "mixed-world-working-source/ui/newAthensSoundSettings.js",
+      "sha256": "a3279ac2975a6428f2c37af77d689ccab779f0431cb5daeae5293122d0369615",
+      "bytes": 3417
+    },
+    {
+      "path": "mixed-world-working-source/ui/pauseMenu.ts",
+      "sha256": "1dfbaa8bdf1aa16ddafa72b687359f971bb7916403fc098a4447fe264afb1b40",
+      "bytes": 11991
+    },
+    {
+      "path": "mixed-world-working-source/ui/performanceHud.ts",
+      "sha256": "16d55b2b644b8889dc8a6011ca6d47202b2829943fc81dfdca3b92a5644963b9",
+      "bytes": 5314
+    },
+    {
+      "path": "mixed-world-working-source/ui/questHud.ts",
+      "sha256": "f2072504fac8a1176053f8bce9bbecb7232cfc3a79584889e549014b11dd1485",
+      "bytes": 3121
+    },
+    {
+      "path": "mixed-world-working-source/ui/releaseInfo.ts",
+      "sha256": "8c43c00d917e9c625c107fb06d94173368870c8f77700df3b38f30f1974dff68",
+      "bytes": 3670
+    },
+    {
+      "path": "mixed-world-working-source/ui/speakerSpeech.js",
+      "sha256": "cf284feaa97c1bd6f69073c927fec6d22b72c88731cf76589faac261d9aa6b82",
+      "bytes": 5589
+    },
+    {
+      "path": "mixed-world-working-source/ui/speakerSpeechState.js",
+      "sha256": "4e98cb98e88409efd84c4e912c978f822b0bca718eaa317478a4279eb2fa9412",
+      "bytes": 2342
+    },
+    {
+      "path": "mixed-world-working-source/ui/uiRoot.ts",
+      "sha256": "d50c7218b034224da98b6040e73de3a2af2b2cf42029bdf0d9b4e0e65270340b",
+      "bytes": 2833
+    },
+    {
+      "path": "mixed-world-working-source/ui/updateLoop.ts",
+      "sha256": "6c9f4ca118fad19dc5cf1f6d60e47950eeca126bb6117238a3f2187483d16988",
+      "bytes": 1331
+    },
+    {
+      "path": "mixed-world-working-source/utils/baseUrl.js",
+      "sha256": "9e0b094c2556203c9389d55d76eca88db4bcbe94e843556f97df5d5e9c5dc5b6",
+      "bytes": 2115
+    },
+    {
+      "path": "mixed-world-working-source/utils/buildingCulling.js",
+      "sha256": "e2940d0765af1af1499f3466a94a57106a1e3659c3bc2cdd1f4c711bdedcbfb7",
+      "bytes": 2129
+    },
+    {
+      "path": "mixed-world-working-source/utils/draco.js",
+      "sha256": "7363bb2e6521a22643e6cd999f6a2d26519d8937705e03f22b4624e80e3b5363",
+      "bytes": 3016
+    },
+    {
+      "path": "mixed-world-working-source/utils/env.js",
+      "sha256": "5a25bff6f1c4aad4bd0cb519ba4ba3aa5bcef18a74686a823d8a9abc027d0109",
+      "bytes": 932
+    },
+    {
+      "path": "mixed-world-working-source/utils/glbSafeLoader.js",
+      "sha256": "30a0dc07713345c8843938bb8b6517afc4c952c7081030bc95086aadf64860d8",
+      "bytes": 14279
+    },
+    {
+      "path": "mixed-world-working-source/utils/ktx2.js",
+      "sha256": "b148b79fa20a17ad4b1e9c320e7c4ba8d8e4dc43779b2cdba75bfea00300caa4",
+      "bytes": 2926
+    },
+    {
+      "path": "mixed-world-working-source/utils/materialUtils.js",
+      "sha256": "9b9f5254c997698a58263a6f5cc26edb2d14ac924634b5af1ab4df021e60a28b",
+      "bytes": 700
+    },
+    {
+      "path": "mixed-world-working-source/utils/noise.js",
+      "sha256": "580769c22c721c1494f14cc5f5059fc47d81c670af3f22f2387cd74ab33889fc",
+      "bytes": 478
+    },
+    {
+      "path": "mixed-world-working-source/utils/propCulling.js",
+      "sha256": "e292c00f93bd4298b1290991d134d3f651feadab31aac7ea5c0547d2cc00581d",
+      "bytes": 8365
+    },
+    {
+      "path": "mixed-world-working-source/utils/staticRenderBatches.js",
+      "sha256": "3a04d645e63e6487058b2b0c70b23e26ac2a491e8960453c498b7e2a2a5d3f96",
+      "bytes": 4368
+    },
+    {
+      "path": "mixed-world-working-source/utils/textureBudget.js",
+      "sha256": "18ee7b8842cba9bd08e5c7dcecead07c56832d647192078f30cbea1570d23511",
+      "bytes": 14685
+    },
+    {
+      "path": "mixed-world-working-source/utils/TextureUtils.js",
+      "sha256": "d781a3e83c8a0fab28da419481d45e637f68c0ce454f4422fa65c8915f114ab8",
+      "bytes": 2124
+    },
+    {
+      "path": "mixed-world-working-source/world/academyGarden.js",
+      "sha256": "4d323495df31e7e889028527a36d111126cf9439b97e6f6c1cbed316a099cdc1",
+      "bytes": 6785
+    },
+    {
+      "path": "mixed-world-working-source/world/academyGardenLayout.js",
+      "sha256": "0c99439bc885c71eb3757cb6b7615568c76cd323114dc121223a0b5c4bf0b53c",
+      "bytes": 2053
+    },
+    {
+      "path": "mixed-world-working-source/world/academyGrove.js",
+      "sha256": "15de32a9982cc29fe1ab74cfa4925a43b63b26c55828266ae9d8040194ee9caf",
+      "bytes": 2294
+    },
+    {
+      "path": "mixed-world-working-source/world/academyGroveLayout.js",
+      "sha256": "e0a860dbc1fb6aeb8de8796b7824ac38c58f97e4139fedadf5a250a89e960898",
+      "bytes": 777
+    },
+    {
+      "path": "mixed-world-working-source/world/academyOlive.js",
+      "sha256": "fc50bfabca46388d305806669b220b5178aa3990f1bc9e4781c5b345404465b2",
+      "bytes": 2362
+    },
+    {
+      "path": "mixed-world-working-source/world/academySchoolLife.js",
+      "sha256": "7b2c3b7eded9f7c3a89071a3c0dde3c28e10e265619d6f2015e5f564a4ca6b5f",
+      "bytes": 7217
+    },
+    {
+      "path": "mixed-world-working-source/world/academyStudy.js",
+      "sha256": "68a26cf5b91841f807745793760ce3020386cdf1a36697a60d73e5aa92f81587",
+      "bytes": 6090
+    },
+    {
+      "path": "mixed-world-working-source/world/academyStudyLayout.js",
+      "sha256": "8e5a400eeac26cf8b16d64d43ff706877571d0a25e933f2669ed243e04dc12d9",
+      "bytes": 2376
+    },
+    {
+      "path": "mixed-world-working-source/world/acropolisCliffAnnex.js",
+      "sha256": "65fb0b184c4d7a73232c42432b3ae7d15a80d05a7fcd816cef5b34d83cccc123",
+      "bytes": 2009
+    },
+    {
+      "path": "mixed-world-working-source/world/acropolisFlankRock.js",
+      "sha256": "16f0eb72aad383a4f1366440519bb4a5f8ad726ff7895264b9cd75412717b8c6",
+      "bytes": 1080
+    },
+    {
+      "path": "mixed-world-working-source/world/acropolisLayout.js",
+      "sha256": "5f6d6dec96ff2167e90ff23d5514b486f77a7b5c3fbd0a84554be11a3da2dc73",
+      "bytes": 15194
+    },
+    {
+      "path": "mixed-world-working-source/world/acropolisPrecinct.js",
+      "sha256": "cd6a18cd912c2fd6e6e3734ae0c91c83bc2578c893ee5d4e89c6aa28ea4d1d9a",
+      "bytes": 7507
+    },
+    {
+      "path": "mixed-world-working-source/world/acropolisSouthernEnvelope.js",
+      "sha256": "f380045ebeabccbced3cbfaef269b1741a79ec491422dd3f3badc9f652f34c16",
+      "bytes": 2173
+    },
+    {
+      "path": "mixed-world-working-source/world/agoraCommission.js",
+      "sha256": "f9683dc0e718031e8987dbe9401875c9b8bf976541ac856a8359fee25f4e3ad7",
+      "bytes": 13756
+    },
+    {
+      "path": "mixed-world-working-source/world/agoraCrowdBootstrap.js",
+      "sha256": "591ad494529f75b444be88467821b45271b432011d0f80ae0d30f5dad3ae744d",
+      "bytes": 1169
+    },
+    {
+      "path": "mixed-world-working-source/world/agoraGatheringVisit.js",
+      "sha256": "e44694af620d3594955e19955cf522bad9962fb87ba37e96c58e25ba1dbf8a91",
+      "bytes": 6404
+    },
+    {
+      "path": "mixed-world-working-source/world/agoraLife.js",
+      "sha256": "a05b45927b6a8d677a35e890dee6db12f38c28b5d541ea9172b9f38c04937836",
+      "bytes": 5190
+    },
+    {
+      "path": "mixed-world-working-source/world/agoraPaving.js",
+      "sha256": "40e015e5e29c0ab71cd6868eeefc4c384cdbf0a0477a36a8bb6878d5861619a6",
+      "bytes": 3371
+    },
+    {
+      "path": "mixed-world-working-source/world/agoraWorkRoutines.js",
+      "sha256": "4e851b2d5d06a005ae6509e6368a31e712cb81d8e1c031cb2c9fb4cd2a6f6868",
+      "bytes": 7110
+    },
+    {
+      "path": "mixed-world-working-source/world/assemblyApproach.js",
+      "sha256": "e8fe9b1d37121095887862c76774ee5320f81b0d80d70c445e51b6e1b76d3b2d",
+      "bytes": 2813
+    },
+    {
+      "path": "mixed-world-working-source/world/assemblyApproachLayout.js",
+      "sha256": "b03fa1ea26ba572976c90e4fc5d88c0dac532ca7364fd4043e35e862ec7257df",
+      "bytes": 2068
+    },
+    {
+      "path": "mixed-world-working-source/world/atmosphereSceneAnchors.js",
+      "sha256": "8a2a2f6569566b019aa9ea792829df1fea9728fa82f91ed444a9a8915cf2ebff",
+      "bytes": 2171
+    },
+    {
+      "path": "mixed-world-working-source/world/atticLandscape.js",
+      "sha256": "eea186b8550c8544197818afeb573f8021b6bb8db6ab9fa5f4c8cf6d94f648f7",
+      "bytes": 3234
+    },
+    {
+      "path": "mixed-world-working-source/world/atticLandscapeLayout.js",
+      "sha256": "6cd8d5630e50aaec8f1ef3d62ab05963c7411be5e54d225a072ce425b54ddc7b",
+      "bytes": 5431
+    },
+    {
+      "path": "mixed-world-working-source/world/atticMicroDebris.js",
+      "sha256": "2a10b56099a6263e580cab976bc438d67ef4edcdf87d3fae76d5bac8c5f171de",
+      "bytes": 8683
+    },
+    {
+      "path": "mixed-world-working-source/world/backdrop/BackdropMountains.js",
+      "sha256": "aef8b8f611b77d9ee3ba598775891b4923a5cc52ede0d5a46633a2bc8187491f",
+      "bytes": 14746
+    },
+    {
+      "path": "mixed-world-working-source/world/backdrop/DistantVolcano.js",
+      "sha256": "2ceaeede39008d18ca451d723013ff6bc818e28dd7329e0016db36103e02c700",
+      "bytes": 2304
+    },
+    {
+      "path": "mixed-world-working-source/world/backdrop/ShorelineDressing.js",
+      "sha256": "247d933f0bd4f590b575b401b40ea7afc37169df82637050b39b1128841589ea",
+      "bytes": 4338
+    },
+    {
+      "path": "mixed-world-working-source/world/bakehouse.js",
+      "sha256": "401b536e1662d57d05d12c0c8cc35f7dd89c8809080776c5e840ba3b765391f4",
+      "bytes": 8147
+    },
+    {
+      "path": "mixed-world-working-source/world/bakehouseLayout.js",
+      "sha256": "27ba42f7c619716ce94b9b15236e0d5500efcec574e202b20a50d2c52203e807",
+      "bytes": 1646
+    },
+    {
+      "path": "mixed-world-working-source/world/bouleuterionLife.js",
+      "sha256": "62fde2907907e4e0f109b42698ede364c1af1c02956a188357640295ba75aee6",
+      "bytes": 4392
+    },
+    {
+      "path": "mixed-world-working-source/world/bouleuterionWorkroom.js",
+      "sha256": "f70ad7190c0755d3604c4f76cfb79bbc106b4db2e84ec12a9e25d723074c5a80",
+      "bytes": 7366
+    },
+    {
+      "path": "mixed-world-working-source/world/bouleuterionWorkroomLayout.js",
+      "sha256": "54efe08f5e874e9a153357a02ab496f7c1a2793c505b3ede99986f2396422124",
+      "bytes": 2151
+    },
+    {
+      "path": "mixed-world-working-source/world/boundedAtmosphere.js",
+      "sha256": "ccb1c4b073d35e182a1bdb0cb7b3352c2df22b30b766938329ce6641af564828",
+      "bytes": 8327
+    },
+    {
+      "path": "mixed-world-working-source/world/breadMarketExchange.js",
+      "sha256": "b1208c4e9498064436724a38e92a85ec8a28ed98639c57bf92f06b41e4d3d923",
+      "bytes": 9634
+    },
+    {
+      "path": "mixed-world-working-source/world/buildingSpawner.js",
+      "sha256": "ebbe2e09984519a509fe28523f74ef8bb31a05ed2e60ba336e64d45bc7364661",
+      "bytes": 29372
+    },
+    {
+      "path": "mixed-world-working-source/world/cargoTransport.js",
+      "sha256": "9050490f261a9471b8ce24e3e7eafce6baf67e9b069f054470f53d026186823f",
+      "bytes": 22653
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/atticChariotScene.js",
+      "sha256": "cfab50629d9079a9db090e9b4e3055fb6de993fe099ff709168c7fd4c30b02ef",
+      "bytes": 12379
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/chariotAudio.js",
+      "sha256": "c3461f8cf3938cedfdb7f69d44d7241423ad8aeb8d40bb524de52a6e76b67a34",
+      "bytes": 8875
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/chariotJourney.js",
+      "sha256": "7c572d1ed4491fc02d1e440b0a4ebb26973c08ca833f9ea416561a2f4c0b7cf8",
+      "bytes": 16280
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/chariotModel.js",
+      "sha256": "af84bd81b19e100e67560a7749286160dfeffdcbf44e7dc808597387e2adaf4c",
+      "bytes": 11228
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/chariotPhysics.js",
+      "sha256": "608fa0ffa4e3707e22d7c3fee14292049dbd5ffe73856e05cce0d021378db906",
+      "bytes": 15644
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/chariotVFX.js",
+      "sha256": "2b7b8c8966712f5abe25df898f9931ce0d8ce40daf63d83477b9f1bc707c0ce0",
+      "bytes": 5438
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/proceduralAtticRoad.js",
+      "sha256": "c989a595fa77bfeb600bc02ed163652f7b9610bee65db15b8f784db0f33bbb9c",
+      "bytes": 25548
+    },
+    {
+      "path": "mixed-world-working-source/world/chariot/slowRoadsAssets.js",
+      "sha256": "066c15ac827e5da2eb043165a93710ec2a73bcc80c2da765903d76cb53fbb415",
+      "bytes": 15120
+    },
+    {
+      "path": "mixed-world-working-source/world/citizenDiurnalRhythm.js",
+      "sha256": "506e5207c9b2d5baaf0d0f410bec73188f6cd5dbb713ba529c76b129d9a5cf40",
+      "bytes": 8930
+    },
+    {
+      "path": "mixed-world-working-source/world/citizenVisit.js",
+      "sha256": "88d3359ad94883719c358adbc27c446e1c8abe79e04c56b6c2fcd81444919066",
+      "bytes": 1194
+    },
+    {
+      "path": "mixed-world-working-source/world/cityCivicLayout.js",
+      "sha256": "530c60efa2193aadb7c1cfff28489c63ec7629d71868240d1a7f610c167ddad7",
+      "bytes": 597
+    },
+    {
+      "path": "mixed-world-working-source/world/cityDailyRoutines.js",
+      "sha256": "8cd6cbcf07e4c16ab48382646257b61142fe3ae6b425a0850bd1c41089bf1d8d",
+      "bytes": 9271
+    },
+    {
+      "path": "mixed-world-working-source/world/cityDensityLayout.js",
+      "sha256": "f1e557b21d4c2dd9698f4689de8e6f68e5ab242cf313da7c20412aafbbe4e9aa",
+      "bytes": 8038
+    },
+    {
+      "path": "mixed-world-working-source/world/cityEdge.js",
+      "sha256": "49424bdd84da77570beb5c17c8755b584c715005e6a71d689b1a4dcff49b8337",
+      "bytes": 8174
+    },
+    {
+      "path": "mixed-world-working-source/world/cityEdgeLayout.js",
+      "sha256": "14cb39647abb2efe4c3f2b61211ca39c8f9e6112b1705c7fcabdf1e7a0ec679a",
+      "bytes": 2202
+    },
+    {
+      "path": "mixed-world-working-source/world/cityFrontageConnections.js",
+      "sha256": "620c19743448b943c2d8f3f2d14f0adfbb12ad6b5036dbbc710439f2b608e72f",
+      "bytes": 7682
+    },
+    {
+      "path": "mixed-world-working-source/world/cityGateAvenue.js",
+      "sha256": "389727869357d6b3a05109a48b2ec7bbb274bc276564b971abb912681ffb7488",
+      "bytes": 12430
+    },
+    {
+      "path": "mixed-world-working-source/world/cityGates.js",
+      "sha256": "fb1c576c47d7db0c1ff4a954600bd923dcff09fd55bdc94fc24f87bd62e360d6",
+      "bytes": 5979
+    },
+    {
+      "path": "mixed-world-working-source/world/cityGatesLayout.js",
+      "sha256": "7e16c38fbec40bac6d44dd65e0a23cd93afc0b71a1adb18c51c5aca918e92f3f",
+      "bytes": 4937
+    },
+    {
+      "path": "mixed-world-working-source/world/cityLandmarks.js",
+      "sha256": "54c09fc912cd51edb854e230bb452ff6f9b4e42c155358444f229452af36b148",
+      "bytes": 6372
+    },
+    {
+      "path": "mixed-world-working-source/world/cityMapData.js",
+      "sha256": "b5300c123d0f1bf1e529f48ace387a15525735ac1951675d0945ca8f57dc2834",
+      "bytes": 4254
+    },
+    {
+      "path": "mixed-world-working-source/world/cityPlan.js",
+      "sha256": "cf50bfaa3085c8583797c7584536b107dc904f97f0103e6e9f105b854336457d",
+      "bytes": 116937
+    },
+    {
+      "path": "mixed-world-working-source/world/cityResidentialLayout.js",
+      "sha256": "bbaf52f44d7806aa5a04e3d5767f8fc974be91fc969df984c78f28f850192ea7",
+      "bytes": 12464
+    },
+    {
+      "path": "mixed-world-working-source/world/cityShower.js",
+      "sha256": "c627b5497981600c404d0fab0b003f405c0a4f7eca3292341956f9cfeda14662",
+      "bytes": 6663
+    },
+    {
+      "path": "mixed-world-working-source/world/cityWallMaterials.js",
+      "sha256": "c291c9b67e4225d3ae9329bca55f0f46e8ce0e0bd2519b661eeff9389f9b9e2b",
+      "bytes": 6551
+    },
+    {
+      "path": "mixed-world-working-source/world/civicCentre.js",
+      "sha256": "7a8e69d430dad1624281416d821e4364bd3fa4b6748d1274e94174ed8676a66a",
+      "bytes": 5369
+    },
+    {
+      "path": "mixed-world-working-source/world/civicCentreLayout.js",
+      "sha256": "6c579409f9873ff160da3b14af48b7e1f306c8f3cb63a6bb414d737e53665fec",
+      "bytes": 2066
+    },
+    {
+      "path": "mixed-world-working-source/world/civicHarborAvenue.js",
+      "sha256": "b3a14452671f264001b7f145cf5baba3e0a240a1f8f75f0ee846d5e1b7414e1f",
+      "bytes": 3665
+    },
+    {
+      "path": "mixed-world-working-source/world/civicHarborAvenueLayout.js",
+      "sha256": "a10e02dd4036de62a7192bdce4e023cc68052fc6e5006e8127b70ab04a42b857",
+      "bytes": 2447
+    },
+    {
+      "path": "mixed-world-working-source/world/civicRoadEdges.js",
+      "sha256": "819e62168296108220938bd005f72df24439ddf3277808376e01e0008955418a",
+      "bytes": 1948
+    },
+    {
+      "path": "mixed-world-working-source/world/classicalAgoraNeighbours.js",
+      "sha256": "b15ed4241db566e3750cd66195b1e9533c62d81146fd895e7c04420451512703",
+      "bytes": 10604
+    },
+    {
+      "path": "mixed-world-working-source/world/clothWorkingCourt.js",
+      "sha256": "715335e4c8a0c749473bf970a4bad2e84512f0c40b3ab1a36f4b06e8ce8cf591",
+      "bytes": 4418
+    },
+    {
+      "path": "mixed-world-working-source/world/coastalZones.js",
+      "sha256": "ada5ac6a7293814c21bb13fafbd0a6023a3b097d446f9e27dfa85e8509e363ba",
+      "bytes": 8942
+    },
+    {
+      "path": "mixed-world-working-source/world/collectibles.d.ts",
+      "sha256": "9dbcd177405116440bd8464f2c423070ab1e6a208a0c3009659c8e51e7aa5d76",
+      "bytes": 761
+    },
+    {
+      "path": "mixed-world-working-source/world/collectibles.js",
+      "sha256": "ba3d9c04799d755eca3fd91bd047f1b0741db5c68416b8e53f54e3cf382bd3c9",
+      "bytes": 5143
+    },
+    {
+      "path": "mixed-world-working-source/world/collectorFrontage.js",
+      "sha256": "7e53c48cf3933fd9e0b508a7e5f868955754c54486bdad864ab27c254052f973",
+      "bytes": 4187
+    },
+    {
+      "path": "mixed-world-working-source/world/collectorPilotPolicy.js",
+      "sha256": "f12ffa3a0fdc35361f49a8a6b8fcf6ddb08d803953baa523998e7f23bb23cec6",
+      "bytes": 421
+    },
+    {
+      "path": "mixed-world-working-source/world/colorGradingPass.js",
+      "sha256": "05ae4057e57e04e36e155b7bf7dfef8b5f64c262e4faec539b4b20fae0ba6bc5",
+      "bytes": 3325
+    },
+    {
+      "path": "mixed-world-working-source/world/compactCourtyardHouse.js",
+      "sha256": "e2edb2b310d2d8961aed0fb8dd85ff35376b863db27123af4dd4289f282104bb",
+      "bytes": 6750
+    },
+    {
+      "path": "mixed-world-working-source/world/companionCameraClearance.js",
+      "sha256": "5bdb7c290c7316f8a90cb40ceca2002f0d9c45260afb2d4413f96a2d7e68e7b2",
+      "bytes": 1622
+    },
+    {
+      "path": "mixed-world-working-source/world/countrysideEdge.js",
+      "sha256": "705203a2f04ef573874c0eae04d2d7da3aa2370e12987136d3698310ca4a3af8",
+      "bytes": 3371
+    },
+    {
+      "path": "mixed-world-working-source/world/countrysideLayout.js",
+      "sha256": "7e49f7c88822e0a4055e70f12ac23f5f782cc1304486c1b58a2f1018b63dacbf",
+      "bytes": 1030
+    },
+    {
+      "path": "mixed-world-working-source/world/courtArrival.js",
+      "sha256": "3c0e163ac485518d423d32947e7925e41d446dcc7f3a91702ca82ec27528460a",
+      "bytes": 6023
+    },
+    {
+      "path": "mixed-world-working-source/world/courtGroundGeometry.js",
+      "sha256": "9ee472b04d4f659e4f20227033d0dc48ab100e38de3732a5bcac6e5c87293b52",
+      "bytes": 1901
+    },
+    {
+      "path": "mixed-world-working-source/world/courtLinkHomes.js",
+      "sha256": "0f1ef804037a83f960c09aaf23c4e233a29674e91b2e78e96ef36d811b21efb2",
+      "bytes": 7458
+    },
+    {
+      "path": "mixed-world-working-source/world/courtLinkNeighbourhood.js",
+      "sha256": "8e1f380ea16505a56da4c919c86e5bdb2d207b9c206a609399c3e3c506eb5bf9",
+      "bytes": 4043
+    },
+    {
+      "path": "mixed-world-working-source/world/courtPreparationInterior.js",
+      "sha256": "0ff334e278f8333274377fb73be426d496e753dc1ca8f5006e5415cfe6a2e275",
+      "bytes": 11365
+    },
+    {
+      "path": "mixed-world-working-source/world/courtPreparationLayout.js",
+      "sha256": "9d146a3d966b85767dfbfce796874a632d8d4ad8751ce43a95153a8f064d019a",
+      "bytes": 2761
+    },
+    {
+      "path": "mixed-world-working-source/world/courtPreparationLife.js",
+      "sha256": "0d97a65cf9f0289a698778f85de6480a0cab2edaacd7f2de28adf4008a0821f0",
+      "bytes": 6703
+    },
+    {
+      "path": "mixed-world-working-source/world/courtStreetLife.js",
+      "sha256": "3a5903da2f2b17129a6915e1539d63bc2b68596c777f026d6449d7e745e0548e",
+      "bytes": 4756
+    },
+    {
+      "path": "mixed-world-working-source/world/courtWaterClock.js",
+      "sha256": "8f9c830fd9c5f1a5d78d2989edac6cf9590bfc60ebfef083a7db100a496a1275",
+      "bytes": 1118
+    },
+    {
+      "path": "mixed-world-working-source/world/courtyardHome.js",
+      "sha256": "9e5562b4e9aa5c0610d8bb5c09b29c41bef88ed399d7f4a8f1111b61401f2acb",
+      "bytes": 5882
+    },
+    {
+      "path": "mixed-world-working-source/world/courtyardHousehold.js",
+      "sha256": "bbab65a3d8733528d63689e7f84b8fb4ed49e02daf188093fcb44f66034bd7be",
+      "bytes": 8258
+    },
+    {
+      "path": "mixed-world-working-source/world/courtyardLane.js",
+      "sha256": "d627dbd38895df57c8426acfc5ed1691ee6cb596c4d35b20cba1e468843f15cb",
+      "bytes": 2980
+    },
+    {
+      "path": "mixed-world-working-source/world/courtyardLaneLayout.js",
+      "sha256": "7097b10c4e3295624c9043025234e86ac2b24cf742d4e6b78ea8f2ada94308d2",
+      "bytes": 1595
+    },
+    {
+      "path": "mixed-world-working-source/world/debug_hillcity.js",
+      "sha256": "44bba135671fc0f93ba4fc4f7deb81b456ce3e517cad427b3ab3098a0476aa48",
+      "bytes": 503
+    },
+    {
+      "path": "mixed-world-working-source/world/demoTour.js",
+      "sha256": "38b01e5ef2675a24a6e777f171a1e91d14aed81f2d2243de0a32e99832ad63e1",
+      "bytes": 29180
+    },
+    {
+      "path": "mixed-world-working-source/world/districtRules.js",
+      "sha256": "cdd62d2de40ed98ed1f8af5ec05e24cdf65af9d6b18ea611980ba7f0b090affd",
+      "bytes": 5629
+    },
+    {
+      "path": "mixed-world-working-source/world/env/loadHdriEnvironment.js",
+      "sha256": "b886a75fc0e1ac025d9f0a63ebb01da7506fee8ea69880aeebd898741e8cd770",
+      "bytes": 2142
+    },
+    {
+      "path": "mixed-world-working-source/world/eponymousHeroes.js",
+      "sha256": "f4e3c5e45522fba241940d1b1543d55ed673b7be7d771b76ec082143dac3b09c",
+      "bytes": 2454
+    },
+    {
+      "path": "mixed-world-working-source/world/finalFacadeBatches.js",
+      "sha256": "2bf7b3858832fe16ca7b55f7d97b6b141adf3a7a80a9dbbb6fe0d8a310a17598",
+      "bytes": 2556
+    },
+    {
+      "path": "mixed-world-working-source/world/foliage.js",
+      "sha256": "faf825613b815da61a668f46d79c60087eb5dfd2ef430abcd92669ca4afd49c0",
+      "bytes": 20317
+    },
+    {
+      "path": "mixed-world-working-source/world/fountainHouseArchitecture.js",
+      "sha256": "8c3fc3fb7340629bb2b1cfd4d9288d2a0ee721f28118dc9af4377d6fa67d0af0",
+      "bytes": 8009
+    },
+    {
+      "path": "mixed-world-working-source/world/fountainHouseInterior.js",
+      "sha256": "856fa119922e106989db47fb33f45b4f6a449e0454982224dafeda175fb8c5c6",
+      "bytes": 8819
+    },
+    {
+      "path": "mixed-world-working-source/world/fountainHouseLayout.js",
+      "sha256": "ee1c0dd5160cd42b436c95adfdc33cf6a57fb2e441988d25e45bce497647a687",
+      "bytes": 2498
+    },
+    {
+      "path": "mixed-world-working-source/world/fountainHouseLife.js",
+      "sha256": "82492e5bfa58c69bd5a0d99e52ebe3f018cad0458cd36f5a87d7bb696b69cb31",
+      "bytes": 15245
+    },
+    {
+      "path": "mixed-world-working-source/world/grass.d.ts",
+      "sha256": "18fdbbc65e64a0c111cc0fbc40e308f39bd9cdb72c7aef088dd01d362d40971b",
+      "bytes": 1636
+    },
+    {
+      "path": "mixed-world-working-source/world/grass.js",
+      "sha256": "c352b9cd2653eea28a1cdcf479cf8fcf406b18d903becd6989823ad4d249ca5a",
+      "bytes": 12459
+    },
+    {
+      "path": "mixed-world-working-source/world/grassTextureGenerator.js",
+      "sha256": "6bf2e909325e577b99c2971492dda7841af5a047991d309a351cbd0a375efc06",
+      "bytes": 8220
+    },
+    {
+      "path": "mixed-world-working-source/world/greatTheatre.js",
+      "sha256": "6972b6953da09bda6f3bed18b50395654381fa01f62c2e10fcd7b32a16a09172",
+      "bytes": 15886
+    },
+    {
+      "path": "mixed-world-working-source/world/greatTheatreLayout.js",
+      "sha256": "8e9d994fd6c05b7069d73b6a9b66dbeae155c42ca1c2cf3b2782927f4d709cce",
+      "bytes": 2328
+    },
+    {
+      "path": "mixed-world-working-source/world/groundContacts.js",
+      "sha256": "acad9b00637262897d53b75ce893e0f6f88768b75592f89d73d4949d8c4e35c4",
+      "bytes": 4845
+    },
+    {
+      "path": "mixed-world-working-source/world/groundEdgeProfile.js",
+      "sha256": "1925f1c571beed411a2a9be0ca712b0393bebd6c91e426e3c539db334f1d74f8",
+      "bytes": 378
+    },
+    {
+      "path": "mixed-world-working-source/world/groundProps.js",
+      "sha256": "8a711f65b1a632077d2cc7e8fa7f2f4885f2ce7e00a0be89ee4908995cdac0b8",
+      "bytes": 9452
+    },
+    {
+      "path": "mixed-world-working-source/world/groundSurfaceGeometry.js",
+      "sha256": "cde4d4a891e50f84a6368cb4ecf21f90f0a15bc0c0d08703ebd2e351bd613df7",
+      "bytes": 10786
+    },
+    {
+      "path": "mixed-world-working-source/world/groundSurfacePlan.js",
+      "sha256": "4c0380d39f646d4568571dec6b3872eded2fe52e62cea00de12a9efda4c68b1a",
+      "bytes": 6267
+    },
+    {
+      "path": "mixed-world-working-source/world/harbor.js",
+      "sha256": "9abaee5638aaa882a580f8a87779ca7516fb9ba635375bc01ee9f8f2b3287e3b",
+      "bytes": 68560
+    },
+    {
+      "path": "mixed-world-working-source/world/harborActivity.js",
+      "sha256": "9f5b05045f2d035995455f2b6bfbd2b5e69cd3c6bef3763ec997661c01f80e0f",
+      "bytes": 14305
+    },
+    {
+      "path": "mixed-world-working-source/world/harborCoast.js",
+      "sha256": "3fdd435a7b27401fb1ea2c93b331df7339ce28a9e2fc60dad7afdcdf4f280e12",
+      "bytes": 2551
+    },
+    {
+      "path": "mixed-world-working-source/world/harborLayout.js",
+      "sha256": "0fda59ecccf81657118becb66b54edd7a2e4cc1b43530b390163c8d9533a9c85",
+      "bytes": 3174
+    },
+    {
+      "path": "mixed-world-working-source/world/harborNavalSheds.js",
+      "sha256": "6dcfe2a35ed4fdf51937d36363a7d18a9b6952d5cb640b7dfb3cf8fb93e5153f",
+      "bytes": 3579
+    },
+    {
+      "path": "mixed-world-working-source/world/harborNavigation.js",
+      "sha256": "cbe93ab9105c5007b84fec09a3f3e15288273287575a3b28c5f704ab194f4b63",
+      "bytes": 1943
+    },
+    {
+      "path": "mixed-world-working-source/world/harborPlacement.js",
+      "sha256": "db6c30b2123db39edd410606bea4a31605e22ace7346f420f108b3d1ad9e7b0a",
+      "bytes": 13071
+    },
+    {
+      "path": "mixed-world-working-source/world/harborShips.js",
+      "sha256": "eed2b42a5d4d4f6e652807cd221fd71165118ce5bc155d8b3e61961e3a775654",
+      "bytes": 29465
+    },
+    {
+      "path": "mixed-world-working-source/world/harborStorefront.js",
+      "sha256": "1c1a9d058295f5aac8613a109628a8a94ca8fd5e714fd3b2534edc8490c9fa60",
+      "bytes": 2517
+    },
+    {
+      "path": "mixed-world-working-source/world/harborTerrainRefinement.js",
+      "sha256": "5b787b2d3ed79845f1403632dd3f5d050f73d69d6ee9f34448df91f994ecb6d4",
+      "bytes": 3073
+    },
+    {
+      "path": "mixed-world-working-source/world/harbourTradeGrade.js",
+      "sha256": "a7b6da7260e3d052933ca67efb5f0bc08cec5bf9301f0e28585603977a3d4701",
+      "bytes": 637
+    },
+    {
+      "path": "mixed-world-working-source/world/hellenisticSanctuary.js",
+      "sha256": "14fe8a8a05c3d290e6c4b0527b2581af1b3ce3c8451e0bbdaf9d7f5daa9ffacd",
+      "bytes": 15598
+    },
+    {
+      "path": "mixed-world-working-source/world/horizon.js",
+      "sha256": "6b8cfe4f075551d70dc0d2711afa82f917d18d6730bb43688e15b8b6423c1e24",
+      "bytes": 6514
+    },
+    {
+      "path": "mixed-world-working-source/world/horizontalPithos.js",
+      "sha256": "e0ed2ab69b8bcc0cd4ab19fd9930be67763280e97a1d8cf042ee09e1dd193afd",
+      "bytes": 1378
+    },
+    {
+      "path": "mixed-world-working-source/world/householdRestPose.js",
+      "sha256": "d73683c7f7baaaf4d91423aa1ec0a96a6d669936e8bead06179370c79d1a5f97",
+      "bytes": 1483
+    },
+    {
+      "path": "mixed-world-working-source/world/householdSchedule.js",
+      "sha256": "45493cffc454190cb1374dfb30cf942836c4daba3496211138f54609efbe625d",
+      "bytes": 2566
+    },
+    {
+      "path": "mixed-world-working-source/world/inhabitedFurniture.js",
+      "sha256": "89a79bc8e5a0ed5713ed2e0950996cd115513680051c44a1eab133192a21fa13",
+      "bytes": 3045
+    },
+    {
+      "path": "mixed-world-working-source/world/inhabitedHouseholds.js",
+      "sha256": "1cae9edd078227b6af8163925f46c2e725ef5d0beafabaf4802dc13c480d8c0b",
+      "bytes": 2633
+    },
+    {
+      "path": "mixed-world-working-source/world/interactions.js",
+      "sha256": "d4aec3bffbc3397f4d46899035fa0c81615de6332e1d86070fbefdd9a4a635c6",
+      "bytes": 21076
+    },
+    {
+      "path": "mixed-world-working-source/world/kerameikosArchitecture.js",
+      "sha256": "3247fc9d0f0bb250d67c94af4fd3acb0a95582c59b7ae6229b643324b42e983c",
+      "bytes": 32525
+    },
+    {
+      "path": "mixed-world-working-source/world/kerameikosProcession.js",
+      "sha256": "83bbb6388e295c3bce4af91626b2d1e4e496a0a3ffc888e010ec020e26ba8c07",
+      "bytes": 4264
+    },
+    {
+      "path": "mixed-world-working-source/world/kerameikosRoadside.js",
+      "sha256": "dd22fd05e10afae5c546c13fdd706e8d13e36cb847416cac98b2d4308bc38cdb",
+      "bytes": 4659
+    },
+    {
+      "path": "mixed-world-working-source/world/landmarkAccessRoutes.js",
+      "sha256": "7c84fc994aa87e891ee5528545788834b0ea0ee6bad93d801d397c51441f12e8",
+      "bytes": 1771
+    },
+    {
+      "path": "mixed-world-working-source/world/LandmarkManager.js",
+      "sha256": "094083b2cf726e78d7dc203a5e08b3708fb9b2e661fffbed568955e7a9246bbf",
+      "bytes": 1654
+    },
+    {
+      "path": "mixed-world-working-source/world/landmarks.js",
+      "sha256": "b3e478ee9f4a68a7b1e5750e9adef962f6f00c1eea3795522bbd175cc9f6783a",
+      "bytes": 464
+    },
+    {
+      "path": "mixed-world-working-source/world/largeCourtyardHouse.js",
+      "sha256": "620dd7b2c70f0d6953834148c13faf9affc4086c252c2950cfe6c86a77c2ebf6",
+      "bytes": 17565
+    },
+    {
+      "path": "mixed-world-working-source/world/largeCourtyardHouseLayout.js",
+      "sha256": "715c309cca2c6840d1360a0702730822a57b4a433613760c67a6714b47198c20",
+      "bytes": 1398
+    },
+    {
+      "path": "mixed-world-working-source/world/largeHouseDailyLife.js",
+      "sha256": "9423997d2edbba237383f116f9a5a7fd5245f1a4f8edd7953f1659fa91459d08",
+      "bytes": 5877
+    },
+    {
+      "path": "mixed-world-working-source/world/largeHouseDomesticDetails.js",
+      "sha256": "5ecdcf0e5bd318e7c61e27957958b663c5a8f03495eefdd2ea07b04ef7d8548e",
+      "bytes": 7666
+    },
+    {
+      "path": "mixed-world-working-source/world/largeHouseRoof.js",
+      "sha256": "6dd4c9a13e2af0fa36cb96bcc9fb1f90757bef32216171c7a4dc89367879ee71",
+      "bytes": 17495
+    },
+    {
+      "path": "mixed-world-working-source/world/largeHouseShellRepairs.js",
+      "sha256": "131b1ecfcfade984e78e65d7c57279c0483d532845449ddd06e4fafb0db22004",
+      "bytes": 2743
+    },
+    {
+      "path": "mixed-world-working-source/world/legacyCityLayout.js",
+      "sha256": "b31719e2bc168081df08d7742b5a476fe45c2d2fab5010569711b0acfca611af",
+      "bytes": 7985
+    },
+    {
+      "path": "mixed-world-working-source/world/lighting/sunAlignment.js",
+      "sha256": "4d145686e9c047f01f04e3df2c703803ca39e22681feba27c5a26b6a16c7f29c",
+      "bytes": 1155
+    },
+    {
+      "path": "mixed-world-working-source/world/lighting.js",
+      "sha256": "419fbc288ca4b26c381b0167d3ca5b219d8d090c3382ca0a24f3305e3182a4e1",
+      "bytes": 5598
+    },
+    {
+      "path": "mixed-world-working-source/world/livedInFrontages.js",
+      "sha256": "15b99c756cd1e45b76b97c2dd97c2945a43ceb9544f026d34fcabf6bb85a2e43",
+      "bytes": 11855
+    },
+    {
+      "path": "mixed-world-working-source/world/livingAgora.js",
+      "sha256": "72ced32235f47572b9f44ca2fc153e3d67d3e7e92da5a0e110773449d2940cc3",
+      "bytes": 9308
+    },
+    {
+      "path": "mixed-world-working-source/world/livingAgoraLayout.js",
+      "sha256": "d9cd7858c3837fa1d51423d6aec8d8662cc35ae423902b282abfca5d67e0bfe0",
+      "bytes": 7294
+    },
+    {
+      "path": "mixed-world-working-source/world/livingAgoraPeople.js",
+      "sha256": "cb987333f1628f384788eea029a822fa184ae4ba84ddec6084d9274ca22e0d6e",
+      "bytes": 4354
+    },
+    {
+      "path": "mixed-world-working-source/world/locations.d.ts",
+      "sha256": "cec639782a7ddaa0e1b0aabdb8458bba3c5508df74f26a896f97d807cf17c2f8",
+      "bytes": 812
+    },
+    {
+      "path": "mixed-world-working-source/world/locations.js",
+      "sha256": "a67cfee710d1e1a1c242d9b9e2700b7349ed4387d7ca8016f2ea9910702d96be",
+      "bytes": 6441
+    },
+    {
+      "path": "mixed-world-working-source/world/lyceumLandscape.js",
+      "sha256": "fb3be7ddee0e5a42b726ba3b444192dcd12debe4b0a88d8ffb706c0617a7f61c",
+      "bytes": 4400
+    },
+    {
+      "path": "mixed-world-working-source/world/lyceumLandscapeLayout.js",
+      "sha256": "fe212a79d92578e349689f646838f1c6565624a3afec43c041f26b1c15330c97",
+      "bytes": 3416
+    },
+    {
+      "path": "mixed-world-working-source/world/lyceumObservationDetails.js",
+      "sha256": "ff1176de1c1b720b0880234c331bd5f12cb01026f9ebf2db19a13fc929568760",
+      "bytes": 8291
+    },
+    {
+      "path": "mixed-world-working-source/world/lyceumSchoolLife.js",
+      "sha256": "b3f9733fb76c537ae1c794d828e872d08149b5edb38d25d971f34f4991380c1b",
+      "bytes": 3869
+    },
+    {
+      "path": "mixed-world-working-source/world/lyceumTeachingRoutine.js",
+      "sha256": "d2f69fff8854c4076ee544a2844d0d0ace468d794b9a7bb95de1ed47f16efdcb",
+      "bytes": 6382
+    },
+    {
+      "path": "mixed-world-working-source/world/marketLife.js",
+      "sha256": "7a81c8963a3fc445b963fbe4abbeace5007a8d103f60db826e8eed708fae8d12",
+      "bytes": 1723
+    },
+    {
+      "path": "mixed-world-working-source/world/masonryGeometry.js",
+      "sha256": "520aaa45c86a6b2dfebd60a162328afe017c1e1e43bde9d4f7777fac5faf8de5",
+      "bytes": 850
+    },
+    {
+      "path": "mixed-world-working-source/world/materials.js",
+      "sha256": "c8a04415d8b20721a896d0d8d40d945dacb5407021b10439206bac9f6bca54d7",
+      "bytes": 5818
+    },
+    {
+      "path": "mixed-world-working-source/world/merchantHarborStore.js",
+      "sha256": "8e0d8ae308d8ee2a6da8b80c2d4f9e518ad409d8c1e0dd96fbd7720f2901c7c9",
+      "bytes": 11627
+    },
+    {
+      "path": "mixed-world-working-source/world/merchantStoreJourney.js",
+      "sha256": "d4ceab618d7a2415fbeac7e2267150470751f1e33bc273ab7fe79845f9fd6e9a",
+      "bytes": 2423
+    },
+    {
+      "path": "mixed-world-working-source/world/mintWorkshopInterior.js",
+      "sha256": "732841a808b80cbaa6aca6738feb587b5e57e0e646ae074e7872da68f21dc714",
+      "bytes": 9612
+    },
+    {
+      "path": "mixed-world-working-source/world/mintWorkshopLayout.js",
+      "sha256": "c1c76d59c4a4c23802e17f02a8593c513ee5ed85efa8876c7365645b8f0a3126",
+      "bytes": 2592
+    },
+    {
+      "path": "mixed-world-working-source/world/mintWorkshopLife.js",
+      "sha256": "556b6cbcfb9259ccf439542b628613b0d5a516f2b8d9d94774530a57abd2e33f",
+      "bytes": 6665
+    },
+    {
+      "path": "mixed-world-working-source/world/monuments.js",
+      "sha256": "f98ae6bec809e27b19180f64befb437805af34b2fb93f4cd294c7dd3231f3b01",
+      "bytes": 4283
+    },
+    {
+      "path": "mixed-world-working-source/world/nearbyPhilosopherMeeting.js",
+      "sha256": "71a5713cbd7e4d0a3c76ea3691bdd9b7b2d6d31045e4845a97bceaf862e1bee3",
+      "bytes": 6229
+    },
+    {
+      "path": "mixed-world-working-source/world/neighbourhoodLayout.js",
+      "sha256": "950d8bb9d8b435286a80e9b2e6aa2d4bd9b4d42705d857b23d5c5862b0c79e7d",
+      "bytes": 22454
+    },
+    {
+      "path": "mixed-world-working-source/world/newAcropolisAscent.js",
+      "sha256": "462a75a3332fe2999ff0caf3a4a1465a3a1b1d5cd5fac05a92d3c516547bf7a2",
+      "bytes": 9193
+    },
+    {
+      "path": "mixed-world-working-source/world/newAcropolisCourts.js",
+      "sha256": "3f72dc13ff5e21480982c2bac03528d6ca40de3f281223005c32b5ee1a184806",
+      "bytes": 4712
+    },
+    {
+      "path": "mixed-world-working-source/world/newAcropolisElevation.js",
+      "sha256": "bb33d0f7e77821dd4adbef4fdc69322021a60a322d4a6c6f4014598c497df30d",
+      "bytes": 2942
+    },
+    {
+      "path": "mixed-world-working-source/world/newAcropolisLayout.js",
+      "sha256": "cc33a29a98fad9736c9d95abcf0a6534cb606682ee66aa5693957e8247f4300a",
+      "bytes": 3688
+    },
+    {
+      "path": "mixed-world-working-source/world/newAcropolisNorthernApproaches.js",
+      "sha256": "6d2d011b8855a15772a50564cdc25e95921376bf8d9f721583e9fe8f472220f4",
+      "bytes": 6841
+    },
+    {
+      "path": "mixed-world-working-source/world/newAgoraArchitecture.js",
+      "sha256": "02c4e41f6cb0089e9cb406b1d7e6423eb774ac4f94dbf4745092cee879274b15",
+      "bytes": 7400
+    },
+    {
+      "path": "mixed-world-working-source/world/newAgoraLayout.js",
+      "sha256": "ab927198e2faab9316b610c5b63aa8716853f71b7f546e8f22c52e4c0bf7de63",
+      "bytes": 3922
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensAcropolis.js",
+      "sha256": "c89896a327508f00f9879403072638c2ef1a89f446944aadea1c1d9fc628f532",
+      "bytes": 32740
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensAgora.js",
+      "sha256": "5cf47f7b026fdf73f5701ce56de2a19d632858092c9aaf1840054a6e5b66f21a",
+      "bytes": 7383
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensCommission.js",
+      "sha256": "832ab454ffac3ddac06ffb8e882181c89dbc6d97f297cc15a3a29f0e91da32c2",
+      "bytes": 3215
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensCountrysideLife.js",
+      "sha256": "415455ccea3604564e9581d404bd92de42e6983665325bd6bd8153749c3419eb",
+      "bytes": 1597
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensCourtyard.js",
+      "sha256": "a08c5ffc5651e3b4e61e978138ab0561aca6e643bfef21d00651463baacc5234",
+      "bytes": 3572
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensCourtyardCamera.js",
+      "sha256": "695efd5a241fd68c8275a15b532cc1494bedc4e910c1d282ad41215e20b7233c",
+      "bytes": 2522
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensCourtyardCleanup.js",
+      "sha256": "17820fedfa6f9656952dbfd7299a3948d5b9f5b8f1cb6d21bb1ddc14a590e816",
+      "bytes": 1636
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensCourtyardCleanupData.js",
+      "sha256": "57bbde4d22f3a86c2d7c9e410fb84b1387c0d7eefc29206d55ad3677049cecf7",
+      "bytes": 18497
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensDiogenes.js",
+      "sha256": "bdd1be0431053f9676fa9009206ac57cf34dee0243976e616e6d7822d25c038c",
+      "bytes": 2476
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensGardenLife.js",
+      "sha256": "072a8d3e7f50e77a28abac7b27481a9a70c0e8d5a83102ed8fae640eae25663b",
+      "bytes": 2004
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensGateway.js",
+      "sha256": "6f51c7154f743e2ce9fb4e0a730ffae3c8584cd617d37461a4c5b370596444cf",
+      "bytes": 2963
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensGatheringRoutes.js",
+      "sha256": "863616ac21bf67bb7695f92abc74422c7fcd8ff26b0e199b498b4ebcf84595e8",
+      "bytes": 521
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensHarbor.js",
+      "sha256": "835f7f3f11866b3c46c29c50c5c63c7b9dcbc938817e89a6d1346b2c488f3310",
+      "bytes": 1695
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensHarborEvidence.js",
+      "sha256": "c0412134b085dd0e135c0bde02987210d12841758a3b3c39b035609b28cfd02f",
+      "bytes": 4088
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensHarborLife.js",
+      "sha256": "0fed94b810c151cdfa43fada71fe1a79dfc7480389885a1a0855cde073666f2f",
+      "bytes": 6033
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensHouseholdWater.js",
+      "sha256": "953c7a2f1a7b22218d780dce13a43df3caedcc16dec54e1942de7ccdc06f1a76",
+      "bytes": 5052
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensInteriorRoofs.js",
+      "sha256": "39594158057e9dfa6c8df0d5834ca151c016d562b6b116ffa3a13022f4219b73",
+      "bytes": 4412
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensMarketLife.js",
+      "sha256": "ff429a67a6687c7f2e364810b0000e0f84b5f45d74a984fb4b2a6068137042e0",
+      "bytes": 2466
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensNeighbourhood.js",
+      "sha256": "fc630268ca24f26f5369e44668ee460e5e5ffbbe1433ef8c3c3cb4a0aaffdf1f",
+      "bytes": 15228
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensPathWear.js",
+      "sha256": "9c64a15bfa48159af3dc77353e5ca13ee18b98d1d4f91d9affa9c29cb27723ce",
+      "bytes": 2530
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensPlan.js",
+      "sha256": "d71df019ad732e0527ceee8822614e87c316e88ba545786da4779f4507da21ea",
+      "bytes": 7947
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensRecovery.js",
+      "sha256": "d7f7161e4d2964a8485eb0e94a3c3a620e782abd341bb887c07a52a07df9b227",
+      "bytes": 2615
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensStage.js",
+      "sha256": "304a9d9669649e212a33c9877c8252e617c5f228a2c8cdf7b89c45feefc25ff2",
+      "bytes": 18180
+    },
+    {
+      "path": "mixed-world-working-source/world/newAthensWeather.js",
+      "sha256": "bc7d8d164551108d9fee98236a970cf1c26df129e39232fe97018559a92fac39",
+      "bytes": 2550
+    },
+    {
+      "path": "mixed-world-working-source/world/newParthenonCollision.js",
+      "sha256": "8ca20c386ba60c8271a53093c6fc437e919c3425e2350d920b0eea17bad073c5",
+      "bytes": 9345
+    },
+    {
+      "path": "mixed-world-working-source/world/npcs.js",
+      "sha256": "0d8a2cf5dfc5647e43919d4cd33cd252dfafcbcc0fb200132db9a79e51bac406",
+      "bytes": 47723
+    },
+    {
+      "path": "mixed-world-working-source/world/npcWaypointRoutine.js",
+      "sha256": "19f0e9fb49cd10cd1382e548e9e71a29e6d3007e0122422264fb8cffd3408ed1",
+      "bytes": 2185
+    },
+    {
+      "path": "mixed-world-working-source/world/occluders.d.ts",
+      "sha256": "85bc9c3cfea80da975daa13a596855358199a52dc7ea5e376409728beeece1d7",
+      "bytes": 730
+    },
+    {
+      "path": "mixed-world-working-source/world/occluders.js",
+      "sha256": "56cf7621c41084cbf6403de817096bdaa29069e692e09ec2284a348d9f07b8a1",
+      "bytes": 2773
+    },
+    {
+      "path": "mixed-world-working-source/world/ocean.d.ts",
+      "sha256": "abef61d607e945e4d791d50d920703c51e7733715c6636a8c4f04377a13d2a98",
+      "bytes": 2024
+    },
+    {
+      "path": "mixed-world-working-source/world/ocean.js",
+      "sha256": "cbf944de9c680d8bf0218a62d2aba8c9ec18155c2142eaa3f49296c098968f3f",
+      "bytes": 21249
+    },
+    {
+      "path": "mixed-world-working-source/world/oldCouncilRoofClosure.js",
+      "sha256": "68f2cb5a19a50f8b240d2d086522aab30f1d18a91694715dc95665e1100bac00",
+      "bytes": 2302
+    },
+    {
+      "path": "mixed-world-working-source/world/oliveLaneHome.js",
+      "sha256": "7fa460ac9ce5bece38cf25373e21248511519eced8a0684a819d18d28b0423f1",
+      "bytes": 18114
+    },
+    {
+      "path": "mixed-world-working-source/world/oliveLaneLife.js",
+      "sha256": "86f371cc258bb94e965a497bdd97465a457bdbe1518f0f2b349179f885a8de1c",
+      "bytes": 16188
+    },
+    {
+      "path": "mixed-world-working-source/world/oliveOpenWorkshop.js",
+      "sha256": "b3e8da35148ca1fc1b2611a424bf4f8569af679e25587f34c7d9f47a3767a706",
+      "bytes": 9027
+    },
+    {
+      "path": "mixed-world-working-source/world/olivePotteryCourt.js",
+      "sha256": "1a2213ad1d242d018b15696625e50aceebbf7dc32ce176d017a26ecffcc95614",
+      "bytes": 5104
+    },
+    {
+      "path": "mixed-world-working-source/world/oliveWorkshopDoors.js",
+      "sha256": "6ac84cf87e9bc3555352bcebc74c57b9c5e27ef4d375d335a0a28ea56fa21ef5",
+      "bytes": 1900
+    },
+    {
+      "path": "mixed-world-working-source/world/paintedStoaArchitecture.js",
+      "sha256": "387c6d407def8a4edecb03eb49187fc19b775862787bd27478102465afbba268",
+      "bytes": 8567
+    },
+    {
+      "path": "mixed-world-working-source/world/paintedStoaInterior.js",
+      "sha256": "9757b35371ff18d773e9482c0ae02de0a93769111376722f9808a6eb7d4747e0",
+      "bytes": 5815
+    },
+    {
+      "path": "mixed-world-working-source/world/paintedStoaLayout.js",
+      "sha256": "20da7b8770e85fca3433eba33612629fa91d22e68c72797dd7725b16d62606b0",
+      "bytes": 2852
+    },
+    {
+      "path": "mixed-world-working-source/world/paintedStoaPanel.js",
+      "sha256": "f18c58ccd0fce5f817e1d9d642ad17aba827467222728dee62c533db747f25db",
+      "bytes": 2997
+    },
+    {
+      "path": "mixed-world-working-source/world/paintedStoaTrade.js",
+      "sha256": "a584eebff1339228cb70dbc03a16a9f498cb652043bca15958a237d14497e10a",
+      "bytes": 2509
+    },
+    {
+      "path": "mixed-world-working-source/world/particles.js",
+      "sha256": "40a0df4f8e7a8dc40f3c25733ade6c2d7accf2fdaff9314ca8ef37d8d940390a",
+      "bytes": 7485
+    },
+    {
+      "path": "mixed-world-working-source/world/philosopherCompanion.js",
+      "sha256": "3155ba505ae5be8f5fe5e8781b06652d56f42ec56b135808709cc1d2776e32e3",
+      "bytes": 4616
+    },
+    {
+      "path": "mixed-world-working-source/world/philosopherConversation.js",
+      "sha256": "8092ab6fa135ecfc3c9d48152c4bf7e0d50de3f8e72f99932307758fdea18e87",
+      "bytes": 5652
+    },
+    {
+      "path": "mixed-world-working-source/world/philosophyDistrict.js",
+      "sha256": "f9fcabb10d78600268295b7c8bf910ec4b62d045035d39a6f65d5c845db560fa",
+      "bytes": 22434
+    },
+    {
+      "path": "mixed-world-working-source/world/philosophyDistrictLayout.js",
+      "sha256": "9d6c01b4c56fc286f645c1162967b6d7f2cc61a1450de9cd3acbcd0b4931faf8",
+      "bytes": 4327
+    },
+    {
+      "path": "mixed-world-working-source/world/philosophyLayout.js",
+      "sha256": "0e8ae9b1376892655b94427833bec6f30109b3e61fa68ace3cc7a9b943a8d0c5",
+      "bytes": 297
+    },
+    {
+      "path": "mixed-world-working-source/world/philosophyWalk.js",
+      "sha256": "08f9e53c0de70610c69ba1f05c4e631cbeed6a7b397afeaa17891833fa6c800f",
+      "bytes": 12269
+    },
+    {
+      "path": "mixed-world-working-source/world/philosophyWalkContent.js",
+      "sha256": "6d12f21d4cfbe251f8d95755f3f464a9305f9a93c51df44f330b07b59b78d5f7",
+      "bytes": 3478
+    },
+    {
+      "path": "mixed-world-working-source/world/pins.js",
+      "sha256": "ecbf2f2ed945907dc5fc7f7f718d5b23c60c1a921bc6a9460ea8adcd2b48adb5",
+      "bytes": 710
+    },
+    {
+      "path": "mixed-world-working-source/world/pnyxAssemblyHill.js",
+      "sha256": "d59f53c8379080f2ad0b22eed4ed8a9318d272ae4b2eb2860f1392937719eef7",
+      "bytes": 10740
+    },
+    {
+      "path": "mixed-world-working-source/world/pnyxAssemblyLife.js",
+      "sha256": "2dfb9af5f871647eb0caf7e0c0d0812d51e3bbf8c1c499471590217e791997fb",
+      "bytes": 11423
+    },
+    {
+      "path": "mixed-world-working-source/world/pnyxLayout.js",
+      "sha256": "130743b6db35ac21a430cb3f9cbe5f6d981025408c593c5e2e4e257266747fa0",
+      "bytes": 1230
+    },
+    {
+      "path": "mixed-world-working-source/world/potterAnimator.js",
+      "sha256": "aa7ff445b5d8a3860956dbfa621f898be0a17c3e48f2658c5ade31da103f100f",
+      "bytes": 4820
+    },
+    {
+      "path": "mixed-world-working-source/world/potterController.js",
+      "sha256": "bb48807c7eb402e634c1781728493832adee0aa3b0e2ee59429f6dcbf43d39de",
+      "bytes": 1456
+    },
+    {
+      "path": "mixed-world-working-source/world/potterCourtyardHouse.js",
+      "sha256": "643bded5ac9a20c9b5df966ff4f20c393d0cfbcdcf85275106d0ac559a4fa2d8",
+      "bytes": 6059
+    },
+    {
+      "path": "mixed-world-working-source/world/potterDistrict.js",
+      "sha256": "e47b8dc6574217995cb3ad38af3ecdf6c625d9df8405ccd1236fff3f0100e3c1",
+      "bytes": 3797
+    },
+    {
+      "path": "mixed-world-working-source/world/potterDistrictLayout.js",
+      "sha256": "2f0435574d88b42e5b13ef6024750127b05f7753a09064ebbe9c71587548b911",
+      "bytes": 2762
+    },
+    {
+      "path": "mixed-world-working-source/world/potterKiln.js",
+      "sha256": "2cfafc2aa61946ff38f7beb35a1344eed476daa057a1a0f4ae344141e2e5d76d",
+      "bytes": 2271
+    },
+    {
+      "path": "mixed-world-working-source/world/potterQuarterLayout.js",
+      "sha256": "5d31265b3efd4277f594d41094baee861dc63f9bb96d093e32dedbd340b229f1",
+      "bytes": 7572
+    },
+    {
+      "path": "mixed-world-working-source/world/potterSite.js",
+      "sha256": "386ef6b442b0f5aea486809f8f01ece36c4ce2effcb210e391364a6bb4217f4a",
+      "bytes": 737
+    },
+    {
+      "path": "mixed-world-working-source/world/potterWaterCourt.js",
+      "sha256": "ac32b4d55d379ebadcf32baf064e5ea3ea874960edb5bf5f731970bc15f30c54",
+      "bytes": 3647
+    },
+    {
+      "path": "mixed-world-working-source/world/potterWorkCycle.js",
+      "sha256": "c22c5b69171092ccd01bfbaf7ea81b44db70b8ad9f353cdd92293e88b71bce0a",
+      "bytes": 734
+    },
+    {
+      "path": "mixed-world-working-source/world/potterWorkroom.js",
+      "sha256": "857fc065d260e5694c018102cb033b6c372de1d5633de04c44e38ab2dab250df",
+      "bytes": 6310
+    },
+    {
+      "path": "mixed-world-working-source/world/potterYardEnvironment.js",
+      "sha256": "a7390b7c794bc83196a6cea8284385b0d58585c34a87c7d4bc73b4fe33e1adf8",
+      "bytes": 4295
+    },
+    {
+      "path": "mixed-world-working-source/world/potterYardGround.js",
+      "sha256": "5c82dcbeb283c6514491097854c92d4dc588e8304d850502a679466960b27794",
+      "bytes": 2115
+    },
+    {
+      "path": "mixed-world-working-source/world/potterYardLayout.js",
+      "sha256": "344723518b04a63baea87d921e9fde5a243c7bedeb0d2ecb9afaec246e6a4008",
+      "bytes": 2304
+    },
+    {
+      "path": "mixed-world-working-source/world/potteryCollection.js",
+      "sha256": "92f5d8ee0efd6c8bc4aabf96b76cb5f576b539a03c4c08679f96798e4c3141c0",
+      "bytes": 2252
+    },
+    {
+      "path": "mixed-world-working-source/world/potteryWorkshop.js",
+      "sha256": "9d192862faba0967161b8150b235798ccc9170e23abf89cb59f5356d78aba2f8",
+      "bytes": 8938
+    },
+    {
+      "path": "mixed-world-working-source/world/precinctLife.js",
+      "sha256": "2a850c993e929d7135c79a3f4f056da25007df5b8a188d6598c67299889f0298",
+      "bytes": 5093
+    },
+    {
+      "path": "mixed-world-working-source/world/precinctLifeLayout.js",
+      "sha256": "1f170c1c863b6562c9ea49570cbd86fe929305372a9fdcb9a03831922a5fa37f",
+      "bytes": 383
+    },
+    {
+      "path": "mixed-world-working-source/world/propylaeaIntegration.js",
+      "sha256": "a45939e4c3f80a7a99d18b97553661a24551105d819442302bae359467b44d3e",
+      "bytes": 7489
+    },
+    {
+      "path": "mixed-world-working-source/world/provisionCourt.js",
+      "sha256": "abc772a7c2ea37d67d700c8e3b06e00f334272569061900a68d1de2f96972594",
+      "bytes": 5964
+    },
+    {
+      "path": "mixed-world-working-source/world/renderLayers.js",
+      "sha256": "99fc72284d4d02a03a7c590bdef6abf0136f27ea4d026d87b6b60b954e4803a7",
+      "bytes": 103
+    },
+    {
+      "path": "mixed-world-working-source/world/residentialFacades.js",
+      "sha256": "d0b8d5917f5b903604ebfd4ce7d3d5a44f49a1f6c55fbf99647390d5a4faf1ee",
+      "bytes": 6736
+    },
+    {
+      "path": "mixed-world-working-source/world/residentialGrounding.js",
+      "sha256": "dd6c64798c6ea9cfcebaf4d47e6ef585a382d4fc283fcda2b5c3a9928b8c4573",
+      "bytes": 4814
+    },
+    {
+      "path": "mixed-world-working-source/world/residentialStreetFeatures.js",
+      "sha256": "02752b7b43e2a2d815cd9529d0d414b253b56cb4ed2f9b756a5dc5aee6933117",
+      "bytes": 11528
+    },
+    {
+      "path": "mixed-world-working-source/world/residentialStreetLayout.js",
+      "sha256": "4ecdc9b6fb6af5f69fb19afa96b84d7c740baa54e7969000417d5c0735e9fc51",
+      "bytes": 4319
+    },
+    {
+      "path": "mixed-world-working-source/world/residentialStreetPocket.js",
+      "sha256": "959473359167770ecd486d53fe1995eaa8fa5789807ed121b3a88c7149b647fc",
+      "bytes": 3743
+    },
+    {
+      "path": "mixed-world-working-source/world/roads_hillcity.js",
+      "sha256": "d55ae659298e3b2f1f0a5c9beb3f874429f31465c79d12217319b15a99eb32d4",
+      "bytes": 1060
+    },
+    {
+      "path": "mixed-world-working-source/world/royalStoaArchitecture.js",
+      "sha256": "a5826c356161b757d61f17910925fd020c1ea9107a493f688e10870eeb405c73",
+      "bytes": 9740
+    },
+    {
+      "path": "mixed-world-working-source/world/royalStoaInterior.js",
+      "sha256": "20d0240feb030cf9472b49c5991786bf8742c33b4d7e241dd4e84221a14d915e",
+      "bytes": 7450
+    },
+    {
+      "path": "mixed-world-working-source/world/royalStoaLayout.js",
+      "sha256": "ed17af905e93a0e7e2d03857b1cf15dea7cf6923d09a1011d72df42361df4e65",
+      "bytes": 3102
+    },
+    {
+      "path": "mixed-world-working-source/world/royalStoaLife.js",
+      "sha256": "c29cb17a8352b337092a80093b8d5f88a522c4ff68938640fcb365194a0c7eff",
+      "bytes": 6425
+    },
+    {
+      "path": "mixed-world-working-source/world/sacredWayAscentDressing.js",
+      "sha256": "0054bb89d340adce16556b41156440832aeba25a1c1734e8fb58ec6e507c41a7",
+      "bytes": 12779
+    },
+    {
+      "path": "mixed-world-working-source/world/schoolConversation.js",
+      "sha256": "9f86b3cde39170e96754b2afa04ac697429050dcf191139ca05c6dc5bde25b3d",
+      "bytes": 2801
+    },
+    {
+      "path": "mixed-world-working-source/world/schoolPhilosophers.js",
+      "sha256": "a36cae7d0c1a95b16d595c9627688c9d6e3ee414d9d252eba04c297cc2011435",
+      "bytes": 7767
+    },
+    {
+      "path": "mixed-world-working-source/world/seaLevelState.js",
+      "sha256": "095c29a5d6bc5567a3945e82861967a73bdaa25b833ccc10c4935f2292cea494",
+      "bytes": 1366
+    },
+    {
+      "path": "mixed-world-working-source/world/shipWaterExclusion.js",
+      "sha256": "8e3f6469660abc775d9d220ff7ffa3253598323d86d056e43bbc33c65125623a",
+      "bytes": 7242
+    },
+    {
+      "path": "mixed-world-working-source/world/shoreTermination.js",
+      "sha256": "b5e31f07eb27621f253a22c5710e6714d46ca52872602a19450930144e0bc3c7",
+      "bytes": 5983
+    },
+    {
+      "path": "mixed-world-working-source/world/showerConversation.js",
+      "sha256": "56923a1b152b4ea62050143b0d6c024c5a1aed35aef799bc4c8fcdea65c024e9",
+      "bytes": 1781
+    },
+    {
+      "path": "mixed-world-working-source/world/showerPresentation.js",
+      "sha256": "a802bfbff4f416306435953734bfc4965d1f1273ab7d5a7e715ba4e234bbf66a",
+      "bytes": 2370
+    },
+    {
+      "path": "mixed-world-working-source/world/showerRoutes.js",
+      "sha256": "8486fd580a3a90eea01e75aa8869f6399d73c74f695d306c8615660adceefe1f",
+      "bytes": 2921
+    },
+    {
+      "path": "mixed-world-working-source/world/showerShelter.js",
+      "sha256": "67d775785561bf7a5ccc8d9ab6735129c6432e8a66764df0325aaee2a896ac3d",
+      "bytes": 1618
+    },
+    {
+      "path": "mixed-world-working-source/world/sky/DynamicSky.js",
+      "sha256": "ff4f7587221f800305f6fba2951bbfccfead1a51a20b74e534fa61db55f299c9",
+      "bytes": 12902
+    },
+    {
+      "path": "mixed-world-working-source/world/sky.js",
+      "sha256": "ec8a3bc5f4b78d583ad599421f2f38062bf9f71b6eed86d2e5ee09dd0485fc14",
+      "bytes": 7564
+    },
+    {
+      "path": "mixed-world-working-source/world/skybox/SkyboxManager.js",
+      "sha256": "cdfd44a734b4fc09540ff017631cfd7167871afd5119cd06dd2b954968044b75",
+      "bytes": 1580
+    },
+    {
+      "path": "mixed-world-working-source/world/socratesEncounter.js",
+      "sha256": "0aefae38ea8bb971a72045c51b94922372988558ce8bec9e841324a86f06b154",
+      "bytes": 4483
+    },
+    {
+      "path": "mixed-world-working-source/world/socratesVisual.js",
+      "sha256": "76e3b652d5ebb60489575530bbf8fdcfe16bbbe82f90bb7f0782ee5d7fef4181",
+      "bytes": 4643
+    },
+    {
+      "path": "mixed-world-working-source/world/southernAcropolisCourt.js",
+      "sha256": "1bcc36ddd8d61921de817df84681ae1bcbf05cf796f4483a23fc56c597ef8783",
+      "bytes": 13754
+    },
+    {
+      "path": "mixed-world-working-source/world/southStoaArchitecture.js",
+      "sha256": "b8aadafe3d0c0505c4ae912779445b99df7fee44cc028cdce42f3d45ad34a78a",
+      "bytes": 9504
+    },
+    {
+      "path": "mixed-world-working-source/world/southStoaInteriors.js",
+      "sha256": "4188ae01775d675dc2d627a6c1bb5318bbe88f0238eecc27adbd627595903a3e",
+      "bytes": 14367
+    },
+    {
+      "path": "mixed-world-working-source/world/southStoaLayout.js",
+      "sha256": "e2436e5cec96a0fe97326b27836595e19024a172fddedf41cd27762798f91a46",
+      "bytes": 664
+    },
+    {
+      "path": "mixed-world-working-source/world/southStoaWork.js",
+      "sha256": "ce5d120320f02506cdbff4e5dec8e77207910a116a01e77eee5e861afcbb5452",
+      "bytes": 6006
+    },
+    {
+      "path": "mixed-world-working-source/world/spawn.js",
+      "sha256": "5978f0f2db0b508d9cc4abea39a47a5c204a00aca6b7800fae2f58feb7c4dc6b",
+      "bytes": 7376
+    },
+    {
+      "path": "mixed-world-working-source/world/streetWearContours.js",
+      "sha256": "24cde808eb46bb32ece35575c057716f56e2598f353bd00140bc958b005ebd32",
+      "bytes": 1764
+    },
+    {
+      "path": "mixed-world-working-source/world/summitTreasury.js",
+      "sha256": "8d2730b282f53578873b3afaada4e49a42998cec11411aac8e5177f3f72089a2",
+      "bytes": 5093
+    },
+    {
+      "path": "mixed-world-working-source/world/terracottaCourses.js",
+      "sha256": "201dfd9118a8dff11bc306ebf3dd6b64cf5fbf38a2a3744f4985fc9b40b7f5bd",
+      "bytes": 2857
+    },
+    {
+      "path": "mixed-world-working-source/world/terrain.js",
+      "sha256": "e200a45c07dd50da85284cb2fb187a0ff56fec7d0987f4fd7830921ac224940f",
+      "bytes": 36591
+    },
+    {
+      "path": "mixed-world-working-source/world/terrainHeight.js",
+      "sha256": "19d349efd7723f63702ba92c7f17c40020cd52964a158f8604520205eb343e9c",
+      "bytes": 4182
+    },
+    {
+      "path": "mixed-world-working-source/world/terrainUtils.js",
+      "sha256": "b908dcde2d588e38cbdc443bb38835793137e100e26ee2d69d94795732de8672",
+      "bytes": 8637
+    },
+    {
+      "path": "mixed-world-working-source/world/terrainValidation.ts",
+      "sha256": "d116e611e9a05347a3c1893a5909bfb6a4e32e83a5490a706a288ff5096a5dca",
+      "bytes": 10656
+    },
+    {
+      "path": "mixed-world-working-source/world/terrainWaterData.js",
+      "sha256": "69bef91aecdcbd03c71bf109ce473c321ab99809fc9ff59eccbbabf2f98b7f76",
+      "bytes": 2537
+    },
+    {
+      "path": "mixed-world-working-source/world/theatreRehearsal.js",
+      "sha256": "4f1913634f46307a26804d9a424a7e2d768f077bb87c4cc374b4e09101b601f4",
+      "bytes": 9953
+    },
+    {
+      "path": "mixed-world-working-source/world/tholosInterior.js",
+      "sha256": "3c3c03d0a516a108a8601dde635ee0f9659d0d21190b82982f80cae4a091a8b2",
+      "bytes": 7764
+    },
+    {
+      "path": "mixed-world-working-source/world/tholosInteriorLayout.js",
+      "sha256": "3380fbdf2161e7ea31f9f7e81f2c038b3b217e315f526a6dd8d0eb03046e2ec2",
+      "bytes": 2505
+    },
+    {
+      "path": "mixed-world-working-source/world/tholosLife.js",
+      "sha256": "5acad1d57de7c66a5eba57ee142950255fa8ea3e54665f125e89990354bafbe5",
+      "bytes": 6384
+    },
+    {
+      "path": "mixed-world-working-source/world/tradingCourt.js",
+      "sha256": "ca42252af9e62a604e5a9b4fcf3d79cbbf663160891fb7ef7641176c1cbc3bc3",
+      "bytes": 6857
+    },
+    {
+      "path": "mixed-world-working-source/world/tradingCourtLayout.js",
+      "sha256": "d9c1a553ba70c185d36cdbba37a9e73d1f0c375b7d980784964228fc9bec8835",
+      "bytes": 1505
+    },
+    {
+      "path": "mixed-world-working-source/world/tradingCourtStall.js",
+      "sha256": "fd01d5ba4983d6895b68d727be73168db1c6f68cf8b42b6a102335c76f26b514",
+      "bytes": 2299
+    },
+    {
+      "path": "mixed-world-working-source/world/triremeModel.js",
+      "sha256": "1d993acd0009b9181cb3d98d8187f33222556f671c2e521af0dec36fe254baea",
+      "bytes": 16063
+    },
+    {
+      "path": "mixed-world-working-source/world/triremePreparation.js",
+      "sha256": "7242be57596024fce871cf698359c4ae6292644b8c023136529f71b069822649",
+      "bytes": 10368
+    },
+    {
+      "path": "mixed-world-working-source/world/triremeScene.js",
+      "sha256": "9b8d7482f0f60b97b41107626b791c81eaa82330500163964fa9040bebf5a697",
+      "bytes": 4531
+    },
+    {
+      "path": "mixed-world-working-source/world/triremeVisit.js",
+      "sha256": "d5427bbe1555d3949e21fd116da0528622ad82d7cd5f95dabbece417c104c097",
+      "bytes": 8639
+    },
+    {
+      "path": "mixed-world-working-source/world/ui/crosshair.js",
+      "sha256": "9291556c1ace487a33388a3d321e9e7a847af0b4f0519068d9e8c5af6c4434c3",
+      "bytes": 1232
+    },
+    {
+      "path": "mixed-world-working-source/world/wealthyCourtyardExterior.js",
+      "sha256": "a1c8551574a5428ef9f1b711816842a61f396146f359371cc6c875ad12d20472",
+      "bytes": 6064
+    },
+    {
+      "path": "mixed-world-working-source/world/wealthyCourtyardLayout.js",
+      "sha256": "171df53e0d77859e8d45f918458cbf1ac42ca74d5a78b741360d955a8ff6b054",
+      "bytes": 933
+    },
+    {
+      "path": "mixed-world-working-source/world/wealthyCourtyardRooms.js",
+      "sha256": "1e03476cd74d53aabdc4d7d5d80d29adfea970a14ca821ebf49eb842fff366b2",
+      "bytes": 8547
+    },
+    {
+      "path": "mixed-world-working-source/world/workshopLife.js",
+      "sha256": "54a71d6f1485d657eb0e819deb29db0267ef5fd7f1f1ef65a9549f23618ef265",
+      "bytes": 12881
+    },
+    {
+      "path": "mixed-world-working-source/world/worldBounds.js",
+      "sha256": "25179b589b362fdecf41863aa9b45d11914d157fdcb3b8337726228466bd9508",
+      "bytes": 2040
+    },
+    {
+      "path": "mixed-world-working-source/world/zeusStoaArchitecture.js",
+      "sha256": "876eadb7ab17e14a8d066af8807817b2fb187ac8a28799efd41cb3f7c0ec1a8c",
+      "bytes": 12232
+    },
+    {
+      "path": "mixed-world-working-source/world/zeusStoaInterior.js",
+      "sha256": "955b95e02bdbf27e90c4000e1789637cac8370e76c8e50df9b58a03322e5732f",
+      "bytes": 5741
+    },
+    {
+      "path": "mixed-world-working-source/world/zeusStoaLayout.js",
+      "sha256": "03d46e4ce852f24675aeaf935f6bab11586051ac310961ea5ff78f732d0a0e6e",
+      "bytes": 4091
+    },
+    {
+      "path": "mixed-world-working-source/world/zeusStoaLife.js",
+      "sha256": "561ba17f2fe3ab058610c691927270456b0f1b2d4e42bc7a4930b74ac344e0ab",
+      "bytes": 5131
+    }
+  ],
+  "installedBuildUsesTheseFiles": false,
+  "originalsRetained": true
+}

@@ -1,0 +1,664 @@
+{
+  "site": {
+    "version": 6,
+    "anchor": {
+      "x": -215,
+      "y": 6.2,
+      "z": 76
+    },
+    "standingY": 6.25,
+    "bounds": {
+      "west": -234,
+      "east": -199,
+      "south": 60,
+      "north": 98
+    },
+    "home": {
+      "west": -234,
+      "east": -222,
+      "south": 61,
+      "north": 87,
+      "floor": 7.5,
+      "privateDoor": {
+        "x": -228,
+        "z": 61
+      }
+    },
+    "showroom": {
+      "west": -211,
+      "east": -199,
+      "south": 60,
+      "north": 84,
+      "floor": 5.1,
+      "publicEntry": {
+        "x": -199,
+        "z": 66.5
+      },
+      "trade": {
+        "x": -201.4,
+        "z": 66.5
+      }
+    },
+    "workCourt": {
+      "west": -221,
+      "east": -211,
+      "south": 60,
+      "north": 86,
+      "floor": 6.2,
+      "clearSpine": {
+        "x": -214.6,
+        "south": 73,
+        "north": 87
+      }
+    },
+    "firingYard": {
+      "west": -221,
+      "east": -199,
+      "south": 86,
+      "north": 98,
+      "floor": 6.2,
+      "visitor": {
+        "x": -214.6,
+        "z": 87.2
+      },
+      "serviceGate": {
+        "x": -199,
+        "z": 94
+      }
+    },
+    "kilns": [
+      {
+        "id": "west",
+        "x": -215,
+        "z": 92.5,
+        "height": 2.35
+      },
+      {
+        "id": "east",
+        "x": -206.5,
+        "z": 92.5,
+        "height": 2.45
+      }
+    ],
+    "publicStairs": {
+      "kind": "aligned-interior-stairs",
+      "bottom": {
+        "x": -207.15,
+        "y": 5.15,
+        "z": 75
+      },
+      "top": {
+        "x": -210.75,
+        "y": 6.275,
+        "z": 75
+      },
+      "width": 3.4,
+      "clearWidth": 3.4,
+      "count": 8,
+      "tread": 0.45,
+      "bottomLandingLength": 1.2,
+      "upperLandingLength": 1.4,
+      "existingThresholdRun": 0.7
+    },
+    "publicRamp": {
+      "kind": "aligned-interior-stairs",
+      "bottom": {
+        "x": -207.15,
+        "y": 5.15,
+        "z": 75
+      },
+      "top": {
+        "x": -210.75,
+        "y": 6.275,
+        "z": 75
+      },
+      "width": 3.4,
+      "clearWidth": 3.4,
+      "count": 8,
+      "tread": 0.45,
+      "bottomLandingLength": 1.2,
+      "upperLandingLength": 1.4,
+      "existingThresholdRun": 0.7
+    },
+    "publicEntryBridge": {
+      "kind": "level-street-threshold",
+      "from": {
+        "x": -197.5,
+        "y": 5.15,
+        "z": 74.7
+      },
+      "to": {
+        "x": -199,
+        "y": 5.15,
+        "z": 74.7
+      },
+      "width": 3.4
+    },
+    "publicBoundary": {
+      "x": -193.8,
+      "south": 60,
+      "north": 96.25,
+      "visitorGate": {
+        "z": 66.5,
+        "width": 4.5
+      },
+      "mainGate": {
+        "z": 74.7,
+        "width": 5
+      },
+      "serviceGate": {
+        "z": 94,
+        "width": 4.5
+      }
+    },
+    "publicApproach": {
+      "width": 3.4,
+      "clearWidth": 3.2,
+      "points": [
+        {
+          "x": -187,
+          "y": 5.1,
+          "z": 74.7
+        },
+        {
+          "x": -197.5,
+          "y": 5.15,
+          "z": 74.7
+        }
+      ]
+    },
+    "serviceApproach": {
+      "width": 3.4,
+      "clearWidth": 3.2,
+      "points": [
+        {
+          "x": -190,
+          "y": 5.1,
+          "z": 74.7
+        },
+        {
+          "x": -190,
+          "y": 5.1,
+          "z": 78
+        },
+        {
+          "x": -190,
+          "y": 6.25,
+          "z": 92
+        },
+        {
+          "x": -190,
+          "y": 6.25,
+          "z": 94
+        },
+        {
+          "x": -202,
+          "y": 6.25,
+          "z": 94
+        }
+      ]
+    },
+    "visitorApproach": {
+      "width": 3.4,
+      "clearWidth": 3.2,
+      "points": [
+        {
+          "x": -190,
+          "y": 5.1,
+          "z": 66.5
+        },
+        {
+          "x": -199.2,
+          "y": 5.15,
+          "z": 66.5
+        }
+      ]
+    },
+    "publicSteps": {
+      "kind": "aligned-interior-stairs",
+      "bottom": {
+        "x": -207.15,
+        "y": 5.15,
+        "z": 75
+      },
+      "top": {
+        "x": -210.75,
+        "y": 6.275,
+        "z": 75
+      },
+      "width": 3.4,
+      "clearWidth": 3.4,
+      "count": 8,
+      "tread": 0.45,
+      "bottomLandingLength": 1.2,
+      "upperLandingLength": 1.4,
+      "existingThresholdRun": 0.7
+    },
+    "privateSteps": {
+      "bottom": {
+        "x": -228,
+        "y": 6.25,
+        "z": 56.9
+      },
+      "top": {
+        "x": -228,
+        "y": 7.57,
+        "z": 60.9
+      },
+      "width": 2.4
+    },
+    "publicAgoraRoute": [
+      [
+        -190,
+        31
+      ],
+      [
+        -190,
+        33
+      ],
+      [
+        -190,
+        36.25
+      ],
+      [
+        -190,
+        61.5
+      ],
+      [
+        -187,
+        74.7
+      ],
+      [
+        -197.5,
+        74.7
+      ],
+      [
+        -199.2,
+        74.7
+      ],
+      [
+        -205.95,
+        75
+      ],
+      [
+        -207.15,
+        75
+      ],
+      [
+        -210.75,
+        75
+      ],
+      [
+        -212.15,
+        75
+      ],
+      [
+        -214.6,
+        75
+      ],
+      [
+        -214.6,
+        87.2
+      ]
+    ],
+    "serviceRoute": [
+      [
+        -190,
+        31
+      ],
+      [
+        -190,
+        33
+      ],
+      [
+        -190,
+        36.25
+      ],
+      [
+        -190,
+        61.5
+      ],
+      [
+        -187,
+        74.7
+      ],
+      [
+        -190,
+        74.7
+      ],
+      [
+        -190,
+        78
+      ],
+      [
+        -190,
+        92
+      ],
+      [
+        -190,
+        94
+      ],
+      [
+        -202,
+        94
+      ]
+    ],
+    "publicRoute": [
+      [
+        -190,
+        31
+      ],
+      [
+        -190,
+        33
+      ],
+      [
+        -190,
+        36.25
+      ],
+      [
+        -190,
+        61.5
+      ],
+      [
+        -187,
+        74.7
+      ],
+      [
+        -197.5,
+        74.7
+      ],
+      [
+        -199.2,
+        74.7
+      ],
+      [
+        -205.95,
+        75
+      ],
+      [
+        -207.15,
+        75
+      ],
+      [
+        -210.75,
+        75
+      ],
+      [
+        -212.15,
+        75
+      ],
+      [
+        -214.6,
+        75
+      ],
+      [
+        -214.6,
+        87.2
+      ]
+    ],
+    "tradeRoute": [
+      [
+        -193.8,
+        74.7
+      ],
+      [
+        -196.3,
+        74.7
+      ],
+      [
+        -196.3,
+        66.5
+      ],
+      [
+        -199.2,
+        66.5
+      ],
+      [
+        -201.4,
+        66.5
+      ]
+    ],
+    "legacyArrivalRoute": [
+      [
+        -190,
+        31
+      ],
+      [
+        -190,
+        33
+      ],
+      [
+        -190,
+        66.5
+      ],
+      [
+        -199.2,
+        66.5
+      ],
+      [
+        -201.4,
+        66.5
+      ]
+    ],
+    "homeRoute": [
+      [
+        -199,
+        66.5
+      ],
+      [
+        -195.5,
+        63
+      ],
+      [
+        -199,
+        57
+      ],
+      [
+        -228,
+        56.9
+      ],
+      [
+        -228,
+        60.9
+      ],
+      [
+        -228,
+        64.5
+      ],
+      [
+        -228,
+        68.5
+      ],
+      [
+        -225.3,
+        68.5
+      ],
+      [
+        -225.3,
+        74.1
+      ]
+    ],
+    "retained": [
+      "existing through-road alignment",
+      "production and trade account",
+      "both kiln IDs",
+      "all five crew IDs"
+    ],
+    "visualCycle": "One finite batch authority; physical kiln alternates every460simulation seconds. Empty load never shows fire.",
+    "grading": {
+      "showroomEarth": 5.07,
+      "workEarth": 6.17,
+      "homeEarth": 7.47,
+      "roadDatum": 7.859895960489909,
+      "interpretation": "Measured western workshop proposal"
+    },
+    "precinct": {
+      "west": -242,
+      "east": -179,
+      "south": 52,
+      "north": 106
+    },
+    "forecourt": {
+      "west": -197.5,
+      "east": -180,
+      "south": 60,
+      "north": 86,
+      "top": 5.1
+    },
+    "branch": {
+      "width": 6,
+      "points": [
+        {
+          "x": -190,
+          "y": 7.859895960489909,
+          "z": 31
+        },
+        {
+          "x": -190,
+          "y": 7.94,
+          "z": 33
+        },
+        {
+          "x": -190,
+          "y": 8.31,
+          "z": 36.25
+        },
+        {
+          "x": -190,
+          "y": 5.1,
+          "z": 61.5
+        },
+        {
+          "x": -187,
+          "y": 5.1,
+          "z": 74.7
+        }
+      ]
+    },
+    "mainwayJoint": {
+      "centreline": [
+        -188.84568306191673,
+        27.525376698476087
+      ],
+      "centrelineDistance": 3.6613460203918,
+      "sampledAt": [
+        -189.03319561136325,
+        27.463082488961525
+      ],
+      "sampleDistance": 0.1975892829557796,
+      "height": 7.734638613921088,
+      "shoulder": [
+        -190,
+        7.859895960489909,
+        31
+      ]
+    }
+  },
+  "pads": [
+    {
+      "name": "home",
+      "west": -234,
+      "east": -222,
+      "south": 61,
+      "north": 87,
+      "floor": 7.5,
+      "privateDoor": {
+        "x": -228,
+        "z": 61
+      },
+      "earth": 7.47
+    },
+    {
+      "name": "showroom",
+      "west": -211,
+      "east": -199,
+      "south": 60,
+      "north": 84,
+      "floor": 5.1,
+      "publicEntry": {
+        "x": -199,
+        "z": 66.5
+      },
+      "trade": {
+        "x": -201.4,
+        "z": 66.5
+      },
+      "earth": 5.07
+    },
+    {
+      "name": "working court",
+      "west": -221,
+      "east": -211,
+      "south": 60,
+      "north": 86,
+      "floor": 6.2,
+      "clearSpine": {
+        "x": -214.6,
+        "south": 73,
+        "north": 87
+      },
+      "earth": 6.17
+    },
+    {
+      "name": "firing yard",
+      "west": -221,
+      "east": -199,
+      "south": 86,
+      "north": 98,
+      "floor": 6.2,
+      "visitor": {
+        "x": -214.6,
+        "z": 87.2
+      },
+      "serviceGate": {
+        "x": -199,
+        "z": 94
+      },
+      "earth": 6.17
+    },
+    {
+      "name": "forecourt",
+      "west": -197.5,
+      "east": -180,
+      "south": 60,
+      "north": 86,
+      "top": 5.1,
+      "earth": 5.069999999999999
+    }
+  ],
+  "phasing": {
+    "initialOpenSeparation": {
+      "west": -179,
+      "east": -159,
+      "south": 60,
+      "north": 80,
+      "width": 20,
+      "role": "Distinct district separator; keep civic structures and workshop forecourt out. Mixed open ground / bounded walking lane, not a second market.",
+      "workshopBoundaryX": -179,
+      "civicMinimumX": -159
+    },
+    "fullSeparation": {
+      "west": -179,
+      "east": -159,
+      "south": 52,
+      "north": 149,
+      "width": 20,
+      "role": "Distinct district separator; keep civic structures and workshop forecourt out. Mixed open ground / bounded walking lane, not a second market.",
+      "workshopBoundaryX": -179,
+      "civicMinimumX": -159
+    },
+    "existingPrecinctFringe": [
+      "potters_lane_2",
+      "gate-avenue-south-1",
+      "gate-avenue-side-house"
+    ],
+    "existingFullCorridorConflicts": [
+      "royal-stoa",
+      "new-council",
+      "potters_lane_2",
+      "weavers_court_2",
+      "zeus-site-access"
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "prefix": "const AgoraSquareLife = (() => {\n  const seatSites = [\n    { zone: 'north-approach', x: -114.65, z: 88.7, yaw: Math.PI / 2 },\n    { zone: 'painted-market', x: -114.7, z: 96.95, yaw: Math.PI / 2 },\n  ];\n  const olives = [\n    { name: 'olive_redesign_olive_48', x: -116.45, z: 84.9 },\n    { name: 'olive_redesign_olive_1', x: -116.75, z: 95.0 },\n    { name: 'olive_planted_5', x: -116.45, z: 100.05 },\n  ];\n  const laneOlive = { x: -116.63, z: 89.9 };\n  const lane = [\n    [-91.9, 104.9], [-90, 106], [-82, 111], [-79, 119],\n    [-76.5, 128], [-76, 130.85], [-61, 130.85],\n  ];\n  const segments = lane.slice(1).map(([bx, bz], i) => {\n    const [ax, az] = lane[i];\n    const dx = bx - ax, dz = bz - az, length = Math.hypot(dx, dz);\n    return { ax, az, dx, dz, length };\n  });\n  const laneBoxes = segments.map(({ ax, az, dx, dz, length }) => ({\n    x: ax + dx / 2, z: az + dz / 2, hx: length / 2 + .24, hz: 1.73,\n    ax: dx / length, az: dz / length,\n  }));\n  const clamp = value => Math.min(1, Math.max(0, value));\n  const smooth = (low, high, value) => {\n    const t = clamp((value - low) / (high - low));\n    return t * t * (3 - 2 * t);\n  };\n\n  function fitZone(zone) {\n    const seat = seatSites.find(site => site.zone === zone.id);\n    if (!seat) return zone;\n    return {\n      ...zone,\n      benches: zone.benches.map((item, index) => index === 0\n        ? { ...item, x: seat.x, z: seat.z, yaw: seat.yaw } : item),\n      trees: zone.id === 'north-approach'\n        ? zone.trees.map((tree, index) => index === 3\n          ? { ...tree, ...laneOlive, agoraOriginalAnchor: tree.agoraOriginalAnchor ?? { x: tree.x, z: tree.z } }\n          : tree)\n        : zone.trees,\n    };\n  }\n\n  function groupOlives(scene, heightAt) {\n    for (const { name, x, z } of olives) {\n      const root = scene.getMeshByName(name);\n      if (!root?.isEnabled()) continue;\n      const soil = heightAt(x, z);\n      const children = root.getChildMeshes().filter(mesh => mesh.getTotalVertices());\n      if (!Number.isFinite(soil) || !children.length) continue;\n      const bottom = Math.min(...children.map(mesh => {\n        mesh.computeWorldMatrix(true);\n        return mesh.getBoundingInfo().boundingBox.minimumWorld.y;\n      }));\n      const current = root.getAbsolutePosition();\n      const to = new root.position.constructor(x, current.y + soil - bottom - .04, z);\n      const nodes = [root, ...root.getDescendants()];\n      const frozen = nodes.map(node => node.isWorldMatrixFrozen);\n      for (const node of nodes) node.unfreezeWorldMatrix();\n      root.setAbsolutePosition(to);\n      nodes.forEach((node, i) => {\n        node.computeWorldMatrix(true);\n        if (frozen[i]) node.freezeWorldMatrix();\n      });\n    }\n  }\n\n  function seatSupports(scene, heightAt) {\n    const records = seatSites.map(({ x, z, yaw }) => ({\n      x, y: heightAt(x, z), z, yaw, range: 2.35,\n      boxes: [\n        { x: 0, y: .46, z: 0, hx: 1.2, hy: .07, hz: .275, yaw: 0 },\n        ...[-.82, .82].map(x => ({ x, y: .2, z: 0, hx: .125, hy: .2, hz: .24, yaw: 0 })),\n      ],\n      floors: [{ x: 0, z: 0, hx: 1.2, hz: .275, top: .53 }],\n    })).filter(record => Number.isFinite(record.y));\n    scene.metadata.agoraSquareShade = { seats: records };\n    return records;\n  }\n\n  function laneDistance(x, z) {\n    let nearest = Infinity;\n    for (const { ax, az, dx, dz, length } of segments) {\n      const u = clamp(((x - ax) * dx + (z - az) * dz) / (length * length));\n      nearest = Math.min(nearest, Math.hypot(x - ax - u * dx, z - az - u * dz));\n    }\n    return nearest;\n  }\n\n  // Wear and pale aggregate use the existing full-look terrain atlas.\n  function paintLane(pixels, width, height, extent) {\n    const stepX = (extent.east - extent.west) / (width - 1);\n    const stepZ = (extent.north - extent.south) / (height - 1);\n    const lowX = Math.max(0, Math.ceil((-95 - extent.west) / stepX));\n    const highX = Math.min(width - 1, Math.floor((-58 - extent.west) / stepX));\n    const lowZ = Math.max(0, Math.ceil((104.5 - extent.south) / stepZ));\n    const highZ = Math.min(height - 1, Math.floor((134 - extent.south) / stepZ));\n    for (let row = lowZ; row <= highZ; row++) {\n      const z = extent.south + row * stepZ;\n      for (let col = lowX; col <= highX; col++) {\n        const x = extent.west + col * stepX;\n        const irregularity = .17 * Math.sin(x * 1.19 + z * .62);\n        const laneWeight = smooth(104.5, 107, z) *\n          (1 - smooth(1.38, 2.77, laneDistance(x, z) - irregularity));\n        if (laneWeight < .0001) continue;\n        const at = (row * width + col) * 4;\n        pixels[at] += (210 - pixels[at]) * laneWeight * .86;\n        pixels[at + 1] *= 1 - laneWeight * .35;\n        pixels[at + 2] = Math.max(pixels[at + 2], laneWeight * 255);\n        pixels[at + 3] = Math.min(pixels[at + 3], 255 - 96 * .72 * laneWeight);\n      }\n    }\n  }\n\n  function keepOrnament(row) {\n    return row.x < -95 || row.x > -58 || row.z < 103 || row.z > 133.5 || laneDistance(row.x, row.z) > 1.85;\n  }\n\n  return { seatSites, olives, laneOlive, lane, laneBoxes, laneDistance, fitZone, groupOlives, seatSupports, paintLane, keepOrnament };\n})();\n\n",
+  "patches": [
+    {
+      "owner": "Ground finish for the lane after the square and council approach",
+      "before": "AgoraSquareEdge.paintMask(n,t,r,e);return{pixels:n",
+      "after": "AgoraSquareEdge.paintMask(n,t,r,e);AgoraSquareLife.paintLane(n,t,r,e);return{pixels:n",
+      "offset": 7004720
+    },
+    {
+      "owner": "Reuse two existing seats and move the existing lane olive",
+      "before": ".map(AthensEastEdge.fitZone)),px=",
+      "after": ".map(AthensEastEdge.fitZone).map(AgoraSquareLife.fitZone)),px=",
+      "offset": 6683346
+    },
+    {
+      "owner": "Seat the three named older olives on the local ground",
+      "before": "this.walkSupport=oGe(this.scene,r.getHeightAt)",
+      "after": "AgoraSquareLife.groupOlives(this.scene,r.getHeightAt),this.walkSupport=oGe(this.scene,r.getHeightAt)",
+      "offset": 8181024
+    },
+    {
+      "owner": "Match walking and camera support to the existing seats at their new anchors",
+      "before": "AthensEastEdge.benchSupports(i,e)),r=(s,a,n)=>",
+      "after": "AthensEastEdge.benchSupports(i,e),AgoraSquareLife.seatSupports(i,e)),r=(s,a,n)=>",
+      "offset": 6819074
+    },
+    {
+      "owner": "Match jump landing to the same two seats",
+      "before": ".concat(i.metadata?.agoraEastMeeting?.benches??[]),r=(n,o,l)=>",
+      "after": ".concat(i.metadata?.agoraEastMeeting?.benches??[],i.metadata?.agoraSquareShade?.seats??[]),r=(n,o,l)=>",
+      "offset": 7950584
+    },
+    {
+      "owner": "Keep loose native scatter out of the market lane",
+      "before": "AgoraSquareEdge.clearances.some(area=>intersects(box,area))),local)",
+      "after": "AgoraSquareEdge.clearances.some(area=>intersects(box,area))||AgoraSquareLife.laneBoxes.some(area=>intersects(box,area))),local)",
+      "offset": 566837
+    },
+    {
+      "owner": "Keep complete loose prop objects out of the walking line",
+      "before": "for(let Ie of AthensNorthMarket.ornaments(AthensCivicStage.moveLooseOrnaments(Ce)))",
+      "after": "for(let Ie of AthensNorthMarket.ornaments(AthensCivicStage.moveLooseOrnaments(Ce)).filter(AgoraSquareLife.keepOrnament))",
+      "offset": 8149577
+    }
+  ]
+}

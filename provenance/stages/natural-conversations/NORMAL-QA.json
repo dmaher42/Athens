@@ -1,0 +1,13 @@
+{
+  "url": "http://127.0.0.1:5189/__babylon/apps/athens/releases/1efb686eb6a6/athens-game-starter/index.html?place=agora",
+  "opening": "Socrates\n×\nYes? Did you want to ask me something?\n1.People say you never give a straight answer.\n2.What makes a person good?\n3.No. Sorry to interrupt.",
+  "reply": "Socrates\n×\nGood at something, or a good person? A thief can be good at stealing.\n1.A good person. Someone who does what is right.\n2.I hadn't thought of that difference.\n3.I'll let you get on.",
+  "state": {
+    "actors": 72,
+    "ground": true,
+    "colour": true,
+    "unowned": [],
+    "cleanupErrors": 0
+  },
+  "passed": true
+}

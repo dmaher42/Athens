@@ -1,0 +1,10 @@
+{
+  "filename": "athens-f0f663a64708-required-inputs.tar",
+  "sha256": "f172600ac48dda16ed23d212ee219170e9d2648354a475283fa69395c0e07af1",
+  "bytes": 788418560,
+  "manifestRows": 2015,
+  "uniqueBlobs": 1290,
+  "uniqueBytes": 787388261,
+  "selectedAthensEntryIncluded": false,
+  "distribution": "Unpublished authenticated GitHub draft release; incomplete third-party licensing evidence remains unresolved."
+}

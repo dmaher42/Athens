@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "inverseExact": true,
+  "entrySHA256": "5a15f3ee921f3110581d7f561b57a722bdb8fbd2255796cc72885eeea48300cf",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1efb686eb6a6",
+    "manifestSHA256": "c56062daa69b309e5330df53a22beeeb314cbf6815b781ef8eaee5726be00a81"
+  },
+  "parentEntrySHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+  "nativePatches": 13,
+  "source": {
+    "PotteryWestGround.mjs": "9f72e028a510002a059edd1df07cc5f252a776b9452262f62aa374a7d5e1d00f",
+    "SITE.json": "b1177a36b73a41f92afcdda314f6c854823af870a5749ca0fd57e91f0cd25c42"
+  },
+  "frozen": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-workshop-first\\prepared\\5a15f3ee921f\\",
+  "compiler": "0.27.4",
+  "build": "node output/playwright/agora-workshop-first/prepare-workshop.mjs",
+  "reproduction": "node output/playwright/agora-workshop-first/reproduce-workshop.mjs",
+  "qa": "node output/playwright/agora-workshop-first/run-playable.mjs candidate",
+  "install": "node output/playwright/agora-workshop-first/install-workshop.mjs",
+  "sourceAuthority": "The exact selected parent, guarded original and replacement native source spans, and frozen workshop helper and site data.",
+  "release": "a1b1a4d5be64",
+  "entry": "assets/babylon-athens-pottery-workshop-5a15f3ee921f.js",
+  "manifestSHA256": "4873fe5b2e2dafb9aeef623d4cd5c4850d32683f63f4d56f436677a3e8b6afaa"
+}

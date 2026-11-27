@@ -1,0 +1,39 @@
+{
+  "atUTC": "2026-11-26T06:49:47.365Z",
+  "installed": true,
+  "release": "be0e7b39964f",
+  "manifestSHA256": "09866ff03e8b8851945f3f52ef7007eeb9ea3ffaefcf6bf6e430d103d2f5ad51",
+  "entry": "assets/babylon-athens-agora-second-3ef99f5cd554.js",
+  "entrySHA256": "3ef99f5cd5543b0c54c31eb174573c46fff549ffee86c67c76e96213cb0f6565",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "normalServedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/be0e7b39964f/athens-game-starter/index.html",
+  "managedSelection": {
+    "app": "athens",
+    "id": "be0e7b39964f",
+    "pointerSHA256": "368d7e326c305404f1fa478c169cd8e615770f7885943be49ba904a7018b6b38",
+    "manifestSHA256": "09866ff03e8b8851945f3f52ef7007eeb9ea3ffaefcf6bf6e430d103d2f5ad51",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-second-pass-1795675770657.json",
+    "state": "committed"
+  },
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "49564b5ab194",
+    "manifestSHA256": "3b44fb5f810977466ad29a9eb93bf41dc9d4cc697954fab1b305aca56a6235da"
+  },
+  "normalNativeSmokePending": false,
+  "scope": "Western civic second pass: Council arrival, Zeus and Royal sites, coherent real pedestrian access and local contact terrain",
+  "terrainChanged": true,
+  "collisionChanged": true,
+  "architectureModelsRetained": true,
+  "qualityCuts": false,
+  "newExternalAssets": 0,
+  "sourceCommitted": false,
+  "sourcePushed": false,
+  "onlinePublished": false,
+  "completedUTC": "2026-11-26T06:54:46.324Z",
+  "normalNativeSmokePassed": true,
+  "normalErrors": 0,
+  "normalWarnings": 0,
+  "ownerArtisticAcceptancePending": true
+}

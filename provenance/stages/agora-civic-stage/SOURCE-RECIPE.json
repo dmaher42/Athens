@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "inverseExact": true,
+  "entrySHA256": "c4ca3e64d1048337579aeab5e8755f8e49cac6ccb3d3d3508a2196b703ba1109",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "b31eab078aae",
+    "manifestSHA256": "2c8b07dc12267d187aa1589fc47163f09956fd985674f5a91773d5ae79a00c99"
+  },
+  "parentEntrySHA256": "7cfbdffa24b074f2fc461910f3572e7b297beac72277bafc637c459f5c1e5e41",
+  "nativePatches": 21,
+  "source": {
+    "CivicStage.mjs": "d29fb3ff168edada9ece2658f784c2d6c3a9b293433e5e45840be16e1181a0cb",
+    "CivicSite.mjs": "7858b0d4f69ece9e3f6227e9e1898822656b69192c2b93777f70c69ebf11edb8",
+    "CivicGround.mjs": "8cce8e051df3bcf4d00e0608cb812cfd554ab93cb51a53e6591e28d4904b0f2d",
+    "CIVIC-SITE.json": "ad75bb0dd69bc930ab13adff10d47338f307bef244f1e8307a669a9236c6c0de"
+  },
+  "frozen": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-civic-stage\\prepared\\c4ca3e64d104\\",
+  "compiler": "0.27.4",
+  "build": "node output/playwright/agora-civic-stage/prepare.mjs",
+  "reproduction": "node output/playwright/agora-civic-stage/reproduce.mjs",
+  "qa": "node output/playwright/agora-civic-stage/run-native.mjs candidate",
+  "install": "node output/playwright/agora-civic-stage/install.mjs",
+  "sourceAuthority": "The exact selected parent, guarded original and replacement native source spans, and frozen civic site and terrain helpers.",
+  "release": "442e9ab63921",
+  "entry": "assets/babylon-athens-civic-stage-c4ca3e64d104.js",
+  "manifestSHA256": "c712d181fe78cef6b6ed1bcda10d71c5ce264886da9b560a49e741ef0f8d7ce5"
+}

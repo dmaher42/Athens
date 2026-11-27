@@ -1,0 +1,32 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "a1b1a4d5be64",
+    "manifestSHA256": "4873fe5b2e2dafb9aeef623d4cd5c4850d32683f63f4d56f436677a3e8b6afaa"
+  },
+  "entry": "assets/babylon-athens-dialogue-flow-df663aaf132a.js",
+  "entrySHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+  "source": {
+    "src/core/AthensDialogueFlow.ts": "a49d7c5d5e604c0582aca0249dd62aceef34a3cc1359fae6ff2e092f8760ad66",
+    "src/core/BabylonDialogueBridge.ts": "75045519eb2d5cd7d39901daaf8c288d4a034b09e5f5cd52f6841871938c57e6",
+    "src/core/BabylonFarm2Encounter.ts": "4d19471bf3b1b0c3d0471747b0da8008db3cd1463c3bb50baec564482ba3c7b1",
+    "src/core/BabylonApplication.ts": "746b10e386435acd9f624f0154d40bb6f0f20436558c9a30dc711af874f245d6",
+    "src/living/AthensNeighbourhood.ts": "2339fd9c1969071664309ea6bdbfdf7540f125076204886cbd6627f25dad756d"
+  },
+  "canonicalChanges": "CANONICAL-PROPOSAL.json",
+  "selectedNativePatches": "PATCHES.json",
+  "reproduce": "node output/playwright/dialogue-flow/reproduce.mjs",
+  "frozenGraph": "frozen-src/",
+  "canonicalSnapshots": "approved-source/",
+  "compilerVersion": "0.27.4",
+  "wholeWorldBuild": false,
+  "SDKImports": 0,
+  "dependencies": "Retained immutable selected parent plus frozen four-source helper graph and ten native patches. Not a standalone whole-world build.",
+  "futureWork": "Rebase on the then-selected game; preserve newer shared-owner text. Do not run historical prepare/register over later releases.",
+  "bindingRebase": "BINDING-REBASE.json",
+  "scope": "Existing dialogue presentation, shortcuts and walk-away; direct E only for the two reviewed Farm2 basket targets. Existing providers own all agreements, prices, commands and account commits. Other city programme bytes and asset rows inverse-preserved.",
+  "installedRelease": "f456cfea5ffa",
+  "installation": "INSTALL-COMPLETION.json",
+  "normalLaunch": "NORMAL-QA.json"
+}

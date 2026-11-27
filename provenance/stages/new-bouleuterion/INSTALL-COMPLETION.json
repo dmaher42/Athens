@@ -1,0 +1,45 @@
+{
+  "installed": true,
+  "release": "4997ad4f0c7f",
+  "manifestSHA256": "4dae8631b936e5af413ecebdca4f8d3434e58c78bef7d6f16ecaebe0be449ba7",
+  "entry": "assets/babylon-athens-new-bouleuterion-56bbba56d6f0.js",
+  "entrySHA256": "56bbba56d6f0ce96d65dc597bd9e328ddb6559b33ece5df3999cf3b7c31bd15f",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "normalServedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/4997ad4f0c7f/athens-game-starter/index.html",
+  "entryURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/4997ad4f0c7f/athens-game-starter/assets/babylon-athens-new-bouleuterion-56bbba56d6f0.js",
+  "managedSelection": {
+    "app": "athens",
+    "id": "4997ad4f0c7f",
+    "pointerSHA256": "eaef3fdb98b8d62159501faf6046952fdb1b13bf8ba7c5ae13c4af4860287a2f",
+    "manifestSHA256": "4dae8631b936e5af413ecebdca4f8d3434e58c78bef7d6f16ecaebe0be449ba7",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\new-bouleuterion-1795609817301.json",
+    "state": "committed"
+  },
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "d7295243de8c",
+    "manifestSHA256": "42ca732bf2312201dc47b92facaa67283497e57b978ba52788219c9a21eb8894"
+  },
+  "source": {
+    "src/core/BabylonNewBouleuterion.ts": "3ebd8d1bfa6dc311350529efbc5fbb456923002fe0bf04b384b17588bb156b1e",
+    "src/core/BabylonPaintedStoa.ts": "68fe3c1cb7ca38f8af96428e0fd5971ae528105ae3002edaedb9743992fc4293",
+    "src/core/NewBouleuterionGeometry.mjs": "8faf8e5143aadcf1ffe1d6fcae928101dcdef9586090298269b3d8cc08789ef7",
+    "src/core/NewBouleuterionRoof.mjs": "293d83743c298f8d888607ac19390946bbd175aaec4ccea7f86e60ecb0a50af1",
+    "src/core/NewBouleuterionSite.mjs": "239ab287925e86a3e07e33d388b9e863f8550f901ded4444b9784d7f468681c3"
+  },
+  "spartaUnchanged": true,
+  "policyAndRuntimeUnchanged": true,
+  "rawTerrainChanged": false,
+  "qualityCuts": false,
+  "newAssets": 0,
+  "serverRestarted": false,
+  "personalSavesTouched": false,
+  "sourceCommitted": false,
+  "sourcePushed": false,
+  "onlinePublished": false,
+  "normalNativeSmokePending": false,
+  "atUTC": "2026-11-25T12:30:33.550Z",
+  "normalSmokePassed": true,
+  "completedUTC": "2026-11-25T12:33:35.524Z"
+}

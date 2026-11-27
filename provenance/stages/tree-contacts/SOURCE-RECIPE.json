@@ -1,0 +1,39 @@
+{
+  "atUTC": "2026-11-25T23:48:01.672Z",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "fad94d0abc1a",
+    "manifestSHA256": "92ce01da9adf0f1bab50406ad87858bda19a456b655c361e9bc0de95753c3446"
+  },
+  "parentEntrySHA256": "5a8944f7aeb1d8f90f105c1a310a0ffa494ba367fc9d2b774013accd6260a3b5",
+  "entry": "assets/babylon-athens-agora-contacts-7676217a8b02.js",
+  "entrySHA256": "7676217a8b02fa9ca2fe2ab910bc292989acdce4858fea1df74925cfa65a7ae4",
+  "source": [
+    {
+      "path": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source/src/core/AgoraMasterPlan.mjs",
+      "beforeSHA256": "65f1d1b13ea473eb987fbf1445865f04b67943ebcfeea468ec7b52f9794ff6dd",
+      "sha256": "65f1d1b13ea473eb987fbf1445865f04b67943ebcfeea468ec7b52f9794ff6dd"
+    },
+    {
+      "path": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source/src/core/AgoraMasterTerrain.mjs",
+      "beforeSHA256": "82a47c8037cd8c52e63243681662636a7e65c48f2ab67b0f9bbc00f20620fef4",
+      "sha256": "82a47c8037cd8c52e63243681662636a7e65c48f2ab67b0f9bbc00f20620fef4"
+    },
+    {
+      "path": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source/src/core/AgoraMasterLayout.mjs",
+      "beforeSHA256": "6eb6d5778ee367c9b39b1e69ddebd93316ccd0ef45edfeecc1088a5d87c203dd",
+      "sha256": "05490b913f75f247f68165a28b9877cb9a484ed3b10c0dabb0d89e5233764db1"
+    }
+  ],
+  "fullMasterRecipe": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout/SOURCE-RECIPE.json",
+  "fullMasterVerification": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout/FINAL-QA.json",
+  "exactHelperReplacement": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout\\tree-contacts/PATCHES.json",
+  "inverseProof": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout\\tree-contacts/INVERSE-PROOF.json",
+  "reproduction": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout\\tree-contacts/REPRODUCTION.json",
+  "scope": "Two existing whole plants moved from newly graded terrace edges to open planting sites; original five moves unchanged. Existing helper prefix replaced; every native body byte retained. Terrain and plan source hashes unchanged.",
+  "wholeWorldBuild": false,
+  "newAssets": 0,
+  "newSDKs": 0,
+  "futureWork": "Start at the actual selected city, retaining this helper replacement and original15native integrations. Never apply initial master insertions twice or build the older general source over it."
+}

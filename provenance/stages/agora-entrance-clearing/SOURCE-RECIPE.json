@@ -1,0 +1,23 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "72235a8c896a",
+    "manifestSHA256": "b6bab22b6edd151a98b0f5d4a999a05058c550b4be28de2fdd1c0b55072b58ea"
+  },
+  "parentEntrySHA256": "674787a2be18a8a0611cf88cf43b0e501b619c1115239edb474d50cadbee6ebd",
+  "entry": "assets/babylon-athens-agora-entrance-clearing-3b641905cd14.js",
+  "entrySHA256": "3b641905cd144d185a2a9ef46058a9f4049a80dbbb945e2f258bc934922bc3b4",
+  "inverseExact": true,
+  "nativeSpans": 3,
+  "source": "prepare.mjs and PATCHES.json",
+  "build": "node output/playwright/agora-entrance-clearing/prepare.mjs",
+  "reproduce": "node output/playwright/agora-entrance-clearing/prepare.mjs --reproduce",
+  "targets": {
+    "building": "architecture_old-council at [-124, 2.4, 72]",
+    "stair": "architecture_agora-compact-entrance",
+    "tree": "cypress_redesign_cypress_40 at [-99, 73]"
+  },
+  "release": "1541598e9bc8",
+  "manifestSHA256": "41db37ac0ecc665167ada2f12e8f5021019cf236a1fcf764c8d8037d52a7ffab"
+}

@@ -1,0 +1,324 @@
+{
+  "passed": true,
+  "entrySHA256": "7676217a8b02fa9ca2fe2ab910bc292989acdce4858fea1df74925cfa65a7ae4",
+  "routesPassed": true,
+  "marketPassed": true,
+  "potteryPassed": true,
+  "heldChariotDrivingPassed": true,
+  "visualReviewPassed": true,
+  "performancePassed": true,
+  "performance": {
+    "passed": true,
+    "parentFPS": 19.554302311240562,
+    "candidateFPS": 21.309809196991104,
+    "percentChange": 8.977599189214791,
+    "parentSamples": [
+      {
+        "index": 1,
+        "file": "SAMPLE-01.json",
+        "sampleUsable": true,
+        "FPS": 18.365657224577866,
+        "frameMs": {
+          "n": 366,
+          "mean": 54.44945355191257,
+          "min": 39.19999998807907,
+          "p50": 50.5,
+          "p95": 75.7000000178814,
+          "p99": 100.89999997615814,
+          "max": 229.7000000178814
+        },
+        "drawCalls": {
+          "n": 366,
+          "mean": 1491,
+          "min": 1491,
+          "p50": 1491,
+          "p95": 1491,
+          "p99": 1491,
+          "max": 1491
+        },
+        "renderCPUms": {
+          "n": 367,
+          "mean": 47.13242506761642,
+          "min": 34.19999998807907,
+          "p50": 43.79999998211861,
+          "p95": 66.19999998807907,
+          "p99": 108.40000000596046,
+          "max": 198.2000000178814
+        }
+      },
+      {
+        "index": 2,
+        "file": "SAMPLE-02.json",
+        "sampleUsable": true,
+        "FPS": 20.742947397903258,
+        "frameMs": {
+          "n": 415,
+          "mean": 48.209156626462935,
+          "min": 39.30000001192093,
+          "p50": 47.099999994039536,
+          "p95": 58.79999998211861,
+          "p99": 66.7999999821186,
+          "max": 148.7999999821186
+        },
+        "drawCalls": {
+          "n": 415,
+          "mean": 1490.9951807228915,
+          "min": 1489,
+          "p50": 1491,
+          "p95": 1491,
+          "p99": 1491,
+          "max": 1491
+        },
+        "renderCPUms": {
+          "n": 416,
+          "mean": 41.656009616186985,
+          "min": 33.30000001192093,
+          "p50": 40.900000005960464,
+          "p95": 50.599999994039536,
+          "p99": 55.5,
+          "max": 121.69999998807907
+        }
+      }
+    ],
+    "candidateSamples": [
+      {
+        "index": 1,
+        "file": "SAMPLE-01.json",
+        "sampleUsable": true,
+        "FPS": 20.440172021249683,
+        "frameMs": {
+          "n": 404,
+          "mean": 48.92326732673267,
+          "min": 37.20000001788139,
+          "p50": 44.400000005960464,
+          "p95": 61.79999998211861,
+          "p99": 81.09999999403954,
+          "max": 495.09999999403954
+        },
+        "drawCalls": {
+          "n": 404,
+          "mean": 1489.8836633663366,
+          "min": 1489,
+          "p50": 1490,
+          "p95": 1490,
+          "p99": 1490,
+          "max": 1490
+        },
+        "renderCPUms": {
+          "n": 405,
+          "mean": 39.74765432131143,
+          "min": 32.099999994039536,
+          "p50": 37.80000001192093,
+          "p95": 52.39999997615814,
+          "p99": 61.900000005960464,
+          "max": 82.59999999403954
+        }
+      },
+      {
+        "index": 2,
+        "file": "SAMPLE-02.json",
+        "sampleUsable": true,
+        "FPS": 22.179446372732528,
+        "frameMs": {
+          "n": 439,
+          "mean": 45.08678815488392,
+          "min": 36.69999998807907,
+          "p50": 43.70000001788139,
+          "p95": 55.69999998807907,
+          "p99": 63,
+          "max": 68.30000001192093
+        },
+        "drawCalls": {
+          "n": 439,
+          "mean": 1488.995444191344,
+          "min": 1487,
+          "p50": 1489,
+          "p95": 1489,
+          "p99": 1489,
+          "max": 1489
+        },
+        "renderCPUms": {
+          "n": 440,
+          "mean": 38.683636363324794,
+          "min": 31.799999982118607,
+          "p50": 37.599999994039536,
+          "p95": 48,
+          "p99": 54.900000005960464,
+          "max": 58.79999998211861
+        }
+      }
+    ],
+    "pose": {
+      "x": -111,
+      "z": 47,
+      "yaw": -1.5707963267948966,
+      "pitch": 0.12,
+      "distance": 4,
+      "time": 14.5
+    },
+    "configuration": {
+      "headless": true,
+      "viewport": [
+        1280,
+        720
+      ],
+      "devicePixelRatio": 1,
+      "angle": "d3d11",
+      "warmupMs": 40000,
+      "requiredQuietMs": 8000,
+      "sampleMs": 20000,
+      "virtualTimeShim": false,
+      "rafOrTimerWrappers": false,
+      "gameMethodWrappers": false,
+      "qualityReductions": false,
+      "freshContext": true
+    },
+    "note": "Original full-layout parent control, repeated due earlier machine variation, compared with final seven-tree layout at identical full quality. No city-wide speed claim."
+  },
+  "ownerArtisticAcceptance": false,
+  "finalIntegration": {
+    "walkingLegs": 6,
+    "affectedDriveLegs": 3,
+    "groundedPlants": [
+      {
+        "name": "olive_agora_tree_0",
+        "from": [
+          -124,
+          1.4600000381469727,
+          25
+        ],
+        "to": [
+          -76,
+          1.7053309679031372,
+          47
+        ],
+        "wholePlant": true,
+        "descendants": 2,
+        "bottom": 1.4599999487400055,
+        "ground": 1.5,
+        "gap": -0.04000005125999451
+      },
+      {
+        "name": "olive_agora_tree_24",
+        "from": [
+          -102,
+          3.4314992427825928,
+          78
+        ],
+        "to": [
+          -76,
+          1.7538117170333862,
+          58
+        ],
+        "wholePlant": true,
+        "descendants": 2,
+        "bottom": 1.5016659498214722,
+        "ground": 1.541665967305501,
+        "gap": -0.04000001748402893
+      },
+      {
+        "name": "olive_agora_tree_25",
+        "from": [
+          -91,
+          4.369734764099121,
+          81
+        ],
+        "to": [
+          -76,
+          4.559976577758789,
+          76
+        ],
+        "wholePlant": true,
+        "descendants": 2,
+        "bottom": 4.328275054693222,
+        "ground": 4.368274930318196,
+        "gap": -0.0399998756249742
+      },
+      {
+        "name": "olive_redesign_olive_18",
+        "from": [
+          -94.64595794677734,
+          4.390200614929199,
+          80.19454956054688
+        ],
+        "to": [
+          -115,
+          1.5896596908569336,
+          62
+        ],
+        "wholePlant": true,
+        "descendants": 2,
+        "bottom": 1.4599999487400055,
+        "ground": 1.5,
+        "gap": -0.04000005125999451
+      },
+      {
+        "name": "olive_redesign_olive_82",
+        "from": [
+          -99.56816864013672,
+          4.3679375648498535,
+          79.82759857177734
+        ],
+        "to": [
+          -115,
+          1.6336959600448608,
+          48
+        ],
+        "wholePlant": true,
+        "descendants": 2,
+        "bottom": 1.4600000083446503,
+        "ground": 1.5,
+        "gap": -0.03999999165534973
+      },
+      {
+        "name": "cypress_planted_2",
+        "from": [
+          -162,
+          6.101334571838379,
+          58
+        ],
+        "to": [
+          -85,
+          1.4599997997283936,
+          23
+        ],
+        "wholePlant": true,
+        "descendants": 5,
+        "bottom": 1.459999713897705,
+        "ground": 1.5,
+        "gap": -0.040000286102295
+      },
+      {
+        "name": "olive_redesign_olive_41",
+        "from": [
+          -165.19921875,
+          6.520016193389893,
+          42.829471588134766
+        ],
+        "to": [
+          -97,
+          1.6037486791610718,
+          22
+        ],
+        "wholePlant": true,
+        "descendants": 2,
+        "bottom": 1.4599999785423279,
+        "ground": 1.5,
+        "gap": -0.04000002145767212
+      }
+    ],
+    "fullRouteSweep": true,
+    "unowned": 0
+  },
+  "inheritedStructuralValidation": {
+    "entrySHA256": "5a8944f7aeb1d8f90f105c1a310a0ffa494ba367fc9d2b774013accd6260a3b5",
+    "fullWalkingLegs": 35,
+    "fullGateHarbourDrive": true,
+    "marketRoutineObservation": true,
+    "evidence": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-master-layout/FINAL-QA.json",
+    "basis": "Native programme body and both terrain/plan modules are byte-identical; only two visual planting transforms extend the existing constructor."
+  },
+  "normalLaunchPending": false,
+  "normalLaunchPassed": true,
+  "normalErrorReviewPassed": true
+}
