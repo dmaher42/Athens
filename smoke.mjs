@@ -47,8 +47,11 @@ for (const pin of pins) {
   assert.equal(status.apps[pin.app].manifestSHA256, pin.manifest);
   await matching(pinned(pin, pin.entry), pin, pin.sha256);
 }
-await matching(starter + 'textures/grading/mediterranean-luminous-32.png', athens,
-  'aae654527340254be31af4d8b9824afc87da023f1b894fb20baec9ad6a7aeaf1',
+const manifestBytes=fs.readFileSync(new URL('./provenance/athens-release.json',import.meta.url));
+assert.equal(createHash('sha256').update(manifestBytes).digest('hex'),athens.manifest);
+const lut=JSON.parse(manifestBytes.toString('utf8')).files.find(row=>row.path==='textures/grading/mediterranean-luminous-32.png');
+assert(lut,'Approved colour texture is required in the signed manifest');
+await matching(starter + lut.path, athens, lut.sha256,
   { Referer: new URL(pinned(athens, start), base).href });
 const range = await get(pinned(sparta, 'sparta/assets/intro/sparta-intro.mp4'), { Range: 'bytes=0-63' });
 assert.equal(range.status, 206);

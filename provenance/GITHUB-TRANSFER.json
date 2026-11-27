@@ -4,7 +4,14 @@
   "sourceCommit": "234870a18f88968e8d3c606d6e0f4597cfed3997",
   "previousMainCommit": "6cf306b60617d6cca8abd5f9c49a0fd33092f11d",
   "rollbackTag": "rollback/cloud-before-installed-sync-20261128-6cf306b",
-  "mainChanged": false,
+  "mainChangedByWindowsTransfer": false,
+  "ownerMerge": {
+    "pullRequest": "https://github.com/dmaher42/Athens/pull/549",
+    "mergedBy": "dmaher42",
+    "mainCommit": "21966376c945343d93e1dd64054e184bc991ad76",
+    "mergedTreeExactlyMatchesTransfer": true,
+    "futureCloudRepositoryRef": "main"
+  },
   "draftRelease": {
     "id": 461077818,
     "tag": "migration/athens-f0f663a64708",
