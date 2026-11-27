@@ -1,0 +1,594 @@
+{
+  "files": [
+    {
+      "path": "source/build-chain.json",
+      "bytes": 11173,
+      "sha256": "805402adf123a8f5f65f061c173bd8d7913595e29a1506ab4b9bc6bab3e37f77"
+    },
+    {
+      "path": "source/native-foundation.mjs",
+      "bytes": 7849843,
+      "sha256": "8222bd0104276f1a87476bfde59f008c1a9b386cf57a02f49f9bfe0da9b5a7d9"
+    },
+    {
+      "path": "source/stages/01-new-bouleuterion/helper/src/core/BabylonNewBouleuterion.ts",
+      "bytes": 18570,
+      "sha256": "3ebd8d1bfa6dc311350529efbc5fbb456923002fe0bf04b384b17588bb156b1e"
+    },
+    {
+      "path": "source/stages/01-new-bouleuterion/helper/src/core/BabylonPaintedStoa.ts",
+      "bytes": 23437,
+      "sha256": "68fe3c1cb7ca38f8af96428e0fd5971ae528105ae3002edaedb9743992fc4293"
+    },
+    {
+      "path": "source/stages/01-new-bouleuterion/helper/src/core/NewBouleuterionGeometry.mjs",
+      "bytes": 1968,
+      "sha256": "8faf8e5143aadcf1ffe1d6fcae928101dcdef9586090298269b3d8cc08789ef7"
+    },
+    {
+      "path": "source/stages/01-new-bouleuterion/helper/src/core/NewBouleuterionRoof.mjs",
+      "bytes": 18039,
+      "sha256": "293d83743c298f8d888607ac19390946bbd175aaec4ccea7f86e60ecb0a50af1"
+    },
+    {
+      "path": "source/stages/01-new-bouleuterion/helper/src/core/NewBouleuterionSite.mjs",
+      "bytes": 10091,
+      "sha256": "239ab287925e86a3e07e33d388b9e863f8550f901ded4444b9784d7f468681c3"
+    },
+    {
+      "path": "source/stages/01-new-bouleuterion/patches.json",
+      "bytes": 45347,
+      "sha256": "18463799d7baf7cb033ba7db56a0deb068250fdb380415b4ee9edc854056d1da"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/BabylonKerameikosTerrain.mjs",
+      "bytes": 21351,
+      "sha256": "ab704d784eacf6e5760fa8fac8287def072c974639a23181d94e460c29ec15f9"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosCemeteryGrade.mjs",
+      "bytes": 2126,
+      "sha256": "2fa836d56a52affb7dedd6243f86cde07734188990024c0fd813d0313458e4f6"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosCemeterySurvey.json",
+      "bytes": 30425,
+      "sha256": "510bb5eb876b56f70c498672bd7bc0599a9f424659c69e8555650fa7129bc043"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosCoverage.mjs",
+      "bytes": 1256,
+      "sha256": "aa509f8c916b98b0bb292ed6df66a731120e0947933c7c9f5cb966bb4dda68af"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosNativePlants.mjs",
+      "bytes": 1525,
+      "sha256": "c8b04412ebfa94efee2f62c10dd00ccf192775a6b87c03d9112bc152db6c5b10"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosRockContacts.mjs",
+      "bytes": 2315,
+      "sha256": "b96e677b7084df75355f57f45bb22b6dcd616d09bf4cad5814ef863a4b31cd6e"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosSampling.mjs",
+      "bytes": 4071,
+      "sha256": "b4ce2d73d0163d3fd206464934d47b63150057b76b51da7031bd96fd0bdf4684"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosSourceFootprints.mjs",
+      "bytes": 494,
+      "sha256": "17f8ea8f1b1f5dbf897de33b7955ac3cba2a06851653f29aaf5084bd16f284b1"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosTerrainPlan.mjs",
+      "bytes": 13956,
+      "sha256": "758b13f4cbff9840a135b82fbc6327df9305ef11caf49a66a2f99f630b3d804c"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWallPlan.mjs",
+      "bytes": 2527,
+      "sha256": "aabf07617150b30e2c376c377459678f28832044706925a8c0f1ccc8b61f7e40"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWallSurvey.json",
+      "bytes": 15044,
+      "sha256": "23895cd44a6ca6278f32299b8f5f9f0db7223f5df94e9da44808b9db939bbdea"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWorkshopContract.json",
+      "bytes": 7724,
+      "sha256": "6d089b2104f469877b448b0d8c31e0af61c1752f99c37be66661f4616ad1ecd7"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWorkshopHouseClearance.mjs",
+      "bytes": 984,
+      "sha256": "091b0af87bd62e4b51917238878fbccc0fe133b1571a927ba48ae9e4e17d9673"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWorkshopPlan.mjs",
+      "bytes": 2606,
+      "sha256": "c11edb9f6a5aa4fff55f6fa7b9667e8b5175c37132069deba66c77ad278d21b2"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWorkshopPlants.json",
+      "bytes": 2980,
+      "sha256": "a55d11b6ac3eafc30b826b5eb1bdcef376fc4ad8a71cb71dd9c1bb5e1f5b9a9b"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWorkshopPlants.mjs",
+      "bytes": 3584,
+      "sha256": "cfe81a9c55106fba5559edc86117bf56427a356f9c9853582d7c1e9093e7acfb"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/KerameikosWorkshopSurfaces.mjs",
+      "bytes": 2463,
+      "sha256": "c3fb00ac679cf220b246a37aab563bf00090a669ef1a4da28412122da772b484"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/terrain/TerrainGeometry.mjs",
+      "bytes": 5013,
+      "sha256": "9a1f0966e5f980b50372f49f65cae3963876a1d71b06826005136b1281f0b048"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/terrain/TerrainPlan.mjs",
+      "bytes": 6520,
+      "sha256": "87af068d2d0c4accaa7fa39e3b377bd7f79a14293008fa5fd7329c9d05e1ada5"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/core/terrain/TerrainShader.mjs",
+      "bytes": 9251,
+      "sha256": "86d5bd607859733295788f02492e9d182d85440d4313567a0de87218c595cd3d"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/district-reference/world/cityGatesLayout.js",
+      "bytes": 5141,
+      "sha256": "b76bf2528d775e258a82209df9cd50285294fa1677895464b79331599a904b22"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/helper/src/district-reference/world/pompeionScalePlan.js",
+      "bytes": 3268,
+      "sha256": "c8e3422b3335dd67129abc54985e75f7dd345dc44f7e9d964d6a0ee87eb0aac8"
+    },
+    {
+      "path": "source/stages/02-kerameikos-terrain-stage5/patches.json",
+      "bytes": 106982,
+      "sha256": "7d3d156c77e0383efdcba1300d8ee0dc1bfa51dbdc9bdc24b3f520831c3daa0a"
+    },
+    {
+      "path": "source/stages/03-agora-master-layout/helper/AgoraMasterLayout.mjs",
+      "bytes": 5530,
+      "sha256": "6eb6d5778ee367c9b39b1e69ddebd93316ccd0ef45edfeecc1088a5d87c203dd"
+    },
+    {
+      "path": "source/stages/03-agora-master-layout/helper/AgoraMasterPlan.mjs",
+      "bytes": 6230,
+      "sha256": "65f1d1b13ea473eb987fbf1445865f04b67943ebcfeea468ec7b52f9794ff6dd"
+    },
+    {
+      "path": "source/stages/03-agora-master-layout/helper/AgoraMasterTerrain.mjs",
+      "bytes": 7156,
+      "sha256": "82a47c8037cd8c52e63243681662636a7e65c48f2ab67b0f9bbc00f20620fef4"
+    },
+    {
+      "path": "source/stages/03-agora-master-layout/patches.json",
+      "bytes": 31633,
+      "sha256": "dcf362259e0d089753fb6f946736032ac68a47b95ba219a98ae157e63280a4cb"
+    },
+    {
+      "path": "source/stages/04-tree-contacts/helper/AgoraMasterLayout.mjs",
+      "bytes": 6068,
+      "sha256": "05490b913f75f247f68165a28b9877cb9a484ed3b10c0dabb0d89e5233764db1"
+    },
+    {
+      "path": "source/stages/04-tree-contacts/helper/AgoraMasterPlan.mjs",
+      "bytes": 6230,
+      "sha256": "65f1d1b13ea473eb987fbf1445865f04b67943ebcfeea468ec7b52f9794ff6dd"
+    },
+    {
+      "path": "source/stages/04-tree-contacts/helper/AgoraMasterTerrain.mjs",
+      "bytes": 7156,
+      "sha256": "82a47c8037cd8c52e63243681662636a7e65c48f2ab67b0f9bbc00f20620fef4"
+    },
+    {
+      "path": "source/stages/04-tree-contacts/patches.json",
+      "bytes": 36538,
+      "sha256": "0caad831a04276284def669b99fb51587c7977b7033c9f1d5c3af402150607e3"
+    },
+    {
+      "path": "source/stages/05-zeus-wall-finish/patches.json",
+      "bytes": 253,
+      "sha256": "74f8b55766d1bb941cc995ab8a698359ca84bbfb019d9062fd291e173fb1b56a"
+    },
+    {
+      "path": "source/stages/06-agora-second-pass/helper/AgoraMasterLayout.mjs",
+      "bytes": 11204,
+      "sha256": "11caae042825f56a7a150ec68469d68c28d934e8aaa7a7102d3cc72e363615c2"
+    },
+    {
+      "path": "source/stages/06-agora-second-pass/helper/AgoraMasterPlan.mjs",
+      "bytes": 7898,
+      "sha256": "a67b83f6175553756c8b4681a260b84712384ff90a50e79c971625d948e0d704"
+    },
+    {
+      "path": "source/stages/06-agora-second-pass/helper/AgoraMasterTerrain.mjs",
+      "bytes": 11197,
+      "sha256": "e97ce3e860bbb99b0d76aab1d23e652a8d03a060a6a36dc198654d1790d1bca7"
+    },
+    {
+      "path": "source/stages/06-agora-second-pass/helper/RoyalStoaAccess.mjs",
+      "bytes": 17369,
+      "sha256": "f9de40cb7e7385a30eb9c055dd455c1beeb0462b96f17ed86d660b2715cc8db7"
+    },
+    {
+      "path": "source/stages/06-agora-second-pass/patches.json",
+      "bytes": 65241,
+      "sha256": "e3c0d5ffcc9b5ed6ffae0e5c4fabe7b85846532f983bb536d5d906aad44f4e7a"
+    },
+    {
+      "path": "source/stages/07-natural-conversations/helper/core/AthensNpcDialogue.ts",
+      "bytes": 12263,
+      "sha256": "dcd78d9ab9d1abef9dc500b63f2b853b8715589c6e5968ab0ab4322d7fc1e24a"
+    },
+    {
+      "path": "source/stages/07-natural-conversations/helper/core/BabylonFarm2Encounter.ts",
+      "bytes": 10796,
+      "sha256": "055b8ebce05e645138c6751852fac163d85a33edf1358f570ac2cf8ff72d6094"
+    },
+    {
+      "path": "source/stages/07-natural-conversations/helper/living/NpcEncounterMemory.ts",
+      "bytes": 3013,
+      "sha256": "16611fe664674bb8ad6361bd762e7a1aee55e89d7eee6cb428c269bd9f0a6472"
+    },
+    {
+      "path": "source/stages/07-natural-conversations/helper/living/NpcReaction.ts",
+      "bytes": 2161,
+      "sha256": "e6bbd522a81c8ff28730d08e8e747f28383f0dac62930a8e30d8b9667e669cf0"
+    },
+    {
+      "path": "source/stages/07-natural-conversations/patches.json",
+      "bytes": 61753,
+      "sha256": "869c2cd41093faa7b2da1eb0d74943edfa24313011dfd793f3fb74acd7252867"
+    },
+    {
+      "path": "source/stages/08-agora-workshop-first/helper/PATCHES.json",
+      "bytes": 62092,
+      "sha256": "d6bf9fd40d407a6a1ecbf152ac1807792a194e62a60fe0b1cb91fbe102df808c"
+    },
+    {
+      "path": "source/stages/08-agora-workshop-first/helper/PotteryWestGround.mjs",
+      "bytes": 11077,
+      "sha256": "9f72e028a510002a059edd1df07cc5f252a776b9452262f62aa374a7d5e1d00f"
+    },
+    {
+      "path": "source/stages/08-agora-workshop-first/helper/PREP.json",
+      "bytes": 1964,
+      "sha256": "bae41ca952f9a19efe4d8c4cb6973b818c36b2d35751732f9f53ee5e2d284546"
+    },
+    {
+      "path": "source/stages/08-agora-workshop-first/helper/SITE.json",
+      "bytes": 10906,
+      "sha256": "b1177a36b73a41f92afcdda314f6c854823af870a5749ca0fd57e91f0cd25c42"
+    },
+    {
+      "path": "source/stages/08-agora-workshop-first/patches.json",
+      "bytes": 62412,
+      "sha256": "52d92c163e353bffb6e27d72e12316e48f31e1955fb5753a9e8397ee58ebd113"
+    },
+    {
+      "path": "source/stages/09-dialogue-flow/helper/core/AthensDialogueFlow.ts",
+      "bytes": 8141,
+      "sha256": "a49d7c5d5e604c0582aca0249dd62aceef34a3cc1359fae6ff2e092f8760ad66"
+    },
+    {
+      "path": "source/stages/09-dialogue-flow/helper/core/BabylonFarm2Encounter.ts",
+      "bytes": 10908,
+      "sha256": "4d19471bf3b1b0c3d0471747b0da8008db3cd1463c3bb50baec564482ba3c7b1"
+    },
+    {
+      "path": "source/stages/09-dialogue-flow/helper/living/NpcEncounterMemory.ts",
+      "bytes": 3013,
+      "sha256": "16611fe664674bb8ad6361bd762e7a1aee55e89d7eee6cb428c269bd9f0a6472"
+    },
+    {
+      "path": "source/stages/09-dialogue-flow/helper/living/NpcReaction.ts",
+      "bytes": 2161,
+      "sha256": "e6bbd522a81c8ff28730d08e8e747f28383f0dac62930a8e30d8b9667e669cf0"
+    },
+    {
+      "path": "source/stages/09-dialogue-flow/patches.json",
+      "bytes": 43031,
+      "sha256": "6b225f4e53550ecc680ddbc162744b917e907f1ad6cc8c6b786eb094eda60bc6"
+    },
+    {
+      "path": "source/stages/10-countryside-palette-install/palette.mjs",
+      "bytes": 2521,
+      "sha256": "8b14e93101a699b6665cb0ba0b0a102a3d02f4df33e3a15da4ceddcb0dc4c9f4"
+    },
+    {
+      "path": "source/stages/10-countryside-palette-install/patches.json",
+      "bytes": 2406,
+      "sha256": "2710af0712a892c8da27f78b4c6e91055a1c44d23e71f2ca979aae2832889a9a"
+    },
+    {
+      "path": "source/stages/11-agora-civic-stage/helper/CIVIC-SITE.json",
+      "bytes": 10716,
+      "sha256": "ad75bb0dd69bc930ab13adff10d47338f307bef244f1e8307a669a9236c6c0de"
+    },
+    {
+      "path": "source/stages/11-agora-civic-stage/helper/CivicGround.mjs",
+      "bytes": 6701,
+      "sha256": "8cce8e051df3bcf4d00e0608cb812cfd554ab93cb51a53e6591e28d4904b0f2d"
+    },
+    {
+      "path": "source/stages/11-agora-civic-stage/helper/CivicSite.mjs",
+      "bytes": 14960,
+      "sha256": "7858b0d4f69ece9e3f6227e9e1898822656b69192c2b93777f70c69ebf11edb8"
+    },
+    {
+      "path": "source/stages/11-agora-civic-stage/helper/CivicStage.mjs",
+      "bytes": 84,
+      "sha256": "d29fb3ff168edada9ece2658f784c2d6c3a9b293433e5e45840be16e1181a0cb"
+    },
+    {
+      "path": "source/stages/11-agora-civic-stage/helper/PATCHES.json",
+      "bytes": 39269,
+      "sha256": "9a3188abc19361f2922dc049bb6fcd613d9554a49f784c705434e8d0c7d40d4e"
+    },
+    {
+      "path": "source/stages/11-agora-civic-stage/helper/PREP.json",
+      "bytes": 2071,
+      "sha256": "33e44cd8587502d8973b735cd1e6a1d6bfe751fcd973dc4c6b234caba60abfd4"
+    },
+    {
+      "path": "source/stages/11-agora-civic-stage/patches.json",
+      "bytes": 39786,
+      "sha256": "618a795661bc13420d416fc70e048ff7b33a9c68fb39176f30ab2df071e9b720"
+    },
+    {
+      "path": "source/stages/12-athens-clean-play-hud/hud.mjs",
+      "bytes": 5213,
+      "sha256": "6c9f25dc0b295f6323d62487e3d481fe151d48875c09a0d7977a385d427c5a36"
+    },
+    {
+      "path": "source/stages/12-athens-clean-play-hud/patches.json",
+      "bytes": 9553,
+      "sha256": "c687367ea6c84e605e4e1199d193ff24b2097461e54f6b9038912bafa8cae966"
+    },
+    {
+      "path": "source/stages/13-agora-north-market/helper/NORTH-SITE.json",
+      "bytes": 57725,
+      "sha256": "773aa9cc5507201e83c60c2ca8b4b97634e90536f11abba01d7beee0c603232a"
+    },
+    {
+      "path": "source/stages/13-agora-north-market/helper/NorthMarket.mjs",
+      "bytes": 14009,
+      "sha256": "04e667b73ee5e35a681a1845297410a84f2ec808ec64620cfdd27bb81b77c340"
+    },
+    {
+      "path": "source/stages/13-agora-north-market/helper/PATCHES.json",
+      "bytes": 64128,
+      "sha256": "9f28d4f51534c54e8ab1c398b17857d93daee9515cfa388be3320ba530fab0c6"
+    },
+    {
+      "path": "source/stages/13-agora-north-market/helper/PREP.json",
+      "bytes": 1889,
+      "sha256": "8b0fa1c2d7f349a26767928bd22b1bf8a9cf96f2e15582c9b6e71080dd4bb2f9"
+    },
+    {
+      "path": "source/stages/13-agora-north-market/patches.json",
+      "bytes": 65164,
+      "sha256": "cd0be4a2b433f5b789f54c943c2a1fd88e3e3a41c467209f4eccaae4037d153c"
+    },
+    {
+      "path": "source/stages/14-agora-east-edge/helper/EAST-SITE.json",
+      "bytes": 21975,
+      "sha256": "08dda982a35e8925ca581c380d567ba4aa9817d0e2ec32cebc0f9fa358a2e5ad"
+    },
+    {
+      "path": "source/stages/14-agora-east-edge/helper/EastEdge.mjs",
+      "bytes": 1741,
+      "sha256": "75d3d37c487dc5d180d40a3322cf265ebaaa7bf2058f7b439a2f52aa0c82fa58"
+    },
+    {
+      "path": "source/stages/14-agora-east-edge/helper/PATCHES.json",
+      "bytes": 19948,
+      "sha256": "332866028b82e89f44bbe7d27cf1bd6fa048fbd116c25ab60fac1dbb4465eeec"
+    },
+    {
+      "path": "source/stages/14-agora-east-edge/helper/PREP.json",
+      "bytes": 1868,
+      "sha256": "abf41b8b9dbc52ffd20d9f4bc4dedac0342c652df215a17791eacc18105dd37b"
+    },
+    {
+      "path": "source/stages/14-agora-east-edge/patches.json",
+      "bytes": 20098,
+      "sha256": "b6e5e23606e0e159544786a53c55d934a99c2948f290767bb25f988cd4364018"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/candidate.mjs",
+      "bytes": 3774,
+      "sha256": "17d7c16336a56de704b6e44e0fefe2808e553f22a98d27ff90fbc4e806095889"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/final-candidate.mjs",
+      "bytes": 3603,
+      "sha256": "5e11a144a35708a5946d313539d05d99a60c9bf5fc36b52bd34c8b88c1b639d6"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/helpers/ChariotDrive.mjs",
+      "bytes": 3110,
+      "sha256": "00d9e40460b25ac1035fdeb36a013f2c5616accd8f3f115605092cddb04ba302"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/helpers/ChariotRide.mjs",
+      "bytes": 8361,
+      "sha256": "b7a7419784a01e87651154f68945415fbe82265196f40ba578426109fc9dddb0"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/helpers/ChariotRoadFinish.mjs",
+      "bytes": 1513,
+      "sha256": "a7e4a6818b9feed123880d3196257a1fb6840dd407bed199852823293b82e634"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/helpers/ChariotRoadStop.mjs",
+      "bytes": 1378,
+      "sha256": "dccd64f89ef2e9ea60b165f42f473ce2419203ade3ed34e67fb8be07ae00996a"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/ride-candidate.mjs",
+      "bytes": 4946,
+      "sha256": "dc529868ca4f06dce0369557a3b9edf219829e5c60ef3586cce640b30c507655"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/road-candidate.mjs",
+      "bytes": 2366,
+      "sha256": "b8d5d1641652712a532e4166657ea54420636b884da75645e6161252e40749b0"
+    },
+    {
+      "path": "source/stages/15-chariot-driving/stops-candidate.mjs",
+      "bytes": 2471,
+      "sha256": "e18a7910156eddb757befd09519cdc53acf8ddcd354406281da6d57f97b451d9"
+    },
+    {
+      "path": "source/stages/16-agora-compaction/helper/Entrance.mjs",
+      "bytes": 3119,
+      "sha256": "8a0154bbeacbcb07da3873ae9e7f4dc70d0d39bb50c3ec0729461c6d1489553d"
+    },
+    {
+      "path": "source/stages/16-agora-compaction/helper/NORTH-SITE.json",
+      "bytes": 58626,
+      "sha256": "b266db91ec7a7cc5eb3247000a208aa179f8a57b4120a9d34859784e87719cb4"
+    },
+    {
+      "path": "source/stages/16-agora-compaction/helper/NorthMarket.mjs",
+      "bytes": 14679,
+      "sha256": "e17e3cec4a42ba15d7decd4bd39db4279196f9418a353b530537219d01ab3070"
+    },
+    {
+      "path": "source/stages/16-agora-compaction/helper/PATCHES.json",
+      "bytes": 94265,
+      "sha256": "e2a1f0a67f7bd9548b9279005318068e3be8f24366f734385008208c90302a49"
+    },
+    {
+      "path": "source/stages/16-agora-compaction/helper/PREP.json",
+      "bytes": 1974,
+      "sha256": "fa5944e84997acd15715ada3112f17f99dc0ad85cd3fd31b542d9c883df31ba1"
+    },
+    {
+      "path": "source/stages/16-agora-compaction/patches.json",
+      "bytes": 94337,
+      "sha256": "1f5661da0cb8372fa3c9f32db7633f8aac95949bae5f790aa2548640499cd065"
+    },
+    {
+      "path": "source/stages/17-agora-entrance-clearing/patches.json",
+      "bytes": 1019,
+      "sha256": "e6114db4958c3c7934b6e3a2270824785961cbc1d27cfa9ddbbcbbe1fcc292dd"
+    },
+    {
+      "path": "source/stages/18-agora-entrance-ground/AgoraEntranceGround.mjs",
+      "bytes": 1517,
+      "sha256": "cfd3b4689d748dbc9ea715549158b7279efc21537c0b590779bfca569ea59ef2"
+    },
+    {
+      "path": "source/stages/18-agora-entrance-ground/patches.json",
+      "bytes": 1883,
+      "sha256": "3d43c02cd0d7bc508a54c86ed980878f69fa215c084160128fb48da7ae839bd3"
+    },
+    {
+      "path": "source/stages/19-agora-square-edge/AgoraSquareEdge.mjs",
+      "bytes": 5079,
+      "sha256": "3dd52c35685fa30f7cdf434bc8f274aba20b5607f730fe1aae79dfb9c33f9fdb"
+    },
+    {
+      "path": "source/stages/19-agora-square-edge/patches.json",
+      "bytes": 6496,
+      "sha256": "e2e3855769b10da1acfbd319217e0c4006ba12992d134049031432308469a75b"
+    },
+    {
+      "path": "source/stages/20-agora-shade-market-lane/AgoraSquareLife.mjs",
+      "bytes": 5121,
+      "sha256": "77434234df02fe5209cba47b5d38e4741234e34bbe36b9b654a598c61c2a7213"
+    },
+    {
+      "path": "source/stages/20-agora-shade-market-lane/patches.json",
+      "bytes": 7396,
+      "sha256": "caa761ee0ae3e074ed8a58ea9e78fd35f7a768f9a3f6b736c23db91c418c3507"
+    },
+    {
+      "path": "source/stages/21-agora-cleared-hall-startup/patches.json",
+      "bytes": 284,
+      "sha256": "ec00f188146c13e111f0a77abf379130ec7b0da6115e6bbeb12bfebf0d5d4735"
+    },
+    {
+      "path": "source/stages/22-agora-dipylon-view/DipylonView.mjs",
+      "bytes": 6921,
+      "sha256": "764574c8cfadac54fdc75718c32848af85434fdcfe8964bad51615eefbd58ea1"
+    },
+    {
+      "path": "source/stages/22-agora-dipylon-view/patches.json",
+      "bytes": 13475,
+      "sha256": "b8c428b0b3b004f1de5b05cbe404880925fce2cb8d3e0eb2cf5e2727e9e33f79"
+    },
+    {
+      "path": "source/stages/23-acropolis-summit-wall-fix/AcropolisSummitGround.mjs",
+      "bytes": 2163,
+      "sha256": "b14388b33a4645395c90cf6731b0b062ffdcc8d6b52a3ba24c15edaa296dc4a1"
+    },
+    {
+      "path": "source/stages/23-acropolis-summit-wall-fix/patches.json",
+      "bytes": 3469,
+      "sha256": "f9e6ac8f5e226246ebde1d498cecdd257f05862dd18ded558435c5e6f6da68ee"
+    },
+    {
+      "path": "source/stages/24-acropolis-recessed-entrance/AcropolisRecessedEntrance.mjs",
+      "bytes": 4452,
+      "sha256": "a8fee3b3e1f1e84eb40256e39e8635f1faaad47a9d5ee5dcfd39493445e4d7c0"
+    },
+    {
+      "path": "source/stages/24-acropolis-recessed-entrance/patches.json",
+      "bytes": 5951,
+      "sha256": "b51d30efbca610042e354228b126eb5f8860d03205d80a051b652104dd8fed77"
+    },
+    {
+      "path": "runtime/apps/athens/full-look-contract.json",
+      "bytes": 955,
+      "sha256": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417"
+    },
+    {
+      "path": "runtime/isolation-runtime/athens-look-contract.mjs",
+      "bytes": 10127,
+      "sha256": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9"
+    },
+    {
+      "path": "runtime/isolation-runtime/city-transaction.mjs",
+      "bytes": 12920,
+      "sha256": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e"
+    },
+    {
+      "path": "runtime/isolation-runtime/prebuilt-context-handler.mjs",
+      "bytes": 1829,
+      "sha256": "bf7eb0aa9e5863780198c4e2bf053060d30c1f51885200ec6beab8f076c93a67"
+    },
+    {
+      "path": "runtime/isolation-runtime/range-response.mjs",
+      "bytes": 1583,
+      "sha256": "b1d8d8809b957f24a436fa0a8446f3f428949cff7c9cb1f7c7a9a63029fd5918"
+    },
+    {
+      "path": "runtime/isolation-runtime/registry.mjs",
+      "bytes": 12277,
+      "sha256": "7047c4dea7a7dbf3b2f5e826433a162455a10434abc62fa0268fd1ff9cfe4509"
+    },
+    {
+      "path": "runtime/isolation-runtime/server-adapter.mjs",
+      "bytes": 2354,
+      "sha256": "ddae7c5d611e5a7ba41cbd7e45a5e4352d131fdacee267c8b3fb21f48896fb99"
+    },
+    {
+      "path": "runtime/isolation.json",
+      "bytes": 54,
+      "sha256": "7fb32fc9877e370b9645e6253f55ce0b76a3f681151eb92530046e1b8305e1a2"
+    }
+  ]
+}

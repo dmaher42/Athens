@@ -1,0 +1,315 @@
+[
+  {
+    "name": "new-bouleuterion",
+    "directory": "source/stages/01-new-bouleuterion",
+    "parent": "d7295243de8c",
+    "parentSHA256": "8222bd0104276f1a87476bfde59f008c1a9b386cf57a02f49f9bfe0da9b5a7d9",
+    "release": "4997ad4f0c7f",
+    "outputSHA256": "56bbba56d6f0ce96d65dc597bd9e328ddb6559b33ece5df3999cf3b7c31bd15f",
+    "compile": [
+      {
+        "entry": "src/core/BabylonNewBouleuterion.ts",
+        "globalName": "AthensNewBouleuterionV1"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "kerameikos-terrain-stage5",
+    "directory": "source/stages/02-kerameikos-terrain-stage5",
+    "parent": "4997ad4f0c7f",
+    "parentSHA256": "56bbba56d6f0ce96d65dc597bd9e328ddb6559b33ece5df3999cf3b7c31bd15f",
+    "release": "1b2a330d7293",
+    "outputSHA256": "f4102ac512443314ce52f8e32cb99cb2e473c32eb31be5eed8a8bbeb4cb7fe87",
+    "compile": [
+      {
+        "entry": "src/core/BabylonKerameikosTerrain.mjs",
+        "globalName": "AthensKerameikosStage5"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-master-layout",
+    "directory": "source/stages/03-agora-master-layout",
+    "parent": "1b2a330d7293",
+    "parentSHA256": "f4102ac512443314ce52f8e32cb99cb2e473c32eb31be5eed8a8bbeb4cb7fe87",
+    "release": "fad94d0abc1a",
+    "outputSHA256": "5a8944f7aeb1d8f90f105c1a310a0ffa494ba367fc9d2b774013accd6260a3b5",
+    "compile": [
+      {
+        "entry": "AgoraMasterLayout.mjs",
+        "globalName": "AthensAgoraMasterLayout"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "tree-contacts",
+    "directory": "source/stages/04-tree-contacts",
+    "parent": "fad94d0abc1a",
+    "parentSHA256": "5a8944f7aeb1d8f90f105c1a310a0ffa494ba367fc9d2b774013accd6260a3b5",
+    "release": "63d94ede5f08",
+    "outputSHA256": "7676217a8b02fa9ca2fe2ab910bc292989acdce4858fea1df74925cfa65a7ae4",
+    "compile": [
+      {
+        "entry": "AgoraMasterLayout.mjs",
+        "globalName": "AthensAgoraMasterLayout"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "zeus-wall-finish",
+    "directory": "source/stages/05-zeus-wall-finish",
+    "parent": "63d94ede5f08",
+    "parentSHA256": "7676217a8b02fa9ca2fe2ab910bc292989acdce4858fea1df74925cfa65a7ae4",
+    "release": "49564b5ab194",
+    "outputSHA256": "1bf57ca82d390918dcc958edc6f3347e2456260e693ef1abea874e420dba9f1f",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-second-pass",
+    "directory": "source/stages/06-agora-second-pass",
+    "parent": "49564b5ab194",
+    "parentSHA256": "1bf57ca82d390918dcc958edc6f3347e2456260e693ef1abea874e420dba9f1f",
+    "release": "be0e7b39964f",
+    "outputSHA256": "3ef99f5cd5543b0c54c31eb174573c46fff549ffee86c67c76e96213cb0f6565",
+    "compile": [
+      {
+        "entry": "AgoraMasterLayout.mjs",
+        "globalName": "AthensAgoraMasterLayout"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "natural-conversations",
+    "directory": "source/stages/07-natural-conversations",
+    "parent": "be0e7b39964f",
+    "parentSHA256": "3ef99f5cd5543b0c54c31eb174573c46fff549ffee86c67c76e96213cb0f6565",
+    "release": "1efb686eb6a6",
+    "outputSHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+    "compile": [
+      {
+        "entry": "core/AthensNpcDialogue.ts",
+        "globalName": "AthensNpcDialogue"
+      },
+      {
+        "entry": "core/BabylonFarm2Encounter.ts",
+        "globalName": "AthensFarm2Reactive"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-workshop-first",
+    "directory": "source/stages/08-agora-workshop-first",
+    "parent": "1efb686eb6a6",
+    "parentSHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+    "release": "a1b1a4d5be64",
+    "outputSHA256": "5a15f3ee921f3110581d7f561b57a722bdb8fbd2255796cc72885eeea48300cf",
+    "compile": [
+      {
+        "entry": "PotteryWestGround.mjs",
+        "globalName": "AthensPotteryWest"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "dialogue-flow",
+    "directory": "source/stages/09-dialogue-flow",
+    "parent": "a1b1a4d5be64",
+    "parentSHA256": "5a15f3ee921f3110581d7f561b57a722bdb8fbd2255796cc72885eeea48300cf",
+    "release": "f456cfea5ffa",
+    "outputSHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+    "compile": [
+      {
+        "entry": "core/AthensDialogueFlow.ts",
+        "globalName": "AthensDialogueFlow"
+      },
+      {
+        "entry": "core/BabylonFarm2Encounter.ts",
+        "globalName": "AthensFarm2Reactive"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "countryside-palette-install",
+    "directory": "source/stages/10-countryside-palette-install",
+    "parent": "f456cfea5ffa",
+    "parentSHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+    "release": "b31eab078aae",
+    "outputSHA256": "7cfbdffa24b074f2fc461910f3572e7b297beac72277bafc637c459f5c1e5e41",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-civic-stage",
+    "directory": "source/stages/11-agora-civic-stage",
+    "parent": "b31eab078aae",
+    "parentSHA256": "7cfbdffa24b074f2fc461910f3572e7b297beac72277bafc637c459f5c1e5e41",
+    "release": "442e9ab63921",
+    "outputSHA256": "c4ca3e64d1048337579aeab5e8755f8e49cac6ccb3d3d3508a2196b703ba1109",
+    "compile": [
+      {
+        "entry": "CivicStage.mjs",
+        "globalName": "AthensCivicStage"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "athens-clean-play-hud",
+    "directory": "source/stages/12-athens-clean-play-hud",
+    "parent": "442e9ab63921",
+    "parentSHA256": "c4ca3e64d1048337579aeab5e8755f8e49cac6ccb3d3d3508a2196b703ba1109",
+    "release": "7b57e405b05e",
+    "outputSHA256": "f12eb056aad043b8b46a5dc290701a5056d94fa47acbfed6e32f5312f1fe93b7",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-north-market",
+    "directory": "source/stages/13-agora-north-market",
+    "parent": "7b57e405b05e",
+    "parentSHA256": "f12eb056aad043b8b46a5dc290701a5056d94fa47acbfed6e32f5312f1fe93b7",
+    "release": "3472b819c363",
+    "outputSHA256": "773b06221056635c6001de602ab7fa6cb57ec83bbb9236110b0169e9e83b310c",
+    "compile": [
+      {
+        "entry": "NorthMarket.mjs",
+        "globalName": "AthensNorthMarket"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-east-edge",
+    "directory": "source/stages/14-agora-east-edge",
+    "parent": "3472b819c363",
+    "parentSHA256": "773b06221056635c6001de602ab7fa6cb57ec83bbb9236110b0169e9e83b310c",
+    "release": "e1fbd728581f",
+    "outputSHA256": "85455ba9523cb378964ab93459b92b194ea6cf56c60f1ef6a7b89e3642bf5957",
+    "compile": [
+      {
+        "entry": "EastEdge.mjs",
+        "globalName": "AthensEastEdge"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "chariot-driving",
+    "directory": "source/stages/15-chariot-driving",
+    "parent": "e1fbd728581f",
+    "parentSHA256": "85455ba9523cb378964ab93459b92b194ea6cf56c60f1ef6a7b89e3642bf5957",
+    "release": "dca9f7aa3717",
+    "outputSHA256": "f0e5ad14597a2cb185bc949175b9c067b7e57847f643345e819a85f52baf3b3f",
+    "compile": [],
+    "method": "chariot-source"
+  },
+  {
+    "name": "agora-compaction",
+    "directory": "source/stages/16-agora-compaction",
+    "parent": "dca9f7aa3717",
+    "parentSHA256": "f0e5ad14597a2cb185bc949175b9c067b7e57847f643345e819a85f52baf3b3f",
+    "release": "72235a8c896a",
+    "outputSHA256": "674787a2be18a8a0611cf88cf43b0e501b619c1115239edb474d50cadbee6ebd",
+    "compile": [
+      {
+        "entry": "NorthMarket.mjs",
+        "globalName": "AthensNorthMarket"
+      }
+    ],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-entrance-clearing",
+    "directory": "source/stages/17-agora-entrance-clearing",
+    "parent": "72235a8c896a",
+    "parentSHA256": "674787a2be18a8a0611cf88cf43b0e501b619c1115239edb474d50cadbee6ebd",
+    "release": "1541598e9bc8",
+    "outputSHA256": "3b641905cd144d185a2a9ef46058a9f4049a80dbbb945e2f258bc934922bc3b4",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-entrance-ground",
+    "directory": "source/stages/18-agora-entrance-ground",
+    "parent": "1541598e9bc8",
+    "parentSHA256": "3b641905cd144d185a2a9ef46058a9f4049a80dbbb945e2f258bc934922bc3b4",
+    "release": "25f00902f6fd",
+    "outputSHA256": "ec9717ffb7555f447bb019b436fa085c7eda6906fd437f31cfd44319b85ecf9b",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-square-edge",
+    "directory": "source/stages/19-agora-square-edge",
+    "parent": "25f00902f6fd",
+    "parentSHA256": "ec9717ffb7555f447bb019b436fa085c7eda6906fd437f31cfd44319b85ecf9b",
+    "release": "f6754a528db2",
+    "outputSHA256": "49266ef7cadcf437b9f0a26a2d06954334af2a1b59b23fcee72ddb2443e80d4a",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-shade-market-lane",
+    "directory": "source/stages/20-agora-shade-market-lane",
+    "parent": "f6754a528db2",
+    "parentSHA256": "49266ef7cadcf437b9f0a26a2d06954334af2a1b59b23fcee72ddb2443e80d4a",
+    "release": "7cecaf18929c",
+    "outputSHA256": "b33b66179079f568cd6917a76db844f1d60ad5d95f67e08f0cc3880b6655ad64",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-cleared-hall-startup",
+    "directory": "source/stages/21-agora-cleared-hall-startup",
+    "parent": "7cecaf18929c",
+    "parentSHA256": "b33b66179079f568cd6917a76db844f1d60ad5d95f67e08f0cc3880b6655ad64",
+    "release": "1a83210221d5",
+    "outputSHA256": "d7ff73546c2ea7bbb3018834784b1e99962cc39912f65e9d89f4d2f74610d90f",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "agora-dipylon-view",
+    "directory": "source/stages/22-agora-dipylon-view",
+    "parent": "1a83210221d5",
+    "parentSHA256": "d7ff73546c2ea7bbb3018834784b1e99962cc39912f65e9d89f4d2f74610d90f",
+    "release": "bc94c0f5a861",
+    "outputSHA256": "548d07610e1541534c7e5343bd7840727d8062b0673406b7479b4d3908cfc8f4",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "acropolis-summit-wall-fix",
+    "directory": "source/stages/23-acropolis-summit-wall-fix",
+    "parent": "bc94c0f5a861",
+    "parentSHA256": "548d07610e1541534c7e5343bd7840727d8062b0673406b7479b4d3908cfc8f4",
+    "release": "fe29f4220f24",
+    "outputSHA256": "aa835ce28f08f2acfccaefabc5b4b97d7c4d7aefb9dc9cbbe952ae9123df8c73",
+    "compile": [],
+    "method": "guarded-native-patches"
+  },
+  {
+    "name": "acropolis-recessed-entrance",
+    "directory": "source/stages/24-acropolis-recessed-entrance",
+    "parent": "fe29f4220f24",
+    "parentSHA256": "aa835ce28f08f2acfccaefabc5b4b97d7c4d7aefb9dc9cbbe952ae9123df8c73",
+    "release": "f0f663a64708",
+    "outputSHA256": "4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1",
+    "compile": [
+      {
+        "entry": "../AcropolisRecessedEntrance.mjs",
+        "globalName": "AthensRecessedAcropolisEntrance"
+      }
+    ],
+    "method": "guarded-native-patches"
+  }
+]

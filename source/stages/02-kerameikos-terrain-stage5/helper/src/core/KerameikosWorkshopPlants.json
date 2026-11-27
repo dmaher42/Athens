@@ -1,0 +1,137 @@
+[
+  {
+    "name": "olive_redesign_olive_64",
+    "from": [
+      -192.8632354736328,
+      5.070000171661377,
+      83.48986053466797
+    ],
+    "to": [
+      -217,
+      7.730108655293782,
+      92
+    ],
+    "surveyedGround": 7.790108655293782,
+    "soilSeat": 0.06,
+    "children": [
+      {
+        "name": "olive-organic-wood-redesign_olive_64",
+        "id": 15246,
+        "vertices": 667,
+        "indices": 3270,
+        "material": "athensBarkPBR"
+      },
+      {
+        "name": "olive-fine-leaf-canopy-redesign_olive_64",
+        "id": 15248,
+        "vertices": 6800,
+        "indices": 16320,
+        "material": "athensFoliageMat"
+      }
+    ]
+  },
+  {
+    "name": "cypress_redesign_cypress_39",
+    "from": [
+      -192.0751495361328,
+      5.070000171661377,
+      78.1968994140625
+    ],
+    "to": [
+      -217,
+      7.7359170023600266,
+      57
+    ],
+    "surveyedGround": 7.795917002360026,
+    "soilSeat": 0.06,
+    "children": [
+      {
+        "name": "cypress_trunk",
+        "id": 15324,
+        "vertices": 38,
+        "indices": 96,
+        "material": "athensBarkPBR"
+      },
+      {
+        "name": "cypress_tier_0",
+        "id": 15326,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      },
+      {
+        "name": "cypress_tier_1",
+        "id": 15328,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      },
+      {
+        "name": "cypress_tier_2",
+        "id": 15330,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      },
+      {
+        "name": "cypress_tier_3",
+        "id": 15332,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      }
+    ]
+  },
+  {
+    "name": "cypress_redesign_cypress_9",
+    "from": [
+      -197.76544189453125,
+      5.270951271057129,
+      86.08765411376953
+    ],
+    "to": [
+      -216,
+      8.094810326894125,
+      97
+    ],
+    "surveyedGround": 8.154810326894125,
+    "soilSeat": 0.06,
+    "children": [
+      {
+        "name": "cypress_trunk",
+        "id": 14195,
+        "vertices": 38,
+        "indices": 96,
+        "material": "athensBarkPBR"
+      },
+      {
+        "name": "cypress_tier_0",
+        "id": 14197,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      },
+      {
+        "name": "cypress_tier_1",
+        "id": 14199,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      },
+      {
+        "name": "cypress_tier_2",
+        "id": 14201,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      },
+      {
+        "name": "cypress_tier_3",
+        "id": 14203,
+        "vertices": 54,
+        "indices": 144,
+        "material": "athensFoliageMat"
+      }
+    ]
+  }
+]

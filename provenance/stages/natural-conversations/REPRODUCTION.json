@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "entrySHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+  "retainedParent": "be0e7b39964f",
+  "frozenSources": true,
+  "wholeWorldBuild": false,
+  "savedScenarioDefinitionUnchanged": true
+}

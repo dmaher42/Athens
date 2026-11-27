@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "inverseExact": true,
+  "entrySHA256": "773b06221056635c6001de602ab7fa6cb57ec83bbb9236110b0169e9e83b310c",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "7b57e405b05e",
+    "manifestSHA256": "ce98f98c263149c2143bcde44d6de62c31bd4ced26d25ada477abfa27961d89d"
+  },
+  "parentEntrySHA256": "f12eb056aad043b8b46a5dc290701a5056d94fa47acbfed6e32f5312f1fe93b7",
+  "nativePatches": 42,
+  "source": {
+    "NorthMarket.mjs": "04e667b73ee5e35a681a1845297410a84f2ec808ec64620cfdd27bb81b77c340",
+    "NORTH-SITE.json": "773aa9cc5507201e83c60c2ca8b4b97634e90536f11abba01d7beee0c603232a"
+  },
+  "frozen": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\agora-north-market\\prepared\\773b06221056\\",
+  "compiler": "0.27.4",
+  "build": "node output/playwright/agora-north-market/prepare.mjs",
+  "reproduction": "node output/playwright/agora-north-market/reproduce.mjs",
+  "qa": "node output/playwright/agora-north-market/run-native.mjs candidate",
+  "install": "node output/playwright/agora-north-market/install.mjs",
+  "sourceAuthority": "The exact selected parent, guarded original and replacement native source spans, and frozen north Agora and market helpers.",
+  "release": "3472b819c363",
+  "entry": "assets/babylon-athens-north-market-773b06221056.js",
+  "manifestSHA256": "489a7f8251dcb89132d957a4f8af52a52a06389423694cf8e575f4b073aee6fa"
+}

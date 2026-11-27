@@ -1,0 +1,36 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "be0e7b39964f",
+    "manifestSHA256": "09866ff03e8b8851945f3f52ef7007eeb9ea3ffaefcf6bf6e430d103d2f5ad51"
+  },
+  "entrySHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+  "entry": "assets/babylon-athens-conversations-39c7441b45ad.js",
+  "source": {
+    "src/core/AthensNpcDialogue.ts": "dcd78d9ab9d1abef9dc500b63f2b853b8715589c6e5968ab0ab4322d7fc1e24a",
+    "src/core/BabylonFarm2Encounter.ts": "055b8ebce05e645138c6751852fac163d85a33edf1358f570ac2cf8ff72d6094",
+    "src/core/BabylonDialogueBridge.ts": "5f4fdc89e4c33850075878eebfed0cc428709cc58c77d6a0d7c1a16fff03c51d",
+    "src/core/BabylonLivingWorldBridge.ts": "6407f31e9238f1ec1b12112e21c6375caad224888f7f36c05b6a7730e33a4c29"
+  },
+  "canonicalChanges": "CANONICAL-PROPOSAL.json",
+  "selectedProgramPatches": "PATCHES.json",
+  "frozenHelperGraph": "frozen-src/",
+  "frozenCanonicalOwners": "approved-source/",
+  "reproduce": "node output/playwright/natural-conversations/reproduce.mjs",
+  "compilerVersion": "0.27.4",
+  "wholeWorldBuild": false,
+  "dependencies": "Retained immutable be0e7b39964f release plus frozen helper sources and recorded patches; not an independent whole-world build.",
+  "futureWork": "Rebase onto the then-selected release. Do not run prepare/register against a later selector without updating the pinned-parent proof. Preserve newer shared-owner text.",
+  "unchanged": [
+    "All selected geometry, architecture, approved appearance, original 72 actor identities and schedules, account schema and scenario facts, wallet/inventory, Sparta, personal saves, managed release runtime and look policy."
+  ],
+  "changed": [
+    "Short player-led everyday and philosopher exchanges in the existing bridge.",
+    "Workshop wording only; actual knowledge, consent, price and transaction owners retained.",
+    "Farm explicit agreement and short remembered greetings; pickup/delivery acknowledgements remain available until dismissed."
+  ],
+  "installedRelease": "1efb686eb6a6",
+  "installation": "INSTALL-COMPLETION.json",
+  "normalLaunch": "NORMAL-QA.json"
+}

@@ -1,0 +1,43 @@
+{
+  "installed": true,
+  "id": "b31eab078aae",
+  "entry": "assets/babylon-athens-countryside-palette-7cfbdffa24b0.js",
+  "entrySHA256": "7cfbdffa24b074f2fc461910f3572e7b297beac72277bafc637c459f5c1e5e41",
+  "manifestSHA256": "2c8b07dc12267d187aa1589fc47163f09956fd985674f5a91773d5ae79a00c99",
+  "oldId": "f456cfea5ffa",
+  "transaction": {
+    "app": "athens",
+    "id": "b31eab078aae",
+    "pointerSHA256": "53cb930b818f49d75d59f79be8cd21306386244ad5297c4a15dcba34caa88a57",
+    "manifestSHA256": "2c8b07dc12267d187aa1589fc47163f09956fd985674f5a91773d5ae79a00c99",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\countryside-palette-b31eab078aae-1795723910446.json",
+    "state": "committed"
+  },
+  "served": {
+    "url": "http://127.0.0.1:5189/athens-game-starter/index.html?place=dipylon",
+    "entry": "http://127.0.0.1:5189/__babylon/apps/athens/releases/b31eab078aae/athens-game-starter/assets/babylon-athens-countryside-palette-7cfbdffa24b0.js",
+    "status": 200,
+    "entrySHA256": "7cfbdffa24b074f2fc461910f3572e7b297beac72277bafc637c459f5c1e5e41"
+  },
+  "look": {
+    "app": "athens",
+    "required": true,
+    "passed": true,
+    "contractSHA256": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "entry": "assets/babylon-athens-countryside-palette-7cfbdffa24b0.js",
+    "entrySHA256": "7cfbdffa24b074f2fc461910f3572e7b297beac72277bafc637c459f5c1e5e41",
+    "lutSHA256": "aae654527340254be31af4d8b9824afc87da023f1b894fb20baec9ad6a7eaaf1",
+    "checks": {
+      "freshOpen": true,
+      "cachedOpen": true,
+      "comparisons": true,
+      "curvesExclusive": true,
+      "photometryPreserved": true,
+      "disposal": true
+    }
+  },
+  "sourceApplied": true,
+  "gameplayTested": false,
+  "privatePreviewCreated": false,
+  "atUTC": "2026-11-26T20:12:16.584Z"
+}

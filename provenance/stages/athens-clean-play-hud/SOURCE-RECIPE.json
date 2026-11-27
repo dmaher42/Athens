@@ -1,0 +1,53 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "442e9ab63921",
+    "manifestSHA256": "c712d181fe78cef6b6ed1bcda10d71c5ce264886da9b560a49e741ef0f8d7ce5"
+  },
+  "oldEntry": "assets/babylon-athens-civic-stage-c4ca3e64d104.js",
+  "oldEntrySHA256": "c4ca3e64d1048337579aeab5e8755f8e49cac6ccb3d3d3508a2196b703ba1109",
+  "entry": "assets/babylon-athens-clean-play-hud-f12eb056aad0.js",
+  "entrySHA256": "f12eb056aad043b8b46a5dc290701a5056d94fa47acbfed6e32f5312f1fe93b7",
+  "nativePatches": [
+    {
+      "before": "g.id=\"athens-grade-preview\",g.style.cssText=\"position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10010;background:#18232bea;color:#fff;padding:8px 12px;border-radius:8px;font:13px system-ui;box-shadow:0 2px 12px #0005;display:flex;gap:10px;align-items:center\"",
+      "after": "g.id=\"athens-grade-preview\",g.style.cssText=\"position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10010;background:#18232bea;color:#fff;padding:8px 12px;border-radius:8px;font:13px system-ui;box-shadow:0 2px 12px #0005;display:none;gap:10px;align-items:center\""
+    },
+    {
+      "before": "N.code!==\"KeyL\"||N.repeat||N.ctrlKey||N.altKey||N.metaKey||N.target?.closest?.(",
+      "after": "!g.closest(\"#athens-appearance-editor:not(.ae-min) details[open] #ae-game-look\")||N.code!==\"KeyL\"||N.repeat||N.ctrlKey||N.altKey||N.metaKey||N.target?.closest?.("
+    },
+    {
+      "before": "e.innerHTML=`\n      <div style=\"font-weight: 600; color: #93c5fd; margin-bottom: 4px;\">\n        Babylon Athens \\xB7 independent visual study\n      </div>\n      <div id=\"athens-babylon-telemetry\" style=\"font-family: monospace; font-size: 11px; color: #cbd5e1;\">\n        Position: calculating... | Terrain: loading...\n      </div>\n      <div style=\"margin-top: 6px; font-size: 11px; color: #94a3b8;\">\n        Move: <b style=\"color:#e2ecfa\">W / S / A / D</b> | Look: <b style=\"color:#e2ecfa\">Arrows / Mouse</b> | Camera: <b style=\"color:#38bdf8\">C</b> | Sprint / flight boost: <b style=\"color:#a3e635\">Shift</b> | Walk/Fly: <b style=\"color:#fde047\">V</b> | Jump while walking: <b style=\"color:#fde047\">Space</b> | Fly up/down: <b style=\"color:#fde047\">Space / Ctrl</b> | Talk: <b style=\"color:#fbbf24\">E</b> | Trade: <b style=\"color:#fbbf24\">F</b> | Chariot: <b style=\"color:#fde047\">Y</b> | Stores: <b style=\"color:#fbbf24\">G</b> | Audio: <b style=\"color:#67e8f9\">M</b> | Time: <b style=\"color:#f472b6\">T</b> | UI: <b style=\"color:#f43f5e\">H</b> | Dev: <b style=\"color:#a78bfa\">Shift+I</b> | ${this.appearanceEditor ? '<span style=\"color:#cbd5e1\">Appearance editor open</span>' : '<a id=\"athens-edit-look\" href=\"?appearanceEditor=1&place=agora\" style=\"pointer-events:auto;color:#a3e635;text-decoration:underline\">Edit look</a>'}\n      </div>\n    `,document.body.appendChild(e),this.badgeElement=e",
+      "after": "e.innerHTML=`<style>\n :root{--athens-hud-ink:#f6efdf;--athens-hud-soft:#d7ceba;--athens-hud-gold:#e6c78c;--athens-hud-line:#b8a17780;--athens-hud-panel:#202b26f5;--athens-hud-shadow:0 8px 26px #12161255}\n #antigravity-engine-badge{bottom:max(14px,env(safe-area-inset-bottom))!important;left:max(14px,env(safe-area-inset-left))!important;z-index:9996!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;backdrop-filter:none!important}\n #athens-controls-toggle,#athens-controls-guide,#agora-wallet,#agora-market-prompt,#babylon-dialogue-prompt,#babylon-dialogue-modal,.road-journal-toggle,#road-journal-panel{\n  background:var(--athens-hud-panel)!important;color:var(--athens-hud-ink)!important;border:1px solid var(--athens-hud-line)!important;border-radius:9px!important;box-shadow:var(--athens-hud-shadow)!important\n }\n #athens-controls-toggle{padding:8px 13px;min-height:38px;cursor:pointer;font:650 13px system-ui,sans-serif}\n #athens-controls-toggle[aria-expanded=true]{background:#3c493f!important}\n #athens-controls-guide{position:absolute;left:0;bottom:calc(100% + 8px);box-sizing:border-box;width:min(365px,calc(100vw - 28px));max-height:min(520px,calc(100dvh - 96px));overflow:auto;padding:14px 16px;font:13px/1.4 system-ui,sans-serif}\n #athens-controls-guide[hidden]{display:none!important}\n #athens-controls-guide h2{margin:0 0 8px;font:23px/1.2 Georgia,serif;font-weight:normal}\n #athens-controls-guide h3{margin:9px 0 3px;font:650 12px system-ui,sans-serif;color:var(--athens-hud-gold)}\n #athens-controls-guide dl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;margin:0;color:var(--athens-hud-soft)}\n #athens-controls-guide dd{margin:0;color:var(--athens-hud-ink);text-align:right}\n #athens-controls-guide kbd{font:600 12px system-ui,sans-serif;white-space:nowrap}\n #athens-controls-guide footer{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-top:1px solid var(--athens-hud-line);margin-top:11px;padding-top:8px}\n #athens-controls-guide summary,#athens-controls-guide a{cursor:pointer;color:var(--athens-hud-gold);text-underline-offset:3px}\n #athens-controls-toggle:focus-visible,#athens-controls-guide :focus-visible{outline:2px solid var(--athens-hud-gold);outline-offset:3px}\n #athens-babylon-telemetry{margin-top:5px;max-width:220px;color:var(--athens-hud-soft);font:11px/1.45 ui-monospace,monospace}\n #agora-wallet{top:max(14px,env(safe-area-inset-top))!important;right:max(14px,env(safe-area-inset-right))!important;max-width:min(246px,calc(100vw - 52px))!important;padding:8px 11px!important;font:12px/1.45 system-ui,sans-serif!important}\n #agora-market-prompt,#babylon-dialogue-prompt{max-width:calc(100vw - 28px);box-sizing:border-box;text-align:center;padding:7px 11px!important;font:600 13px/1.35 system-ui,sans-serif!important}\n #babylon-dialogue-modal{max-width:calc(100vw - 28px);border-radius:12px!important}\n #agora-market{max-width:calc(100vw - 28px);border:1px solid #a89469!important;box-shadow:var(--athens-hud-shadow)!important;border-radius:12px!important}\n #agora-market button:focus-visible,#babylon-dialogue-modal button:focus-visible{outline:2px solid #d9ad61;outline-offset:3px}\n @media(max-width:600px){\n  #agora-market{padding:15px!important}\n  #babylon-dialogue-modal{padding:14px!important;bottom:60px!important}\n  #athens-controls-guide{padding:11px 13px}\n }\n</style>\n    <button id=\"athens-controls-toggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"athens-controls-guide\">Controls</button>\n    <section id=\"athens-controls-guide\" aria-label=\"Game controls\" hidden>\n      <h2>Controls</h2>\n      <h3>Explore</h3>\n      <dl>\n        <dt>Move</dt><dd><kbd>W A S D</kbd></dd>\n        <dt>Look</dt><dd><kbd>Mouse / arrows</kbd></dd>\n        <dt>Run / fly faster</dt><dd><kbd>Shift</kbd></dd>\n        <dt>Jump / fly higher</dt><dd><kbd>Space</kbd></dd>\n        <dt>Fly lower</dt><dd><kbd>Ctrl</kbd></dd>\n        <dt>Switch view / walk or fly</dt><dd><kbd>C</kbd> / <kbd>V</kbd></dd>\n      </dl>\n      <h3>Interact</h3>\n      <dl>\n        <dt>Talk / trade</dt><dd><kbd>E</kbd> / <kbd>F</kbd></dd>\n        <dt>Chariot / stores</dt><dd><kbd>Y</kbd> / <kbd>G</kbd></dd>\n        <dt>Sound / time of day</dt><dd><kbd>M</kbd> / <kbd>T</kbd></dd>\n        <dt>Show or hide controls</dt><dd><kbd>H</kbd></dd>\n      </dl>\n      <footer>\n        <details><summary>Performance</summary>\n          <div id=\"athens-babylon-telemetry\">Waiting for game data…</div>\n        </details>\n        ${this.appearanceEditor ? \"\" : '<a id=\"athens-edit-look\" href=\"?appearanceEditor=1&place=agora\">Edit look</a>'}\n      </footer>\n    </section>`,(function connectControls(badge) {\n  const button = badge.querySelector('#athens-controls-toggle');\n  const panel = badge.querySelector('#athens-controls-guide');\n  const setOpen = open => {\n    panel.hidden = !open;\n    button.setAttribute('aria-expanded', String(open));\n  };\n  button.addEventListener('click', () => setOpen(panel.hidden));\n  badge.addEventListener('keydown', event => {\n    if (event.key !== 'Escape' || panel.hidden) return;\n    setOpen(false);\n    button.focus({ preventScroll: true });\n    event.stopPropagation();\n  });\n})(e),document.body.appendChild(e),this.badgeElement=e"
+    },
+    {
+      "before": "Market purse \\xB7 ${e.coins} obols | Deliveries ${e.orders.lunch+e.orders.cloth}/5\nF: trade near a stall \\xB7 Buy figs & oil for the south lunch table",
+      "after": "${e.coins} obols · ${e.orders.lunch+e.orders.cloth}/5 deliveries\nMarket order: figs and oil for the south lunch table"
+    },
+    {
+      "before": "if(ve-O>250&&this.telemetryElement){O=ve;let xe=Math.round(this.engine.getFps()),De=ne.x.toFixed(1),ke=ne.y.toFixed(1),ye=ne.z.toFixed(1),Ae=this.isWalkMode?\"Walking (Grounded)\":\"Free Flight\",Se=this.playerController?.viewMode===\"thirdPerson\"?\"3rd Person\":\"1st Person\",Ne=this.atmosphereBridge?.getTimeString()??\"14:00\",Ge=this.audioBridge?.muted?\"Muted\":\"Active\";this.telemetryElement.textContent=`XYZ: [${De}, ${ke}, ${ye}] | ${xe} FPS | View: ${Se} | Mode: ${Ae} | Time: ${Ne} | Audio: ${Ge}`,this.atmosphereBridge?.updateStats()}",
+      "after": "if(ve-O>250&&this.telemetryElement){O=ve;if(this.telemetryElement.closest(\"details\")?.open&&!this.telemetryElement.closest(\"[hidden]\")&&this.badgeElement?.style.display!==\"none\"){let xe=Math.round(this.engine.getFps()),De=ne.x.toFixed(1),ke=ne.y.toFixed(1),ye=ne.z.toFixed(1),Ae=this.isWalkMode?\"Walking (Grounded)\":\"Free Flight\",Se=this.playerController?.viewMode===\"thirdPerson\"?\"3rd Person\":\"1st Person\",Ne=this.atmosphereBridge?.getTimeString()??\"14:00\",Ge=this.audioBridge?.muted?\"Muted\":\"Active\";this.telemetryElement.textContent=`XYZ: [${De}, ${ke}, ${ye}] | ${xe} FPS | View: ${Se} | Mode: ${Ae} | Time: ${Ne} | Audio: ${Ge}`}this.atmosphereBridge?.updateStats()}"
+    }
+  ],
+  "sources": [
+    {
+      "path": "src\\core\\BabylonAthensLut.js",
+      "beforeSHA256": "c6cd823437eff8194d2b32a1f3a9fb5392021f05fd5c65aeb1d2ce2c02c3a0da",
+      "afterSHA256": "eb6ac47e3284ed2b1d907d7aa1909c055e09c93a989b11362ecf4aa4042ac105"
+    },
+    {
+      "path": "src\\core\\BabylonApplication.ts",
+      "beforeSHA256": "746b10e386435acd9f624f0154d40bb6f0f20436558c9a30dc711af874f245d6",
+      "afterSHA256": "cd7e4d512775db3922ab4faf7d64a18aa0b9ae9a93cdd99204312da7efcfeb3d"
+    },
+    {
+      "path": "src\\core\\BabylonAgoraMarket.ts",
+      "beforeSHA256": "03415d559ab5e06fb20dec7a2e9e37909b63f0db1162ad21568e0ed3a9c2349f",
+      "afterSHA256": "b317d066d2213e8f0efa1dee7c7c7d06ea1d868511de0ef5c67c62facd00420e"
+    }
+  ],
+  "inversePreservesFullParent": true,
+  "managesVisibilityOnly": true
+}

@@ -1,0 +1,85 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "f6754a528db2",
+    "manifestSHA256": "a82bf2f72eb2242fc004092edcb09c02c91d53dcabfd524041aaa119f2c8b2b2"
+  },
+  "parentEntrySHA256": "49266ef7cadcf437b9f0a26a2d06954334af2a1b59b23fcee72ddb2443e80d4a",
+  "entry": "assets/babylon-athens-agora-shade-market-lane-b33b66179079.js",
+  "entrySHA256": "b33b66179079f568cd6917a76db844f1d60ad5d95f67e08f0cc3880b6655ad64",
+  "inverseExact": true,
+  "nativeSpans": 7,
+  "source": "AgoraSquareLife.mjs and PATCHES.json",
+  "build": "node output/playwright/agora-shade-market-lane/prepare.mjs",
+  "reproduce": "node output/playwright/agora-shade-market-lane/prepare.mjs --reproduce",
+  "shade": {
+    "seats": [
+      {
+        "zone": "north-approach",
+        "x": -114.65,
+        "z": 88.7,
+        "yaw": 1.5707963267948966
+      },
+      {
+        "zone": "painted-market",
+        "x": -114.7,
+        "z": 96.95,
+        "yaw": 1.5707963267948966
+      }
+    ],
+    "olives": [
+      {
+        "name": "olive_redesign_olive_48",
+        "x": -116.45,
+        "z": 84.9
+      },
+      {
+        "name": "olive_redesign_olive_1",
+        "x": -116.75,
+        "z": 95
+      },
+      {
+        "name": "olive_planted_5",
+        "x": -116.45,
+        "z": 100.05
+      }
+    ],
+    "movedLaneOlive": {
+      "x": -116.63,
+      "z": 89.9
+    }
+  },
+  "lane": [
+    [
+      -91.9,
+      104.9
+    ],
+    [
+      -90,
+      106
+    ],
+    [
+      -82,
+      111
+    ],
+    [
+      -79,
+      119
+    ],
+    [
+      -76.5,
+      128
+    ],
+    [
+      -76,
+      130.85
+    ],
+    [
+      -61,
+      130.85
+    ]
+  ],
+  "release": "7cecaf18929c",
+  "manifestSHA256": "bab54775b5f745065cdd0ea2774613799c02677f5ff762b7873e9b62e8f0067d"
+}

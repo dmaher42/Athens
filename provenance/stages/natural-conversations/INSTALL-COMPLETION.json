@@ -1,0 +1,37 @@
+{
+  "installed": true,
+  "release": "1efb686eb6a6",
+  "entrySHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+  "managedSelection": {
+    "app": "athens",
+    "id": "1efb686eb6a6",
+    "pointerSHA256": "06a2552bf8cf88b79a90196fb7b5ef72f3310e311066f8e70902c0423e442689",
+    "manifestSHA256": "c56062daa69b309e5330df53a22beeeb314cbf6815b781ef8eaee5726be00a81",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\natural-conversations-1795685016676.json",
+    "state": "committed"
+  },
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "normalServedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/1efb686eb6a6/athens-game-starter/index.html",
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "be0e7b39964f",
+    "manifestSHA256": "09866ff03e8b8851945f3f52ef7007eeb9ea3ffaefcf6bf6e430d103d2f5ad51"
+  },
+  "spartaUnchanged": true,
+  "personalSavesTouched": false,
+  "policyAndRuntimeUnchanged": true,
+  "qualityCuts": false,
+  "serverRestarted": false,
+  "sourceCommitted": false,
+  "sourcePushed": false,
+  "onlinePublished": false,
+  "normalNativeSmokePending": false,
+  "atUTC": "2026-11-26T09:24:00.573Z",
+  "normalNativeSmokePassed": true,
+  "normalQA": "NORMAL-QA.json",
+  "normalStandardClientRun": "output/playwright/natural-conversations/normal-runs/run-tdyO8p",
+  "normalConsoleErrors": 0,
+  "normalServedEntrySHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+  "verifiedUTC": "2026-11-26T09:28:04.647Z"
+}

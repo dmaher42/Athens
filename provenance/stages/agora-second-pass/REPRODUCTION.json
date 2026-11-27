@@ -1,0 +1,11 @@
+{
+  "atUTC": "2026-11-26T06:37:49.178Z",
+  "passed": true,
+  "parentSHA256": "1bf57ca82d390918dcc958edc6f3347e2456260e693ef1abea874e420dba9f1f",
+  "entrySHA256": "3ef99f5cd5543b0c54c31eb174573c46fff549ffee86c67c76e96213cb0f6565",
+  "inverseExact": true,
+  "compilerVersion": "0.27.4",
+  "frozenSource": true,
+  "wholeWorldBuild": false,
+  "selectorWritten": false
+}

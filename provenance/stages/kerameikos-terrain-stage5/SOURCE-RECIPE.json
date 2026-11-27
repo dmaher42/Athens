@@ -1,0 +1,114 @@
+{
+  "prototype": "terrain-study-bdab992b116f",
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "4997ad4f0c7f",
+    "manifestSHA256": "4dae8631b936e5af413ecebdca4f8d3434e58c78bef7d6f16ecaebe0be449ba7"
+  },
+  "parentEntryFile": "C:\\Users\\dmahe\\AppData\\Local/Athens-Babylon/apps/athens/releases/4997ad4f0c7f/build/assets/babylon-athens-new-bouleuterion-56bbba56d6f0.js",
+  "parentEntrySHA256": "56bbba56d6f0ce96d65dc597bd9e328ddb6559b33ece5df3999cf3b7c31bd15f",
+  "build": "kerameikos-step6-f4102ac51244",
+  "entrySHA256": "f4102ac512443314ce52f8e32cb99cb2e473c32eb31be5eed8a8bbeb4cb7fe87",
+  "helperSHA256": "5535a180969de5dcadd7a2929d4ca9649864f6c3efdf94f3e12900ecd520be51",
+  "compiler": "0.27.4",
+  "frozenDirectory": "approved-source-f4102ac51244",
+  "sourceFiles": [
+    {
+      "path": "source/src/core/KerameikosWorkshopHouseClearance.mjs",
+      "sha256": "091b0af87bd62e4b51917238878fbccc0fe133b1571a927ba48ae9e4e17d9673"
+    },
+    {
+      "path": "source/src/core/KerameikosWorkshopPlants.json",
+      "sha256": "a55d11b6ac3eafc30b826b5eb1bdcef376fc4ad8a71cb71dd9c1bb5e1f5b9a9b"
+    },
+    {
+      "path": "source/src/core/KerameikosWorkshopPlants.mjs",
+      "sha256": "cfe81a9c55106fba5559edc86117bf56427a356f9c9853582d7c1e9093e7acfb"
+    },
+    {
+      "path": "source/src/core/KerameikosWorkshopSurfaces.mjs",
+      "sha256": "c3fb00ac679cf220b246a37aab563bf00090a669ef1a4da28412122da772b484"
+    },
+    {
+      "path": "source/src/core/KerameikosNativePlants.mjs",
+      "sha256": "c8b04412ebfa94efee2f62c10dd00ccf192775a6b87c03d9112bc152db6c5b10"
+    },
+    {
+      "path": "source/src/core/KerameikosCemeterySurvey.json",
+      "sha256": "510bb5eb876b56f70c498672bd7bc0599a9f424659c69e8555650fa7129bc043"
+    },
+    {
+      "path": "source/src/core/terrain/TerrainPlan.mjs",
+      "sha256": "87af068d2d0c4accaa7fa39e3b377bd7f79a14293008fa5fd7329c9d05e1ada5"
+    },
+    {
+      "path": "source/src/core/KerameikosCemeteryGrade.mjs",
+      "sha256": "2fa836d56a52affb7dedd6243f86cde07734188990024c0fd813d0313458e4f6"
+    },
+    {
+      "path": "source/src/core/KerameikosSampling.mjs",
+      "sha256": "b4ce2d73d0163d3fd206464934d47b63150057b76b51da7031bd96fd0bdf4684"
+    },
+    {
+      "path": "source/src/core/KerameikosCoverage.mjs",
+      "sha256": "aa509f8c916b98b0bb292ed6df66a731120e0947933c7c9f5cb966bb4dda68af"
+    },
+    {
+      "path": "source/src/core/terrain/TerrainShader.mjs",
+      "sha256": "86d5bd607859733295788f02492e9d182d85440d4313567a0de87218c595cd3d"
+    },
+    {
+      "path": "source/src/core/terrain/TerrainGeometry.mjs",
+      "sha256": "9a1f0966e5f980b50372f49f65cae3963876a1d71b06826005136b1281f0b048"
+    },
+    {
+      "path": "source/src/core/KerameikosWallSurvey.json",
+      "sha256": "23895cd44a6ca6278f32299b8f5f9f0db7223f5df94e9da44808b9db939bbdea"
+    },
+    {
+      "path": "source/src/district-reference/world/cityGatesLayout.js",
+      "sha256": "b76bf2528d775e258a82209df9cd50285294fa1677895464b79331599a904b22"
+    },
+    {
+      "path": "source/src/core/KerameikosWallPlan.mjs",
+      "sha256": "aabf07617150b30e2c376c377459678f28832044706925a8c0f1ccc8b61f7e40"
+    },
+    {
+      "path": "source/src/core/KerameikosWorkshopContract.json",
+      "sha256": "6d089b2104f469877b448b0d8c31e0af61c1752f99c37be66661f4616ad1ecd7"
+    },
+    {
+      "path": "source/src/core/KerameikosWorkshopPlan.mjs",
+      "sha256": "c11edb9f6a5aa4fff55f6fa7b9667e8b5175c37132069deba66c77ad278d21b2"
+    },
+    {
+      "path": "source/src/core/KerameikosRockContacts.mjs",
+      "sha256": "b96e677b7084df75355f57f45bb22b6dcd616d09bf4cad5814ef863a4b31cd6e"
+    },
+    {
+      "path": "source/src/district-reference/world/pompeionScalePlan.js",
+      "sha256": "c8e3422b3335dd67129abc54985e75f7dd345dc44f7e9d964d6a0ee87eb0aac8"
+    },
+    {
+      "path": "source/src/core/KerameikosSourceFootprints.mjs",
+      "sha256": "17f8ea8f1b1f5dbf897de33b7955ac3cba2a06851653f29aaf5084bd16f284b1"
+    },
+    {
+      "path": "source/src/core/KerameikosTerrainPlan.mjs",
+      "sha256": "758b13f4cbff9840a135b82fbc6327df9305ef11caf49a66a2f99f630b3d804c"
+    },
+    {
+      "path": "source/src/core/BabylonKerameikosTerrain.mjs",
+      "sha256": "ab704d784eacf6e5760fa8fac8287def072c974639a23181d94e460c29ec15f9"
+    }
+  ],
+  "patches": "approved-source-f4102ac51244\\PATCHES.json",
+  "reproductionCommand": "node reproduce.mjs (inside exact browser-closed owned testing reservation)",
+  "sourceAuthority": "Retained immutable selected native parent plus22frozen pure overlay source owners and3guarded native spans; inverse recovers full parent bytes",
+  "standaloneWholeWorldBuild": false,
+  "olderGeneralSourceMustNotReplaceInstalledGame": true,
+  "qualityCuts": false,
+  "ownerFinalPerformanceReviewAfterInstall": true,
+  "atUTC": "2026-11-25T21:49:54.751277+00:00"
+}

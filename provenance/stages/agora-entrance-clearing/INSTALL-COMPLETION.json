@@ -1,0 +1,27 @@
+{
+  "atUTC": "2026-11-27T12:38:19.697Z",
+  "selected": "1541598e9bc8",
+  "manifestSHA256": "41db37ac0ecc665167ada2f12e8f5021019cf236a1fcf764c8d8037d52a7ffab",
+  "entry": "assets/babylon-athens-agora-entrance-clearing-3b641905cd14.js",
+  "entrySHA256": "3b641905cd144d185a2a9ef46058a9f4049a80dbbb945e2f258bc934922bc3b4",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/1541598e9bc8/athens-game-starter/index.html",
+  "managedSelection": {
+    "app": "athens",
+    "id": "1541598e9bc8",
+    "pointerSHA256": "77c783ebe1e79460581726472ff2c9fc769a115bf95701e8f20756d361d4400f",
+    "manifestSHA256": "41db37ac0ecc665167ada2f12e8f5021019cf236a1fcf764c8d8037d52a7ffab",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-entrance-clearing-1795782986064.json",
+    "state": "committed"
+  },
+  "localInstallation": true,
+  "servedEntryVerified": true,
+  "browserPlaycheck": false,
+  "published": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "72235a8c896a",
+    "manifestSHA256": "b6bab22b6edd151a98b0f5d4a999a05058c550b4be28de2fdd1c0b55072b58ea"
+  }
+}

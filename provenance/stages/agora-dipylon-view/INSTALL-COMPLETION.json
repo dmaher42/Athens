@@ -1,0 +1,30 @@
+{
+  "atUTC": "2026-11-27T13:57:03.849Z",
+  "selected": "bc94c0f5a861",
+  "manifestSHA256": "5bb6bda089f2c796211041b1f611f990cba13cd69d996f67535ec7e6eb5c4e75",
+  "entry": "assets/babylon-athens-agora-dipylon-view-548d07610e15.js",
+  "entrySHA256": "548d07610e1541534c7e5343bd7840727d8062b0673406b7479b4d3908cfc8f4",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/bc94c0f5a861/athens-game-starter/index.html",
+  "managedSelection": {
+    "app": "athens",
+    "id": "bc94c0f5a861",
+    "pointerSHA256": "a41fffc3eeb09ba0461947ee798dd824e413a091b098de5eecaae4b5cca93784",
+    "manifestSHA256": "5bb6bda089f2c796211041b1f611f990cba13cd69d996f67535ec7e6eb5c4e75",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-dipylon-view-1795787800596.json",
+    "state": "committed"
+  },
+  "localInstallation": true,
+  "servedEntryVerified": true,
+  "published": false,
+  "normalQA": true,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1a83210221d5",
+    "manifestSHA256": "0b8fd7b960786a026e9f8be01bf6132ced8a45f93abaebf3fd112a23093b0c75"
+  },
+  "normalQARecord": "DIPYLON-NORMAL-QA.json",
+  "normalRunRecord": "normal-2026-11-27T13-57-05-160Z/run-28yqQC/RUN.json",
+  "finishedUTC": "2026-11-27T14:00:43.4022633Z"
+}

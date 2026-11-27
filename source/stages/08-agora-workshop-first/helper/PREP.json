@@ -1,0 +1,38 @@
+{
+  "atUTC": "2026-11-26T11:16:04.968Z",
+  "selected": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1efb686eb6a6",
+    "manifestSHA256": "c56062daa69b309e5330df53a22beeeb314cbf6815b781ef8eaee5726be00a81"
+  },
+  "pointerSHA256": "06a2552bf8cf88b79a90196fb7b5ef72f3310e311066f8e70902c0423e442689",
+  "entry": "assets/babylon-athens-conversations-39c7441b45ad.js",
+  "entryPath": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\releases\\1efb686eb6a6/build/assets/babylon-athens-conversations-39c7441b45ad.js",
+  "entrySHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/1efb686eb6a6/athens-game-starter/index.html",
+  "protected": {
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "apps/sparta/current.json": "ec4ed714b53cf50397500d60d61d7916ea4b7b906d39e9c4191f2318a3b1e9de"
+  },
+  "home": "C:\\Users\\dmahe\\AppData\\Local/Athens-Babylon",
+  "source": {
+    "PotteryWestGround.mjs": "9f72e028a510002a059edd1df07cc5f252a776b9452262f62aa374a7d5e1d00f",
+    "SITE.json": "b1177a36b73a41f92afcdda314f6c854823af870a5749ca0fd57e91f0cd25c42"
+  },
+  "candidateSHA256": "5a15f3ee921f3110581d7f561b57a722bdb8fbd2255796cc72885eeea48300cf",
+  "candidateEntry": "assets/babylon-athens-pottery-workshop-5a15f3ee921f.js",
+  "compilerVersion": "0.27.4",
+  "prefixSHA256": "910ba65dac2ca2ea15c30b26886443a241ef172212df08e44f3c4cede6799394",
+  "nativePatches": 13,
+  "siteAnchor": {
+    "x": -215,
+    "y": 6.2,
+    "z": 76
+  },
+  "originalBytesRestoredExactly": true,
+  "externalAssetsAdded": 0
+}

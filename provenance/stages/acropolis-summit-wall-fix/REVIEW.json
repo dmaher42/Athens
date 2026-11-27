@@ -1,0 +1,406 @@
+{
+  "passed": true,
+  "visualPassed": true,
+  "before": {
+    "release": "bc94c0f5a861",
+    "entrySHA256": "548d07610e1541534c7e5343bd7840727d8062b0673406b7479b4d3908cfc8f4",
+    "views": [
+      {
+        "name": "west-overview",
+        "file": "output/acropolis-summit-wall-fix/before-west-overview.png",
+        "camera": {
+          "p": [
+            -196,
+            68.74,
+            -114
+          ],
+          "r": [
+            -0.31570587153854857,
+            -2.0243091260209245,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "north-terrace",
+        "file": "output/acropolis-summit-wall-fix/before-north-terrace.png",
+        "camera": {
+          "p": [
+            -138,
+            47.74,
+            -21
+          ],
+          "r": [
+            -0.294908652136818,
+            -1.444708248222389,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "south-terrace",
+        "file": "output/acropolis-summit-wall-fix/before-south-terrace.png",
+        "camera": {
+          "p": [
+            -83,
+            58.74,
+            -140
+          ],
+          "r": [
+            -0.6138643996113612,
+            -3.056690860656356,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "east-cliff",
+        "file": "output/acropolis-summit-wall-fix/before-east-cliff.png",
+        "camera": {
+          "p": [
+            18,
+            35.74,
+            -70
+          ],
+          "r": [
+            -0.33949834897398656,
+            1.6914199446227174,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "walking-height",
+        "file": "output/acropolis-summit-wall-fix/before-walking-height.png",
+        "camera": {
+          "p": [
+            -106,
+            27.24,
+            -105
+          ],
+          "r": [
+            -0.025821987853528204,
+            -1.5499660130691129,
+            0
+          ],
+          "fov": 0.8
+        }
+      }
+    ]
+  },
+  "after": {
+    "release": "fe29f4220f24",
+    "entrySHA256": "aa835ce28f08f2acfccaefabc5b4b97d7c4d7aefb9dc9cbbe952ae9123df8c73",
+    "views": [
+      {
+        "name": "west-overview",
+        "file": "output/acropolis-summit-wall-fix/after-west-overview.png",
+        "camera": {
+          "p": [
+            -196,
+            68.74,
+            -114
+          ],
+          "r": [
+            -0.31570587153854857,
+            -2.0243091260209245,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "north-terrace",
+        "file": "output/acropolis-summit-wall-fix/after-north-terrace.png",
+        "camera": {
+          "p": [
+            -138,
+            47.74,
+            -21
+          ],
+          "r": [
+            -0.294908652136818,
+            -1.444708248222389,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "south-terrace",
+        "file": "output/acropolis-summit-wall-fix/after-south-terrace.png",
+        "camera": {
+          "p": [
+            -83,
+            58.74,
+            -140
+          ],
+          "r": [
+            -0.6138643996113612,
+            -3.056690860656356,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "east-cliff",
+        "file": "output/acropolis-summit-wall-fix/after-east-cliff.png",
+        "camera": {
+          "p": [
+            18,
+            35.74,
+            -70
+          ],
+          "r": [
+            -0.33949834897398656,
+            1.6914199446227174,
+            0
+          ],
+          "fov": 0.8
+        }
+      },
+      {
+        "name": "walking-height",
+        "file": "output/acropolis-summit-wall-fix/after-walking-height.png",
+        "camera": {
+          "p": [
+            -106,
+            27.24,
+            -105
+          ],
+          "r": [
+            -0.025821987853528204,
+            -1.5499660130691129,
+            0
+          ],
+          "fov": 0.8
+        }
+      }
+    ],
+    "routes": [
+      {
+        "start": [
+          -108,
+          -106
+        ],
+        "target": [
+          -100,
+          -106
+        ],
+        "arrival": [
+          -100.69374000004527,
+          25.5,
+          -106
+        ]
+      },
+      {
+        "start": [
+          -100,
+          -106
+        ],
+        "target": [
+          -108,
+          -106
+        ],
+        "arrival": [
+          -107.42101999990942,
+          25.5,
+          -106
+        ]
+      },
+      {
+        "start": [
+          -127,
+          -19
+        ],
+        "target": [
+          -118,
+          -19
+        ],
+        "arrival": [
+          -118.4405000000001,
+          25.500000000000004,
+          -19
+        ]
+      }
+    ]
+  },
+  "weights": [
+    {
+      "x": -150,
+      "z": -98,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -139,
+      "z": -104,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -121,
+      "z": -106,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -103,
+      "z": -106,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -76,
+      "z": -108,
+      "terrainY": 25.502169113159177,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -50,
+      "z": -106,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -30,
+      "z": -102,
+      "terrainY": 25.500083923339844,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -20,
+      "z": -99,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -12,
+      "z": -84,
+      "terrainY": 25.465845108032227,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -11,
+      "z": -70,
+      "terrainY": 24.780686874389644,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -12,
+      "z": -52,
+      "terrainY": 25.465127334594726,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -13,
+      "z": -32,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -70,
+      "z": -19,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -124,
+      "z": -19,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -144,
+      "z": -31,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -100,
+      "z": -54,
+      "terrainY": 25.5,
+      "materialSlot": 1,
+      "terraceWeight": 1
+    },
+    {
+      "x": -156,
+      "z": -66,
+      "terrainY": 25.5,
+      "materialSlot": 3,
+      "terraceWeight": 1
+    },
+    {
+      "x": -166,
+      "z": -39,
+      "terrainY": 25.088930613199864,
+      "materialSlot": 3,
+      "terraceWeight": 0
+    },
+    {
+      "x": -145,
+      "z": -117,
+      "terrainY": 8.374307556152345,
+      "materialSlot": 3,
+      "terraceWeight": 0
+    },
+    {
+      "x": -85,
+      "z": -118,
+      "terrainY": 9.611111386617026,
+      "materialSlot": 3,
+      "terraceWeight": 0
+    },
+    {
+      "x": -15,
+      "z": -109,
+      "terrainY": 8.646889425913486,
+      "materialSlot": 3,
+      "terraceWeight": 0
+    },
+    {
+      "x": -3,
+      "z": -64,
+      "terrainY": 2.003535435994465,
+      "materialSlot": 3,
+      "terraceWeight": 0
+    },
+    {
+      "x": -40,
+      "z": -10,
+      "terrainY": 11.700600941975907,
+      "materialSlot": 3,
+      "terraceWeight": 0
+    },
+    {
+      "x": -178,
+      "z": -61,
+      "terrainY": 13.372476170857738,
+      "materialSlot": 3,
+      "terraceWeight": 0
+    }
+  ],
+  "terrainAndWallGeometryExact": true,
+  "noQualityCuts": true,
+  "atUTC": "2026-11-27T14:11:38.308Z"
+}

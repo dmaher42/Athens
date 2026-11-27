@@ -1,0 +1,9 @@
+{
+  "atUTC": "2026-11-26T00:32:05.185Z",
+  "passed": true,
+  "entrySHA256": "1bf57ca82d390918dcc958edc6f3347e2456260e693ef1abea874e420dba9f1f",
+  "parentSHA256": "7676217a8b02fa9ca2fe2ab910bc292989acdce4858fea1df74925cfa65a7ae4",
+  "inverseExact": true,
+  "compilerRequired": false,
+  "selectorWritten": false
+}

@@ -1,0 +1,38 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "f456cfea5ffa",
+    "manifestSHA256": "ee7c3a2406ec27b9fdc23b1b98bd7eeaecf4307237ee9559937b72f0f604c362"
+  },
+  "oldEntry": "assets/babylon-athens-dialogue-flow-df663aaf132a.js",
+  "oldEntrySHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+  "release": "b31eab078aae",
+  "manifestSHA256": "2c8b07dc12267d187aa1589fc47163f09956fd985674f5a91773d5ae79a00c99",
+  "entry": "assets/babylon-athens-countryside-palette-7cfbdffa24b0.js",
+  "entrySHA256": "7cfbdffa24b074f2fc461910f3572e7b297beac72277bafc637c459f5c1e5e41",
+  "source": "src\\core\\BabylonJourneyGround.ts",
+  "beforeSourceSHA256": "d4d96685c328030db253b791b827a8173135049d04598c859cedbbfc6742c980",
+  "afterSourceSHA256": "68fa2d7e7cde60ce099dd561c25ba8eebc61f695e8c50fea37741ecb8a5c2a5c",
+  "inverseRestoresExactParent": true,
+  "managedLookPassed": true,
+  "allOtherManifestRowsPreserved": true,
+  "patches": [
+    {
+      "before": "#ifdef ATHENS_JOURNEY_GROUND\n// Skip all country texture work across the rest of Athens.",
+      "after": "#ifdef ATHENS_JOURNEY_GROUND\n// Blend the existing ground photograph across the dry exterior of Athens.\n// The city atlas and native road, shore and rock finishes retain priority.\nvec2 jrPalXZ=vPositionW.xz;\nif(jrPalXZ.x<-316.||jrPalXZ.x>184.||jrPalXZ.y<-262.||jrPalXZ.y>312.){\n float jrPalWest=1.-smoothstep(-371.,-316.,jrPalXZ.x);\n float jrPalEast=smoothstep(184.,238.,jrPalXZ.x);\n float jrPalSouth=1.-smoothstep(-317.,-262.,jrPalXZ.y);\n float jrPalNorth=smoothstep(312.,367.,jrPalXZ.y);\n float jrPalWeight=max(max(jrPalWest,jrPalEast),max(jrPalSouth,jrPalNorth));\n #ifdef ATHENS_AGORA_GROUND\n jrPalWeight*=smoothstep(harbourSeaLevel+1.5,harbourSeaLevel+8.,vPositionW.y)*(1.-clamp(agCachedResponse.x,0.,1.));\n #endif\n if(jrPalWeight>.001){\n  float jrPalSlope=smoothstep(.67,.96,abs(geometricNormalW.y));\n  float jrPalGrowth=smoothstep(.18,.82,.5+.28*sin(dot(jrPalXZ,vec2(.018,.013)))+.22*sin(dot(jrPalXZ,vec2(-.037,.024))));\n  float jrPalLuma=dot(surfaceAlbedo,vec3(.2126,.7152,.0722));\n  vec3 jrPalField=mix(vec3(1.14,.96,.66),vec3(.72,.90,.55),jrPalGrowth);\n  vec3 jrPalTint=mix(vec3(1.055,1.035,.995),jrPalField,jrPalSlope);\n  surfaceAlbedo=mix(surfaceAlbedo,jrPalLuma*jrPalTint,jrPalWeight*mix(.24,.87,jrPalSlope));\n }\n}\n// Skip all country texture work across the rest of Athens."
+    },
+    {
+      "before": "vec3 jrMeadow=jrGrass*mix(vec3(.96,1.30,.98),vec3(1.045,1.16,.92),jrLand.g)*(.91+jrMacro*.23);",
+      "after": "float jrSummer=smoothstep(.13,.83,.72*jrLand.g+.28*jrMacro);\n   float jrMeadowLuma=dot(jrGrass,vec3(.2126,.7152,.0722));\n   vec3 jrMeadow=mix(jrGrass,vec3(jrMeadowLuma)*mix(vec3(.76,.94,.58),vec3(1.17,.96,.62),jrSummer),.76)*(.91+jrMacro*.23);"
+    },
+    {
+      "before": "vec3 jrWeatheredStone=mix(jrStone,vec3(jrStoneValue)*vec3(1.045,1.025,.985),.32)*1.045;",
+      "after": "vec3 jrWeatheredStone=mix(jrStone,vec3(jrStoneValue)*vec3(1.065,1.045,1.015),.46)*1.065;"
+    },
+    {
+      "before": "jrField=mix(jrField,jrMeadow*vec3(.94,1.16,.86),jrVerge*(.78+jrMottle*.17));",
+      "after": "jrField=mix(jrField,jrMeadow*vec3(.95,1.035,.94),jrVerge*(.78+jrMottle*.17));"
+    }
+  ]
+}

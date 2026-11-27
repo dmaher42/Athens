@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {root,read} from './build-entry.mjs';
+const pin=read('provenance/asset-payload.json');
+const dir=path.join(root,'.transfer');fs.mkdirSync(dir,{recursive:true});
+const file=path.join(dir,pin.filename);
+if(!fs.existsSync(file))execFileSync('gh',['release','download','migration/athens-f0f663a64708','--repo','dmaher42/Athens','--pattern',pin.filename,'--dir',dir],{stdio:'inherit'});
+const hash=createHash('sha256');for await(const chunk of fs.createReadStream(file))hash.update(chunk);
+assert.equal(hash.digest('hex'),pin.sha256,'Asset payload changed');
+assert.equal(fs.statSync(file).size,pin.bytes);
+assert(!fs.existsSync(path.join(root,'payload')),'Payload already exists; retain it and verify/build directly.');
+execFileSync('tar',['-xf',file,'-C',root],{stdio:'inherit'});
+console.log('Authenticated payload downloaded and verified. It remains excluded from Git.');

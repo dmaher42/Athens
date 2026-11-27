@@ -1,0 +1,4938 @@
+{
+  "schemaVersion": 1,
+  "app": "sparta",
+  "entry": "sparta/index.html",
+  "assetPool": "7d245906038f79114cd95646495844b2e9268f03ce885f301766e8f9a8363d4d",
+  "runtime": {
+    "versionedAssetURLs": false,
+    "requestContextAssetAdapter": 1,
+    "crossCityLinkContract": 1
+  },
+  "provenance": {
+    "kind": "sparta-player-directed-donkey",
+    "baseRelease": "fe5824416303",
+    "baseManifestSHA256": "2f713c354ee3f35c100643f7b990fe2c929e7f2ac988f931f8319563488eb206",
+    "baseEntrySHA256": "d2096d3cfc73499b90e02e83ab96f1862bbb8d4068ad541f1646570682e4fb9a",
+    "nativeRuntimeSHA256": "abc8821bdc90a53ea7efddb52c7728e7deff24e2b47afe53324b51a38c9546b3",
+    "nativePatch": {
+      "kind": "fresh-game-position-only",
+      "before": "position:[16,2.55,68]",
+      "after": "position:[69,2.55,50]",
+      "count": 1,
+      "reverseReproducesInstalledBytes": true
+    },
+    "landscapeLayer": "assets/sparta-packed-earth-1911c4d2d186.js",
+    "sourceInputs": [
+      "valley-v2/source/workingValley.js",
+      "valley-v2/source/bootValley.js"
+    ],
+    "visualQA": "Explicitly waived by Daniel; no game browser or screenshot QA performed",
+    "installed": false,
+    "originalRelease": "fe5824416303",
+    "originalEntry": "assets/sparta-native-working-abc8821bdc90.js",
+    "originalEntrySHA256": "abc8821bdc90a53ea7efddb52c7728e7deff24e2b47afe53324b51a38c9546b3",
+    "entrySHA256": "abc8821bdc90a53ea7efddb52c7728e7deff24e2b47afe53324b51a38c9546b3",
+    "parentRelease": "60fde41193a5",
+    "parentManifestSHA256": "6174d7a98fbacdd10db3255e5afc2fcdf396ebd2607f43f7e66c143676a3be53",
+    "compactHUD": {
+      "layer": "assets/sparta-compact-hud-RF4JSPRL.js",
+      "sourceFiles": [
+        {
+          "path": "source/compactHud.js",
+          "sha256": "e835861ad8201b55073f0236ee72959c9af69373706c6d5efa2869ae0484d887"
+        },
+        {
+          "path": "source/bootCompactHud.js",
+          "sha256": "a72220e7ad99f84b76c3a5c1d4c2e312b14b64e6b66abc3d810cef457d273943"
+        }
+      ],
+      "scope": "UI only: native Esc menu, time/elevation readouts, routine save badge hidden",
+      "existingCodeAssetsAndSaveLogicUnchanged": true
+    },
+    "yardDonkeyLayer": "assets/sparta-yard-donkey-NCBVD5QT.js",
+    "yardDonkeyModel": "sparta/assets/animals/yard-donkey-idle.glb",
+    "yardDonkeyModelSHA256": "666413d16eb7b59e0d6ab9bf81012129d5f6179cf7c12e3059715b913faf6ced",
+    "yardDonkeySourceFiles": [
+      {
+        "path": "bootYardDonkey.js",
+        "sha256": "2d43bf7787c2ea84dc0a254d534a4c84b06581ea4258f4fec6c045ce0bb8a05e",
+        "bytes": 721
+      },
+      {
+        "path": "yardDonkey.js",
+        "sha256": "e7c466691925388dc616b43055e8365b11b20d360e71a1e77667cb3470e07e61",
+        "bytes": 3691
+      }
+    ],
+    "animalMode": "stable-idle-only-no-walk-or-story",
+    "placement": {
+      "x": 72,
+      "z": 50.5,
+      "yaw": 0,
+      "y": -0.009845815314498964
+    },
+    "priorValidatedDonkeyRelease": "4a316b179498",
+    "naturalLandscape": {
+      "sourceFiles": [
+        {
+          "path": "sparta/src/world/mediterraneanPbr.js",
+          "sha256": "843ca5844ba318903d6b21a4dbd1bbf7137158af4869cc04031d8e2ea93579dc"
+        },
+        {
+          "path": "sparta/src/world/naturalLandscape.js",
+          "sha256": "9ef1db6a0924de9c8fa58f4b255473c87b0b1385769786c3389dfb8bd7389875"
+        },
+        {
+          "path": "sparta/src/world/workingValley.js",
+          "sha256": "04c0e444e0ab8b45b3badfef0f9c153238c68973c80ab4b9d1162dca8d99b3af"
+        },
+        {
+          "path": "sparta/src/bootValley.js",
+          "sha256": "c45247991725824e012861f0eab8624fae804abfec7236ad331085fca3ca53f0"
+        }
+      ],
+      "nativeGameBytesUnchanged": true,
+      "retained": [
+        "working-valley",
+        "compact-hud",
+        "idle-yard-donkey",
+        "warrior-finish",
+        "save-schema",
+        "city-layout"
+      ],
+      "newExternalAssets": 0,
+      "pbrPack": [
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/README.md",
+          "kind": "build",
+          "sha256": "ad68c94a88e6549f7d5cb06a8f814ee3d6776c92cc12b388e4e5418df181e5e2",
+          "size": 1527
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-albedo.jpg",
+          "kind": "build",
+          "sha256": "db0d563089e4a4e2f6da0172297168718c9bd4413ff7912f0180bfda33b8c2b3",
+          "size": 4097984
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-ao.jpg",
+          "kind": "build",
+          "sha256": "284688f65c7b72a5bc169b352147cebff0ff335bba107375b79a27da16e5f64b",
+          "size": 3736230
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-arm.jpg",
+          "kind": "build",
+          "sha256": "0279eea78d3f9dc3edce3631a082d662d144fb2810ad0e8a36d20028f236c3c5",
+          "size": 3510676
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-normal.jpg",
+          "kind": "build",
+          "sha256": "ad1e336887cb37b7d3dd1ce4719ab393425fa715dffaffe01381d97d207d2248",
+          "size": 5311499
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-roughness.jpg",
+          "kind": "build",
+          "sha256": "e34b6cf6f59bd17293eca5b629d2a8af8d544587c61d5ec5002e25d6c72de851",
+          "size": 1732319
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-albedo.jpg",
+          "kind": "build",
+          "sha256": "2ae79eca983e17255455af66fe35f64fe408bebe32a1e60f6a84dcaf4eb3596c",
+          "size": 2227964
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-ao.jpg",
+          "kind": "build",
+          "sha256": "3cb24be5c139e2da92bd26d919fa6a3499d6ba82cf0e4666ac25e4fc1923ea99",
+          "size": 1413208
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-arm.jpg",
+          "kind": "build",
+          "sha256": "ec2eb50085b37e6cd918e8dc091d5d486f21f06e8da6f4e25a12ca1ed6571a0f",
+          "size": 906788
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-normal.jpg",
+          "kind": "build",
+          "sha256": "b2f6ecc9e8e252006b0763c83331b3733417b1df6aff9b4873d4b6c9161d4ca3",
+          "size": 3397270
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-roughness.jpg",
+          "kind": "build",
+          "sha256": "abe15a581f6f96a0fbf50cf24102f8b38ead8351cddda69447fb8bf1acb889dd",
+          "size": 1516642
+        },
+        {
+          "path": "sparta/assets/materials/mediterranean-earth-v1/provenance.json",
+          "kind": "build",
+          "sha256": "881e63f636c6e726052e35a5605ee8cabf0ad8266c8b523b20db5162e1f2257b",
+          "size": 3972
+        }
+      ],
+      "visualQA": "Pending candidate browser verification"
+    },
+    "yardLead": {
+      "layer": "assets/sparta-player-follow-0f05dd8eee4b.js",
+      "motion": "sparta/assets/animals/journey-donkey-motion.glb",
+      "sourceFiles": [
+        {
+          "path": "yard-lead-v10/yardLeadRoute.js",
+          "sha256": "0003f492bafcd3bf5c046b8083636178becadc23c4545e2901a802b3e2573f9c"
+        },
+        {
+          "path": "source/sparta/src/game/packCompanion.js",
+          "sha256": "83f2e47889dcce3ee6a0c77e2861ceb5267742e55bf9aa3c23e3891a3895f0ae"
+        },
+        {
+          "path": "yard-lead-v10/playerLeadTrail.js",
+          "sha256": "9749bc5b206a15fd29f925d2178a7193bd7fe31cbbb4f4e0defff87d74cb354e"
+        },
+        {
+          "path": "yard-lead-v10/yardLeadController.js",
+          "sha256": "a76424aeb1afa8195571469c5830a47b3bab8c70863acf544bbf0fb889bbff4c"
+        },
+        {
+          "path": "source/sparta/src/world/yardDonkeyMotion.js",
+          "sha256": "d02308cd495438f28e6cb75efe798b54d1e57b087ee0121909f63356da37e6cc"
+        },
+        {
+          "path": "source/sparta/src/world/hoofContact.js",
+          "sha256": "eff354662d5115f5e5602e09b85d46d09432bacf328ab4d7eaf1a32e2fe4ec69"
+        },
+        {
+          "path": "yard-lead-v10/authoredLeadDriver.js",
+          "sha256": "b9c51e3664f8bfa9b46c4a04588b843122a5fa7a82263e435b2758c8fcd924b1"
+        },
+        {
+          "path": "yard-lead-v10/groundedLeadDriver.js",
+          "sha256": "74788a90c1a4b9c069e7e11b2918b6afa84b49d48586175997ffc7febd4c8897"
+        },
+        {
+          "path": "yard-lead-v10/transactionalLeadDriver.js",
+          "sha256": "cdbe52785615716a9ea1837a1746ff2f3c1a45078aa537b00465f2d489ad2a55"
+        },
+        {
+          "path": "yard-lead-v10/meshHeightSampler.js",
+          "sha256": "15c2e6dde713c3e395abac4a5fc08221d2f256ccd32b4a3d1e3dbc8a8c946e05"
+        },
+        {
+          "path": "yard-lead-v10/yardLeadGround.js",
+          "sha256": "3d20a9dfd90e7e58acbb22a6f58d5b96a29063b06f379f77aaff43a422e06446"
+        },
+        {
+          "path": "yard-lead-v10/playerLeadNavigation.js",
+          "sha256": "08645d5e1ef9dcaee7e9fc85856dd3e220570919ac7f6ff0d256829829b78f52"
+        },
+        {
+          "path": "yard-lead-v10/yardLeadDonkey.js",
+          "sha256": "97aa21d447219570b219e052a3e01848e648f4f7e96eb297a4ce02b0cc16283a"
+        },
+        {
+          "path": "yard-lead-v10/yardLeadContext.js",
+          "sha256": "73e38b608a1bff18287fc9bdbd7c4a3ee5f64d4f9acdbde48134de789b9a0009"
+        },
+        {
+          "path": "yard-lead-v10/layoutPlan.js",
+          "sha256": "abfda6c840ea890f66c67f3b41da09e17439e15b2aabeeb0059c27fc58b96632"
+        },
+        {
+          "path": "yard-lead-v10/yardLeadLayout.js",
+          "sha256": "13be1d1c7ccf46ac1c3ab12052d691698724417cef317b8e161eaa31f77c05a2"
+        },
+        {
+          "path": "yard-lead-v10/triangleBox.js",
+          "sha256": "16be9b1a283b3d73ee7766925275f2a2b0dc9d889391b7afcdd7e3c117ae7a70"
+        },
+        {
+          "path": "yard-lead-v10/poseBodyQuery.js",
+          "sha256": "b77a3747fa54455c6f00cd3a9a231aaadcc1c0dd2f1eda466fc33b084650119e"
+        },
+        {
+          "path": "yard-lead-v10/animatedClearance.js",
+          "sha256": "50afbb57a438a90534e2c68ed888d2794c3d2964f2d95f48494160ba84530d48"
+        },
+        {
+          "path": "yard-lead-v10/yardLeadPlayer.js",
+          "sha256": "66d671c195624061e8d13bfbc273f31fc5d43e17481ff7fef20b7765e1f42698"
+        },
+        {
+          "path": "yard-lead-v10/bootYardLead.js",
+          "sha256": "b4a7972abc0753e3dc3771b8bd34ecd405f72305bb25c62c4fc24f1c3d76bcf8"
+        }
+      ],
+      "scope": "Unloaded leading from kiln to lane; single installed downloaded donkey; session only; two verified movable prop translations",
+      "acceptance": {
+        "method": "Managed installer requires passing floor correctness and same-release diagnostic, route and standard-client receipts",
+        "evidenceRoot": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\sparta-donkey-follow"
+      },
+      "sourceRoot": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\sparta-player-follow/source",
+      "inheritedAcceptance": {
+        "UTC": "2026-11-21T20:37:36.178Z",
+        "passed": true,
+        "rendered": true,
+        "screenshotsInspected": true,
+        "controls": true,
+        "fullRoute": true,
+        "dialogue": true,
+        "reload": true,
+        "layer": "assets/sparta-yard-lead-H2MXTPYY.js",
+        "layerSHA256": "a807f55d89b14bbefca64a64ef9dc7b609150e05a7f9919a2d8b5d8781d0e4e0",
+        "baseline": {
+          "schemaVersion": 1,
+          "app": "sparta",
+          "id": "dbf58b6d7344",
+          "manifestSHA256": "0090d1e3e96da56ed4fea99e2f8e3cc830b642b1c990746109ed2467f72673e4"
+        },
+        "unloaded": true,
+        "cargo": false,
+        "sessionOnly": true,
+        "minimumAnimatedClearanceM": 0.08637653673103877,
+        "bodyPoses": 4226,
+        "feetPassed": true,
+        "forwardPassed": true,
+        "lanePassed": true,
+        "bodyIdentity": {
+          "root": 11825,
+          "body": [
+            11611
+          ],
+          "skeleton": 11617
+        },
+        "browserErrors": [],
+        "exactFinalControlsChecks": [
+          "Private reload retains the native player visit and resets the session-only donkey at the kiln, matching installed idle behavior",
+          "Exact final candidate shows E lead/wait beside the actual third-person character",
+          "Doreios keeps E priority and opens native dialogue; donkey stays still; Esc returns to play"
+        ],
+        "renderedRouteLayer": "assets/sparta-yard-lead-2ARFYK4W.js",
+        "finalDeltaProof": "FINAL-DELTA.json",
+        "limitations": [
+          "Unloaded kiln-to-lane leading only; no cargo, riding or First Journey enabled",
+          "Donkey movement is session-only and resets to kiln on reload; native player visit persists",
+          "Full rendered route used the clear southern side of the eastern lane after one automated waypoint timed out; no scenery or route changed for this",
+          "First harness expected the donkey inside its 1.7m follow distance; corrected expectation, unchanged game threshold",
+          "40Hz sampled animated clearance is not a continuous swept-collision proof",
+          "Laptop FPS was not used as an acceptance gate"
+        ],
+        "evidence": {
+          "offlineRig": "whole-route-rig.json",
+          "layout": "layout-plan.json",
+          "layoutRuntime": "layout-runtime.json",
+          "driverRollback": "transactional-guard.json",
+          "lightweight": "lightweight-checks.json",
+          "finalControls": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/final-controls-reload.json",
+          "fullRoute": [
+            "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/runtime-acceptance.json",
+            "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/route-acceptance.json",
+            "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/lane-acceptance.json"
+          ]
+        },
+        "screenshots": [
+          {
+            "file": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/approach-yard.png",
+            "sha256": "714fc481c5c0ccc69b3cbf52f7a8bec2b41e62a58e4213f05921326ca47fec60",
+            "inspected": true
+          },
+          {
+            "file": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/route-65.65-52.5.png",
+            "sha256": "10194268c2eac63a51694d0749bd7e29d3ba1e624b6ca8727d193277b6553698",
+            "inspected": true
+          },
+          {
+            "file": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/lane-complete.png",
+            "sha256": "6201275f4f30e074754a31b1ca94b0bd44c86045258d5544b344e0af4365e2ab",
+            "inspected": true
+          },
+          {
+            "file": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/esc-menu.png",
+            "sha256": "551b9c898212a6c74c4975f21ff3d3ecb4fb9eff558a7da06f730df8bb2356e5",
+            "inspected": true
+          },
+          {
+            "file": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/final-lead-controls.png",
+            "sha256": "2955011033e640d2d761189b771627707f2be19edc447e314571ffe3187daa77",
+            "inspected": true
+          },
+          {
+            "file": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-18\\task-2\\output\\playwright\\yard-lead-v10/doreios-dialogue.png",
+            "sha256": "c75832a0fd5136b3095e270d9fda6ea7fc35de516a9c7d0190483084a71aa744",
+            "inspected": true
+          }
+        ],
+        "liveSaveAccess": false,
+        "liveServerRestart": false,
+        "installed": false
+      },
+      "floorOptimization": {
+        "version": "exact-local-floor-v1",
+        "sourceDelta": [
+          "yard-lead-v10/meshHeightSampler.js",
+          "yard-lead-v10/yardLeadGround.js",
+          "yard-lead-v10/yardLeadDonkey.js"
+        ],
+        "groundCacheSpacingM": 0.01,
+        "nativeUnchanged": true,
+        "groundingAndAnimatedClearanceUnchanged": true,
+        "newAssets": 0
+      },
+      "normalDeparture": {
+        "sourceDelta": [
+          "yard-lead-v10/yardLeadController.js",
+          "yard-lead-v10/layoutPlan.js",
+          "yard-lead-v10/yardLeadLayout.js",
+          "yard-lead-v10/bootYardLead.js"
+        ],
+        "existingSafeRouteRetained": true,
+        "originalSpeedsRetained": true,
+        "groundingAndClearanceUnchanged": true,
+        "newAssets": 0,
+        "verificationRoot": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\sparta-donkey-nonfollow"
+      },
+      "playerFollow": {
+        "sourceFingerprint": "3ecfbc909e74008a5d7d6c617f636647337f7c6d9a56037218d570fdb8ab9ef8",
+        "motionPath": "sparta/assets/animals/player-follow-motion-b5753588c047.glb",
+        "motionSHA256": "b5753588c04754788189f06d54611533af304bf47df5eaef78f127339418ff59",
+        "originalSourceSHA256": "3d118ef68a91ec896b5c96dec927fe016efbd9737b00c0345dace00fd3525c88",
+        "originalJointMotion": true,
+        "boundedLowerJointCorrectionRad": 0.1,
+        "movingGroundIndex": true,
+        "poseClearanceMarginM": 0.08,
+        "newBodyOrTextures": false,
+        "verificationRoot": "C:\\Users\\dmahe\\Documents\\Codex\\2026-11-13\\task-3\\potter-city\\world-source\\output\\playwright\\sparta-player-follow"
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "agora-layout.svg",
+      "kind": "asset",
+      "sha256": "43ce381892670677050e1ee3ad2f2fad36fdd976225a72f2f91c242e660cde46",
+      "size": 5913
+    },
+    {
+      "path": "assets/babylon-7PAKBBHX.js",
+      "kind": "build",
+      "sha256": "367b9f0f8d2adc88fee452ee1e0458e11f40673f9c4cc8bcbd0fd83647b21e4c",
+      "size": 3213597
+    },
+    {
+      "path": "assets/babylon-I432RHJQ.js",
+      "kind": "build",
+      "sha256": "7261ae4f7f012de6bf01f971db118a30eabf785bf30b4eb3edaf5c77564fc760",
+      "size": 1617819
+    },
+    {
+      "path": "assets/babylon-KT4JALCZ.js",
+      "kind": "build",
+      "sha256": "13ea45cfd29d09416e4fd703892edd6e93d6980b7d91b332a7bf1bb503792c52",
+      "size": 3209774
+    },
+    {
+      "path": "assets/babylon-KVXDDZJE.js",
+      "kind": "build",
+      "sha256": "c91ab6886caac448e52cd678e3c73f2e10b64ead48a08df5b4d5dfb6c008698d",
+      "size": 3206696
+    },
+    {
+      "path": "assets/babylon-RB7Y5BEV.js",
+      "kind": "build",
+      "sha256": "cfc99f650381e2a891107fa815266c0938fc32a2cbfbe3fd58bb2657079c3839",
+      "size": 3211960
+    },
+    {
+      "path": "assets/babylon-scene-c43480a67d20.js",
+      "kind": "build",
+      "sha256": "c43480a67d2000e5af1382fd384fbb738b1bbff44077b2671715e3a0dce21694",
+      "size": 360120
+    },
+    {
+      "path": "assets/babylon-sparta-TYWTBYZ6.js",
+      "kind": "build",
+      "sha256": "ca739a09bdbcf0ec4f1e61882c16622e28b2ddd7840cb050644172e1166b3712",
+      "size": 5040858
+    },
+    {
+      "path": "assets/babylon-Y6XH2W4Y.js",
+      "kind": "build",
+      "sha256": "004fd2d6799386ba08e3eb307e87f643344ee09b180aa4e7bc9454108b5eb7b8",
+      "size": 356437
+    },
+    {
+      "path": "assets/chunk-22WEBFTJ.js",
+      "kind": "build",
+      "sha256": "00fd54b2aeba753c2764c2d19ca8347cec958b66f83f316438ac4c40e9b70751",
+      "size": 2872
+    },
+    {
+      "path": "assets/chunk-2ADP65GZ.js",
+      "kind": "build",
+      "sha256": "546e6222a3569e7c25e97f93037e67361b06a5f48874957e107ed6df94f7d757",
+      "size": 6031
+    },
+    {
+      "path": "assets/chunk-2AN7JBB5.js",
+      "kind": "build",
+      "sha256": "aa774940acde06b14a4796b83ac297fbbf4de204246c11df5363309d09ec05f1",
+      "size": 875
+    },
+    {
+      "path": "assets/chunk-2CKI6XYJ.js",
+      "kind": "build",
+      "sha256": "11fa13a3253dd8f08d54f831ccee16fdef3f6ca873d4a475f2c55fb1ea147651",
+      "size": 4036
+    },
+    {
+      "path": "assets/chunk-2FAQSZMT.js",
+      "kind": "build",
+      "sha256": "a54c92745e840233b858f83d48e96507ca00e20aa5f0a9d3787cd2d689d4c43e",
+      "size": 8658
+    },
+    {
+      "path": "assets/chunk-2FRAQIKF.js",
+      "kind": "build",
+      "sha256": "82a042c8389b40ba1bb12d7b31af60b6f4578730d7ce7592b4779fbede18eddd",
+      "size": 1449
+    },
+    {
+      "path": "assets/chunk-2G5DELNR.js",
+      "kind": "build",
+      "sha256": "fe4a35965efb880931e3dde8d546ae69277c7efb5aa3cf3eaf017330d44cee02",
+      "size": 2546
+    },
+    {
+      "path": "assets/chunk-2G7SI4BA.js",
+      "kind": "build",
+      "sha256": "10e667f33979ed8ae7f7a73d3b5df031c9d70a308d17a0bef719139f2187f54c",
+      "size": 6182
+    },
+    {
+      "path": "assets/chunk-2HRU7NTG.js",
+      "kind": "build",
+      "sha256": "baed4ed0d56a9a9fa9bd47d2b78f9d45ae7451f0874a989a698956d05c583886",
+      "size": 2323
+    },
+    {
+      "path": "assets/chunk-2KXGUD4N.js",
+      "kind": "build",
+      "sha256": "bc51446d423b7ecd8fff5b7aede7455fbe2abbaffa87a0dd1d1471a4d663a07a",
+      "size": 1500
+    },
+    {
+      "path": "assets/chunk-2LKPNKQA.js",
+      "kind": "build",
+      "sha256": "82d35bde10d9eeb96826da4de241cf1da2b7ee71135e2dfb67e5eaf12fa64192",
+      "size": 2123
+    },
+    {
+      "path": "assets/chunk-2LQLHNGK.js",
+      "kind": "build",
+      "sha256": "9e17b604d4e60b906b74802917a888716d6cc1c8987bcbb59e1d18dacd75613d",
+      "size": 731
+    },
+    {
+      "path": "assets/chunk-2NOLURKC.js",
+      "kind": "build",
+      "sha256": "1668fabcd1ed7c5586c2a2cda8f912c5f30a4e87a83c6e18745834789c689ffe",
+      "size": 530
+    },
+    {
+      "path": "assets/chunk-2OJKQ6Z4.js",
+      "kind": "build",
+      "sha256": "90372eccd971b4fd592ca83e251cf0440db1c6dbc804e6a97180573002825a77",
+      "size": 1022
+    },
+    {
+      "path": "assets/chunk-2QL5FWIG.js",
+      "kind": "build",
+      "sha256": "5905ea7fda1d1bfcccbf48af8bd05fddc64e477fda4768dbf559da99f2cf1c2d",
+      "size": 6572
+    },
+    {
+      "path": "assets/chunk-2UHQFQQ2.js",
+      "kind": "build",
+      "sha256": "3b2549883624bf97c7fcde1f45bcf48271405dde9a12d425224580323f8b5816",
+      "size": 925
+    },
+    {
+      "path": "assets/chunk-2Y26YZFZ.js",
+      "kind": "build",
+      "sha256": "9e1319a5064c1325039fdf2a69c9112f558d47d3c7cb72be4a4a30e77d904e88",
+      "size": 636
+    },
+    {
+      "path": "assets/chunk-2YBXYMKQ.js",
+      "kind": "build",
+      "sha256": "b90266acceff2e9305a7232f1b3241df1173a1bd13ca516fb9198e91b7649a58",
+      "size": 496
+    },
+    {
+      "path": "assets/chunk-33743XFI.js",
+      "kind": "build",
+      "sha256": "3b127a3cf5852b2ba2e76192192a0fce873e5a0db17517cf85c537771d6ee557",
+      "size": 1222
+    },
+    {
+      "path": "assets/chunk-33LZH6QU.js",
+      "kind": "build",
+      "sha256": "d0f8ad2d0443917edbf17e4babe73508f61e251d50619257b20f0570436a9e00",
+      "size": 32083
+    },
+    {
+      "path": "assets/chunk-34GVWTNL.js",
+      "kind": "build",
+      "sha256": "60cd95bb77f0e34c7252799560d78e46ecc9aef6224e044471aa33ebcc7da3e2",
+      "size": 6441
+    },
+    {
+      "path": "assets/chunk-36XBBRW2.js",
+      "kind": "build",
+      "sha256": "6fad09c9e7236da1aa7ab3f8a380bed84d5332ebce1efdffc0b406d072bb2f20",
+      "size": 483
+    },
+    {
+      "path": "assets/chunk-3CZRF67A.js",
+      "kind": "build",
+      "sha256": "b02afee34b41e4da9e6abdf2762a1f5a76b5d468a57eb8838de35f80de827db5",
+      "size": 1573
+    },
+    {
+      "path": "assets/chunk-3I5I6D4P.js",
+      "kind": "build",
+      "sha256": "0df213ad95b372d1ddb8762562729110e068cfe30337cc1d32a6d639860878c7",
+      "size": 43521
+    },
+    {
+      "path": "assets/chunk-3JKLKKZD.js",
+      "kind": "build",
+      "sha256": "16aa540a9a36b8033517a0ac64a30e7d365be16bebe8c0219201e1d7d4dd1b6c",
+      "size": 40648
+    },
+    {
+      "path": "assets/chunk-3NYREZSS.js",
+      "kind": "build",
+      "sha256": "45629bbddf5880d150b12a6f2a6404d9a6c13925c7b8e369ed3c7e0983799545",
+      "size": 1490
+    },
+    {
+      "path": "assets/chunk-3OGFIKSP.js",
+      "kind": "build",
+      "sha256": "3334ccad81fc4c67057c990024a9edc200e6539fe566167bc80d13b6dfb9819c",
+      "size": 5229
+    },
+    {
+      "path": "assets/chunk-3UNJISA5.js",
+      "kind": "build",
+      "sha256": "22f898e8089cd1ebcb95de6be1d88bd892c320893538be68d33c57bfbaa2e668",
+      "size": 68626
+    },
+    {
+      "path": "assets/chunk-3X4AACQ2.js",
+      "kind": "build",
+      "sha256": "4a300d467b06cde71af6043a147b6634e56a27ba349c0ec07e5a86736e11f26d",
+      "size": 25435
+    },
+    {
+      "path": "assets/chunk-3XHHPWLP.js",
+      "kind": "build",
+      "sha256": "2e767476fbfd6fe668f8534ef1d1af2d35cd3b0a4b1b7bc50b87a089bda5f713",
+      "size": 1027
+    },
+    {
+      "path": "assets/chunk-3YNE6V4J.js",
+      "kind": "build",
+      "sha256": "cd6a6d49683506cdcffe7a25d17ac022ed2dc72b375c67eeb528c6cc960123e5",
+      "size": 1106
+    },
+    {
+      "path": "assets/chunk-4BO5B2TS.js",
+      "kind": "build",
+      "sha256": "9111211dab3b448bfa47a2e063af0dcf4f8ff829f181a8284d00f44c26bddcd3",
+      "size": 147
+    },
+    {
+      "path": "assets/chunk-4FEBHFN5.js",
+      "kind": "build",
+      "sha256": "d6cfe149a56720346fc142a9c71142d8bb2a0fa8e59211fb05add51e5d5a368f",
+      "size": 8814
+    },
+    {
+      "path": "assets/chunk-4HI27N2W.js",
+      "kind": "build",
+      "sha256": "cc37e7413fa1e95801e6244bbe51f4119606e6ecf2282d1a034dbfba1a4e3ee3",
+      "size": 14210
+    },
+    {
+      "path": "assets/chunk-4J7BMYE6.js",
+      "kind": "build",
+      "sha256": "1ee7c227fe455d5bc6e4706c74e35531e0148114cb15bc8ee459cbeb6965a49a",
+      "size": 349
+    },
+    {
+      "path": "assets/chunk-4MIR27R5.js",
+      "kind": "build",
+      "sha256": "447fe98ac1d3b3d6f22571788855120b86fc64da533652c040ddf9b9c0d0456c",
+      "size": 5067
+    },
+    {
+      "path": "assets/chunk-4OWTJY7C.js",
+      "kind": "build",
+      "sha256": "48812ca88da117c3fa64ffa80c5e8e96941afc5a1bb59c9d45301c7521ad49fe",
+      "size": 1403
+    },
+    {
+      "path": "assets/chunk-4QNO3GRU.js",
+      "kind": "build",
+      "sha256": "a0ed20692634cdd73aa11c5d9bab50cc30fb2aff0d27145f0b8aa0c450becc63",
+      "size": 2500
+    },
+    {
+      "path": "assets/chunk-4RQ6EI7O.js",
+      "kind": "build",
+      "sha256": "f668db70ac3f9ff11e77106510c31931a110fd90757cf50ecc30485cd7aba191",
+      "size": 4078
+    },
+    {
+      "path": "assets/chunk-4WOOUTT5.js",
+      "kind": "build",
+      "sha256": "6f739481a71f7c12595d778a38eb61c385631d9fc8ecaacb1d2a5e9a89fa730b",
+      "size": 915
+    },
+    {
+      "path": "assets/chunk-4WRU4MXU.js",
+      "kind": "build",
+      "sha256": "edf20a9163a3451f60d2f367867251fd454110f4a2944bf41fb73ea1ad740f13",
+      "size": 333
+    },
+    {
+      "path": "assets/chunk-4XUI53RS.js",
+      "kind": "build",
+      "sha256": "5e2e73d3a2dc1703fa94ab672a3cbec4013f8107dcf67544fa387a6cf39a600f",
+      "size": 25620
+    },
+    {
+      "path": "assets/chunk-4YXEUWX3.js",
+      "kind": "build",
+      "sha256": "7d41b039752bfbdb6aef9f5ad08276e2c2a7cc011c91d7be21ed44b1d36f4536",
+      "size": 3074
+    },
+    {
+      "path": "assets/chunk-526RKRZ7.js",
+      "kind": "build",
+      "sha256": "5a1026ccf7611f2792442bc18a3399fd9bad3a54d3c302827a0a3d7f0d830b3e",
+      "size": 538
+    },
+    {
+      "path": "assets/chunk-54S6DRA3.js",
+      "kind": "build",
+      "sha256": "6f459754fd420c16f8765b286920e8fb10e0fd227391f186348610f76fca5a74",
+      "size": 2854
+    },
+    {
+      "path": "assets/chunk-5BDI5WY6.js",
+      "kind": "build",
+      "sha256": "0ec6e411161702eceae0cbefebd0bdd1a80c29b1133339aeb838dab1faf55c9b",
+      "size": 1093
+    },
+    {
+      "path": "assets/chunk-5DLU4TLU.js",
+      "kind": "build",
+      "sha256": "8f659daf9f38f029ed2c15297bc95dae53ee52ae0bed8035a8fd82e7f4b53c76",
+      "size": 1173
+    },
+    {
+      "path": "assets/chunk-5FBRTQUE.js",
+      "kind": "build",
+      "sha256": "7cd47e75f76f507794fa80274c88937c83810a74a0fce54fc1c4991a2d5f6b2b",
+      "size": 6985
+    },
+    {
+      "path": "assets/chunk-5G5534LI.js",
+      "kind": "build",
+      "sha256": "f66e80be9a1202c209559ef6a6ffee3b136754c6c97d96232f3552d37b4af2da",
+      "size": 2011
+    },
+    {
+      "path": "assets/chunk-5IEO6RN3.js",
+      "kind": "build",
+      "sha256": "5071a9ae67afdaa4ba9407bbc9be71dac1e805a450dca5dd2051a676a4fe118c",
+      "size": 500
+    },
+    {
+      "path": "assets/chunk-5J444NZA.js",
+      "kind": "build",
+      "sha256": "fc477f20d87a081888a268455baf5d8d146f82e5edcc48a015d484c901b5c48f",
+      "size": 898
+    },
+    {
+      "path": "assets/chunk-5NFVUIXM.js",
+      "kind": "build",
+      "sha256": "0792ff3fa63635329ebee4c9d3e84136676643c6d3e65995e94c4b8ac69a18e3",
+      "size": 18900
+    },
+    {
+      "path": "assets/chunk-5PK4VLUG.js",
+      "kind": "build",
+      "sha256": "81008d9d69eabbbff1e8aa5d95cf97eec1ca7cd1210c56152471fb1939c022ad",
+      "size": 3921
+    },
+    {
+      "path": "assets/chunk-5QH2FG4S.js",
+      "kind": "build",
+      "sha256": "3d60bc3fe2483b04995acd7fb4fc25f8675b6b7d60450b449b9e8936d26dd2e5",
+      "size": 837
+    },
+    {
+      "path": "assets/chunk-5S727AC6.js",
+      "kind": "build",
+      "sha256": "7a919a5de9ff8dab02ef1aa328d302f68fb0c95d99a2c39840fdf54af93f9429",
+      "size": 2698
+    },
+    {
+      "path": "assets/chunk-5UX25LXM.js",
+      "kind": "build",
+      "sha256": "c52fc253ce0ed71af336b2b71317c04d5106328437bf36ba8003598e4641943a",
+      "size": 9459
+    },
+    {
+      "path": "assets/chunk-5UXC5DNP.js",
+      "kind": "build",
+      "sha256": "172f473b342921af7331007a4eb0601e5f73dd0a9caee2fd6ee054027f1d01c9",
+      "size": 1178
+    },
+    {
+      "path": "assets/chunk-5VOIIY2P.js",
+      "kind": "build",
+      "sha256": "71cbccd10cbbd3813c95e09ef638c14fe2fced0d02b9f9024870b8b60fa1a753",
+      "size": 1582
+    },
+    {
+      "path": "assets/chunk-5XBSPXJO.js",
+      "kind": "build",
+      "sha256": "d9846b476393fc56fab14dd1188b6a40cda30101e547d8136c677fd42697736b",
+      "size": 429
+    },
+    {
+      "path": "assets/chunk-5Y2OISRK.js",
+      "kind": "build",
+      "sha256": "96db3a90aa206c75dddf432ae9967b1bb4b7da84595f896a991e53caffc10919",
+      "size": 1213
+    },
+    {
+      "path": "assets/chunk-62M7PYZK.js",
+      "kind": "build",
+      "sha256": "0469f1589464cb40e9a1dff04d10ba8f66fd0a1845973ca66f726dbe0ae73330",
+      "size": 6450
+    },
+    {
+      "path": "assets/chunk-6556UWTY.js",
+      "kind": "build",
+      "sha256": "33f9bbcac9e9f6fdbac30d55055653c18506ebc2f4e097c4159e25753182b0a9",
+      "size": 6412
+    },
+    {
+      "path": "assets/chunk-6BCCEKKW.js",
+      "kind": "build",
+      "sha256": "d0dd5fb6ea8bcc8af7ea448da28d63a59e9083d47d04af3718f49628af00ed40",
+      "size": 4386
+    },
+    {
+      "path": "assets/chunk-6EGCB3R4.js",
+      "kind": "build",
+      "sha256": "4e6704577d951a0c680d0da5afc717f936867c44e6159891e5b9cc16db4c0489",
+      "size": 825
+    },
+    {
+      "path": "assets/chunk-6FQEUJRI.js",
+      "kind": "build",
+      "sha256": "fddb592b21fbc300dec00574b62cffd798b55396277731e82e03b7ad3c10028b",
+      "size": 1282
+    },
+    {
+      "path": "assets/chunk-6FR5VPVD.js",
+      "kind": "build",
+      "sha256": "d6eedc2e08d6158835818ee223545596cf6ad8cd86beca60f203a0ea0c97ab3a",
+      "size": 26818
+    },
+    {
+      "path": "assets/chunk-6FTUPXUW.js",
+      "kind": "build",
+      "sha256": "cb2432438a806b3a27c13c4acfef933c65000c857088a55a9a66faa711ccee36",
+      "size": 431
+    },
+    {
+      "path": "assets/chunk-6NCBLI6K.js",
+      "kind": "build",
+      "sha256": "c67b1b8fcb82f139a819298220b14d8b0397898f951d9e3e703ec7afafd28ef5",
+      "size": 1793
+    },
+    {
+      "path": "assets/chunk-6QUZTYLT.js",
+      "kind": "build",
+      "sha256": "68cabdfd93ac2226cede5af26eb9e3183bbccc5e585a5734f915f4ee94b7ff2d",
+      "size": 1281
+    },
+    {
+      "path": "assets/chunk-6YQ7D3KR.js",
+      "kind": "build",
+      "sha256": "8b2515febc6612058e148a369dd6e90cadd2245ef128a1f5fd238169f075e41d",
+      "size": 1172
+    },
+    {
+      "path": "assets/chunk-6YZTTIYR.js",
+      "kind": "build",
+      "sha256": "a94a6da728e483daf0b07ca75f15edd38c184fca9844b11eb2702b025ad49542",
+      "size": 1072
+    },
+    {
+      "path": "assets/chunk-6ZPORCAZ.js",
+      "kind": "build",
+      "sha256": "949ab90197669ba60eb229c7586f5bd4dc02e044957cadd38a28cb044a9f0088",
+      "size": 2145
+    },
+    {
+      "path": "assets/chunk-72S4THUV.js",
+      "kind": "build",
+      "sha256": "dd2ff163f67079c364454f4c57e09654ecd56d229b8c2394989f07e4e0a229dd",
+      "size": 1327
+    },
+    {
+      "path": "assets/chunk-72V54MCA.js",
+      "kind": "build",
+      "sha256": "d8ecbf5589db9fc4eeffec3f646f017bb6529b6ae6fc19dffba4ba70e2c98736",
+      "size": 1113
+    },
+    {
+      "path": "assets/chunk-72Y6JLCZ.js",
+      "kind": "build",
+      "sha256": "cc5cdefc9653992580e906fd0bc6744059576358e49d58e7c4eca375eba43b3d",
+      "size": 341
+    },
+    {
+      "path": "assets/chunk-72YR5ZT6.js",
+      "kind": "build",
+      "sha256": "817303878fa1867459fb3d1442767a6f5bb5aab1a0602f6a2b2b65c7c38884e4",
+      "size": 4933
+    },
+    {
+      "path": "assets/chunk-74DIP4FZ.js",
+      "kind": "build",
+      "sha256": "bac9aadeec477ef8cb031b7447633da8ef9ba914382af4fbf97cdf5b6fa8316a",
+      "size": 239
+    },
+    {
+      "path": "assets/chunk-7CURMKOI.js",
+      "kind": "build",
+      "sha256": "97d2a6923368e20daf4bce3bcc95f03f40ee72ecf7fe490a924f362a729159f9",
+      "size": 2328
+    },
+    {
+      "path": "assets/chunk-7DFKNAOE.js",
+      "kind": "build",
+      "sha256": "bf89865c2b20949daa926d3b1369b163b257557424765156b03ff6b051ac8493",
+      "size": 1086
+    },
+    {
+      "path": "assets/chunk-7DGA5OTG.js",
+      "kind": "build",
+      "sha256": "26f41a49f7546c4d137a26329ffbf1bc7ee3664deaef8cf27936e811b5e1d8b8",
+      "size": 8585
+    },
+    {
+      "path": "assets/chunk-7HRMRH45.js",
+      "kind": "build",
+      "sha256": "103db23b84038213de4d185ca12f8b76435ee954eaf5c8ce4fa92f194e1dc760",
+      "size": 6880
+    },
+    {
+      "path": "assets/chunk-7NM4AZQN.js",
+      "kind": "build",
+      "sha256": "da07665b78d74920a679a26e9f3c000e78529958a1feeb6e99d9060fd7cf2a2c",
+      "size": 2226
+    },
+    {
+      "path": "assets/chunk-7RNYLAJK.js",
+      "kind": "build",
+      "sha256": "cb75dd2e4835e17863bc1a4ecc847e49dc3e6608d0afe6d6e93cd203f5a5f5b1",
+      "size": 123544
+    },
+    {
+      "path": "assets/chunk-7TGDGERN.js",
+      "kind": "build",
+      "sha256": "9ccc040e7367a39cef46b0663f14cff7cca6d0522d6a7e3615d270417ecff30e",
+      "size": 1462
+    },
+    {
+      "path": "assets/chunk-7WS6Z5JT.js",
+      "kind": "build",
+      "sha256": "9c672c4e982a0436a1214f2f0514dad85ca1444c6aa5397467ed19afcb478465",
+      "size": 1134
+    },
+    {
+      "path": "assets/chunk-7XSIS3HJ.js",
+      "kind": "build",
+      "sha256": "6812f23055b88c11f12308b195d17e2dfc43d7a3bc557ff33b54c57a7c8ad195",
+      "size": 1165
+    },
+    {
+      "path": "assets/chunk-7YF3X6OM.js",
+      "kind": "build",
+      "sha256": "3185e777ce8a2f1c05539fb04d24012fcab737034a1a282f5c6f6452a841c83b",
+      "size": 947
+    },
+    {
+      "path": "assets/chunk-A24BXR3A.js",
+      "kind": "build",
+      "sha256": "718b33ae75f88fa080b89baea1e54208e8db52baa69818b7a0e3a799e9972a59",
+      "size": 271
+    },
+    {
+      "path": "assets/chunk-A6EWH3EC.js",
+      "kind": "build",
+      "sha256": "a8e736a18f5b47a75009803863d49c0eb8a377dad0eacd37785b3eeb938fb45f",
+      "size": 26421
+    },
+    {
+      "path": "assets/chunk-AD22V2JU.js",
+      "kind": "build",
+      "sha256": "3c6b477a023b803a5a20f6c5ce9b31c55ad2137b4b321a5c746a87ae125d2551",
+      "size": 7983
+    },
+    {
+      "path": "assets/chunk-AHKTCFCL.js",
+      "kind": "build",
+      "sha256": "9ef737c7927595042ed085e7a56eba36a3a7f8e77033dcc4df29d5cea7bb8ee1",
+      "size": 1034
+    },
+    {
+      "path": "assets/chunk-AI6APHQR.js",
+      "kind": "build",
+      "sha256": "d41ae1c6b45a0c494e6c3197b68578986422ca593f0f727ad04343e6669aec65",
+      "size": 1556
+    },
+    {
+      "path": "assets/chunk-AINTNNAO.js",
+      "kind": "build",
+      "sha256": "79a76859c0395708c7b897ed37222c3a909afa1c92fc27fa8dc6709837a533b9",
+      "size": 1273
+    },
+    {
+      "path": "assets/chunk-AMWKQGSJ.js",
+      "kind": "build",
+      "sha256": "e8ded58c44387da57e0f903c533d65cbee2644703f6cd6aab0528d73ba11f353",
+      "size": 999
+    },
+    {
+      "path": "assets/chunk-AR5XGNGF.js",
+      "kind": "build",
+      "sha256": "3dc6035b3c7303f9b433beb4ab1888b86c56db73a2f204f329908c3563da6030",
+      "size": 307
+    },
+    {
+      "path": "assets/chunk-ASXOHC6Y.js",
+      "kind": "build",
+      "sha256": "b213beab4a12280810539fd5abdb304285d190cee2a8424d772ce3ba55599247",
+      "size": 325
+    },
+    {
+      "path": "assets/chunk-B3ASBCXT.js",
+      "kind": "build",
+      "sha256": "05c560b10ce83f0d99da8a866306bc4bddbe3e398d7336915b8293bc7489e29d",
+      "size": 14758
+    },
+    {
+      "path": "assets/chunk-B3WTHUWA.js",
+      "kind": "build",
+      "sha256": "6119bb36a50a43381834acd14624420af9971c9b0c06917663de29d89240f58c",
+      "size": 1044
+    },
+    {
+      "path": "assets/chunk-B4G4BOIT.js",
+      "kind": "build",
+      "sha256": "3a7c4b60e14a6bfa38cd728505de0ef705e106e0aa3db405304258642ccfc2c7",
+      "size": 1922
+    },
+    {
+      "path": "assets/chunk-B4NZDAGB.js",
+      "kind": "build",
+      "sha256": "3e15dd83f7111c4ac0f64c1046dafc9e7ff7387511ea528806796c81531cb40e",
+      "size": 2296
+    },
+    {
+      "path": "assets/chunk-BD6K4LWR.js",
+      "kind": "build",
+      "sha256": "6124931015a95743e4fb93cca2774a8f8b388c024ca44a3f77160aab90b37017",
+      "size": 2324
+    },
+    {
+      "path": "assets/chunk-BELMNZOL.js",
+      "kind": "build",
+      "sha256": "d7c8048f0085ab2e799da5a9e7310f38296c63525ef7b306cc7731162495e42f",
+      "size": 6441
+    },
+    {
+      "path": "assets/chunk-BFTMSRFU.js",
+      "kind": "build",
+      "sha256": "62fa6d86002627a19c7fa4f8b25f25b4c080ad9135894ee7a9225f5ca3615ef0",
+      "size": 423
+    },
+    {
+      "path": "assets/chunk-BSA3XHY5.js",
+      "kind": "build",
+      "sha256": "0754cbbb86acf632748860f31b76ad3e0699ca3b90347b895fe3502da48c241f",
+      "size": 842
+    },
+    {
+      "path": "assets/chunk-BXT2J56F.js",
+      "kind": "build",
+      "sha256": "f39d9ab9d5a1bafd77095a56bdd9beeba9af47558175a1aaf67d17f406bd84dd",
+      "size": 2699
+    },
+    {
+      "path": "assets/chunk-C26BZ34N.js",
+      "kind": "build",
+      "sha256": "35d199958a5291c9a78bb37ba7d96f7673cf368bb19745e81221b25be51e7827",
+      "size": 7648
+    },
+    {
+      "path": "assets/chunk-CAERDOUJ.js",
+      "kind": "build",
+      "sha256": "afe46146e9e4ad0ae73b70e1f566743abd1a2206915ad9be6bf817a56f383860",
+      "size": 401
+    },
+    {
+      "path": "assets/chunk-CBYCMFPT.js",
+      "kind": "build",
+      "sha256": "d08e20c5b198d7fe6309e7fccff871fa0bd433ada2bfbdac648f60e68f255798",
+      "size": 1298
+    },
+    {
+      "path": "assets/chunk-CC36CZJ7.js",
+      "kind": "build",
+      "sha256": "b932eed9c8bad65271ce99d5cbddd3fc1d9ecc86c071f9a0aee3a74ee0b50829",
+      "size": 846
+    },
+    {
+      "path": "assets/chunk-CCBA5EFL.js",
+      "kind": "build",
+      "sha256": "6098a2fba0902342a88ebe989989d343419343c3f597a68ce37c2ca95ee9fcb5",
+      "size": 1083
+    },
+    {
+      "path": "assets/chunk-CESFSKSU.js",
+      "kind": "build",
+      "sha256": "a39d77b6d5e857d89ab63b3aa170e68b544e07cf3a2df810226a0533c67a6ce7",
+      "size": 672
+    },
+    {
+      "path": "assets/chunk-CHVIMPZ3.js",
+      "kind": "build",
+      "sha256": "44c8ab968862de8639bf75f08728ce71555799441b7c2042a772f45cfc6b1d13",
+      "size": 1295
+    },
+    {
+      "path": "assets/chunk-CJFTAMCV.js",
+      "kind": "build",
+      "sha256": "2139a106dcdc5b39d2a028b86f8cfb4bee7746e697a783bf88072489423e634a",
+      "size": 77892
+    },
+    {
+      "path": "assets/chunk-CKUZMFOG.js",
+      "kind": "build",
+      "sha256": "65b9b5657379cd87713e1876a0899d4bfc7bae3e346f5440fa851eb4b010782d",
+      "size": 4050
+    },
+    {
+      "path": "assets/chunk-COWLDA7F.js",
+      "kind": "build",
+      "sha256": "f760154a117a08623d248b02700a21d9b32c0e434e8becc39cfd5eee811b7aba",
+      "size": 1013
+    },
+    {
+      "path": "assets/chunk-CPMPXHD5.js",
+      "kind": "build",
+      "sha256": "574840c756f6809efb0be21be6729e7353fddb25a412261b5f105f9f3a20573e",
+      "size": 1842
+    },
+    {
+      "path": "assets/chunk-CWHTP33H.js",
+      "kind": "build",
+      "sha256": "03d9d720716b81f24cbf083f88117038ac06264876fcc56be4945dffe5315a49",
+      "size": 8417
+    },
+    {
+      "path": "assets/chunk-CZJBAJJC.js",
+      "kind": "build",
+      "sha256": "e6129e54826529711184f5cf504c21b2733b6fee51c3a570dfcd886a81d52fcf",
+      "size": 15967
+    },
+    {
+      "path": "assets/chunk-D63IS3IN.js",
+      "kind": "build",
+      "sha256": "e41efa1799360ef7f3fc94fd337538931b978af2ced42aa60a333ae3f98d4105",
+      "size": 1709
+    },
+    {
+      "path": "assets/chunk-DF2NUR2M.js",
+      "kind": "build",
+      "sha256": "53e9d7507bf252f509c57eaffb70f312a22e38e1693115708a67a93f513aeb48",
+      "size": 2540
+    },
+    {
+      "path": "assets/chunk-DJAUKKGD.js",
+      "kind": "build",
+      "sha256": "06403179191f3e3587ed6f93f8ad4c5156c53c0cf675def74de0e0b62ff0a9e7",
+      "size": 11230
+    },
+    {
+      "path": "assets/chunk-DO3XNYKP.js",
+      "kind": "build",
+      "sha256": "8f6a67aecb9fddcd164ab095db47caa4924cd635afeba84770dec1b1ebce604d",
+      "size": 783
+    },
+    {
+      "path": "assets/chunk-DPYOFSOS.js",
+      "kind": "build",
+      "sha256": "a7ff0bd2d8026833edc48b24f2f3bf48ac1208159d50b68b119a2a19741c2686",
+      "size": 1170
+    },
+    {
+      "path": "assets/chunk-DQTQBIEM.js",
+      "kind": "build",
+      "sha256": "4678172544a270ad841decd0435e94a2a4abac963c9ac06edd15f3dbe22372d1",
+      "size": 5571
+    },
+    {
+      "path": "assets/chunk-DSBI6RK5.js",
+      "kind": "build",
+      "sha256": "0b393638b979e42a014da71e5015541ebd715a84275858ec74d07cf2652f51fa",
+      "size": 36054
+    },
+    {
+      "path": "assets/chunk-DWUO2WVR.js",
+      "kind": "build",
+      "sha256": "a6fd8c71fb46c2fd0f1931fbfd061503383475d5912af4140ce79930a180f0ac",
+      "size": 928
+    },
+    {
+      "path": "assets/chunk-DYPWGFLI.js",
+      "kind": "build",
+      "sha256": "8b23124822322568027819764fd8ae46f712b139c57a82b017575796e93b078e",
+      "size": 178
+    },
+    {
+      "path": "assets/chunk-E3FY2QA6.js",
+      "kind": "build",
+      "sha256": "c295ba9c4bf39f60474cb02f6394d5fb1b0079cd7786dbaaa0bb281823ab15e7",
+      "size": 2864
+    },
+    {
+      "path": "assets/chunk-E3VON5VW.js",
+      "kind": "build",
+      "sha256": "1b1dc9ca355a9932922b11b448263bde13a36cff2272fb275d6f80b084455aa0",
+      "size": 19064
+    },
+    {
+      "path": "assets/chunk-E5S67LRR.js",
+      "kind": "build",
+      "sha256": "a5795dca6b15d5e5ea64a86a683905e502f6767d309bcfa9aab9db1bb9aedba3",
+      "size": 676
+    },
+    {
+      "path": "assets/chunk-E6BFROXR.js",
+      "kind": "build",
+      "sha256": "f8ec67fc6eb63331544cc2df417605557f22d3626de12c314298bd56e5ebb3e8",
+      "size": 257
+    },
+    {
+      "path": "assets/chunk-EBJA7XEI.js",
+      "kind": "build",
+      "sha256": "264226f6f2364093e877d492cee498e9eba9f5f41667833c73af6b79c7db21a4",
+      "size": 7919
+    },
+    {
+      "path": "assets/chunk-EC4FTLUB.js",
+      "kind": "build",
+      "sha256": "08d3602379b68a504ea4473f421ba49da2576c637088f849e1d9b7147681a72f",
+      "size": 1353
+    },
+    {
+      "path": "assets/chunk-EGOQKABM.js",
+      "kind": "build",
+      "sha256": "ce93eb79aebc171b07c444bce771a8596ab1857167fe6f2103a98ef2fdc93473",
+      "size": 480
+    },
+    {
+      "path": "assets/chunk-EKONCZRK.js",
+      "kind": "build",
+      "sha256": "6111008e5810d6f5c322dc9b3fd3f15d74b1f0d0336b4395b193617b5204a90a",
+      "size": 21170
+    },
+    {
+      "path": "assets/chunk-ERS6LYDR.js",
+      "kind": "build",
+      "sha256": "70a64990e3b11a0aeccc4937201e50ec7109761954deac072ceaa48646cbaaab",
+      "size": 1416
+    },
+    {
+      "path": "assets/chunk-EUGGPJ7Q.js",
+      "kind": "build",
+      "sha256": "bec46f4fa9b88579c420bb777b20ee4201212258171404e7ebcf0b7879ff7d4c",
+      "size": 40648
+    },
+    {
+      "path": "assets/chunk-EW6QSMFU.js",
+      "kind": "build",
+      "sha256": "94921e719bcd94c8a9186df1420fa170dea586757c22f9221b940afbf2b9fd70",
+      "size": 698
+    },
+    {
+      "path": "assets/chunk-EWTZ3HZB.js",
+      "kind": "build",
+      "sha256": "7b6b99d3470088688f2b1d77ebdfd0fd2ae2dcd557e2c5f820981ec3b623b415",
+      "size": 1030
+    },
+    {
+      "path": "assets/chunk-EX7OUNLQ.js",
+      "kind": "build",
+      "sha256": "e9ce5183dcf620b111fd17cd1c43191be8b5c6a3de63e5fdf89fa0824d3dc1b4",
+      "size": 110
+    },
+    {
+      "path": "assets/chunk-EYPMKP7L.js",
+      "kind": "build",
+      "sha256": "d6ef14486a177c368423319f480419102350f4ea33ded1c7546125db427383d3",
+      "size": 304
+    },
+    {
+      "path": "assets/chunk-EZPQRUFW.js",
+      "kind": "build",
+      "sha256": "da6def7249c436fb5150c8f6504a970d191ca8c2c564d75adecfa82bc9f50a81",
+      "size": 7857
+    },
+    {
+      "path": "assets/chunk-F55C5YKX.js",
+      "kind": "build",
+      "sha256": "7c6ff99ae5fd0adaf519bee5542a1183a0a512cacc05c4e81dc6d5c4c1a4bfcc",
+      "size": 1155
+    },
+    {
+      "path": "assets/chunk-F5NXOODP.js",
+      "kind": "build",
+      "sha256": "82646cf5d394f5bc22954fd35393e8270c38ef7bc269c36aee0e91ecb3c61f47",
+      "size": 1041
+    },
+    {
+      "path": "assets/chunk-F7MMLHBU.js",
+      "kind": "build",
+      "sha256": "3b8105988ebc8672ceb0b434bd5c452ac4ebe0ee0689b4a9d1b9796b2edd1433",
+      "size": 588
+    },
+    {
+      "path": "assets/chunk-FBZBQQDU.js",
+      "kind": "build",
+      "sha256": "07e20cfb0df9ca03bf3c223657d9a92e4211a27fe360e41e367219e89040157b",
+      "size": 11778
+    },
+    {
+      "path": "assets/chunk-FBZLPSCA.js",
+      "kind": "build",
+      "sha256": "7d0196d09f792734797828a7d4760bf83070408d9b8800a170de0de3ada9bc8d",
+      "size": 1046
+    },
+    {
+      "path": "assets/chunk-FFEHW65C.js",
+      "kind": "build",
+      "sha256": "6a042dd5af7f3a63f3b43247317da9dfd4930a0489cb5315454b0d09931362e4",
+      "size": 500
+    },
+    {
+      "path": "assets/chunk-FJKVJBSO.js",
+      "kind": "build",
+      "sha256": "852c1fcc02af6192fffdad89d661a072e0f049be68586a5a283c6e6830afad23",
+      "size": 1756
+    },
+    {
+      "path": "assets/chunk-FLI2QVF2.js",
+      "kind": "build",
+      "sha256": "725b8ab8c02cb7474942297cc156ff5a6c32108eb741fa720cf124dc328889e4",
+      "size": 778
+    },
+    {
+      "path": "assets/chunk-FNLPSPOZ.js",
+      "kind": "build",
+      "sha256": "bf9445e3a3a2043575416e39e11fc40c6b369f0079a72b30181bfb9f749c9f56",
+      "size": 799
+    },
+    {
+      "path": "assets/chunk-FNVI34KR.js",
+      "kind": "build",
+      "sha256": "cc2d94c1d07bd5f8f41ca3173830814c0ff515c0ca125ff9ced9582abad5ac49",
+      "size": 17913
+    },
+    {
+      "path": "assets/chunk-FP5JZEGN.js",
+      "kind": "build",
+      "sha256": "04ce63b93d2526946079878bf74b73ba11f2ac448c6f407f340f4503dba96f04",
+      "size": 12596
+    },
+    {
+      "path": "assets/chunk-FRI3BWMA.js",
+      "kind": "build",
+      "sha256": "a9041490036c27a63309dc1916b7cac830a5f27fd73476f6bf430ec7bceccfca",
+      "size": 55051
+    },
+    {
+      "path": "assets/chunk-FSMQOP7G.js",
+      "kind": "build",
+      "sha256": "58b47bbe21a5659aad7fd296f8cc3108fb49492cf0801833d4a1eea716a71a49",
+      "size": 1042
+    },
+    {
+      "path": "assets/chunk-FTBIQCQN.js",
+      "kind": "build",
+      "sha256": "4eb310196327a708748e5f171f41d44485ca625ff258a63f9f5b420750f13909",
+      "size": 852
+    },
+    {
+      "path": "assets/chunk-FV52F5NN.js",
+      "kind": "build",
+      "sha256": "74f507d0f826b6787bd01b8212db7134cd26818e8ef3df34f6067cf19f5297bd",
+      "size": 510
+    },
+    {
+      "path": "assets/chunk-FVOX7B26.js",
+      "kind": "build",
+      "sha256": "a73086f2533be9df68468894140ebb43e1aa08858f5e67fad1304aacc0020e91",
+      "size": 635
+    },
+    {
+      "path": "assets/chunk-FWKURRRC.js",
+      "kind": "build",
+      "sha256": "75f8d25083d052c4118fbb09956243b21b0fe7e6ee3f688221d831a84f93dd88",
+      "size": 683
+    },
+    {
+      "path": "assets/chunk-FZ6TUKED.js",
+      "kind": "build",
+      "sha256": "51d3bc12af3eb0c03ddf4b175d738b7db105555222f315dca78731a2998a70b9",
+      "size": 942
+    },
+    {
+      "path": "assets/chunk-G25VJFJ2.js",
+      "kind": "build",
+      "sha256": "b83f5329cd2b57bdb3f81028fdf8af553a5a1b252b6e39ec36f1c5b72da9d696",
+      "size": 236
+    },
+    {
+      "path": "assets/chunk-G2BLBMKS.js",
+      "kind": "build",
+      "sha256": "9a190ed9f4ad3aeab30256a6a79a8f99660377c5dc3a1bbc3d3a6d8e20ebce53",
+      "size": 1549
+    },
+    {
+      "path": "assets/chunk-G6OFHP77.js",
+      "kind": "build",
+      "sha256": "af943cc04b2f76021704243c3dc9c07d66e165f4af7ea3e3274bd96d1789a202",
+      "size": 8801
+    },
+    {
+      "path": "assets/chunk-GA3AULFP.js",
+      "kind": "build",
+      "sha256": "0e0a6b9bd864984830e70ca8e1d3f25ce01fba75357f328622f591ba11ad7d10",
+      "size": 9354
+    },
+    {
+      "path": "assets/chunk-GENAPZLU.js",
+      "kind": "build",
+      "sha256": "54584f17c5511a1dd7a20a68104f4b005255417f1769e61d44cf10a4b67ca355",
+      "size": 928
+    },
+    {
+      "path": "assets/chunk-GGTI3SUL.js",
+      "kind": "build",
+      "sha256": "37c3d08044c22b047e14233f5c582092f58607ba7a57716506041a96f7e72eae",
+      "size": 568
+    },
+    {
+      "path": "assets/chunk-GIL5GJEH.js",
+      "kind": "build",
+      "sha256": "47aa4a4838fc515b2f371300d1e8dbd66522041c09bc045d9902c3eb0402bbdb",
+      "size": 569
+    },
+    {
+      "path": "assets/chunk-GJNVOSN5.js",
+      "kind": "build",
+      "sha256": "873e96d53bda81f3218ff116c4e19615fe6133d95cc99b81d686afc0d2e75ba0",
+      "size": 332
+    },
+    {
+      "path": "assets/chunk-GMPABTRO.js",
+      "kind": "build",
+      "sha256": "80025cb2bc4341b4a2ad141eb96d9e82cf37bbdf8e9ff22819705fc897c8b63a",
+      "size": 786
+    },
+    {
+      "path": "assets/chunk-GORQ3JEJ.js",
+      "kind": "build",
+      "sha256": "41fbd97a74d91fa2ad5807125cc3eff3eaa290cba02b55f95072df44c9c5fad3",
+      "size": 2010
+    },
+    {
+      "path": "assets/chunk-GRDIXSN3.js",
+      "kind": "build",
+      "sha256": "9d1b07ec01e9ffb2d3572dbeb09e17c08cbfe6d9f6e7ae8b3f010c21e06fb2ec",
+      "size": 1003
+    },
+    {
+      "path": "assets/chunk-GRGZADJ2.js",
+      "kind": "build",
+      "sha256": "a293060f0c55ddf875d23aee0783b2ab25ac83a1947f7c9a8785fe584eb0098f",
+      "size": 975
+    },
+    {
+      "path": "assets/chunk-GYRR5JDE.js",
+      "kind": "build",
+      "sha256": "504a2836c046f38f52e881369cb1211f2fbb58579c9ab3f2ff2afa39fafdadf9",
+      "size": 412
+    },
+    {
+      "path": "assets/chunk-H4H2OFJV.js",
+      "kind": "build",
+      "sha256": "5ffd89bc0799fad9ce2d4c3969acce969d40abd0c2ee57119de866a3a86ebfb6",
+      "size": 371
+    },
+    {
+      "path": "assets/chunk-H5DA7K42.js",
+      "kind": "build",
+      "sha256": "13f55fa083d155e7677a9be99ad67d77472154ba7ef2d76a995bba33766d0064",
+      "size": 558
+    },
+    {
+      "path": "assets/chunk-H5UM4NKS.js",
+      "kind": "build",
+      "sha256": "b2c0a8e1f3101c014ff3a074299bbbaef98009294fd27edda4ca552c19b22579",
+      "size": 1472
+    },
+    {
+      "path": "assets/chunk-HBFNRF3W.js",
+      "kind": "build",
+      "sha256": "c3f889585ff3bea1dd2a1f6a9b861ee7849d135567f9d4e837eb9e746872e21c",
+      "size": 9036
+    },
+    {
+      "path": "assets/chunk-HBKDAZFU.js",
+      "kind": "build",
+      "sha256": "609c74989e6e5ff8b192009d151a1053d7b842d53df9dfafbc7ddde8c35a79dc",
+      "size": 2171
+    },
+    {
+      "path": "assets/chunk-HHOQ54TJ.js",
+      "kind": "build",
+      "sha256": "b023605ba48dbc7e4db86bc240b3c327124352628b14b9208269dcbf8de26fdf",
+      "size": 1301
+    },
+    {
+      "path": "assets/chunk-HIDN636E.js",
+      "kind": "build",
+      "sha256": "2601aa5f73ee74ceb6980234550a860265f59f0933b2f7b6cd976456008f7e8e",
+      "size": 1083
+    },
+    {
+      "path": "assets/chunk-HIIZK7GC.js",
+      "kind": "build",
+      "sha256": "b186ad85d73032e1f449199eb29a3711d3cfd0f31af6800e07616532fd73a4ed",
+      "size": 1287
+    },
+    {
+      "path": "assets/chunk-HJUF3NPC.js",
+      "kind": "build",
+      "sha256": "a916c95051470d9f9b1b03dcc42f26f9eb37ac2ec8b7bfe385deae17bd250c51",
+      "size": 1757
+    },
+    {
+      "path": "assets/chunk-HK76G6JG.js",
+      "kind": "build",
+      "sha256": "bf6fd19071596134df905996bddfa1ab14fe7465d2377045d74dcd15a7ca0704",
+      "size": 2428
+    },
+    {
+      "path": "assets/chunk-HOWNMBOS.js",
+      "kind": "build",
+      "sha256": "d596a27a57b8c9340ad29ef0b72d8ed5e43b0adb73b4a5e006cce0a2fc7f8d67",
+      "size": 3235
+    },
+    {
+      "path": "assets/chunk-HSYQPMSF.js",
+      "kind": "build",
+      "sha256": "52eea1f4f520b71f97498fe60ee043296ecdc55280b5f1ceba88b5ab5afe37ed",
+      "size": 51508
+    },
+    {
+      "path": "assets/chunk-HVC62ST6.js",
+      "kind": "build",
+      "sha256": "5a93b69b798c3fe177da1a5de1b9a10553de27ec33c87323368499652389c56a",
+      "size": 1997
+    },
+    {
+      "path": "assets/chunk-HVFLECJR.js",
+      "kind": "build",
+      "sha256": "3ccbb209f20e372f21717c055006a739a9579524c2455063dd39c979e2dd48ff",
+      "size": 1259
+    },
+    {
+      "path": "assets/chunk-HVMTGRHQ.js",
+      "kind": "build",
+      "sha256": "f87310c9481d97aa067888cc1e21f7d5c3608d9b75e2066499ae40df113351db",
+      "size": 498
+    },
+    {
+      "path": "assets/chunk-HVSPSWGQ.js",
+      "kind": "build",
+      "sha256": "96da1407594e00503ac7cb3b110d590c0a0014bab76130ba98a0e840472cdaa0",
+      "size": 1001
+    },
+    {
+      "path": "assets/chunk-I54QUOEE.js",
+      "kind": "build",
+      "sha256": "0f29e34700819e5d5e9d5b30b2b8a462829df181c90993408934290a570ae48c",
+      "size": 1444
+    },
+    {
+      "path": "assets/chunk-I5JC35Y4.js",
+      "kind": "build",
+      "sha256": "669de7740adb748c580ea7bf6e85d98eba4ae37b51083fe187c9d63a70d484ff",
+      "size": 2539
+    },
+    {
+      "path": "assets/chunk-IBXXGUDO.js",
+      "kind": "build",
+      "sha256": "2f00f8d17e02956f494436e783bf5b48715f059a89776376be0b109bee6f964f",
+      "size": 1142
+    },
+    {
+      "path": "assets/chunk-ICQXZDRR.js",
+      "kind": "build",
+      "sha256": "127446e90695dcd5cff7310bc1b88f572ba0b7f68fbe1f0dff30aa33e5065e4e",
+      "size": 427
+    },
+    {
+      "path": "assets/chunk-ID4POBX3.js",
+      "kind": "build",
+      "sha256": "f898f1b22f63635ad7d7f75a8806727bcce996e50c998e623b36deb24b2131d5",
+      "size": 703
+    },
+    {
+      "path": "assets/chunk-IGKXDVMB.js",
+      "kind": "build",
+      "sha256": "7a68d9664ea8e1ac33163089f722685d05ffc6d0300ef2e8beca6785498e0d8f",
+      "size": 5129
+    },
+    {
+      "path": "assets/chunk-IIW7YWFU.js",
+      "kind": "build",
+      "sha256": "4721d933f59cc00721261fdfd8c857a28900efeb2e1ec0cf2619ee48549f4b18",
+      "size": 12751
+    },
+    {
+      "path": "assets/chunk-IM5IUQJO.js",
+      "kind": "build",
+      "sha256": "9f7b9e31dbabe1cb472d4123fcccf1967ca6d90aef5ee4e9fe0e239fb3831c4f",
+      "size": 518
+    },
+    {
+      "path": "assets/chunk-IR2S2YLZ.js",
+      "kind": "build",
+      "sha256": "e110698c1660d816ef58eb3ce4bd3785b098989b099eb5e4ae19bc602ba7c7e7",
+      "size": 1326
+    },
+    {
+      "path": "assets/chunk-IVFIPTDA.js",
+      "kind": "build",
+      "sha256": "e184d3b1d97bbfe0680e35a960c574fc210095ced420132751cc83b14191a697",
+      "size": 1042
+    },
+    {
+      "path": "assets/chunk-IWPC2GZV.js",
+      "kind": "build",
+      "sha256": "e16ecf958833070b6cd063093ba71b0cbf0cf4b6160daecd97c6d2580aa03d07",
+      "size": 2145
+    },
+    {
+      "path": "assets/chunk-J4DNH6HI.js",
+      "kind": "build",
+      "sha256": "6fdec81fd1145e2283a07fecf11cf8b2b9a9ef8ae967e71ca41c49c22f8767e1",
+      "size": 2523
+    },
+    {
+      "path": "assets/chunk-J6F7RGMK.js",
+      "kind": "build",
+      "sha256": "ad2b5fe8bdf2fbab22d9ea715bbed4176b10bb37c0a760c67c0297fc730451f7",
+      "size": 2013
+    },
+    {
+      "path": "assets/chunk-JBEH2G2E.js",
+      "kind": "build",
+      "sha256": "54bb81051cd07c1293f3623907fc07d95cfed162464af74ab308c4d50c85372f",
+      "size": 1915
+    },
+    {
+      "path": "assets/chunk-JENBCMWK.js",
+      "kind": "build",
+      "sha256": "7a669f325a3201b5e54ba348423ff48f7a1664b8fb4a6c5cd4d755c992d899fd",
+      "size": 840
+    },
+    {
+      "path": "assets/chunk-JITSADAM.js",
+      "kind": "build",
+      "sha256": "faffd672dda243ff2e13c12fecabd8dea348056750f60970539155beecec9f7c",
+      "size": 400
+    },
+    {
+      "path": "assets/chunk-JL6FWKQM.js",
+      "kind": "build",
+      "sha256": "7a70ab895dbfdf5c493f2027804c83c6d29c85e0255ddc6ec8e113bd9613b875",
+      "size": 782
+    },
+    {
+      "path": "assets/chunk-JNBMO5RM.js",
+      "kind": "build",
+      "sha256": "53bc1ffbe81382a5ff81485fdb4a2642ff024a580cf8d8ce80ca40cec9d3f232",
+      "size": 8051
+    },
+    {
+      "path": "assets/chunk-JNUUSDS6.js",
+      "kind": "build",
+      "sha256": "74de2430535185e269f6c57cc52dd831b175f10d835abc8e5d84abd2c20c81e2",
+      "size": 3451
+    },
+    {
+      "path": "assets/chunk-JPUZB7DU.js",
+      "kind": "build",
+      "sha256": "8e0959b3b436866e73ced400fce1bcb94448e728c9f6e596182ea0e8e4bdd65e",
+      "size": 49612
+    },
+    {
+      "path": "assets/chunk-JUEHEEBK.js",
+      "kind": "build",
+      "sha256": "386fec532458624e7cbaf9cfd749453cbce5e360de054214ae5d17c10d52282b",
+      "size": 19064
+    },
+    {
+      "path": "assets/chunk-JUOGHRRO.js",
+      "kind": "build",
+      "sha256": "62a549712fa8d642a78a513e748f9adf97c40ec1d042221e8f7b955bb4848622",
+      "size": 3318
+    },
+    {
+      "path": "assets/chunk-JWIPBVNQ.js",
+      "kind": "build",
+      "sha256": "ba89fc8820725bebf598414eaefd603cd04db8c78d9800f70286390ce1162069",
+      "size": 11814
+    },
+    {
+      "path": "assets/chunk-JYI7NSQR.js",
+      "kind": "build",
+      "sha256": "3418f3ec0d9c979f697bad7bd53b0f1e9623d276f80438de803deeb9f1614b69",
+      "size": 5029
+    },
+    {
+      "path": "assets/chunk-K2EEP4SI.js",
+      "kind": "build",
+      "sha256": "e189e6a414adc12488fd6a07a8a2d1175d40994c4dd8bdb0db604272cf3157e0",
+      "size": 358
+    },
+    {
+      "path": "assets/chunk-K37LG4RF.js",
+      "kind": "build",
+      "sha256": "059063410921762a26a8204b4b7f570140e905a505588b16c78b1dc474890a6d",
+      "size": 149786
+    },
+    {
+      "path": "assets/chunk-KD44QUXF.js",
+      "kind": "build",
+      "sha256": "fa467c2e33e1d3ddb5d974e70f82a735dc2f19a2324d7b1d89522c14eba2089c",
+      "size": 15251
+    },
+    {
+      "path": "assets/chunk-KE2TON2F.js",
+      "kind": "build",
+      "sha256": "b3b41c767051a844bc7c63bf195882f17fb3af65ab688b64c8c7f22dff5d682e",
+      "size": 676
+    },
+    {
+      "path": "assets/chunk-KJDQWYJK.js",
+      "kind": "build",
+      "sha256": "f5d87b56c71062fedb41399eafc9853076cebbb3ae79d0e13c1765aa949fdccb",
+      "size": 9459
+    },
+    {
+      "path": "assets/chunk-KL3SYJGT.js",
+      "kind": "build",
+      "sha256": "a218ea01adc481f93a6654d307788f9bc725298b3185c3a0f6a4dd10c267ee4b",
+      "size": 162882
+    },
+    {
+      "path": "assets/chunk-KMAXMTVN.js",
+      "kind": "build",
+      "sha256": "75023b46fd779e0a4ab78d263bc3dc5c46a01eaef26125cb3ebc6e636141a84c",
+      "size": 1424
+    },
+    {
+      "path": "assets/chunk-KMG52G43.js",
+      "kind": "build",
+      "sha256": "9f171842bc9ac55ca71476b29ce3ce29d4af8e4107a6642ce370c5e490171f9c",
+      "size": 1877
+    },
+    {
+      "path": "assets/chunk-KMX6SM66.js",
+      "kind": "build",
+      "sha256": "4a8c2cd374f609f61d115cd5123ae1cfea315f3f6e9e0652d5610311364dd172",
+      "size": 1354
+    },
+    {
+      "path": "assets/chunk-KP4Q5YMV.js",
+      "kind": "build",
+      "sha256": "cd14f1a8dfe15db314e0921ffd165fbe6174d2d3d7752052a5bfe38a902432e2",
+      "size": 8412
+    },
+    {
+      "path": "assets/chunk-KPALS3WO.js",
+      "kind": "build",
+      "sha256": "f178c13c3882d9776334b7ed79ddc2ce181f0feaff6f228da65bdc5bf4fbd770",
+      "size": 447
+    },
+    {
+      "path": "assets/chunk-KPAPMRC6.js",
+      "kind": "build",
+      "sha256": "513aadf50bdc9ea6b53d9bd512e4b4205c9c0f243c878f6a996d6777129485ae",
+      "size": 8187
+    },
+    {
+      "path": "assets/chunk-KUR6ZO57.js",
+      "kind": "build",
+      "sha256": "0a583f32ad9f08a7d9cbf5d1e1c195971f224a9849f751ebb43e390e5fb61f75",
+      "size": 1222
+    },
+    {
+      "path": "assets/chunk-KY7P2UAJ.js",
+      "kind": "build",
+      "sha256": "89f71f7e8b6e3afd0b8fd0f1aba69bc6efe20efbeb800cbe5b3f9f44d0238fdb",
+      "size": 8174
+    },
+    {
+      "path": "assets/chunk-L33LHLNW.js",
+      "kind": "build",
+      "sha256": "07b8c421965783dd0261f74db43e68e69cc273e77885c034ee859490450c2a1e",
+      "size": 5704
+    },
+    {
+      "path": "assets/chunk-L3KLJVY7.js",
+      "kind": "build",
+      "sha256": "da8e15727e2f4d023b61209909e4ff48edf8e3d037ba704ddbf8a3996cf8c156",
+      "size": 18900
+    },
+    {
+      "path": "assets/chunk-L6QAM4FO.js",
+      "kind": "build",
+      "sha256": "30b0f8482359789cec72c62e14d4c710134a747f85fd24be073e21695b7c4523",
+      "size": 1015
+    },
+    {
+      "path": "assets/chunk-L7JU7XAT.js",
+      "kind": "build",
+      "sha256": "58af0c800547a6977a9fc2de8041a16370b1c61098e1324cacf2ee38f936d2f8",
+      "size": 557
+    },
+    {
+      "path": "assets/chunk-LBEZTKFD.js",
+      "kind": "build",
+      "sha256": "f6d74eeb862936051c5374f0d09782aa3b21443b7dca2be0978b033b4e48fec2",
+      "size": 162882
+    },
+    {
+      "path": "assets/chunk-LCK356F2.js",
+      "kind": "build",
+      "sha256": "1a2683536785adfbae2c999243cbc347131d8f1bdef868a35f04083472817be2",
+      "size": 2377
+    },
+    {
+      "path": "assets/chunk-LFSKMHPQ.js",
+      "kind": "build",
+      "sha256": "cbdec9bf7a005968a2db9bc9285a274831c0de999ab0251eb0ebba6fd9175266",
+      "size": 26421
+    },
+    {
+      "path": "assets/chunk-LGRTF6CU.js",
+      "kind": "build",
+      "sha256": "e0ac8a5d88daf7fbda129db6ede94fcc42511d43594a473ecb5b260fae65aae4",
+      "size": 335
+    },
+    {
+      "path": "assets/chunk-LGVX2XKD.js",
+      "kind": "build",
+      "sha256": "fdc5ab308db4d09fe04bf071c6e497ac9698bed5d2fe501dffd8997e6ce1f78f",
+      "size": 3716
+    },
+    {
+      "path": "assets/chunk-LW2KP6GR.js",
+      "kind": "build",
+      "sha256": "9f06f2e160c76b4b5058536b9d894813ee0d69139d3cabecce80cc6e4bef058a",
+      "size": 2699
+    },
+    {
+      "path": "assets/chunk-LY5OORK2.js",
+      "kind": "build",
+      "sha256": "0cb9a2bd5ec7c5222dfb3cda0e57e08da1c03114f6d266346ba294b9f066c988",
+      "size": 639
+    },
+    {
+      "path": "assets/chunk-LYXDITKK.js",
+      "kind": "build",
+      "sha256": "db2a2ec8425dba5658661fff331947d7d0fd27335222c6583c7ccf6395f04a7b",
+      "size": 3787
+    },
+    {
+      "path": "assets/chunk-LYZRYLZB.js",
+      "kind": "build",
+      "sha256": "3bacdc0cd06c9810fa2e98cbbfb4a6e390b1fc9694c7886d33b9a7bd8aa7aaf8",
+      "size": 800
+    },
+    {
+      "path": "assets/chunk-M42BADKS.js",
+      "kind": "build",
+      "sha256": "6d5ca8eab143b011a2d4165685fe809d27a6f29fc884db50fd9e3c69fea44bac",
+      "size": 33029
+    },
+    {
+      "path": "assets/chunk-M4VR6TSP.js",
+      "kind": "build",
+      "sha256": "62424487d08d9b24eaf4f52a9d61193b436b15133c33d200a56598f24596e26e",
+      "size": 1293
+    },
+    {
+      "path": "assets/chunk-M5P23PA5.js",
+      "kind": "build",
+      "sha256": "c4b2ba19d90b1120653f3bf44b7ed7b32439d401e132062ede76daf33c9cdee8",
+      "size": 475
+    },
+    {
+      "path": "assets/chunk-M7WFGSLS.js",
+      "kind": "build",
+      "sha256": "42efeb2c3a1c9a5ae47f76b769b17c8c16a63b206f4572500f419598f7ab1f77",
+      "size": 2698
+    },
+    {
+      "path": "assets/chunk-MAR6LSMP.js",
+      "kind": "build",
+      "sha256": "571ddb4322a57281731b7b1006fe9f1a2e01c9c497be4ecba36a89e13d1c1110",
+      "size": 270
+    },
+    {
+      "path": "assets/chunk-MBH6HFOL.js",
+      "kind": "build",
+      "sha256": "b90537b012330b43a8ea0995e0a0b80fb57d072921115a8a3b68caeb4fe7dc7f",
+      "size": 61215
+    },
+    {
+      "path": "assets/chunk-MDOKY6DA.js",
+      "kind": "build",
+      "sha256": "688811f373bb88c7b869cd83d6e256a0c0fdae6bdd11b0463519992497e5b417",
+      "size": 1003
+    },
+    {
+      "path": "assets/chunk-MDTDXPNS.js",
+      "kind": "build",
+      "sha256": "bba578197b72d9c91056207fe6d0f1c797013b7cf7290efbf0f9a9cc7a5d0c21",
+      "size": 7728
+    },
+    {
+      "path": "assets/chunk-MGQ76A4V.js",
+      "kind": "build",
+      "sha256": "b3cd4c9cb06c9f4c5e54858e2054201aa5e7e755f06a69bfcc8de5e82440c0d8",
+      "size": 3517
+    },
+    {
+      "path": "assets/chunk-MKGZDPTF.js",
+      "kind": "build",
+      "sha256": "21a0b2fb94982d8b5ac2d0ac8162c77a11e9cc9e149c85a33e19b3934ecdb23b",
+      "size": 14316
+    },
+    {
+      "path": "assets/chunk-MQGNJ6CJ.js",
+      "kind": "build",
+      "sha256": "a627f8a92c66b5758afc1fb5f60713068f743ef7ea22c5e392261cdf076aa4ee",
+      "size": 16487
+    },
+    {
+      "path": "assets/chunk-MTMZ4PYH.js",
+      "kind": "build",
+      "sha256": "79917cffff6ab874c22bab6b4b7a9b6617ea7ae796309193cc5993e6fc1fddaa",
+      "size": 484
+    },
+    {
+      "path": "assets/chunk-MTQ3MKO4.js",
+      "kind": "build",
+      "sha256": "4f4646d1debe5ea9a642f79ab1c034bdd07e7255af9198cdfdacfb0f28b390d3",
+      "size": 284
+    },
+    {
+      "path": "assets/chunk-MUB6HC3Q.js",
+      "kind": "build",
+      "sha256": "1d446bc10b432128250d8ea57c497c11c8e23e422260360225c5aac66c435e30",
+      "size": 80871
+    },
+    {
+      "path": "assets/chunk-MVSXZM4K.js",
+      "kind": "build",
+      "sha256": "48a9663d5381f967a445e58211069ae6ee47339bd306ca289fda67a49fdf6a8b",
+      "size": 7115
+    },
+    {
+      "path": "assets/chunk-MWFEL6RN.js",
+      "kind": "build",
+      "sha256": "7506ad999d7fc9406b61ff9751215d314c3ee4f70a7956284ac6ca8fb10ec5d1",
+      "size": 1756
+    },
+    {
+      "path": "assets/chunk-MXGEY5OV.js",
+      "kind": "build",
+      "sha256": "b108c8c0088e56be854738c5de7540f5ba7e5fc40345c080ddd39fa9b8d064b7",
+      "size": 5661
+    },
+    {
+      "path": "assets/chunk-N2XOXR4K.js",
+      "kind": "build",
+      "sha256": "16203e87349245db6af6686539e0f69dd0100e6ba49efdc683556dc7816a9b88",
+      "size": 982
+    },
+    {
+      "path": "assets/chunk-NC42RPRD.js",
+      "kind": "build",
+      "sha256": "2db303e817d5150597df40fc390e19eae023a4f54837bff4253c3b843c1422cf",
+      "size": 11729
+    },
+    {
+      "path": "assets/chunk-NCANYPY3.js",
+      "kind": "build",
+      "sha256": "84a57628799b45ecfb939a93a0f2a185daeb98675bf64ee39c3838f3fe38e6ec",
+      "size": 1490
+    },
+    {
+      "path": "assets/chunk-NCKLSBHK.js",
+      "kind": "build",
+      "sha256": "53dfcac3df37c48b4996958c56e6f3a9b16ca600a59e4f7a92763d9e26eaac6a",
+      "size": 2030
+    },
+    {
+      "path": "assets/chunk-NJW5TUZQ.js",
+      "kind": "build",
+      "sha256": "0c40c606fcb74332e8807cf1981a553236567ff4edb7145f85a919eb60faced0",
+      "size": 745
+    },
+    {
+      "path": "assets/chunk-NLS5SENM.js",
+      "kind": "build",
+      "sha256": "bdf7ec1ae4a512e5f443d5959ee601253246ca986a40f2d954615968d6872854",
+      "size": 1268
+    },
+    {
+      "path": "assets/chunk-NP72NVVK.js",
+      "kind": "build",
+      "sha256": "29134e352ca82a4c503468b8d03e4fe3d1d72c68c1692fac037c2a0ab33bca34",
+      "size": 3878
+    },
+    {
+      "path": "assets/chunk-NPCLLOAM.js",
+      "kind": "build",
+      "sha256": "c31f75244588cc0eebeb06af6755c8526c0fb02a6fee00e8e766e359f541ee9f",
+      "size": 987
+    },
+    {
+      "path": "assets/chunk-NQDL5GFZ.js",
+      "kind": "build",
+      "sha256": "7d436df1c71405a876f83f543193b14281e20791345a33af16da00f4405b84c3",
+      "size": 530
+    },
+    {
+      "path": "assets/chunk-NTHUD6K5.js",
+      "kind": "build",
+      "sha256": "d10f746a9a4b0274dc9da1534645ad17538f4a84a783ffe77863875882dc83ba",
+      "size": 1089
+    },
+    {
+      "path": "assets/chunk-NZEG4THG.js",
+      "kind": "build",
+      "sha256": "e4e14d80b92a354a1a4a103cca8a6d402e586645b884521ff16163d0f2b11448",
+      "size": 379
+    },
+    {
+      "path": "assets/chunk-O47CAKDL.js",
+      "kind": "build",
+      "sha256": "3f38f3381d84c37e642303580c4d20d8d530400a98ba2eb3d013eb0e2a06e27c",
+      "size": 2176
+    },
+    {
+      "path": "assets/chunk-O4H4476N.js",
+      "kind": "build",
+      "sha256": "4880c49cb02822fd1079923d43a9c1ee0b11d2d9d19ca97e0b67739786f21367",
+      "size": 24413
+    },
+    {
+      "path": "assets/chunk-O57CS5EJ.js",
+      "kind": "build",
+      "sha256": "8b21f8de47d8768a565b8f7229eab3ceb75b2a0465a753567a2693ddf263dfa8",
+      "size": 2288
+    },
+    {
+      "path": "assets/chunk-O7TDQQ43.js",
+      "kind": "build",
+      "sha256": "56815151138f10940aef213e3967b9515c1fa2512bfcdcd4c495cbd486e831ba",
+      "size": 888
+    },
+    {
+      "path": "assets/chunk-OASKVRTB.js",
+      "kind": "build",
+      "sha256": "4de692d97bcdc6bc5a029a522f17f7f6d09dad0eac68cbd2b3de96132b7b6ebd",
+      "size": 442
+    },
+    {
+      "path": "assets/chunk-OC4STSIC.js",
+      "kind": "build",
+      "sha256": "12fd5529565579206007958a7a853f02fca47eced3ef94ec176b0c8ee573d252",
+      "size": 359
+    },
+    {
+      "path": "assets/chunk-OHI2J4NP.js",
+      "kind": "build",
+      "sha256": "1ccde9fde73d08d18d1ab1a38914e37453fced0dc039457aaa911ade5dfe6baa",
+      "size": 1025
+    },
+    {
+      "path": "assets/chunk-OHXKR2TD.js",
+      "kind": "build",
+      "sha256": "daefb04e27f78afa9c38ffbac53665f3fc769bde1e655b806f55dd3649c2aa45",
+      "size": 149786
+    },
+    {
+      "path": "assets/chunk-OIETI6QC.js",
+      "kind": "build",
+      "sha256": "25040f2114c2f16cc7e10b1955a2a8fc7d0de0ecfb4f282ac06527b043953d44",
+      "size": 2000
+    },
+    {
+      "path": "assets/chunk-OJJKNWJF.js",
+      "kind": "build",
+      "sha256": "aa638a77c508299ff3429757f979e71748c1e0db125a549661714b193930c0da",
+      "size": 3173
+    },
+    {
+      "path": "assets/chunk-OMZHJON3.js",
+      "kind": "build",
+      "sha256": "9f992ca7c9e8a1f6f166dabb5ce629b8cb843f10781d0404a2258269e736ac87",
+      "size": 20126
+    },
+    {
+      "path": "assets/chunk-ONEFOJT2.js",
+      "kind": "build",
+      "sha256": "0e26ae515fec6e3b8f4b469720cfed1ccf884323471eada617fa7ace36f4d194",
+      "size": 520
+    },
+    {
+      "path": "assets/chunk-OPJ6ZSGF.js",
+      "kind": "build",
+      "sha256": "63be202580eefb3c6ce878a354a71e5c10baf2b33e8ad25328884fca52e83b57",
+      "size": 1220
+    },
+    {
+      "path": "assets/chunk-OQGHMNAT.js",
+      "kind": "build",
+      "sha256": "7a7883205acc7fdfadab3da6e4bf886aaa81ff0b594c6c76a83a16fcb4f1dd26",
+      "size": 763
+    },
+    {
+      "path": "assets/chunk-OS6ZG7MK.js",
+      "kind": "build",
+      "sha256": "44bd00c16545f8f42ae5f4eed0bb9ec8c0e3fcdb987f838c6616eaa2f6c5106e",
+      "size": 75279
+    },
+    {
+      "path": "assets/chunk-OSKE4U3O.js",
+      "kind": "build",
+      "sha256": "ae06b23a198a6af4edcb9629f676f51c9d3cbfb5e7bb5f3fe3cf5fc7edc3c776",
+      "size": 29437
+    },
+    {
+      "path": "assets/chunk-OYZ3AIFM.js",
+      "kind": "build",
+      "sha256": "2d939c75045e54ad6718a25e23daf555ecba1f9d7eb92bf88cdb90c74796ef5e",
+      "size": 565
+    },
+    {
+      "path": "assets/chunk-OZFOLV6D.js",
+      "kind": "build",
+      "sha256": "f5ca88b494ba4ed7b0f0a1392e5e9353d1560f1ac5053d87a2a814169949bf84",
+      "size": 2631
+    },
+    {
+      "path": "assets/chunk-P3W5OY5E.js",
+      "kind": "build",
+      "sha256": "50b8fb1b9ba96ae12598dacee7cc1abc0efc3d5471001523a61e6a4a0711dec5",
+      "size": 44393
+    },
+    {
+      "path": "assets/chunk-P4XKBCQ5.js",
+      "kind": "build",
+      "sha256": "0e27a65a5bf4d1632fb3fbda9d37c5f072bd4b6b2f55b051ad9e9aa8d64f7dac",
+      "size": 121
+    },
+    {
+      "path": "assets/chunk-P5VMXVJZ.js",
+      "kind": "build",
+      "sha256": "6f5037f9fc0a9fd11012d490110cb29f2ec2a5988afcf179f8f3b04eba91976c",
+      "size": 3192
+    },
+    {
+      "path": "assets/chunk-P6IT7LOH.js",
+      "kind": "build",
+      "sha256": "49dd633a0ecc55188cd883d9bfae8e8a785f8261ca676ea7d371203bb6fbcca3",
+      "size": 14762
+    },
+    {
+      "path": "assets/chunk-PBJWYU3K.js",
+      "kind": "build",
+      "sha256": "d474a2c20b71ce5cf05c7d556941b7d0dd2dc6365bf2d04a38db24b359a5caac",
+      "size": 11639
+    },
+    {
+      "path": "assets/chunk-PFF3RARY.js",
+      "kind": "build",
+      "sha256": "5e1fe7c55a197979b2fc5cbf3698028beee8cdb55e7da49c90b38bf7b16cb153",
+      "size": 6924
+    },
+    {
+      "path": "assets/chunk-PFVU3OYW.js",
+      "kind": "build",
+      "sha256": "5c86394762ae73c22b00122d1797ad7746f8c45578d7ba5e0eecb98a89fec27c",
+      "size": 938
+    },
+    {
+      "path": "assets/chunk-PKEWZ5AL.js",
+      "kind": "build",
+      "sha256": "0574baa9d3bceda82d388ed4f39d38a8059703f848e12c708b3f637c4fd2fdcc",
+      "size": 8309
+    },
+    {
+      "path": "assets/chunk-PMLGAJOA.js",
+      "kind": "build",
+      "sha256": "18724289f79261c445ee1e02510587fa2fe6436511910e85d331735b46b89cc4",
+      "size": 17621
+    },
+    {
+      "path": "assets/chunk-PMS3ZVNP.js",
+      "kind": "build",
+      "sha256": "131903d4dd199534ae621a6603e731d78ae90df5af1a0412b5a449165249c156",
+      "size": 490
+    },
+    {
+      "path": "assets/chunk-PQA5KCBY.js",
+      "kind": "build",
+      "sha256": "b585fc8efe88d971aba2cac69fcb6b677b71226f1689b406cc7d677f0eb04903",
+      "size": 920
+    },
+    {
+      "path": "assets/chunk-PU4CRUZQ.js",
+      "kind": "build",
+      "sha256": "8a516f7c1cc97fa594d66a69acf43e03aa61c6e2fcdf99fa5b911d325e162c9b",
+      "size": 4753
+    },
+    {
+      "path": "assets/chunk-PWWC4NH3.js",
+      "kind": "build",
+      "sha256": "03f6958eedf46f1b951f5dcff3463a6acb6703e8c5cacdd43bcb07bbd22857a8",
+      "size": 672
+    },
+    {
+      "path": "assets/chunk-Q26RTKWA.js",
+      "kind": "build",
+      "sha256": "f9421bf3a9122ddf34e83c58c871682c85f69b9a67e34bf2d4308f2eea64d6f8",
+      "size": 32083
+    },
+    {
+      "path": "assets/chunk-Q2RPE4FN.js",
+      "kind": "build",
+      "sha256": "7ad4fe5fc65389f5d8401a85eb14d14b6181187a83666234ead85409ba5341cf",
+      "size": 853
+    },
+    {
+      "path": "assets/chunk-Q425WELH.js",
+      "kind": "build",
+      "sha256": "3b2c51c4f10138c7617a3017e1da99b2e2d41ec55628edd97524b2b048272e1f",
+      "size": 4730
+    },
+    {
+      "path": "assets/chunk-Q5OJJU52.js",
+      "kind": "build",
+      "sha256": "b6b116621810143d47b00fcd4e03155db9c4a5bfeba53513545e8a06beffaa90",
+      "size": 1776
+    },
+    {
+      "path": "assets/chunk-QA2SQJJY.js",
+      "kind": "build",
+      "sha256": "6913003b878542f2552f65d90c01de980d355f781958e951de91ab4a169b2fe2",
+      "size": 1537
+    },
+    {
+      "path": "assets/chunk-QAPZOKVH.js",
+      "kind": "build",
+      "sha256": "e39ce7cc30462e9174687a685956554e9f198bbc6940e8785707e33bcaff97fa",
+      "size": 540
+    },
+    {
+      "path": "assets/chunk-QC3IUF6R.js",
+      "kind": "build",
+      "sha256": "fd334fff47dd6ee58722db964f0095a721c759c7ee65ba9bdc21097db2d243a1",
+      "size": 1984
+    },
+    {
+      "path": "assets/chunk-QD7DW4WN.js",
+      "kind": "build",
+      "sha256": "fd6df8e1b21cca23c9563db7b198fcee99797b2c5bc8c59ca39a2bdf61eeba7c",
+      "size": 77892
+    },
+    {
+      "path": "assets/chunk-QDTKDA6L.js",
+      "kind": "build",
+      "sha256": "54dee4860fb9ebf5c2f4255a20474e5044cff1fa6d6cfdf3c6e40a52e7cdf7ad",
+      "size": 1121
+    },
+    {
+      "path": "assets/chunk-QFXAPV6A.js",
+      "kind": "build",
+      "sha256": "c70616c4871eba53dcd816114a9c0e9669f48df7eda491d8678ebe33104817c6",
+      "size": 58773
+    },
+    {
+      "path": "assets/chunk-QKBJKIRP.js",
+      "kind": "build",
+      "sha256": "8a797d31b0bfd21f39237d477a20bbf8f2007ac9f647a8de37ca5041b8035497",
+      "size": 14658
+    },
+    {
+      "path": "assets/chunk-QLAC7XVA.js",
+      "kind": "build",
+      "sha256": "1594c4989d64de9e477ed52033ba70703e2bd18b7e7b1f1e0cd4ce1982fc9494",
+      "size": 40388
+    },
+    {
+      "path": "assets/chunk-QLTH62XO.js",
+      "kind": "build",
+      "sha256": "3b93f2376556246c4e2af74a02b6a63169b200e1aa290e40787986e1f8799e23",
+      "size": 1045
+    },
+    {
+      "path": "assets/chunk-QPM3XORP.js",
+      "kind": "build",
+      "sha256": "5ebd7f06f45af1573551c6458393f3993c0681bcabc6b7cde066f1cd8dc38a43",
+      "size": 8412
+    },
+    {
+      "path": "assets/chunk-QTAKRMT7.js",
+      "kind": "build",
+      "sha256": "31078cee818224edf4cfd63167690541eb83829ce87f85eb9e3029da4a5e19e0",
+      "size": 64841
+    },
+    {
+      "path": "assets/chunk-QUAVRXVU.js",
+      "kind": "build",
+      "sha256": "c16aa76f912986ff257c4c234535af8d2734be9c4b90a9869182b90ac3498acb",
+      "size": 470
+    },
+    {
+      "path": "assets/chunk-R32YN54Q.js",
+      "kind": "build",
+      "sha256": "0c200590c267df1247b4d607ffcdaa66a20ec3e0731622743df6f04cfe41e8f7",
+      "size": 524
+    },
+    {
+      "path": "assets/chunk-R7VWMZH7.js",
+      "kind": "build",
+      "sha256": "90c4e0f5261f558eddce5bdc2acae51095f881d1209c34de85e19fb45445a225",
+      "size": 95343
+    },
+    {
+      "path": "assets/chunk-RDEXGDWN.js",
+      "kind": "build",
+      "sha256": "c3b3b2dd94e433ca599788f086368f75d6459dd3cc289a528e242b1e363b1b11",
+      "size": 20984
+    },
+    {
+      "path": "assets/chunk-REP4BIAR.js",
+      "kind": "build",
+      "sha256": "e5dd7c82ef57abf895b4316494f7375c28d01d1853cec316e80aef116c678fdd",
+      "size": 47611
+    },
+    {
+      "path": "assets/chunk-RK2LODZL.js",
+      "kind": "build",
+      "sha256": "1ca61fbf13fbd91398b8cb2337c53d1e0b302c7ce7f718223ff7aaa86f2171f2",
+      "size": 14374
+    },
+    {
+      "path": "assets/chunk-RLCFARLV.js",
+      "kind": "build",
+      "sha256": "3acbf94cd84378ac4b40da93da8a3502e0d137607681c0d8bd49aa337a8daa35",
+      "size": 378438
+    },
+    {
+      "path": "assets/chunk-RLRSWKGQ.js",
+      "kind": "build",
+      "sha256": "ac8a6dc2c37333e502c292e940f6e44255d7c8d6a99583df9d4d071a436d6087",
+      "size": 3456
+    },
+    {
+      "path": "assets/chunk-RPSDOP72.js",
+      "kind": "build",
+      "sha256": "24fac2174996914a5120c5e27f976ebd864de0a02182faccb94f6451cc688110",
+      "size": 4931
+    },
+    {
+      "path": "assets/chunk-RPVMX4PY.js",
+      "kind": "build",
+      "sha256": "53b00c5f7684ec895f5dc07ddd336380012fbd071851c145b63256adb58028ab",
+      "size": 123544
+    },
+    {
+      "path": "assets/chunk-RQIXXZFF.js",
+      "kind": "build",
+      "sha256": "60285e9da8a768f5c05fbb1186b1ffb9bc33600ccb7debd4455e6ce3b946781d",
+      "size": 14222
+    },
+    {
+      "path": "assets/chunk-RXSXRHLU.js",
+      "kind": "build",
+      "sha256": "1b218e7d5cef5942a39f65fb97b18eab5b4f2cc85f68e15ebec94ec7ee790001",
+      "size": 736
+    },
+    {
+      "path": "assets/chunk-S2H7DXYD.js",
+      "kind": "build",
+      "sha256": "89f7baeefd0e6d70ef2029f18cc644494689fce9a2b6b883b5b0eb9c33a149a9",
+      "size": 95343
+    },
+    {
+      "path": "assets/chunk-S2JR66JW.js",
+      "kind": "build",
+      "sha256": "5e7cf5666d5390a01ade5062f8a6d4bc8ab547723c70fce6e9023a903188ef3a",
+      "size": 359
+    },
+    {
+      "path": "assets/chunk-SAXCXJH4.js",
+      "kind": "build",
+      "sha256": "a0dc6b116afec57cf8e92737bea29e6aac5f928f7f3fa4bf894aba8a6abe7411",
+      "size": 388
+    },
+    {
+      "path": "assets/chunk-SDWWY5B7.js",
+      "kind": "build",
+      "sha256": "d7d74eb9df6abced1c53c38120312828176ff039c6320fccab9d3f251fbff801",
+      "size": 439
+    },
+    {
+      "path": "assets/chunk-SE7WT4FK.js",
+      "kind": "build",
+      "sha256": "eefbebe0ffe5afafa67656fabb7cd95a675d9781c9d404ecb9ab1f2034ab19ae",
+      "size": 8552
+    },
+    {
+      "path": "assets/chunk-SEDELGUM.js",
+      "kind": "build",
+      "sha256": "cdd264472347ad4a8d921db1207464f206bc8ec0bf387d38ea9da781814fd380",
+      "size": 717
+    },
+    {
+      "path": "assets/chunk-SEMTXQUQ.js",
+      "kind": "build",
+      "sha256": "8e53c0e1bb79d7591d9bd93e7be20e45f7f3af4605c36567e258931cc3d7758a",
+      "size": 1302
+    },
+    {
+      "path": "assets/chunk-SFD55FPD.js",
+      "kind": "build",
+      "sha256": "d87bb5c4b43560ed327e677a11094c4a768a8dc752f607a37c980552122630e4",
+      "size": 938
+    },
+    {
+      "path": "assets/chunk-SH74TPO3.js",
+      "kind": "build",
+      "sha256": "6a03c1a184511edf402b4fcb69b0afeb2499c445afdafaa66d37ddb5ba94ca5a",
+      "size": 224
+    },
+    {
+      "path": "assets/chunk-SHVFXE5A.js",
+      "kind": "build",
+      "sha256": "1454c419aff92409c1c913387ca9a42876f0c34fded43f4d8e035bb76c4d8465",
+      "size": 849
+    },
+    {
+      "path": "assets/chunk-SILTFXAB.js",
+      "kind": "build",
+      "sha256": "7530936d498d103176b933409cd72af85800281fa8365d5fd632ac3ae0ffa246",
+      "size": 11926
+    },
+    {
+      "path": "assets/chunk-SIPUGLTM.js",
+      "kind": "build",
+      "sha256": "79d52be58b718efbd41e1b9046cfdc558ebf47132171735f1c845c6a2983b261",
+      "size": 2572
+    },
+    {
+      "path": "assets/chunk-SJ2H4UQ3.js",
+      "kind": "build",
+      "sha256": "0f16399861cb7ced5d22ddeb965a428d3b648d72cf140fc5a039d2056b40a6b5",
+      "size": 1921
+    },
+    {
+      "path": "assets/chunk-SLXPITLK.js",
+      "kind": "build",
+      "sha256": "2597f5e4ad38140dcdf4cb55bdda2e7273bf64457cbcbae35b73c182aa05628e",
+      "size": 81
+    },
+    {
+      "path": "assets/chunk-SMOYKJQB.js",
+      "kind": "build",
+      "sha256": "81bb8df4b867f07b7244a3548a0b0bc14d716e311735aeddecd1702f1ea3dfb8",
+      "size": 2968
+    },
+    {
+      "path": "assets/chunk-SNSDQHPA.js",
+      "kind": "build",
+      "sha256": "614c958caf898399ea2e34a40fd6e5ea94cbf8854d45c7c26e1a52777a471aa3",
+      "size": 1327
+    },
+    {
+      "path": "assets/chunk-SSGHRGZM.js",
+      "kind": "build",
+      "sha256": "9492b3159c5fbcde614be2bb2dc7478b8588361510bec64935b2758f76c6b1d5",
+      "size": 2008
+    },
+    {
+      "path": "assets/chunk-STH6N5WS.js",
+      "kind": "build",
+      "sha256": "61889febdb841d84b1d6f59cf75b10b18c2651aa364103f1f4b02c07c95e4332",
+      "size": 900
+    },
+    {
+      "path": "assets/chunk-SY7SDJQA.js",
+      "kind": "build",
+      "sha256": "d5885e853927a07a58064996e35f1d4806ff8274faffc8f48786a95a768a1611",
+      "size": 158
+    },
+    {
+      "path": "assets/chunk-T7E7SRKF.js",
+      "kind": "build",
+      "sha256": "47c40826a91e3d7c56a1a132008348de910112cfebf9971d48c9db7a09b72d72",
+      "size": 964
+    },
+    {
+      "path": "assets/chunk-TCEJ7ZTD.js",
+      "kind": "build",
+      "sha256": "a4a1b23129f23f5de80639e55b86eec6ea8057cb95d781749305242774acb670",
+      "size": 1663
+    },
+    {
+      "path": "assets/chunk-TCLT4LQG.js",
+      "kind": "build",
+      "sha256": "176fa4acee2733c38f13adeb859ad139a7f4f526390439f78cbe5affc3aa2523",
+      "size": 1155
+    },
+    {
+      "path": "assets/chunk-TDKFGEGL.js",
+      "kind": "build",
+      "sha256": "61ce94bd3b397b0bd63194f634e73fbdb2756d43871de1c0dbe885520395b7d5",
+      "size": 1585978
+    },
+    {
+      "path": "assets/chunk-TGC6EHX4.js",
+      "kind": "build",
+      "sha256": "43b2fda6fa95d1db851a00f22c72de84ade2944a1dee38574d5a7ea0cc14240e",
+      "size": 18324
+    },
+    {
+      "path": "assets/chunk-TIUSMYKL.js",
+      "kind": "build",
+      "sha256": "205eeafe2a8bfcce0efc884f18248dd87c2b94644fa077ad521efa9b6a1c92dd",
+      "size": 661
+    },
+    {
+      "path": "assets/chunk-TL5WLSAI.js",
+      "kind": "build",
+      "sha256": "1a15cedcceb188a18859c0338d6c1e0cc3e7ccb66f2237bf2f4d44b21c69cd9b",
+      "size": 20126
+    },
+    {
+      "path": "assets/chunk-TLMZMWPJ.js",
+      "kind": "build",
+      "sha256": "f71bdbdf488f09bb6950d495416bd55360fb3beb57c8575334bdeb54bf016f3d",
+      "size": 799
+    },
+    {
+      "path": "assets/chunk-TOA37LJH.js",
+      "kind": "build",
+      "sha256": "d613a7ee05813fb936b0309f5f6a963428f5d440fc7644e09d6eda6906ed2f70",
+      "size": 1433
+    },
+    {
+      "path": "assets/chunk-TPTMSFNU.js",
+      "kind": "build",
+      "sha256": "1a843181b987f358c91819981c60a4b4c0c42a505087a5b4306cf523bdb0e640",
+      "size": 1550
+    },
+    {
+      "path": "assets/chunk-TQD7QY4N.js",
+      "kind": "build",
+      "sha256": "b060a7584534784d244b0976c3fab32b055cd860910684d1f424d52d4ad9c67e",
+      "size": 90589
+    },
+    {
+      "path": "assets/chunk-TSXCAGLO.js",
+      "kind": "build",
+      "sha256": "41d543618d8227a4478d47afe08ab6c60979a352016331a8caf4c068c20ee891",
+      "size": 2274
+    },
+    {
+      "path": "assets/chunk-TUJLJMJH.js",
+      "kind": "build",
+      "sha256": "d24ed31ee5042783eeb2c1750d52815adc8fd6598fcbd38d20356f3026d03bc9",
+      "size": 6851
+    },
+    {
+      "path": "assets/chunk-TUMMIDTE.js",
+      "kind": "build",
+      "sha256": "ce6f7fa962b5b4d8632676bda9f225d259000de4cf3b27d9b71bd44c0dafa8ea",
+      "size": 2090
+    },
+    {
+      "path": "assets/chunk-U4KETALN.js",
+      "kind": "build",
+      "sha256": "2895454525af39f671d67954e1c6cd791d475651a289efa297ad401c812993dc",
+      "size": 1144
+    },
+    {
+      "path": "assets/chunk-U5DMXN5E.js",
+      "kind": "build",
+      "sha256": "478b0c5b57d4551e5b6197a4bea5bb6f2f62d7c5835bda485eac6bd6a6027192",
+      "size": 1539
+    },
+    {
+      "path": "assets/chunk-U5EM3JSW.js",
+      "kind": "build",
+      "sha256": "b3de1012ce1c6b94084e0212e5fb31b723cb038c1a720f167f35c58f0eec71ee",
+      "size": 994
+    },
+    {
+      "path": "assets/chunk-U5NSAV3Z.js",
+      "kind": "build",
+      "sha256": "b0a2f87f2b2f13085a0ae5998ffe3c9844fd30261887010427880ad1e2badece",
+      "size": 15967
+    },
+    {
+      "path": "assets/chunk-U5TYODGZ.js",
+      "kind": "build",
+      "sha256": "b992c0019cd7330f78792e8313ddef4cfa782e74a2d3e45eab09fa7d233ed61b",
+      "size": 3173
+    },
+    {
+      "path": "assets/chunk-UAHNY4DB.js",
+      "kind": "build",
+      "sha256": "52791cd5a7b412e63db7a9464d261d573a0bc5877ac77752d6652e42ef30e8f4",
+      "size": 1329
+    },
+    {
+      "path": "assets/chunk-UB2MFKMM.js",
+      "kind": "build",
+      "sha256": "79a30f9648641c5943cf2559a071cb33766ddf5a075e9a84ccd690807cea2132",
+      "size": 1416
+    },
+    {
+      "path": "assets/chunk-UBVR7WOG.js",
+      "kind": "build",
+      "sha256": "ba217149fd4fbb535259d2755550f7f11c3772ee6e6e5aa33730e90a92974fdc",
+      "size": 1037
+    },
+    {
+      "path": "assets/chunk-UCFJDPPU.js",
+      "kind": "build",
+      "sha256": "9862ca9126ac2d067c2c6b7bdb641dccd5267931bff5d52e647fe4c358c0a41d",
+      "size": 1063
+    },
+    {
+      "path": "assets/chunk-UGGZX5WA.js",
+      "kind": "build",
+      "sha256": "e55e7600b1134ba6dab1305c31f2d1b242afffa50d644099924eb59ac7e255d8",
+      "size": 1174
+    },
+    {
+      "path": "assets/chunk-UGR6EJPS.js",
+      "kind": "build",
+      "sha256": "504c8b772bdcac21b5331c2aad49229a8fa5584038647b6afb7ebc0fb6537753",
+      "size": 45
+    },
+    {
+      "path": "assets/chunk-UHL7I3IK.js",
+      "kind": "build",
+      "sha256": "3c32aa00786bbb08d2f9ead0884cf419e41294bf5aed984314233787c4683b9d",
+      "size": 982
+    },
+    {
+      "path": "assets/chunk-UKS6FSKG.js",
+      "kind": "build",
+      "sha256": "f4dcd76ea0fba92d8693c8d380d97ce1cbf2eb4931a79543fdea2c66c6c1309d",
+      "size": 207
+    },
+    {
+      "path": "assets/chunk-ULI53UGH.js",
+      "kind": "build",
+      "sha256": "12cb88d6fd16ccd10ace4b060de5041eeb756826a7e6c7ac30789f514cc9f55d",
+      "size": 2583
+    },
+    {
+      "path": "assets/chunk-UM5XPM6W.js",
+      "kind": "build",
+      "sha256": "9190c8b4e08c99787f9ac105ba350a6891cd0f6b788fe6b085ecfb25e8877910",
+      "size": 18472
+    },
+    {
+      "path": "assets/chunk-URZXUC2H.js",
+      "kind": "build",
+      "sha256": "7bc22d245eaca82b9a97ab1120cca8c2e40440e1d7b009f979924559f706953c",
+      "size": 1065
+    },
+    {
+      "path": "assets/chunk-USHEBCTR.js",
+      "kind": "build",
+      "sha256": "f2a0b9aaf04262a7d81ca3b427eb482e03352c37f3b9824ff9d2d736a1e2a15b",
+      "size": 14732
+    },
+    {
+      "path": "assets/chunk-USLBCCB4.js",
+      "kind": "build",
+      "sha256": "383e3fa1110f0de5f65f75b97cd0117024d3ea7bd044bff80f2c9f3d2e13b863",
+      "size": 17370
+    },
+    {
+      "path": "assets/chunk-UVPRYFE3.js",
+      "kind": "build",
+      "sha256": "34a5433bea27d493cf7a1064eefb8cf3055b70b1f69f3fd9f9c604a84dcf03f9",
+      "size": 4951
+    },
+    {
+      "path": "assets/chunk-UWPTHAXC.js",
+      "kind": "build",
+      "sha256": "f84b91a9267dd6e668dd82f1995b7e24ab16fba229d5fa99233bc95d82b3aed7",
+      "size": 835
+    },
+    {
+      "path": "assets/chunk-UX2X2TL3.js",
+      "kind": "build",
+      "sha256": "ce281d6f2cc46d6ce91d7d1c5a0f0754e482255c908a98536f79102f2b0a817a",
+      "size": 1035
+    },
+    {
+      "path": "assets/chunk-UX4QQMVL.js",
+      "kind": "build",
+      "sha256": "b4e9c49c8abcac10da5abd31770dafe63fb0b873406fd11032abe258010a78c4",
+      "size": 482
+    },
+    {
+      "path": "assets/chunk-VCVJBN6O.js",
+      "kind": "build",
+      "sha256": "0ae770a072fbe6bc79088aea2880dc65d4254e4420463e97b830b35acc2d9b5a",
+      "size": 550
+    },
+    {
+      "path": "assets/chunk-VDEQWWY7.js",
+      "kind": "build",
+      "sha256": "a6200215b7d4e5f3e19cc3af4450919c4bde4c1c05ca902edbdfa04308aedec6",
+      "size": 1005
+    },
+    {
+      "path": "assets/chunk-VGWHC6CQ.js",
+      "kind": "build",
+      "sha256": "51bcf1ee71361cf8d647439ede7a1c3e3d625863fc575e33cdbd9cafe3f6f4b8",
+      "size": 29704
+    },
+    {
+      "path": "assets/chunk-VI2GEGTM.js",
+      "kind": "build",
+      "sha256": "09809d46f46a87abeb907b7444dd13ff1d900f048d3dad85521acd203035cc9f",
+      "size": 22357
+    },
+    {
+      "path": "assets/chunk-VI2ZCWYA.js",
+      "kind": "build",
+      "sha256": "61ee97637c39149313993f214b63cdec3e3afde2623d8916ddc8a6ced2d5c151",
+      "size": 217
+    },
+    {
+      "path": "assets/chunk-VJU7HL4L.js",
+      "kind": "build",
+      "sha256": "1c445b099233e5aa5eef65c79f6e0b77128851845a976042737dfb5fc700f3ad",
+      "size": 90589
+    },
+    {
+      "path": "assets/chunk-VMCMSTFJ.js",
+      "kind": "build",
+      "sha256": "ca15cc8782e932ae75fcdb49758ddae545f51502d070079b11101bc071073c90",
+      "size": 913
+    },
+    {
+      "path": "assets/chunk-VMOZFTQP.js",
+      "kind": "build",
+      "sha256": "489f264657e094c5a5490c7036b71a1e668ad9de7928229ca4ba205e7db983aa",
+      "size": 457
+    },
+    {
+      "path": "assets/chunk-VNDYISBG.js",
+      "kind": "build",
+      "sha256": "48c40132185c9639b889b65e018f05ad7a4939b4398a986b4bf6f78a35c14d3f",
+      "size": 4956
+    },
+    {
+      "path": "assets/chunk-VQDLFRIC.js",
+      "kind": "build",
+      "sha256": "e0a8dd1fd6fa87e2e8a28814c4bd9e991b4aad30d16d6e2c56abe8891fa0b4f9",
+      "size": 6052
+    },
+    {
+      "path": "assets/chunk-VSWHW3NN.js",
+      "kind": "build",
+      "sha256": "33b43623c805358abec2211ab4c09f1c7402833d6871448fd70f8288b366076f",
+      "size": 17621
+    },
+    {
+      "path": "assets/chunk-VX6CD7HL.js",
+      "kind": "build",
+      "sha256": "b4dabc6257ce84274a5020f329f07df53169ee0dd7418ce7bed4b76bd6c9eb33",
+      "size": 2540
+    },
+    {
+      "path": "assets/chunk-VXJX7T7H.js",
+      "kind": "build",
+      "sha256": "958401dcfb4ab368cad1a895e0ff28f4a87d71076c76b2fc12d0ff7ebe420c04",
+      "size": 1217
+    },
+    {
+      "path": "assets/chunk-WCBZFBL5.js",
+      "kind": "build",
+      "sha256": "4d1a49776467fe7ff00a4b08c31fc5b595c884c387577d138859220060249e5d",
+      "size": 2841
+    },
+    {
+      "path": "assets/chunk-WCDOSACV.js",
+      "kind": "build",
+      "sha256": "89f71f7e8b6e3afd0b8fd0f1aba69bc6efe20efbeb800cbe5b3f9f44d0238fdb",
+      "size": 8174
+    },
+    {
+      "path": "assets/chunk-WCPL7X6D.js",
+      "kind": "build",
+      "sha256": "6cf07271e4a3c3d3044f6738585de790c635d9e7b5a91725868a4c39cae71319",
+      "size": 1309
+    },
+    {
+      "path": "assets/chunk-WFKXAZZY.js",
+      "kind": "build",
+      "sha256": "b20b0eb7b2052e082240b8e5f038cef629dbd6184dad455cee1d9ddbe5ce26fd",
+      "size": 580
+    },
+    {
+      "path": "assets/chunk-WFY3F4HM.js",
+      "kind": "build",
+      "sha256": "1315f09b36e6cbc75852a3c68d80e87f4f34a56acf98043fae7ff3479fae577d",
+      "size": 17289
+    },
+    {
+      "path": "assets/chunk-WGUCSYI7.js",
+      "kind": "build",
+      "sha256": "6cf2890cf31923e69b778785eeedb809716393be558072ce2dc993166eca6a8b",
+      "size": 99065
+    },
+    {
+      "path": "assets/chunk-WMB6VBS7.js",
+      "kind": "build",
+      "sha256": "2f55e60f9d6ab2a0cce83c2fcd78d4056c5dc47f1865ea53643afb62f62c4e3c",
+      "size": 458
+    },
+    {
+      "path": "assets/chunk-WO5P6YUM.js",
+      "kind": "build",
+      "sha256": "da2ff33da79771f6ed25de872c321437d035e97b93decd06df3bc22160c64782",
+      "size": 4045
+    },
+    {
+      "path": "assets/chunk-WX646KYQ.js",
+      "kind": "build",
+      "sha256": "4c704cc1cfd7016c4b22121ff4feac7d16f0ae640c8604ad4aa41fe660a99be0",
+      "size": 886
+    },
+    {
+      "path": "assets/chunk-X3ECKD27.js",
+      "kind": "build",
+      "sha256": "07aafc6663c407ef3972988e1b53ec4c14734e6666ab78add6d28b9ddf53a197",
+      "size": 34688
+    },
+    {
+      "path": "assets/chunk-X46XZQSM.js",
+      "kind": "build",
+      "sha256": "e7e1b49b1799bc2edbac26b73b4f522a5265997eab2837fc2658ff1a5c25cdbb",
+      "size": 1914
+    },
+    {
+      "path": "assets/chunk-X4LCJCZF.js",
+      "kind": "build",
+      "sha256": "26f1c605b94e1595464cafdafa165eacb5bce5673ef7079c304919c299139ba4",
+      "size": 1808
+    },
+    {
+      "path": "assets/chunk-X4PVZJE7.js",
+      "kind": "build",
+      "sha256": "92d444db48bde4b4d010454bd04174c58a6c5f762800d9643131438752c8bc83",
+      "size": 6031
+    },
+    {
+      "path": "assets/chunk-X657MLYM.js",
+      "kind": "build",
+      "sha256": "fb23f0378ec119526d2cdeccd442f00c875c291fe98058f6714363fd3bc2d893",
+      "size": 360
+    },
+    {
+      "path": "assets/chunk-XCM5REQQ.js",
+      "kind": "build",
+      "sha256": "630b15f533c68643016e998b052614529f870cb37d6bf8693e4d150deb3c2b4e",
+      "size": 974
+    },
+    {
+      "path": "assets/chunk-XHRFXLWJ.js",
+      "kind": "build",
+      "sha256": "747fe8d3e159814774b9dc42b14a4836a16137ecf1ab3a61ac81a63fdf874ef9",
+      "size": 17913
+    },
+    {
+      "path": "assets/chunk-XM4QLZRO.js",
+      "kind": "build",
+      "sha256": "8699117ffbcf255ef6b45fada25f2375747b5f052933728220e927c0d6e1b0db",
+      "size": 3466
+    },
+    {
+      "path": "assets/chunk-XMRI3QCM.js",
+      "kind": "build",
+      "sha256": "b7cb29f556305555fd7382a36eef4f00e1a2398cfec8493c03792d60fa962fef",
+      "size": 14658
+    },
+    {
+      "path": "assets/chunk-XN5SHBB5.js",
+      "kind": "build",
+      "sha256": "6cf9d1a9bec6c5eaf32ae3c8e81abf5cce8cd24bb3917033d92237c3dcbb63b4",
+      "size": 144
+    },
+    {
+      "path": "assets/chunk-XN6LJFK6.js",
+      "kind": "build",
+      "sha256": "e0b3b7c62f1a232355073e3b77cb6d295bc7cd505dd71123354f114b247fcd9b",
+      "size": 504
+    },
+    {
+      "path": "assets/chunk-XNIJGFCG.js",
+      "kind": "build",
+      "sha256": "92d91b3fa06d1da4eea1421972cc3e41345837f6d56ae033bab7bb782e027b00",
+      "size": 1894
+    },
+    {
+      "path": "assets/chunk-XOESA2E5.js",
+      "kind": "build",
+      "sha256": "6ddceff67152db4b178cb6f141fec82fe556e33bcda44645e9ba3f2d285222bf",
+      "size": 1031
+    },
+    {
+      "path": "assets/chunk-XTAUVVA2.js",
+      "kind": "build",
+      "sha256": "68c3101ff6db70e787d8c6a8863b59bde324c5426edf121c73f40b60dd5cc1e6",
+      "size": 7180
+    },
+    {
+      "path": "assets/chunk-XVCT5JBS.js",
+      "kind": "build",
+      "sha256": "d27c27495972e41a5261c4a29a2fde0c80d533db8df37446c01d1d84564568e4",
+      "size": 3608
+    },
+    {
+      "path": "assets/chunk-XVW7YTK2.js",
+      "kind": "build",
+      "sha256": "49af5b1694d1fac028815952ff8658d02ec87c21aa1c68a67f7690e5a4fd63de",
+      "size": 20570
+    },
+    {
+      "path": "assets/chunk-XWE2HOC2.js",
+      "kind": "build",
+      "sha256": "354f3b97005805726342e946e30b4d82d9f4d4a2af3d3a0238180aa8a3f42537",
+      "size": 9036
+    },
+    {
+      "path": "assets/chunk-XWUUV27X.js",
+      "kind": "build",
+      "sha256": "6f218505500dcf11fce8ab5fe78efb44f00ac6b23a0d217dd5a47ed964a971aa",
+      "size": 1135
+    },
+    {
+      "path": "assets/chunk-Y3NDMYJO.js",
+      "kind": "build",
+      "sha256": "8f70d8eaf2c1c8ffd1216401c3b76a5f1f36d0cddd3fb77e531405d81ce9fa07",
+      "size": 4666
+    },
+    {
+      "path": "assets/chunk-Y5FNXSIV.js",
+      "kind": "build",
+      "sha256": "97ca1ea1a8c6678c4570ca22b2177bc3a4ced0ebbd9b245751292a04f5a9f8e3",
+      "size": 607
+    },
+    {
+      "path": "assets/chunk-Y5UKQNAM.js",
+      "kind": "build",
+      "sha256": "a88780cd843ee5b8e4a89562ca95711cff1fae8148d839907ae618ff561a5206",
+      "size": 16487
+    },
+    {
+      "path": "assets/chunk-YD33JNBT.js",
+      "kind": "build",
+      "sha256": "3cb0dc0b2a5c1763c22d7f39f776accf09d9553826882b702814c1933d018478",
+      "size": 88858
+    },
+    {
+      "path": "assets/chunk-YIFFGNYS.js",
+      "kind": "build",
+      "sha256": "7b6a0bcd3d1cae4fc3687706209ba3a9f62a1211966dcb025b314a1c9b915b38",
+      "size": 967
+    },
+    {
+      "path": "assets/chunk-YOTFAZQW.js",
+      "kind": "build",
+      "sha256": "8fd339ab059fb4e2a3d764892f4df4c93577bf92a057383815ee6af36cfa7786",
+      "size": 169
+    },
+    {
+      "path": "assets/chunk-YROZPH6Z.js",
+      "kind": "build",
+      "sha256": "1489168c6d5f363b034e449d9299efbaee138b0149e3572a2f55f7ed45799ae6",
+      "size": 14611
+    },
+    {
+      "path": "assets/chunk-YTUTOEVH.js",
+      "kind": "build",
+      "sha256": "e597cba94c9d6182692974b01e3d422a4a79c4eda1d21aba1acdeb761c368560",
+      "size": 36679
+    },
+    {
+      "path": "assets/chunk-YXFWOKVN.js",
+      "kind": "build",
+      "sha256": "42d04cb819ff0386f27816a33187364cd9a030fe3235735fb5d817c855508a78",
+      "size": 557
+    },
+    {
+      "path": "assets/chunk-Z2PENOHW.js",
+      "kind": "build",
+      "sha256": "94e92035852f0d17ed38a350def40da414c8f4364681b9c50c585879c36a4355",
+      "size": 1156
+    },
+    {
+      "path": "assets/chunk-Z3OCRQEU.js",
+      "kind": "build",
+      "sha256": "88b9ff260a82eba38384e8179fb5f9a7c611d3bc9effe6a36374c6abac80c079",
+      "size": 269
+    },
+    {
+      "path": "assets/chunk-Z4SVM4CK.js",
+      "kind": "build",
+      "sha256": "448c69d84cbb611f57d4c81a0d5ee47bba52b89b45376812abbd6b4eda6e9a70",
+      "size": 9546
+    },
+    {
+      "path": "assets/chunk-Z4WBI4PX.js",
+      "kind": "build",
+      "sha256": "c9529be7a2de31c222f5bdfb7c9ba35183862ee96fe6220de6ddd685677c86fd",
+      "size": 9416
+    },
+    {
+      "path": "assets/chunk-Z52IP6YA.js",
+      "kind": "build",
+      "sha256": "c680c4b8c72d6046ab8020ce4dc115977ee8f949fd0c02e6fa4b6ce4ef4438c5",
+      "size": 1111
+    },
+    {
+      "path": "assets/chunk-ZAIE3JIZ.js",
+      "kind": "build",
+      "sha256": "61ffafc78f3381f067b3035a1cc7fd646782be9c22a9bff7b4535e3f22717bf5",
+      "size": 1053
+    },
+    {
+      "path": "assets/chunk-ZAILVROT.js",
+      "kind": "build",
+      "sha256": "34a924c64df763fcad9cad1ce9d5f22bf8de7de275dce0de5be4497c0c92aee0",
+      "size": 8513
+    },
+    {
+      "path": "assets/chunk-ZBXD6SNW.js",
+      "kind": "build",
+      "sha256": "8fea950290a6cafe9732b2870a0a80e814ef89d7999898d73cfa1fd391468f43",
+      "size": 1783
+    },
+    {
+      "path": "assets/chunk-ZEHMCUPY.js",
+      "kind": "build",
+      "sha256": "db11a6a2ad6311f0f11aa74ac1e400906fa485ab3d0474a35d2f46a16a2156ac",
+      "size": 241
+    },
+    {
+      "path": "assets/chunk-ZEQ6C324.js",
+      "kind": "build",
+      "sha256": "78b0724426c8fc072e07f372adc9042df8f5f7136ee79ac20edc064f7a8643b4",
+      "size": 1232
+    },
+    {
+      "path": "assets/chunk-ZG3FGNN4.js",
+      "kind": "build",
+      "sha256": "35baf277a2d6795b731011a9d43633f53ed88766aa9f153c3df982a8f2e228a6",
+      "size": 2696
+    },
+    {
+      "path": "assets/chunk-ZINR7EBO.js",
+      "kind": "build",
+      "sha256": "94442677153dae26ce2ae7ddc244b0d2060c29df870d3b18af606732f7fa0c2a",
+      "size": 948
+    },
+    {
+      "path": "assets/chunk-ZJAYO3YW.js",
+      "kind": "build",
+      "sha256": "bc8d3e0f36bde3691fa1f2da790d6f33d3da48ceb96df3ac8daa7f2c287c1934",
+      "size": 1781
+    },
+    {
+      "path": "assets/chunk-ZLDZ2MKY.js",
+      "kind": "build",
+      "sha256": "0ae08e269e8b46067848c4d13c4f527a23b395c93cae9571e9ad68e4b45e758a",
+      "size": 934
+    },
+    {
+      "path": "assets/chunk-ZMVCSV3I.js",
+      "kind": "build",
+      "sha256": "44478e6dfed3e8e0ac746d0cb4ea32c2cd3bd7d0b07d34bc4dd70b195bdd5b35",
+      "size": 234
+    },
+    {
+      "path": "assets/chunk-ZNMPJHAM.js",
+      "kind": "build",
+      "sha256": "06bfe64673e147349fbc1a26fcc5fc4a303ff081e6434872e177b5f5290f9186",
+      "size": 4772
+    },
+    {
+      "path": "assets/chunk-ZOSHCXUZ.js",
+      "kind": "build",
+      "sha256": "2c175bd06727534388349154f9ba7f199293a86581a2e7882df92d8d432a597d",
+      "size": 2684
+    },
+    {
+      "path": "assets/chunk-ZP7RETTE.js",
+      "kind": "build",
+      "sha256": "ec72ba7c1ac8507df21b139d4a39b86d618dd79f2e9a1a732eafa4a6d38395db",
+      "size": 974
+    },
+    {
+      "path": "assets/chunk-ZRP4BBTR.js",
+      "kind": "build",
+      "sha256": "e4bd3685f9ff3479b5f70548df238fcba49ae82d9e4b1c422b954af5cdef17a0",
+      "size": 1882
+    },
+    {
+      "path": "assets/chunk-ZT25LGQ2.js",
+      "kind": "build",
+      "sha256": "06c92a36bd043677978f7bc13bb6c4ff53587d5438eb9e6077f02fc400ef485c",
+      "size": 3058
+    },
+    {
+      "path": "assets/chunk-ZTCHNOLQ.js",
+      "kind": "build",
+      "sha256": "8bcb83399694a32121712b4030b783003c850d22580fe24c0092cad6e559b88f",
+      "size": 1876
+    },
+    {
+      "path": "assets/chunk-ZTD6TU5T.js",
+      "kind": "build",
+      "sha256": "60f6ee80a120efd7c93abd0a0bf7eef06ebbc95acf157b38e32e20b90c1a2b5c",
+      "size": 2596
+    },
+    {
+      "path": "assets/chunk-ZTYDKFIC.js",
+      "kind": "build",
+      "sha256": "f373a55138d4fbb5e10632c0270e1046d6c8acc1ebac101db1543ed9b994dd2a",
+      "size": 492
+    },
+    {
+      "path": "assets/chunk-ZUIZYQZP.js",
+      "kind": "build",
+      "sha256": "b7da4ca2ce7b2ffb3f15f57b3f4f8851fe679e5e8ce8f49a7f9b3ca4668234e0",
+      "size": 2951
+    },
+    {
+      "path": "assets/chunk-ZVE3ZYKD.js",
+      "kind": "build",
+      "sha256": "9a1723a9b6f8038e637db8ebbcc2da193717a0ad873308b1ef9555829cad7b0c",
+      "size": 999
+    },
+    {
+      "path": "assets/chunk-ZVHDYET7.js",
+      "kind": "build",
+      "sha256": "2cae475c237a05bc09057051062e3d8a5b613f78ba667123287aca9722f61180",
+      "size": 5152
+    },
+    {
+      "path": "assets/chunk-ZXSYMYMG.js",
+      "kind": "build",
+      "sha256": "a5fbfd0fc2b8d67fe3402737d1e65bc10b502facf9b0dc4204f2527b3c38df0e",
+      "size": 814
+    },
+    {
+      "path": "assets/eleusis/finish/dressed-limestone.jpg",
+      "kind": "build",
+      "sha256": "f89393dc586e505573b57911ac4009dee3aa0b12f4b5d62c8647a00baf1c4d02",
+      "size": 50099
+    },
+    {
+      "path": "assets/eleusis/finish/lime-plaster.jpg",
+      "kind": "build",
+      "sha256": "d2be0d6e6d44249af79a22c4f45482b5d8b96d7e40fc06011576a2b7155ee713",
+      "size": 45756
+    },
+    {
+      "path": "assets/eleusis/finish/planed-cypress.jpg",
+      "kind": "build",
+      "sha256": "3f42f35d23b3870b7a7a66acba10fbf5076ad81eb905a9d846904c4a3f7dba09",
+      "size": 106017
+    },
+    {
+      "path": "assets/eleusis/finish/provenance.json",
+      "kind": "build",
+      "sha256": "ba8f60405c6ffcca2f298b8d597523a385f0ce963d62929ad6d07620850303f2",
+      "size": 771
+    },
+    {
+      "path": "assets/eleusis/provenance.json",
+      "kind": "build",
+      "sha256": "305ebd5e69ef0053562997add964f7d9b61f8f2b1a905c8f5600b6afe7fd2ced",
+      "size": 887
+    },
+    {
+      "path": "assets/eleusis/telesterion.glb",
+      "kind": "build",
+      "sha256": "382e4839a99e07fe477b26125155ba456af817ff7fca6d4047d817eb55e4a937",
+      "size": 8964616
+    },
+    {
+      "path": "assets/sparta-compact-hud-RF4JSPRL.js",
+      "kind": "build",
+      "sha256": "91f500c513620a5445a5ae490a9dee8032911f1cabd10cb37d1f30846dc42835",
+      "size": 9932
+    },
+    {
+      "path": "assets/sparta-golden-ground-a4faac084320.js",
+      "kind": "build",
+      "sha256": "a4faac084320bd4962bf3d1391dee8a83394ade619a6269c2428da0986c8e57f",
+      "size": 25549
+    },
+    {
+      "path": "assets/sparta-native-working-abc8821bdc90.js",
+      "kind": "build",
+      "sha256": "abc8821bdc90a53ea7efddb52c7728e7deff24e2b47afe53324b51a38c9546b3",
+      "size": 5103580
+    },
+    {
+      "path": "assets/sparta-packed-earth-1911c4d2d186.js",
+      "kind": "build",
+      "sha256": "1911c4d2d186e8ddcdd132d6e2712239e2e1f09a4cf48255ddc8fbcaba220f6d",
+      "size": 29732
+    },
+    {
+      "path": "assets/sparta-pbr-earth-971fead23328.js",
+      "kind": "build",
+      "sha256": "971fead23328e2ccdb68df4065fa588f2c58cdbf7be5c7117d6865604eebc72f",
+      "size": 28380
+    },
+    {
+      "path": "assets/sparta-player-follow-0f05dd8eee4b.js",
+      "kind": "build",
+      "sha256": "0f05dd8eee4b3e2b50993c1a18d01e4f6e89b7e889c0427a5598f7583db1297a",
+      "size": 60872
+    },
+    {
+      "path": "assets/sparta-sheep/5be85d4f0fa620adb5bd258fb3faec0f87c998453aea314b5997e72a5e962027/laconian-sheep-v01.glb",
+      "kind": "build",
+      "sha256": "5be85d4f0fa620adb5bd258fb3faec0f87c998453aea314b5997e72a5e962027",
+      "size": 57995340
+    },
+    {
+      "path": "assets/sparta-working-valley-natural-9cfdae76c3f5.js",
+      "kind": "build",
+      "sha256": "9cfdae76c3f55f130d074d9531411d59d3afa521ad0c304d0af724373a9df761",
+      "size": 21376
+    },
+    {
+      "path": "assets/sparta-working-valley-QDGXTYHV.js",
+      "kind": "build",
+      "sha256": "f81e11e4c80fd3e92da8a5b8038585f17f1de448111cbd7b5b64583064eee7b4",
+      "size": 11078
+    },
+    {
+      "path": "assets/sparta-yard-donkey-NCBVD5QT.js",
+      "kind": "build",
+      "sha256": "14df36aa428cf014958bedbaefe967bd3815aed97b4979d720328c644a42c118",
+      "size": 3304
+    },
+    {
+      "path": "assets/sparta-yard-lead-floor-69d3880e781b.js",
+      "kind": "build",
+      "sha256": "69d3880e781bff785fb4f364f372aa286333dacb6b80fc6ee8ec0b0e8678bbff",
+      "size": 42803
+    },
+    {
+      "path": "assets/sparta-yard-lead-H2MXTPYY.js",
+      "kind": "build",
+      "size": 39932,
+      "sha256": "a807f55d89b14bbefca64a64ef9dc7b609150e05a7f9919a2d8b5d8781d0e4e0"
+    },
+    {
+      "path": "assets/sparta-yard-lead-normal-c2f418ecde9f.js",
+      "kind": "build",
+      "sha256": "c2f418ecde9fe2de48556f839b56c4a88c8e43fb59fef9a33a88a3342e2f0fb4",
+      "size": 43357
+    },
+    {
+      "path": "audio/ambience_agora.mp3",
+      "kind": "asset",
+      "sha256": "67bdf6818f6aeee04f3a3fb0f19ea5955cc202154201493447e281951c1ecfd3",
+      "size": 92
+    },
+    {
+      "path": "audio/ambience_habor.mp3",
+      "kind": "asset",
+      "sha256": "af03da322f31c31e262775f1308ab75af8ad6aca4adccfeb4c2644d0ee97bfd8",
+      "size": 5697120
+    },
+    {
+      "path": "audio/ambient_sea.ogg",
+      "kind": "asset",
+      "sha256": "28c937dfdd2b5fbabe542d6802f4aadbaa2b092576ab90813b12109e0ea189a3",
+      "size": 2303040
+    },
+    {
+      "path": "audio/fx_footstep_dirt.mp3",
+      "kind": "asset",
+      "sha256": "84013cd9baa14c8bb864c16ff8284a2585fe502b3921b94644faddc4f5fe2fcd",
+      "size": 1121280
+    },
+    {
+      "path": "audio/fx_footstep_stone.mp3",
+      "kind": "asset",
+      "sha256": "26fe05af40e62ed03c4ef2004ade365783bc42d8d8ce736bbd469ac38252dbe1",
+      "size": 1017600
+    },
+    {
+      "path": "audio/gulls.ogg",
+      "kind": "asset",
+      "sha256": "70eab6c1d8434e0b9c76e3bf5665ab8da7dfae781e791c707171a1283e588468",
+      "size": 1152480
+    },
+    {
+      "path": "audio/manifest.json",
+      "kind": "asset",
+      "sha256": "fb8e148d369116f03fde00ff8071a3071561acc2f9f1787d8274dbd38d8825f3",
+      "size": 927
+    },
+    {
+      "path": "audio/README.md",
+      "kind": "asset",
+      "sha256": "9cd02db5faa6ac570daade6356b7a8c98cd1fb9ce265de154ff24fb8d1e090b7",
+      "size": 900
+    },
+    {
+      "path": "config/districts.json",
+      "kind": "asset",
+      "sha256": "50660d3a6e31e3ff8fd8a35f5c250b8dee0389dbd6db79fba7764286c01f0ba3",
+      "size": 1990
+    },
+    {
+      "path": "draco/.gitignore",
+      "kind": "asset",
+      "sha256": "231e65b3489a406d7f188ddb03b6e98a6c4b2325671080f426e89bc809ff7273",
+      "size": 66
+    },
+    {
+      "path": "draco/draco_decoder.js",
+      "kind": "asset",
+      "sha256": "5656ccaf1f50300e3c318e15c3313430483f3866cd9c25f22fbf9d6f229e6728",
+      "size": 720148
+    },
+    {
+      "path": "draco/draco_decoder.wasm",
+      "kind": "asset",
+      "sha256": "c55a594e8ffd18426d36b27fea9618af3df5e173640a3e56d46f09d76f0574f2",
+      "size": 285747
+    },
+    {
+      "path": "draco/draco_wasm_wrapper.js",
+      "kind": "asset",
+      "sha256": "e8049906ef3f8f75d3456c22a3f31bfdfe5b5b5bd09ccdec613b9e9a49d554d8",
+      "size": 58763
+    },
+    {
+      "path": "favicon.ico",
+      "kind": "asset",
+      "sha256": "c97d18e6a68bb827bd507478118cb8f3735e0e8de6a6ae33e76f5f0e5c645b1d",
+      "size": 1174
+    },
+    {
+      "path": "hdr/clear_midday.exr",
+      "kind": "asset",
+      "sha256": "fa93d80150fd52b316df91c5294ee4832956fd17279e9416b71533f06db12179",
+      "size": 7108191
+    },
+    {
+      "path": "hdr/clear_midday.hdr",
+      "kind": "asset",
+      "sha256": "29bd4a52a40405df31dbaeee59a821c84c1b409ee6cb68ea1a058f0b04c633a0",
+      "size": 25640286
+    },
+    {
+      "path": "hdr/clear_noon_1k.exr",
+      "kind": "asset",
+      "sha256": "fa93d80150fd52b316df91c5294ee4832956fd17279e9416b71533f06db12179",
+      "size": 7108191
+    },
+    {
+      "path": "hdr/clear_noon.exr",
+      "kind": "asset",
+      "sha256": "fa93d80150fd52b316df91c5294ee4832956fd17279e9416b71533f06db12179",
+      "size": 7108191
+    },
+    {
+      "path": "hdr/placeholder.txt",
+      "kind": "asset",
+      "sha256": "ee13219519d91f4c2de6c457ceb7b19205b6c5ea0e8ca8c94bfc2fbe224e6470",
+      "size": 507
+    },
+    {
+      "path": "models/animals/nisean-chariot-v01.glb",
+      "kind": "asset",
+      "sha256": "af191139b517a4b3d73a8bac744d6e16e92b2bb8135b7601312d451472a9ff14",
+      "size": 5852100
+    },
+    {
+      "path": "models/animals/nisean-chariot-v02.glb",
+      "kind": "asset",
+      "sha256": "b5f6dbae32936ef2f1526922349440591067b6c28dc0236b92ccdbec72134eed",
+      "size": 5852236
+    },
+    {
+      "path": "models/animals/nisean-chariot-v02.provenance.json",
+      "kind": "asset",
+      "sha256": "07922aa17204f06db1c51b703b6d53abf545e0d69e7cccfe1bdb92317dcd574f",
+      "size": 707
+    },
+    {
+      "path": "models/buildings/aristotle_tomb_in_macedonia_greece.glb",
+      "kind": "asset",
+      "sha256": "a14e803fd453fe4df976281d4d0fe46b7e07ba6769f2fd92ec25b9c888e1f75f",
+      "size": 4833392
+    },
+    {
+      "path": "models/buildings/house.glb",
+      "kind": "asset",
+      "sha256": "970158e047b8f8ae4d016ba7d00659900d061fe0972451bcdf809268a2bc5c98",
+      "size": 2066576
+    },
+    {
+      "path": "models/buildings/new-athens-courtyard-v1.glb",
+      "kind": "asset",
+      "sha256": "b8d9ded530e9d0d065557493385927052d55e68eb1e96d5e783869bdb7959222",
+      "size": 11468644
+    },
+    {
+      "path": "models/buildings/olive-compact-house.glb",
+      "kind": "asset",
+      "sha256": "25d60d1bbb033dd39debcbc96178a55750eec1b892b3e981b314fe5a63ea7068",
+      "size": 1145652
+    },
+    {
+      "path": "models/buildings/olive-open-workshop.glb",
+      "kind": "asset",
+      "sha256": "472621378944b6cec45f4c7571188689e93ccc9ccfac4a0fd47ace84cdb2c69b",
+      "size": 549236
+    },
+    {
+      "path": "models/buildings/olive-pottery-court.glb",
+      "kind": "asset",
+      "sha256": "198f8592dcf3e12e2fd82fca31b02ef355bb448317576e665c3002519ab33797",
+      "size": 1924660
+    },
+    {
+      "path": "models/buildings/olive-reception-house.glb",
+      "kind": "asset",
+      "sha256": "ffd489a4b04d5421c6c716699b36f5e67ba52547eea5ae8b1ef97ad3f1c7e6ab",
+      "size": 8696688
+    },
+    {
+      "path": "models/buildings/olive-workshop-door.glb",
+      "kind": "asset",
+      "sha256": "2fa84a8b9b65f26d265ff0ff7662cdfecceba947fcd4545a0f86ebb911804f62",
+      "size": 1175392
+    },
+    {
+      "path": "models/buildings/README.md",
+      "kind": "asset",
+      "sha256": "2d0f7126688afd4501f39c0205fc9aac67def81a45da5942c09504eeaeadfdee",
+      "size": 346
+    },
+    {
+      "path": "models/character/.gitkeep",
+      "kind": "asset",
+      "sha256": "20e9eb4db7055c14fdeb5e6077e9864d79ebbcb2a9d6ca4f3bf55f6f9fedf221",
+      "size": 65
+    },
+    {
+      "path": "models/character/Aristotle_Athens_v01.glb",
+      "kind": "asset",
+      "sha256": "f57e4048531b03a80d1ffdcf68e120832e343f8ac9ed159d82d841e7800889d1",
+      "size": 764928
+    },
+    {
+      "path": "models/character/astronaut.glb",
+      "kind": "asset",
+      "sha256": "c825fb5dc0f3c2875f8c298938c35df79e884c8117d9ff62a6b213d783957758",
+      "size": 1944976
+    },
+    {
+      "path": "models/character/diogenes-pithos-5f5e2679.glb",
+      "kind": "asset",
+      "sha256": "5f5e2679bfbb2571ed89bab9571e7431b45dee44d08cc92ccbcc22624ce83e2d",
+      "size": 1855100
+    },
+    {
+      "path": "models/character/diogenes-pithos-5f5e2679.provenance.json",
+      "kind": "asset",
+      "sha256": "00d57184216716eca559aecd85cc88309a0f2d3ef3a83dec55bc8edb57076ca1",
+      "size": 637
+    },
+    {
+      "path": "models/character/diogenes-pithos-v01.glb",
+      "kind": "asset",
+      "sha256": "67b4d739021c67b00afa1ee83a97ea12245aecc1795e096fb654057f88080696",
+      "size": 23004
+    },
+    {
+      "path": "models/character/diogenes-v01.glb",
+      "kind": "asset",
+      "sha256": "ca860b06288ed9aa713ac66af2b40bbeb591363d38d99230454202448a87740d",
+      "size": 393796
+    },
+    {
+      "path": "models/character/hero.glb",
+      "kind": "asset",
+      "sha256": "a3d2cfc994f0cec16ce983bdcf8b7d4b369ededa1b10eaacff167999f273902d",
+      "size": 1557452
+    },
+    {
+      "path": "models/character/hoplite-country-v05.glb",
+      "kind": "asset",
+      "sha256": "0e1d20e422a960ba7f4490bfd6e6a233736139f6a2638283695941a2a25113c2",
+      "size": 2784280
+    },
+    {
+      "path": "models/character/hoplite-meshy-v08.glb",
+      "kind": "asset",
+      "sha256": "fbc855d945b534324559711dbfc144e6b4342203b8e501a0c4c29e0a2465b5eb",
+      "size": 50000884
+    },
+    {
+      "path": "models/character/hoplite-unarmed-v06.glb",
+      "kind": "asset",
+      "sha256": "63383f82182123b4e4fda64f4a14369d68c37b6b6e8e3f285c9bdf75d0fc55eb",
+      "size": 2252768
+    },
+    {
+      "path": "models/character/hoplite-unarmed-v06.glb.provenance.json",
+      "kind": "asset",
+      "sha256": "bacf5ca6c42bfab0e71cd470ba76ca2dd339665a1cbc29ebb633c22342398e8a",
+      "size": 1915
+    },
+    {
+      "path": "models/character/hoplite-unarmed-v07.glb",
+      "kind": "asset",
+      "sha256": "038743ab5e8a95a0a255a5b722c06cf1b7307fce07e1ddf8e7c24fc9189820f8",
+      "size": 2370580
+    },
+    {
+      "path": "models/character/hoplite-unarmed-v07.glb.provenance.json",
+      "kind": "asset",
+      "sha256": "6580b26a0a54575d99a0343459cd5a8f8bbd1142dea73a786b10c75e73aa4a68",
+      "size": 17685
+    },
+    {
+      "path": "models/character/hoplite-v03.glb",
+      "kind": "asset",
+      "sha256": "08620456de08589a3a7bf5292b8e38c68ee3a2f593e603bd712ae21237dd1dfe",
+      "size": 2393912
+    },
+    {
+      "path": "models/character/hoplite-v04.glb",
+      "kind": "asset",
+      "sha256": "03113e5c4c9e1716a06a365115ee5f9338b49348ee71e447cc3afb26681aaa15",
+      "size": 2393888
+    },
+    {
+      "path": "models/character/HOPLITE.txt",
+      "kind": "asset",
+      "sha256": "9465faa73a2d882d37f590023f7dc9e539d1dfb9d9389c4d391524b6e2b327b8",
+      "size": 413
+    },
+    {
+      "path": "models/character/myrto-v01.glb",
+      "kind": "asset",
+      "sha256": "9c335b1145b9ea0fa32f5ac382ce5e98db0a46e7d7513562f08603b6293acb21",
+      "size": 3023588
+    },
+    {
+      "path": "models/character/MYRTO.txt",
+      "kind": "asset",
+      "sha256": "1301b055d9001d29881ec6ee281f9c51c9ed7105b981882cfc0d9d7acdc2fdf8",
+      "size": 5637
+    },
+    {
+      "path": "models/character/Plato_Athens_v01.glb",
+      "kind": "asset",
+      "sha256": "1dd21d51df4962783a4103ec2f30b086979bb11af2479a325f496fa78f0c6ad9",
+      "size": 802492
+    },
+    {
+      "path": "models/character/README.md",
+      "kind": "asset",
+      "sha256": "9c4fbf622771de223a9b2c213a34ff9f712e29c6809617681d449eb14195ebd6",
+      "size": 902
+    },
+    {
+      "path": "models/character/socrates-meshy-e30ac1a0.glb",
+      "kind": "asset",
+      "sha256": "e30ac1a05465349fea664e1898bf9a95695be889d78f8417d414e1f8dec06b01",
+      "size": 19145304
+    },
+    {
+      "path": "models/character/SOCRATES-MESHY.md",
+      "kind": "asset",
+      "sha256": "22bf3d695bf4cb365f67c490efb373d1eb40c667cde7fbdcfcbc3fa62c58a53c",
+      "size": 1454
+    },
+    {
+      "path": "models/character/socrates-v01.glb",
+      "kind": "asset",
+      "sha256": "bfddb2f21b2546b5b5b0b6aea74d3e913712517e1e6e81d8080f291267e37bad",
+      "size": 2568216
+    },
+    {
+      "path": "models/character/socrates-walking-v02.glb",
+      "kind": "asset",
+      "sha256": "abffb11bbd53eabb1925eb98fa671d5bdc8f5096df7e235a4f0fb1ebdd00ef97",
+      "size": 2584700
+    },
+    {
+      "path": "models/character/SOCRATES.md",
+      "kind": "asset",
+      "sha256": "d853af2c16a9f9e42591d99d5dd7dafd03dedaed3bae5e6e4b40e57c7530a911",
+      "size": 3525
+    },
+    {
+      "path": "models/city-edge/asset-manifest.json",
+      "kind": "asset",
+      "sha256": "256bab8d96fb865e3013fa8e60fa28f9fbdf9dc4d36e3d5302fb1df95962beac",
+      "size": 449
+    },
+    {
+      "path": "models/city-edge/city-edge-kit.glb",
+      "kind": "asset",
+      "sha256": "509447d16dbcc529054e0ca1d32ead8608887130959d3bb37ec8d9b022fe8955",
+      "size": 600848
+    },
+    {
+      "path": "models/households/household-kit-36896a53de96.glb",
+      "kind": "asset",
+      "sha256": "36896a53de96173cfd4978a3b4d51f6f273a389df6a42005d89dbe94867645ea",
+      "size": 593880
+    },
+    {
+      "path": "models/landmarks/acropolis/propylaia-collision-v1.glb",
+      "kind": "asset",
+      "sha256": "8a40266ffecac970640a549d94e4700636178e83dcb3dade725a54beb45efa5d",
+      "size": 131828
+    },
+    {
+      "path": "models/landmarks/acropolis/propylaia-v1.glb",
+      "kind": "asset",
+      "sha256": "055d145dce58771b7bd0c37a04b1ba384f5be7df6c82c899821516ff87709859",
+      "size": 4412224
+    },
+    {
+      "path": "models/landmarks/acropolis/README.md",
+      "kind": "asset",
+      "sha256": "ecf6b05c9d006cc2ca79d8aa5e9c04c5611029f56bd06c610de6d04b77d10c64",
+      "size": 2402
+    },
+    {
+      "path": "models/landmarks/akropol.glb",
+      "kind": "asset",
+      "sha256": "391a2f770bf69ea5ff176a38febfd7c735338f0a3102398e8cf08b9aa1f357e6",
+      "size": 120
+    },
+    {
+      "path": "models/landmarks/poseidon_temple.glb",
+      "kind": "asset",
+      "sha256": "81e4b2b590b2aef11d639d0caab65593f22127ffac932e94bdcc485b3c5ccc61",
+      "size": 1416108
+    },
+    {
+      "path": "models/landmarks/README.md",
+      "kind": "asset",
+      "sha256": "1ce17b8125395f16d2cc2df10b5c721c14faf6e77664aafba353544e1ca834d6",
+      "size": 496
+    },
+    {
+      "path": "models/landscape/asset-manifest.json",
+      "kind": "asset",
+      "sha256": "763dfdcc8d3bd724010af74fe8a05fd4848d84b19186f727d6693c2d5b841e85",
+      "size": 352
+    },
+    {
+      "path": "models/landscape/attic-landscape-kit.glb",
+      "kind": "asset",
+      "sha256": "126a026c8058ddd5574f3170edf6cda14baecc2f0f405a7fbe592fb21800db5c",
+      "size": 110980
+    },
+    {
+      "path": "models/new-athens/acropolis-rockface-9db2ad32.glb",
+      "kind": "asset",
+      "sha256": "9db2ad3260fa3e944d1c1ebcaa060189b16e547c78a637983d19f32a1931242a",
+      "size": 2006148
+    },
+    {
+      "path": "models/new-athens/athena-parthenos-8318aabdc629.glb",
+      "kind": "asset",
+      "sha256": "8318aabdc6295a936b4910800edbed0e4fca31c3aaa32fc0fb08ece7220c4185",
+      "size": 30192040
+    },
+    {
+      "path": "models/new-athens/eponymous-heroes-262634a9.glb",
+      "kind": "asset",
+      "sha256": "262634a933048ea372ab099c0e91f6eb559ca0e6aac43eb761ccd2a8d56ee5f9",
+      "size": 7245532
+    },
+    {
+      "path": "models/new-athens/parthenon-c3025399.glb",
+      "kind": "asset",
+      "sha256": "c3025399d38cebd7173d1c0eb0c8928cc258fcc358c06e5c0538b84444760542",
+      "size": 26156640
+    },
+    {
+      "path": "models/new-athens/parthenon-distance-55febc71.glb",
+      "kind": "asset",
+      "sha256": "55febc71d3e968871cbaabee0bc38139070f6b64c328a221f29b28b76682a509",
+      "size": 322944
+    },
+    {
+      "path": "models/new-athens/parthenon-near-1a7a6560.ATTRIBUTION.txt",
+      "kind": "asset",
+      "sha256": "bebd1fd64039eae290b36fe95a6ff6e7f3cec8baba49661ad69fea51d3415aaa",
+      "size": 1016
+    },
+    {
+      "path": "models/new-athens/parthenon-near-1a7a6560.glb",
+      "kind": "asset",
+      "sha256": "1a7a6560bf91cf0c7c4cd0e3e376659ee43ffc33673013cba00716e8dace5c35",
+      "size": 13424084
+    },
+    {
+      "path": "models/new-athens/parthenon-rebuilt-d1b48952.ATTRIBUTION.txt",
+      "kind": "asset",
+      "sha256": "93d0f5aad2f403ba846105a8823d0e4803c41caf922d92819b7dd484d0242d35",
+      "size": 903
+    },
+    {
+      "path": "models/new-athens/parthenon-rebuilt-d1b48952.glb",
+      "kind": "asset",
+      "sha256": "d1b48952213ff60e329ca099dd2d47e3d01bcb10a18bba0bafd922711463d52d",
+      "size": 16839148
+    },
+    {
+      "path": "models/new-athens/pithos-0b6007b3.glb",
+      "kind": "asset",
+      "sha256": "0b6007b3973a283bf3b3fe62c3cd19e3720b3c8e294841f552c9e406957fbca4",
+      "size": 15871664
+    },
+    {
+      "path": "models/npcs/manifest.json",
+      "kind": "asset",
+      "sha256": "cdfa5ac4b353e9c6f7c867163ccf21dc3c33af1508a618e151f67a3ae6f29583",
+      "size": 18
+    },
+    {
+      "path": "models/pottery/asset-manifest.json",
+      "kind": "asset",
+      "sha256": "9e62659127f553322f8de15b8205b82f7b737b8e9bdfa9e14d9a3e0ff1dcdaec",
+      "size": 637
+    },
+    {
+      "path": "models/pottery/attic-pottery-kit.glb",
+      "kind": "asset",
+      "sha256": "743c76a515a4a409024cb30e2ab589bd40e4954dbc0976566328268ea6a6b242",
+      "size": 251448
+    },
+    {
+      "path": "models/pottery/potter-kiln-fbc1cc8cb7e3.glb",
+      "kind": "asset",
+      "sha256": "fbc1cc8cb7e3eb78da39d4560b58cb4fe76d66e198c88b49c969b22943495344",
+      "size": 663032
+    },
+    {
+      "path": "models/vehicles/diphros-chariot-v01-attribution.txt",
+      "kind": "asset",
+      "sha256": "9123302ea963c9738b1ca77b30de95437bf0e7f1173715a47004f65d65c4313e",
+      "size": 1421
+    },
+    {
+      "path": "models/vehicles/diphros-chariot-v01.glb",
+      "kind": "asset",
+      "sha256": "397e6a4f960262272eaa17e77420640503ddf426538bcd2c26c1c0c3cd79179f",
+      "size": 5889608
+    },
+    {
+      "path": "philosophy-preview.html",
+      "kind": "asset",
+      "sha256": "ddc320141fd7cbe544f33a59c3518837c6fbd776f27ce78ac564b817d2d99c54",
+      "size": 272
+    },
+    {
+      "path": "socrates-preview.html",
+      "kind": "asset",
+      "sha256": "ddc320141fd7cbe544f33a59c3518837c6fbd776f27ce78ac564b817d2d99c54",
+      "size": 272
+    },
+    {
+      "path": "sparta/assets/animals/journey-donkey-motion.glb",
+      "kind": "build",
+      "size": 445312,
+      "sha256": "2e48196e57269ff20751852bd63ff10348876866bd8dac2733a3eeee2773dd7c"
+    },
+    {
+      "path": "sparta/assets/animals/player-follow-motion-b5753588c047.glb",
+      "kind": "build",
+      "sha256": "b5753588c04754788189f06d54611533af304bf47df5eaef78f127339418ff59",
+      "size": 182632
+    },
+    {
+      "path": "sparta/assets/animals/yard-donkey-idle.glb",
+      "kind": "build",
+      "sha256": "666413d16eb7b59e0d6ab9bf81012129d5f6179cf7c12e3059715b913faf6ced",
+      "size": 50318360
+    },
+    {
+      "path": "sparta/assets/character/spartan-warrior.glb",
+      "kind": "build",
+      "sha256": "9d40d098e394c3e5b11931772393b9e207d1a899511903eba14150c199aafc9b",
+      "size": 5591856
+    },
+    {
+      "path": "sparta/assets/environment/sparta-base.glb",
+      "kind": "build",
+      "sha256": "bb69f6d9c07d0ca154433c4361a1809bd0762017da5c2fc57e89b85e91e7b25d",
+      "size": 2184888
+    },
+    {
+      "path": "sparta/assets/intro/sparta-intro-kick.png",
+      "kind": "build",
+      "sha256": "8be58b07dbbbef580d18b7ef39936cc3c082a33233b4f175b5e3a5dc7ee6bafe",
+      "size": 2430380
+    },
+    {
+      "path": "sparta/assets/intro/sparta-intro-standoff.png",
+      "kind": "build",
+      "sha256": "0448cc2011e80032b776cdb2f51b391a056c4676329b96f2ef420af0a464e095",
+      "size": 2389912
+    },
+    {
+      "path": "sparta/assets/intro/sparta-intro.mp4",
+      "kind": "build",
+      "sha256": "528401962a6c696557f9422fb1df052376090a680381b1ef5f6147a6ba576956",
+      "size": 6067896
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-albedo.jpg",
+      "kind": "build",
+      "sha256": "db0d563089e4a4e2f6da0172297168718c9bd4413ff7912f0180bfda33b8c2b3",
+      "size": 4097984
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-ao.jpg",
+      "kind": "build",
+      "sha256": "284688f65c7b72a5bc169b352147cebff0ff335bba107375b79a27da16e5f64b",
+      "size": 3736230
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-arm.jpg",
+      "kind": "build",
+      "sha256": "0279eea78d3f9dc3edce3631a082d662d144fb2810ad0e8a36d20028f236c3c5",
+      "size": 3510676
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-normal.jpg",
+      "kind": "build",
+      "sha256": "ad1e336887cb37b7d3dd1ce4719ab393425fa715dffaffe01381d97d207d2248",
+      "size": 5311499
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/dry-earth-roughness.jpg",
+      "kind": "build",
+      "sha256": "e34b6cf6f59bd17293eca5b629d2a8af8d544587c61d5ec5002e25d6c72de851",
+      "size": 1732319
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-albedo.jpg",
+      "kind": "build",
+      "sha256": "2ae79eca983e17255455af66fe35f64fe408bebe32a1e60f6a84dcaf4eb3596c",
+      "size": 2227964
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-ao.jpg",
+      "kind": "build",
+      "sha256": "3cb24be5c139e2da92bd26d919fa6a3499d6ba82cf0e4666ac25e4fc1923ea99",
+      "size": 1413208
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-arm.jpg",
+      "kind": "build",
+      "sha256": "ec2eb50085b37e6cd918e8dc091d5d486f21f06e8da6f4e25a12ca1ed6571a0f",
+      "size": 906788
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-normal.jpg",
+      "kind": "build",
+      "sha256": "b2f6ecc9e8e252006b0763c83331b3733417b1df6aff9b4873d4b6c9161d4ca3",
+      "size": 3397270
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/packed-gravel-roughness.jpg",
+      "kind": "build",
+      "sha256": "abe15a581f6f96a0fbf50cf24102f8b38ead8351cddda69447fb8bf1acb889dd",
+      "size": 1516642
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/provenance.json",
+      "kind": "build",
+      "sha256": "881e63f636c6e726052e35a5605ee8cabf0ad8266c8b523b20db5162e1f2257b",
+      "size": 3972
+    },
+    {
+      "path": "sparta/assets/materials/mediterranean-earth-v1/README.md",
+      "kind": "build",
+      "sha256": "ad68c94a88e6549f7d5cb06a8f814ee3d6776c92cc12b388e4e5418df181e5e2",
+      "size": 1527
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/laconian-earth-albedo.jpg",
+      "kind": "build",
+      "sha256": "022c1a465ef3625a17c8d37ba0ceda240b2bad39e0215b84cd71933422fda0b3",
+      "size": 645576
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/laconian-earth-normal.jpg",
+      "kind": "build",
+      "sha256": "d7c5917cc362480b114bc0c3699c6809ac5e8c1021db59cdbdf012d856ecab8d",
+      "size": 931935
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/laconian-earth-roughness.jpg",
+      "kind": "build",
+      "sha256": "bebd24575ff2f0cb6d451bde8a4dc1c79392b8d8a802d6541100a757af143320",
+      "size": 267733
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/materials.json",
+      "kind": "build",
+      "sha256": "b8951704befad09c5a70292bade51e87531fdff6265e35e01e99a7b1f9bc2289",
+      "size": 1368
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/packed-gravel-road-albedo.jpg",
+      "kind": "build",
+      "sha256": "1c2637b599b79f795f83a9368a98b6b1200b5aaefee8d3d4809c928ad22fc2c6",
+      "size": 642899
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/packed-gravel-road-normal.jpg",
+      "kind": "build",
+      "sha256": "acf94809130034c91b09c32b90398aa77bc9ceecee158b544b89130ed3ad141f",
+      "size": 813610
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/packed-gravel-road-roughness.jpg",
+      "kind": "build",
+      "sha256": "0528e12e56ab39f41cf3935c2acaf4588a88c5c49b2e1eb27218e1d2408b0f08",
+      "size": 244986
+    },
+    {
+      "path": "sparta/assets/materials/southern-quarter/southern-quarter-road-mask.png",
+      "kind": "build",
+      "sha256": "d5ef3eb6313037662a0a3ee2ee166f3e3b219a15e8f798c2b5e56ff6a567d736",
+      "size": 310952
+    },
+    {
+      "path": "sparta/assets/working-valley/earth-albedo.jpg",
+      "kind": "build",
+      "sha256": "800f8e5d0defb3dd0e051c358d3d973f940ce9f042b7366478619a36d955478e",
+      "size": 336153
+    },
+    {
+      "path": "sparta/assets/working-valley/earth-normal.jpg",
+      "kind": "build",
+      "sha256": "a74ac35f5dd706328b7b1bbced8f716c3ad853f9fda9f002cabcc8ef0a9acafd",
+      "size": 646448
+    },
+    {
+      "path": "sparta/assets/working-valley/earth-roughness.jpg",
+      "kind": "build",
+      "sha256": "e5da0b4dabb81318dac183d3a76a1d9e51334de65130efd7680458e1dbff3acc",
+      "size": 99067
+    },
+    {
+      "path": "sparta/assets/working-valley/provenance.json",
+      "kind": "build",
+      "sha256": "b3e0bcf0c325f48417ce1f50373c63c26c8023f665691ee4839cd8145b243385",
+      "size": 3072
+    },
+    {
+      "path": "sparta/assets/working-valley/stone-albedo.jpg",
+      "kind": "build",
+      "sha256": "0114f25f96bee231b5f077d37fafaf14b0ceb62cf5229d512dedfae6f96d8d8b",
+      "size": 336766
+    },
+    {
+      "path": "sparta/assets/working-valley/stone-normal.jpg",
+      "kind": "build",
+      "sha256": "734f8a5e11c41e2ba6e88345b275a8a3d5bd092138ee32ad60dceb698eafa5e6",
+      "size": 451288
+    },
+    {
+      "path": "sparta/assets/working-valley/stone-roughness.jpg",
+      "kind": "build",
+      "sha256": "fcbd9f39459181b2b3a29d17c8f739b6c614096524fe722d775d28af988087b3",
+      "size": 58579
+    },
+    {
+      "path": "sparta/assets/working-valley/stucco-albedo.jpg",
+      "kind": "build",
+      "sha256": "edfe4bac20e611da402500fd63d80ff6907c71c86235c8f3557a5bd88c70477f",
+      "size": 91172
+    },
+    {
+      "path": "sparta/assets/working-valley/stucco-normal.jpg",
+      "kind": "build",
+      "sha256": "c845be250f7356b577afabe18007fcb2908e6931733973824b4c83deac914dd2",
+      "size": 114714
+    },
+    {
+      "path": "sparta/assets/working-valley/stucco-roughness.jpg",
+      "kind": "build",
+      "sha256": "358d33bf25cf25f7eb01a92a6cb433b7bbd6b12acf40421e2b55b04a12459acd",
+      "size": 33602
+    },
+    {
+      "path": "sparta/assets/working-valley/terracotta-albedo.jpg",
+      "kind": "build",
+      "sha256": "70101c699d7329982b51908fcf9a7af47ddde3867bca3954e5c2d874bbd9eb19",
+      "size": 226027
+    },
+    {
+      "path": "sparta/assets/working-valley/terracotta-normal.jpg",
+      "kind": "build",
+      "sha256": "ad7d9ed20c2e7ee6d61a8046b9491356109a43adf5da9377b3be640d9d25413d",
+      "size": 76466
+    },
+    {
+      "path": "sparta/assets/working-valley/terracotta-roughness.jpg",
+      "kind": "build",
+      "sha256": "8f52747fac40f24c0094be2427a37fc3c7e25e8a49138f46b976bd5a3959fdcf",
+      "size": 30891
+    },
+    {
+      "path": "sparta/assets/working-valley/wood-albedo.jpg",
+      "kind": "build",
+      "sha256": "6e32f7da618c419c80d58f1f7c095bb34c1624deb3af071fe61da00a76b34fc2",
+      "size": 423328
+    },
+    {
+      "path": "sparta/assets/working-valley/wood-normal.jpg",
+      "kind": "build",
+      "sha256": "0c375f6ea678ed04c9af85c47b38f9df8a93234336ff38963fdf5790bd5891ac",
+      "size": 637393
+    },
+    {
+      "path": "sparta/assets/working-valley/wood-roughness.jpg",
+      "kind": "build",
+      "sha256": "0eec8aea76352f5db4e8a38bda012b2b4a39aeedb1b1f9fc67006fb91b05b749",
+      "size": 48678
+    },
+    {
+      "path": "sparta/assets/workshop/sparta_pottery_workshop.glb",
+      "kind": "build",
+      "sha256": "7ff0a74d6595c1ee65c23064d17c2dcd28e0ce231f71d9c063460145c771fbce",
+      "size": 2478884
+    },
+    {
+      "path": "sparta/docs/HISTORICAL_NOTES.md",
+      "kind": "build",
+      "sha256": "f091a5b65600e7a2d4ffdab82cdf412d383cd560ef2e5fc73af1722bee779705",
+      "size": 3634
+    },
+    {
+      "path": "sparta/index.html",
+      "kind": "build",
+      "sha256": "b73578b6fb34961be8bf06b3991e15c7342340fb8bdd26dfb0a3d0a14b09b412",
+      "size": 8813
+    },
+    {
+      "path": "sparta/src/core/clearing.js",
+      "kind": "asset",
+      "sha256": "3919fa26e5bd736c5eeb0a76f67372af12f5f4149328b4f84020f9a69f64556e",
+      "size": 1891
+    },
+    {
+      "path": "sparta/src/core/pottery.js",
+      "kind": "asset",
+      "sha256": "b8c6da6aff883551a3f11104c3119a94876e058eaa85c8d9adbb8b5747c83ede",
+      "size": 2236
+    },
+    {
+      "path": "sparta/src/core/state.js",
+      "kind": "asset",
+      "sha256": "008504936eab23d3af1a51db57dfaafff9640828c23c087e22920b30247b2057",
+      "size": 3588
+    },
+    {
+      "path": "sparta/src/core/training.js",
+      "kind": "asset",
+      "sha256": "d3c5c10cd1aa92f6272d7437a107d060b1c5560d2333019d648fd4a88d67d88c",
+      "size": 3535
+    },
+    {
+      "path": "sparta/src/data/clearing.js",
+      "kind": "asset",
+      "sha256": "7448d97776298f28447001d97bdbaac41ee0486706e135b0b64ab5206605b92b",
+      "size": 713
+    },
+    {
+      "path": "sparta/src/data/district.js",
+      "kind": "asset",
+      "sha256": "110f807221868efef14b3c8874cd7521b25eb7d30aede365eb8917e912863fe9",
+      "size": 578
+    },
+    {
+      "path": "sparta/src/data/training.js",
+      "kind": "asset",
+      "sha256": "849a52aed12f436c0d2f6df41f44a18ac7b1ebf3f9fb433f4b8ff8f099bf1102",
+      "size": 1897
+    },
+    {
+      "path": "sparta/src/game/clearingController.js",
+      "kind": "asset",
+      "sha256": "ff8f518f1e12012d97661991221fb99483b5803198e7b84bf8c4d3d3cfcc2afa",
+      "size": 2109
+    },
+    {
+      "path": "sparta/src/game/controls.js",
+      "kind": "asset",
+      "sha256": "869d76e198c0ba1b07146f49df1fa668e7a6ea187d5f5a3c41fc33be904da121",
+      "size": 1076
+    },
+    {
+      "path": "sparta/src/game/experience.js",
+      "kind": "asset",
+      "sha256": "e6b9f6dd9ccd2f570fcd567a57fcb6fb431d6a7fafcefd93b399acc4e4cea05c",
+      "size": 26205
+    },
+    {
+      "path": "sparta/src/game/trainingController.js",
+      "kind": "asset",
+      "sha256": "347838647add15a0a3f8ec39ed67dda8ced6097060c1095ef8822694a8efe442",
+      "size": 3352
+    },
+    {
+      "path": "sparta/src/main.js",
+      "kind": "asset",
+      "sha256": "fba92fcf36b4152b0beb1f7b3f3d7adb89a326f86f3685978d1ffc2e6054dd15",
+      "size": 2057
+    },
+    {
+      "path": "sparta/src/save.js",
+      "kind": "asset",
+      "sha256": "5453d382828919f957b86926e2667567ca66d2304f47930b416f74a6006e72af",
+      "size": 1394
+    },
+    {
+      "path": "sparta/src/world/architecture.js",
+      "kind": "asset",
+      "sha256": "7422208c4deecde4bd141b40422824c40f3fc78544abb1972964aa86b9c83314",
+      "size": 2838
+    },
+    {
+      "path": "sparta/src/world/arrivalFrontages.js",
+      "kind": "asset",
+      "sha256": "d87aff4667ce21fced559a8e5465ab9d99a4c4d629720e38c2b03e3346e634aa",
+      "size": 9406
+    },
+    {
+      "path": "sparta/src/world/asset-catalog.js",
+      "kind": "asset",
+      "sha256": "fba2ed0b9c359d69d02a31ed4c760893b4158e72848bb2e34a4623a5f1a7c58b",
+      "size": 1526
+    },
+    {
+      "path": "sparta/src/world/blenderWorkshop.js",
+      "kind": "asset",
+      "sha256": "5e3cbc841d33e1eee1518af26936de8e0254b75f8c4e6bd1efe3b86a62fdb945",
+      "size": 5501
+    },
+    {
+      "path": "sparta/src/world/centralQuarter.js",
+      "kind": "asset",
+      "sha256": "9e9f06f5565fd2acf770cdf34d6bc077044d54087a9ec9ba4aa183b0d8dc4fd6",
+      "size": 9423
+    },
+    {
+      "path": "sparta/src/world/civicApproach.js",
+      "kind": "asset",
+      "sha256": "946fd57b865707a72774ffcd1befb861c9dc5cc0386936bec50a27be0ccac98a",
+      "size": 2915
+    },
+    {
+      "path": "sparta/src/world/craft.js",
+      "kind": "asset",
+      "sha256": "36274f3c18731b954260510313431baf7cf9301798ad72b57bd2a3f6ea799ae3",
+      "size": 1209
+    },
+    {
+      "path": "sparta/src/world/createWorld.js",
+      "kind": "asset",
+      "sha256": "ebbc234d606ddda12596cb69a309c85f28867969b4229dd49109f0199c990db5",
+      "size": 5042
+    },
+    {
+      "path": "sparta/src/world/groundTreatment.js",
+      "kind": "asset",
+      "sha256": "1aeb82a6355916e2ed1b77e364f98bcd78fd4296d9fe2351ddfd29522166ab3d",
+      "size": 7465
+    },
+    {
+      "path": "sparta/src/world/materials.js",
+      "kind": "asset",
+      "sha256": "6a521aec8378df3a09d5510c11a07ec01d4bfac235074058d10171524401e2e3",
+      "size": 3572
+    },
+    {
+      "path": "sparta/src/world/neighbourhood.js",
+      "kind": "asset",
+      "sha256": "cd03c971a9b8fe3741414182d9496d7546981b62518bc44d8c5bbf87a3741605",
+      "size": 13471
+    },
+    {
+      "path": "sparta/src/world/practiceBundle.js",
+      "kind": "asset",
+      "sha256": "0c0b6568d6ff61c3e65a89106bb0215063ec77a600b6f3fcd58c783dad9b706f",
+      "size": 1720
+    },
+    {
+      "path": "sparta/src/world/residents.js",
+      "kind": "asset",
+      "sha256": "83ced553f3b081b80aaa7d6dddcfff3ca7a35a6927625b7f9709cb61622f33b2",
+      "size": 14046
+    },
+    {
+      "path": "sparta/src/world/trainingGround.js",
+      "kind": "asset",
+      "sha256": "aa5bebd695ada5a71c3c3ff6903a2c206b64c47fcd6a263cbef5810406f7a42f",
+      "size": 5291
+    },
+    {
+      "path": "sparta/style.css",
+      "kind": "build",
+      "sha256": "0551e0ae80c96edb0ede47f4dfc317923bc9add52df6c679bfabae9a957ce0b8",
+      "size": 11144
+    },
+    {
+      "path": "sparta/vendor/BABYLON-LICENSE.md",
+      "kind": "asset",
+      "sha256": "9362ea9ea17cb221a20cbbd63f404710834cc273d2a9a7b60314fd68ab702cd6",
+      "size": 9226
+    },
+    {
+      "path": "sparta/vendor/BABYLON-NOTICE.md",
+      "kind": "asset",
+      "sha256": "225463efd81558f120a6e0cdd7f4c1007ed486006d1228c4849fee0c49715823",
+      "size": 46
+    },
+    {
+      "path": "sparta/vendor/babylon.js",
+      "kind": "asset",
+      "sha256": "43855891960ce3d0ab516e6311bc61d041a19ac6d3e7403daea4633f2bdd29e5",
+      "size": 8828560
+    },
+    {
+      "path": "sparta/vendor/babylonjs.loaders.min.js",
+      "kind": "asset",
+      "sha256": "08911bb87cd50387ccc07850dba1cba4530781c2a62bfd5f7b2aea2014cc203e",
+      "size": 880233
+    },
+    {
+      "path": "textures/agora-b2/Agora_B2_AO_1024.png",
+      "kind": "asset",
+      "sha256": "3458dc53ba202a8e5466f1354c1dc904fc69e2a7361c86268af9053d7d997268",
+      "size": 697288
+    },
+    {
+      "path": "textures/agora-b2/Agora_B2_BaseColor_1024.png",
+      "kind": "asset",
+      "sha256": "dba1af8ac64d94176d98603d75927958261351a3f64059254d6084951c771c6e",
+      "size": 1212375
+    },
+    {
+      "path": "textures/agora-b2/Agora_B2_NormalGL_1024.png",
+      "kind": "asset",
+      "sha256": "3af3aa49f05e0ae005d21c870ec8e75af626e203babdf0a86a584761b925e920",
+      "size": 2459691
+    },
+    {
+      "path": "textures/agora-b2/Agora_B2_Roughness_1024.png",
+      "kind": "asset",
+      "sha256": "1cc328d402587bc923458f1736ba92ab5a9a7a74a2de9d5b7a76d16fe719979b",
+      "size": 773798
+    },
+    {
+      "path": "textures/agora-b2/README.txt",
+      "kind": "asset",
+      "sha256": "ebd383932895c62f851f11eb8293d5d112f31321482f5eed1019dac61db727e7",
+      "size": 4902
+    },
+    {
+      "path": "textures/agora-b2/runtime_manifest.json",
+      "kind": "asset",
+      "sha256": "7eb51e475169044902b92b73fab9bcdee18d668b1d8896b0ccceaef1e2b73672",
+      "size": 3448
+    },
+    {
+      "path": "textures/agora-b2/SHA256SUMS.txt",
+      "kind": "asset",
+      "sha256": "54f26c2b21d4f2649c0d767cbf51b64a535593a4256d68a67de762abc880cbd1",
+      "size": 533
+    },
+    {
+      "path": "textures/aristotle_tomb/ao.jpg",
+      "kind": "asset",
+      "sha256": "a6bbcfd388871cf4f56e4a3ed83e966aed20e3cf7d7131ec1407144dde5f52a0",
+      "size": 25151
+    },
+    {
+      "path": "textures/aristotle_tomb/basecolor.jpg",
+      "kind": "asset",
+      "sha256": "79b40197ae3da645ae53baaaafc9006e9f3520edffc0e93e8db98497c945523d",
+      "size": 154423
+    },
+    {
+      "path": "textures/aristotle_tomb/normal.jpg",
+      "kind": "asset",
+      "sha256": "eed8bf7bf40fc97dd6d9609410c7f6df7934711811e90381bdb3f32315fe6b3f",
+      "size": 38238
+    },
+    {
+      "path": "textures/aristotle_tomb/placeholder.txt",
+      "kind": "asset",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    {
+      "path": "textures/aristotle_tomb/roughness.jpg",
+      "kind": "asset",
+      "sha256": "ffcedcc424200a0160430076039fc4e0ec50a32f6c050f4b86549032d966ab66",
+      "size": 89056
+    },
+    {
+      "path": "textures/attic-pbr/derived.json",
+      "kind": "asset",
+      "sha256": "0428a280c263ea27b8ecf0166b88daa77914c1570c3278e4dd19c2919c7b8b3e",
+      "size": 511
+    },
+    {
+      "path": "textures/attic-pbr/provenance.json",
+      "kind": "asset",
+      "sha256": "552e30e5f5725fb12ad7a8f45235384f8189d9e5feea127391875161b6325747",
+      "size": 3103
+    },
+    {
+      "path": "textures/attic-pbr/rock_08_diff_1k.jpg",
+      "kind": "asset",
+      "sha256": "653c407f1effd9df8ee9366c0f85b585770856121d8810efd11e54e8707a8031",
+      "size": 660234
+    },
+    {
+      "path": "textures/attic-pbr/rock_08_nor_gl_1k.jpg",
+      "kind": "asset",
+      "sha256": "b77a9bacd0ff54adfab7c04960b226f57ab187f7a0966e624f15ecc45c5f8f24",
+      "size": 950962
+    },
+    {
+      "path": "textures/attic-pbr/rock_08_rough_1k.jpg",
+      "kind": "asset",
+      "sha256": "df9c1699ae4044cb4492ce2f2ac62be3cb3139184a4d41a7ef11efb050b3543c",
+      "size": 291013
+    },
+    {
+      "path": "textures/attic-pbr/rock_08_rough_256.png",
+      "kind": "asset",
+      "sha256": "e7a05294fd302bb41163b2604c4e25f754f1b25e418bea8b4a6fb57fbda43716",
+      "size": 40994
+    },
+    {
+      "path": "textures/attic-pbr/rocky_trail_diff_1k.jpg",
+      "kind": "asset",
+      "sha256": "7f20d83cd4a67f9c38abf72f39f5a3749a962e90bdc156998be027b1227a5bd6",
+      "size": 1076180
+    },
+    {
+      "path": "textures/attic-pbr/rocky_trail_nor_gl_1k.jpg",
+      "kind": "asset",
+      "sha256": "087b8912c8cf40a528965c4282a5b3e4be011da5790273ffcdb5bd2697bde7dd",
+      "size": 1398291
+    },
+    {
+      "path": "textures/attic-pbr/rocky_trail_rough_1k.jpg",
+      "kind": "asset",
+      "sha256": "aa17fcfe3be8fa4d79316d1c7e7a3e32e8522849fb4811e7009aec7762275caa",
+      "size": 747035
+    },
+    {
+      "path": "textures/attic-pbr/rocky_trail_rough_256.png",
+      "kind": "asset",
+      "sha256": "fbb44bfa57de4ff1c34be2849d5094ff98a66db3175620aae2b2b15a880f7855",
+      "size": 48036
+    },
+    {
+      "path": "textures/chariot-foliage/mediterranean-atlas-v1.png",
+      "kind": "asset",
+      "sha256": "572e23fd72b76431a07a1adf5aeca8f342038b9d1bf0d007595040720b8608c3",
+      "size": 125786
+    },
+    {
+      "path": "textures/chariot-foliage/olive-bark-v1.jpg",
+      "kind": "asset",
+      "sha256": "5e32c05159d8565507e7fe6cacf63b48671f2965c98225d39811429262e2c63b",
+      "size": 99390
+    },
+    {
+      "path": "textures/chariot-foliage/PROVENANCE.json",
+      "kind": "asset",
+      "sha256": "81745bf4710f4ae9f1599468d3f843136bf5c414b7b01e6e22a73d1a27eabd9a",
+      "size": 1538
+    },
+    {
+      "path": "textures/compacted-earth/compacted-earth-basecolor-14b5a1086f9e.png",
+      "kind": "asset",
+      "sha256": "14b5a1086f9ec2dbba1a3dfa7b7de2f6221162726fb19876fc1bbe74dcb58a52",
+      "size": 706570
+    },
+    {
+      "path": "textures/compacted-earth/compacted-earth-normalgl-c8468ab6abf7.png",
+      "kind": "asset",
+      "sha256": "c8468ab6abf71e85b7159ce3382d2b6e1506810c6bb627393f4e14ca4977cf68",
+      "size": 1337080
+    },
+    {
+      "path": "textures/compacted-earth/compacted-earth-roughness-46efcfb62bf1.png",
+      "kind": "asset",
+      "sha256": "46efcfb62bf1f551b36f7424d1b0a74182834025e3062c5ec65f39966a5b95ff",
+      "size": 31899
+    },
+    {
+      "path": "textures/generated/city-ground-0ce3e8339f62f024.png",
+      "kind": "asset",
+      "sha256": "0ce3e8339f62f024b61215fb6dcd057fbd4f784aa2f7d741c28fd138043040c4",
+      "size": 1179163
+    },
+    {
+      "path": "textures/generated/city-ground-0d337dbb474c3d33.png",
+      "kind": "asset",
+      "sha256": "0d337dbb474c3d333ebfb1ff599553109e231e85f8d9bb5ce99297f8c27cd1be",
+      "size": 1179015
+    },
+    {
+      "path": "textures/generated/city-ground-182df7cc9ef20cff.png",
+      "kind": "asset",
+      "sha256": "182df7cc9ef20cffe9348ed8fa475609c7f2bcbaa22cd8c34973a76d645e1efb",
+      "size": 1175001
+    },
+    {
+      "path": "textures/generated/city-ground-1de2574ebb34a435.png",
+      "kind": "asset",
+      "sha256": "1de2574ebb34a4356b818090507ef8200658c0a5af1910ff52e7467f804e726f",
+      "size": 1173672
+    },
+    {
+      "path": "textures/generated/city-ground-22670122652655d8.png",
+      "kind": "asset",
+      "sha256": "22670122652655d8432b8d7b38e5c954cd115cdecb763aa227c7890d54df5ffe",
+      "size": 1177693
+    },
+    {
+      "path": "textures/generated/city-ground-2c1e5649df181776.png",
+      "kind": "asset",
+      "sha256": "2c1e5649df1817761c65d3d335bece2c14e6f8aee3d359836114ce57adb529ec",
+      "size": 1172969
+    },
+    {
+      "path": "textures/generated/city-ground-30771cde252334ab.png",
+      "kind": "asset",
+      "sha256": "30771cde252334ab077e61b557e63d4cb5dae6bd7a7ea71bd8e9c9e60e096766",
+      "size": 879683
+    },
+    {
+      "path": "textures/generated/city-ground-359360fb046babcd.png",
+      "kind": "asset",
+      "sha256": "359360fb046babcd5589dfb06bdc1b733681d45888a02c01d7a546626be8e9fd",
+      "size": 1172639
+    },
+    {
+      "path": "textures/generated/city-ground-45b005e24187f6eb.png",
+      "kind": "asset",
+      "sha256": "45b005e24187f6eb7215b06262aec5666bfcf33b3526addab3e7bf537e5f7f19",
+      "size": 1176690
+    },
+    {
+      "path": "textures/generated/city-ground-54970d7ff4ce5d47.png",
+      "kind": "asset",
+      "sha256": "54970d7ff4ce5d4795a872867a6d1a8c2928ee0f16c4f473412eefc5fee40f31",
+      "size": 883300
+    },
+    {
+      "path": "textures/generated/city-ground-58799ac0cc62fd18.png",
+      "kind": "asset",
+      "sha256": "58799ac0cc62fd185fa5b80cef8709ea4a2d321007f07cbd9ecb2b54961ac66f",
+      "size": 1176185
+    },
+    {
+      "path": "textures/generated/city-ground-5ae082883ff9ddb1.png",
+      "kind": "asset",
+      "sha256": "5ae082883ff9ddb168fae25b8c2dd1d476a3064d3b01e9783db684cd24b59376",
+      "size": 1174711
+    },
+    {
+      "path": "textures/generated/city-ground-602230a90cc1ea9c.png",
+      "kind": "asset",
+      "sha256": "602230a90cc1ea9c1be9b6a8c5f9b8a09c5b5a5c3dc06aa5ce15ba3c406983b0",
+      "size": 1176109
+    },
+    {
+      "path": "textures/generated/city-ground-64bef6f82ff690ca.png",
+      "kind": "asset",
+      "sha256": "64bef6f82ff690ca075f08d68a13d685c6023d65797f09308bff87b21341a97b",
+      "size": 873768
+    },
+    {
+      "path": "textures/generated/city-ground-6963782548230eb2.png",
+      "kind": "asset",
+      "sha256": "6963782548230eb2fdb6189b7554158cb63a07cc94eab74681799fa58be4634f",
+      "size": 1171698
+    },
+    {
+      "path": "textures/generated/city-ground-6c8341d6ae24a702.png",
+      "kind": "asset",
+      "sha256": "6c8341d6ae24a702da7db88a303926a85d59dae418a170d2544de98d5c9de97b",
+      "size": 1174552
+    },
+    {
+      "path": "textures/generated/city-ground-899d87c72c39bcf4.png",
+      "kind": "asset",
+      "sha256": "899d87c72c39bcf4c779c2d7d17540f80d88686c276846575b8c0c412cbedb88",
+      "size": 1176127
+    },
+    {
+      "path": "textures/generated/city-ground-8a46e4df80a554f7.png",
+      "kind": "asset",
+      "sha256": "8a46e4df80a554f7f8f78223904b0a6e554b38821408caadba356b945385b7a2",
+      "size": 1176373
+    },
+    {
+      "path": "textures/generated/city-ground-9ba4fe3b5c314f79.png",
+      "kind": "asset",
+      "sha256": "9ba4fe3b5c314f79321f73a8dd0978731cd1c01b41ea01607e5281860e09124b",
+      "size": 1175177
+    },
+    {
+      "path": "textures/generated/city-ground-9cc7cc88969d228b.png",
+      "kind": "asset",
+      "sha256": "9cc7cc88969d228b2e7d289e00a69ce7aa147056dbe36eb6c4997f7b0cae0052",
+      "size": 1174684
+    },
+    {
+      "path": "textures/generated/city-ground-9e3b19a144189c91.png",
+      "kind": "asset",
+      "sha256": "9e3b19a144189c9136c715737fad344bd386e53c8b903756164ea746115dd292",
+      "size": 1177824
+    },
+    {
+      "path": "textures/generated/city-ground-a34ec762423cd245.png",
+      "kind": "asset",
+      "sha256": "a34ec762423cd245e48ebb78aad2a7a380e3abe01419917c8fb48bb4f278f913",
+      "size": 1171327
+    },
+    {
+      "path": "textures/generated/city-ground-a376beb92b03130b.png",
+      "kind": "asset",
+      "sha256": "a376beb92b03130bed523f188a0eeb319e2eb732374ae00c91c489afa349ef4d",
+      "size": 1171656
+    },
+    {
+      "path": "textures/generated/city-ground-baf65fdfe5f39ce5.png",
+      "kind": "asset",
+      "sha256": "baf65fdfe5f39ce5ef5fa3a7653eb1e79a59e6eb0f29d63d75ca0db33ffbc0d3",
+      "size": 1174733
+    },
+    {
+      "path": "textures/generated/city-ground-c90974a0cc841c2d.png",
+      "kind": "asset",
+      "sha256": "c90974a0cc841c2df93ccfd9b2aa6ef856b39613290fabe839853e3256894f1f",
+      "size": 1173588
+    },
+    {
+      "path": "textures/generated/city-ground-c94d2a22b127ce28.png",
+      "kind": "asset",
+      "sha256": "c94d2a22b127ce2802552dcb1f4d9d88b40d0c729f94fa0725369994fa116f83",
+      "size": 1171977
+    },
+    {
+      "path": "textures/generated/city-ground-d78f71cf97eb1144.png",
+      "kind": "asset",
+      "sha256": "d78f71cf97eb1144994d4d82700d0b60e65c253b758d6cb1d9a264e57dd737c8",
+      "size": 1171545
+    },
+    {
+      "path": "textures/generated/new-city-ground-0534c8ab35891db0.png",
+      "kind": "asset",
+      "sha256": "0534c8ab35891db0b59361e8a71c008cb0c75dde946c4c04ae8736371d010d70",
+      "size": 1181203
+    },
+    {
+      "path": "textures/generated/new-city-ground-14bca8ce36dd37dd.png",
+      "kind": "asset",
+      "sha256": "14bca8ce36dd37dd0d8e153857743253e6d9fe2e230dfee4b005a058debaba74",
+      "size": 879247
+    },
+    {
+      "path": "textures/generated/new-city-ground-5cf7c63c9b29260d.png",
+      "kind": "asset",
+      "sha256": "5cf7c63c9b29260db918365ced64670ca9af9bb452e38dc8dcd14b8af56cda94",
+      "size": 1178130
+    },
+    {
+      "path": "textures/generated/new-city-ground-9c77704435781c4a.png",
+      "kind": "asset",
+      "sha256": "9c77704435781c4ac8a88bed1ed095f593d70624e527e96764c008d519b80431",
+      "size": 1181733
+    },
+    {
+      "path": "textures/generated/new-city-ground-e127eb94c8d30f95.png",
+      "kind": "asset",
+      "sha256": "e127eb94c8d30f9578660f5945ac00e99a48e9447dc2cce9dc9db818071f680d",
+      "size": 1181878
+    },
+    {
+      "path": "textures/grass/albedo.jpg",
+      "kind": "asset",
+      "sha256": "0b11c36fff212a681e1e5ed7252b52349a50daefa1ba55ee321b5296ea77c6fd",
+      "size": 1972819
+    },
+    {
+      "path": "textures/grass/ao.jpg",
+      "kind": "asset",
+      "sha256": "f4c179681d9f2f0aad177979ed0f5dc4e1843e7939d608a7b40a2b213948e429",
+      "size": 2801840
+    },
+    {
+      "path": "textures/grass/height.jpg",
+      "kind": "asset",
+      "sha256": "7d2f9c4b7c801a848e01ec1b45e4e5079967f7f7526184606abd6101db7b3b68",
+      "size": 1281628
+    },
+    {
+      "path": "textures/grass/metallic.jpg",
+      "kind": "asset",
+      "sha256": "efb0ba9fd0ee0d2c241abc57ed349b4fce4aebad6d58b31d69e476a010931aa9",
+      "size": 25122
+    },
+    {
+      "path": "textures/grass/normal_dx.jpg",
+      "kind": "asset",
+      "sha256": "424dc80de6337e8e18f90aa0e9482557604555d4ba288c75eb358b2269a74274",
+      "size": 4070958
+    },
+    {
+      "path": "textures/grass/roughness.jpg",
+      "kind": "asset",
+      "sha256": "52460843234627d183788fea0c82e4f5fb3c694746b05ed1dfbad67e23c6def2",
+      "size": 2173468
+    },
+    {
+      "path": "textures/gravel/placeholder.text",
+      "kind": "asset",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    {
+      "path": "textures/ground/dirt-albedo.jpg",
+      "kind": "asset",
+      "sha256": "bc1624594ce807f04eaa023f6f9df93ffefd20904570cd46ca302b954ef80eec",
+      "size": 1062525
+    },
+    {
+      "path": "textures/ground/grass-preview.jpg",
+      "kind": "asset",
+      "sha256": "097f141750339717d4de0dc578c36e6660eea044f60798b7efa4c194fab76651",
+      "size": 265520
+    },
+    {
+      "path": "textures/ground/README.md",
+      "kind": "asset",
+      "sha256": "fe3e08570c3181a9059fa67f4469c101256d180b6481e864fdde21a51e9720e0",
+      "size": 2063
+    },
+    {
+      "path": "textures/ground/shader.png",
+      "kind": "asset",
+      "sha256": "220e3b69519cd209c948ae7ba24d3d8a4990276a670d2a7d8d3a59dedeb5d5d2",
+      "size": 1719
+    },
+    {
+      "path": "textures/ground/step_sea.gif",
+      "kind": "asset",
+      "sha256": "35b02d5180e8518070403de1b2f20bbc87b2b78a75398e0159321a89cd1c1b72",
+      "size": 2731041
+    },
+    {
+      "path": "textures/marble_albedo.jpg",
+      "kind": "asset",
+      "sha256": "253d7fe81426539be501db5a7767157306d33b8e361517f88df3f83b5847ab08",
+      "size": 600444
+    },
+    {
+      "path": "textures/marble_ao.jpg",
+      "kind": "asset",
+      "sha256": "6c43b9f2e6e63ae2d678f6673e92228118210265622ec4b641f12564a93308e4",
+      "size": 25122
+    },
+    {
+      "path": "textures/marble_base.jpg",
+      "kind": "asset",
+      "sha256": "e313c7332e9652e6275ec0c39b76010a2d8ca5150152b283697d1e898559a8aa",
+      "size": 231527
+    },
+    {
+      "path": "textures/marble_clean.jpg",
+      "kind": "asset",
+      "sha256": "4d409817081fe5d05c65149f12026f51ab72105e662ffb67de9be560017d29bb",
+      "size": 501094
+    },
+    {
+      "path": "textures/marble_height.jpg",
+      "kind": "asset",
+      "sha256": "efb0ba9fd0ee0d2c241abc57ed349b4fce4aebad6d58b31d69e476a010931aa9",
+      "size": 25122
+    },
+    {
+      "path": "textures/marble_normal-dx.jpg",
+      "kind": "asset",
+      "sha256": "6fb0bb0c6a5bd7b6fb8333f6551b2d7c5427df31e8cf6d69992e92a9b8591548",
+      "size": 25125
+    },
+    {
+      "path": "textures/marble_rough.jpg",
+      "kind": "asset",
+      "sha256": "efb0ba9fd0ee0d2c241abc57ed349b4fce4aebad6d58b31d69e476a010931aa9",
+      "size": 25122
+    },
+    {
+      "path": "textures/painted-stoa/interpretation-v1.png",
+      "kind": "asset",
+      "sha256": "f89afcec44e2eabd618603375a4b7d92e40fb6f4fe6b38dfa0e999087561e202",
+      "size": 2437382
+    },
+    {
+      "path": "textures/plaster_rough.jpg",
+      "kind": "asset",
+      "sha256": "d82d8210e6489a7ac73b167699db39dcd54af99bdc92ce993964b18746b6224c",
+      "size": 1087487
+    },
+    {
+      "path": "textures/plaza/lot-pads/placeholder.txt",
+      "kind": "asset",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    {
+      "path": "textures/README.md",
+      "kind": "asset",
+      "sha256": "f36a3de1c58d65ad8ca3b35d60b88e4d87b870814707600eea8b0cd505313cd8",
+      "size": 156
+    },
+    {
+      "path": "textures/roof_tiles_terracotta.jpg",
+      "kind": "asset",
+      "sha256": "6091f28203882f867a1cd429be7971f84dc01d68b4252bd621bfcfc02b65cc06",
+      "size": 1188271
+    },
+    {
+      "path": "textures/sand/albedo.jpg",
+      "kind": "asset",
+      "sha256": "bc1624594ce807f04eaa023f6f9df93ffefd20904570cd46ca302b954ef80eec",
+      "size": 1062525
+    },
+    {
+      "path": "textures/sand/arm.jpg",
+      "kind": "asset",
+      "sha256": "24ae423af3a5ca6ba78fc02fc5257d0270888fb1e60996c761ee110994c6ed6b",
+      "size": 826170
+    },
+    {
+      "path": "textures/sand/normal_gl.jpg",
+      "kind": "asset",
+      "sha256": "7ccb08525d46520a6d00262f4f73483b3569cc6cbc2908da069f033290d1c2f8",
+      "size": 1387739
+    },
+    {
+      "path": "textures/sparta-scenery/alluvium-albedo.jpg",
+      "kind": "build",
+      "sha256": "f3d3b581bffc78be28b1eb4b73101bff574841944fb6867be901b3bc03d1bda7",
+      "size": 3251744
+    },
+    {
+      "path": "textures/sparta-scenery/alluvium-normal.jpg",
+      "kind": "build",
+      "sha256": "d92c80789c6bfc07a5139832a1c4c26014bbb4754b579a1559b3e04efdfd8ad2",
+      "size": 4113113
+    },
+    {
+      "path": "textures/sparta-scenery/alluvium-roughness.jpg",
+      "kind": "build",
+      "sha256": "f3f39740c59548607ddcfdb5fb0d817bab21e705b7d96ad7aaf1bee56c0d2a2f",
+      "size": 2144156
+    },
+    {
+      "path": "textures/sparta-scenery/carbonate-albedo.jpg",
+      "kind": "build",
+      "sha256": "ef1312591e642534aa34f340c34d128a5e2f3e417effab6fa38e609f13948bf6",
+      "size": 4445553
+    },
+    {
+      "path": "textures/sparta-scenery/carbonate-normal.jpg",
+      "kind": "build",
+      "sha256": "4100801a1582ff483c8cad1414c3c8c606db4c30e825cc9725907e4ecf8512af",
+      "size": 4883397
+    },
+    {
+      "path": "textures/sparta-scenery/carbonate-roughness.jpg",
+      "kind": "build",
+      "sha256": "8d339b89bf58b8e89cb5f03c8ed26c1b75006a47dcb59cb1e0dad7b4ba44ab38",
+      "size": 2363660
+    },
+    {
+      "path": "textures/sparta-scenery/groundcover-albedo.jpg",
+      "kind": "build",
+      "sha256": "3b655de96161164bf2324e136b3409ad8417c9f94750bc008e9c93ee507c2fac",
+      "size": 3733797
+    },
+    {
+      "path": "textures/sparta-scenery/groundcover-normal.jpg",
+      "kind": "build",
+      "sha256": "5539a5913653a106a4e8a699a1d288f0b41907775b5fb36156ef5be2e937718b",
+      "size": 5892473
+    },
+    {
+      "path": "textures/sparta-scenery/groundcover-roughness.jpg",
+      "kind": "build",
+      "sha256": "b023f187999956449b5f25df19f4eaae1c891f474e0a599b23d986118fe706d7",
+      "size": 1729786
+    },
+    {
+      "path": "textures/sparta-scenery/provenance.json",
+      "kind": "build",
+      "sha256": "b525aca6c984838f3f429e712fa5f77ed2370684bb285b30c58ec56d57b78547",
+      "size": 4254
+    },
+    {
+      "path": "textures/sparta-scenery/track-albedo.jpg",
+      "kind": "build",
+      "sha256": "726a0f5222fdf8b2bcdbec56fee8ea55150c217eab35a893ad5831f28cee3a5f",
+      "size": 2093509
+    },
+    {
+      "path": "textures/sparta-scenery/track-normal.jpg",
+      "kind": "build",
+      "sha256": "a3df5f6f7493a1762626c6d0d47872d969744a49931de50fe79f71a5eae8f857",
+      "size": 3073051
+    },
+    {
+      "path": "textures/sparta-scenery/track-roughness.jpg",
+      "kind": "build",
+      "sha256": "7f37ed5a6d6d6206ea263df37393715883b491a2dff1c8cfa67239922db29ee4",
+      "size": 1425213
+    },
+    {
+      "path": "textures/stone_rough.jpg",
+      "kind": "asset",
+      "sha256": "b7178854f71a7e91a409afc03543e6c875c5615395afa6ecc55acb141f0cb99b",
+      "size": 1346651
+    },
+    {
+      "path": "textures/water/normals.jpg",
+      "kind": "asset",
+      "sha256": "add9912b158a4fe9c12421745babe68c44c8af75631ac4837236cb2a03bc373f",
+      "size": 248813
+    },
+    {
+      "path": "textures/water/normals.png",
+      "kind": "asset",
+      "sha256": "419d4eae03be06d37631a71801edc3218591649921c3c639baba3c3e6ef01df1",
+      "size": 44525
+    },
+    {
+      "path": "textures/wood_weathered.jpg",
+      "kind": "asset",
+      "sha256": "2a71721d487b36f0166ace896fe50c9e007cd6397e0e670fbc141129a7a59e0a",
+      "size": 1242465
+    }
+  ],
+  "id": "599f3f655732"
+}

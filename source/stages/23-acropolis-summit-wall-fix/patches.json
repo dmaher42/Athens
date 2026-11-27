@@ -1,0 +1,25 @@
+{
+  "prefix": "",
+  "patches": [
+    {
+      "before": "${this.blendFoothill?\"varying float vAcropolisRockCoverage;\":\"\"}\n      `,CUSTOM_FRAGMENT_UPDATE_METALLICROUGHNESS:",
+      "after": "${this.blendFoothill?\"varying float vAcropolisRockCoverage;\\n\\nfloat acropolisSummitGround(vec3 p){\\n if(p.x<=-160.||p.x>=-9.||p.z<=-112.||p.z>=-15.||p.y<=21.5)return 0.;\\n float south=p.x<=-140.00000?mix(-105.00000,-109.00000,clamp((p.x-(-160.00000))/20.00000,0.,1.)):p.x<=-115.00000?mix(-109.00000,-112.00000,clamp((p.x-(-140.00000))/25.00000,0.,1.)):p.x<=-89.00000?mix(-112.00000,-109.00000,clamp((p.x-(-115.00000))/26.00000,0.,1.)):p.x<=-62.00000?mix(-109.00000,-112.00000,clamp((p.x-(-89.00000))/27.00000,0.,1.)):p.x<=-35.00000?mix(-112.00000,-106.00000,clamp((p.x-(-62.00000))/27.00000,0.,1.)):p.x<=-15.00000?mix(-106.00000,-102.00000,clamp((p.x-(-35.00000))/20.00000,0.,1.)):-102.00000;\\n float east=p.z<=-75.00000?mix(-15.00000,-9.00000,clamp((p.z-(-102.00000))/27.00000,0.,1.)):p.z<=-45.00000?mix(-9.00000,-9.00000,clamp((p.z-(-75.00000))/30.00000,0.,1.)):p.z<=-15.00000?mix(-9.00000,-12.00000,clamp((p.z-(-45.00000))/30.00000,0.,1.)):-12.00000;\\n float inside=min(min(p.x+160.,-15.-p.z),min(p.z-south,east-p.x));\\n return smoothstep(.05,.65,inside)*smoothstep(21.5,23.5,p.y);\\n}\\nfloat acSummitGroundWeight;\\n\":\"\"}\n      `,CUSTOM_FRAGMENT_MAIN_BEGIN:this.blendFoothill?\"acSummitGroundWeight=acropolisSummitGround(vPositionW);\":\"\",CUSTOM_FRAGMENT_UPDATE_METALLICROUGHNESS:",
+      "offset": 7002075
+    },
+    {
+      "before": "\"\\n        vec3 acRW=pow(abs(normalize(vNormalW)),vec3(4.0));acRW/=max(.0001,acRW.x+acRW.y+acRW.z);\\n        vec3 acRP=vPositionW/vec3(7.0,3.4,7.0);\\n        float acRR=texture2D(acropolisLimestoneNormal,acRP.zy).a*acRW.x+texture2D(acropolisLimestoneNormal,acRP.xz).a*acRW.y+texture2D(acropolisLimestoneNormal,acRP.xy).a*acRW.z;\\n        float acRM=mix(1.0,smoothstep(.018,.68,vAcropolisRockCoverage),(smoothstep(-204.0,-190.0,vPositionW.x)*(1.-smoothstep(-121.0,-104.0,vPositionW.x))*smoothstep(-12.0,9.0,vPositionW.z)*(1.-smoothstep(46.0,58.0,vPositionW.z))));\\n        metallicRoughness.g=mix(metallicRoughness.g,clamp(.77+.22*acRR,.80,.99),acRM);\\n\"",
+      "after": "\"\\n        if(acSummitGroundWeight<1.0){\\n        vec3 acRW=pow(abs(normalize(vNormalW)),vec3(4.0));acRW/=max(.0001,acRW.x+acRW.y+acRW.z);\\n        vec3 acRP=vPositionW/vec3(7.0,3.4,7.0);\\n        float acRR=texture2D(acropolisLimestoneNormal,acRP.zy).a*acRW.x+texture2D(acropolisLimestoneNormal,acRP.xz).a*acRW.y+texture2D(acropolisLimestoneNormal,acRP.xy).a*acRW.z;\\n        float acRM=(1.-acSummitGroundWeight)*mix(1.0,smoothstep(.018,.68,vAcropolisRockCoverage),(smoothstep(-204.0,-190.0,vPositionW.x)*(1.-smoothstep(-121.0,-104.0,vPositionW.x))*smoothstep(-12.0,9.0,vPositionW.z)*(1.-smoothstep(46.0,58.0,vPositionW.z))));\\n        metallicRoughness.g=mix(metallicRoughness.g,clamp(.77+.22*acRR,.80,.99),acRM);\\n        }\\n\"",
+      "offset": 7003376
+    },
+    {
+      "before": "float acRockMix = mix(1.0, smoothstep(.018, .68, vAcropolisRockCoverage), ${Jne});",
+      "after": "float acRockMix = (1.-acSummitGroundWeight)*mix(1.0, smoothstep(.018, .68, vAcropolisRockCoverage), ${Jne});",
+      "offset": 7004713
+    },
+    {
+      "before": "this.foothillOnly?`if (${Jne} > 0.0) {`:\"\"",
+      "after": "this.foothillOnly?`if (${Jne} > 0.0 || acSummitGroundWeight > 0.0) {`:\"\"",
+      "offset": 7083393
+    }
+  ]
+}

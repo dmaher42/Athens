@@ -1,0 +1,202 @@
+{
+  "passed": true,
+  "visualReviewPassed": true,
+  "routesPassed": true,
+  "entrySHA256": "39c7441b45add53644f81b099a0b04d0e0fa1a63c7eb45ab473848ee3322b0e3",
+  "parent": "be0e7b39964f",
+  "nativeRun": "verified-native/RUN.json",
+  "gameplay": "GAMEPLAY-QA.json",
+  "unit": "UNIT.json",
+  "reproduction": "REPRODUCTION.json",
+  "checks": [
+    {
+      "name": "All 72 existing actors retained",
+      "passed": true
+    },
+    {
+      "name": "Socrates starts with a short invitation",
+      "passed": true
+    },
+    {
+      "name": "Reply answers the player",
+      "passed": true
+    },
+    {
+      "name": "Conversation has a genuine next turn",
+      "passed": true
+    },
+    {
+      "name": "Aristotle follows the chosen topic",
+      "passed": true
+    },
+    {
+      "name": "Working NPC answers a question, not a placard",
+      "passed": true
+    },
+    {
+      "name": "Workshop speaker offers a natural opening",
+      "passed": true
+    },
+    {
+      "name": "Existing fact command presents a concise faithful reply",
+      "passed": true
+    },
+    {
+      "name": "Farm greeting is brief",
+      "passed": true
+    },
+    {
+      "name": "Asking about help does not start the task",
+      "passed": true
+    },
+    {
+      "name": "Refusal remembered",
+      "passed": true
+    },
+    {
+      "name": "Return acknowledges prior visit",
+      "passed": true
+    },
+    {
+      "name": "Explicit agreement starts delivery",
+      "passed": true
+    },
+    {
+      "name": "Collection still works",
+      "passed": true
+    },
+    {
+      "name": "Carrying survives actual reload",
+      "passed": true
+    },
+    {
+      "name": "Existing delivery walk -374,146",
+      "passed": true
+    },
+    {
+      "name": "Existing delivery walk -374,155",
+      "passed": true
+    },
+    {
+      "name": "Existing delivery walk -367,159",
+      "passed": true
+    },
+    {
+      "name": "Existing delivery walk -357,164",
+      "passed": true
+    },
+    {
+      "name": "Existing delivery walk -353.2,165.7",
+      "passed": true
+    },
+    {
+      "name": "Delivery still completes",
+      "passed": true
+    },
+    {
+      "name": "Acknowledgement is conversational",
+      "passed": true
+    },
+    {
+      "name": "Completed help remains remembered after reload",
+      "passed": true
+    },
+    {
+      "name": "Does not repeat the thank-you speech at every opening",
+      "passed": true
+    },
+    {
+      "name": "Original scenario definition retained",
+      "passed": true
+    },
+    {
+      "name": "Approved appearance and resource ownership retained",
+      "passed": true,
+      "detail": {
+        "memory": {
+          "identity": "farm2-basket-carrier",
+          "memory": {
+            "met": true,
+            "offered": true,
+            "completed": true,
+            "declined": true,
+            "familiarity": 2,
+            "activity": "completed"
+          },
+          "reactions": [
+            {
+              "id": "farm2-harvester",
+              "state": "working",
+              "acknowledgements": 0
+            },
+            {
+              "id": "farm2-basket-carrier",
+              "state": "working",
+              "acknowledgements": 0
+            },
+            {
+              "id": "farm2-sorter",
+              "state": "working",
+              "acknowledgements": 0
+            }
+          ],
+          "conversation": null,
+          "carrying": false,
+          "lastError": ""
+        },
+        "unowned": [],
+        "cleanupErrors": 0,
+        "look": {
+          "ground": true,
+          "colour": true
+        }
+      }
+    }
+  ],
+  "heldInputLegs": [
+    {
+      "x": -374,
+      "z": 146,
+      "min": 0.10503734051604048,
+      "passed": true
+    },
+    {
+      "x": -374,
+      "z": 155,
+      "min": 0.3155095873910009,
+      "passed": true
+    },
+    {
+      "x": -367,
+      "z": 159,
+      "min": 0.4153445063764493,
+      "passed": true
+    },
+    {
+      "x": -357,
+      "z": 164,
+      "min": 0.10223095181161224,
+      "passed": true
+    },
+    {
+      "x": -353.2,
+      "z": 165.7,
+      "min": 0.3036919245906061,
+      "passed": true
+    }
+  ],
+  "source": {
+    "src/core/AthensNpcDialogue.ts": "dcd78d9ab9d1abef9dc500b63f2b853b8715589c6e5968ab0ab4322d7fc1e24a",
+    "src/core/BabylonFarm2Encounter.ts": "055b8ebce05e645138c6751852fac163d85a33edf1358f570ac2cf8ff72d6094",
+    "src/core/BabylonDialogueBridge.ts": "5f4fdc89e4c33850075878eebfed0cc428709cc58c77d6a0d7c1a16fff03c51d",
+    "src/core/BabylonLivingWorldBridge.ts": "6407f31e9238f1ec1b12112e21c6375caad224888f7f36c05b6a7730e33a4c29"
+  },
+  "unrelatedIssues": "UNRELATED-ISSUES.json",
+  "newDialogueErrors": 0,
+  "qualityCuts": false,
+  "wholeWorldBuild": false,
+  "ownerArtisticAcceptance": false,
+  "normalLaunchPassed": true,
+  "standardClientPassed": true,
+  "normalLaunchErrors": 0
+}

@@ -1,0 +1,12 @@
+{
+  "atUTC": "2026-11-25T12:16:22.328Z",
+  "passed": true,
+  "source": "Frozen five-file pure helper graph plus exact immutable parent and three literal patches",
+  "compilerVersion": "0.27.4",
+  "entrySHA256": "56bbba56d6f0ce96d65dc597bd9e328ddb6559b33ece5df3999cf3b7c31bd15f",
+  "parentSHA256": "8222bd0104276f1a87476bfde59f008c1a9b386cf57a02f49f9bfe0da9b5a7d9",
+  "inverseExact": true,
+  "selectorRead": false,
+  "selectorWritten": false,
+  "wholeWorldBuild": false
+}

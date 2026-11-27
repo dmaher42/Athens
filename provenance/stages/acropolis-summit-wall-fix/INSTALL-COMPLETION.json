@@ -1,0 +1,62 @@
+{
+  "installed": true,
+  "release": "fe29f4220f24",
+  "parent": "bc94c0f5a861",
+  "entry": "assets/babylon-athens-acropolis-summit-ground-aa835ce28f08.js",
+  "entrySHA256": "aa835ce28f08f2acfccaefabc5b4b97d7c4d7aefb9dc9cbbe952ae9123df8c73",
+  "manifestSHA256": "5ab03b0b2ba3d28cd01735701b65dde4ec4233530151820d091c85180d7bf5b2",
+  "transaction": {
+    "app": "athens",
+    "id": "fe29f4220f24",
+    "pointerSHA256": "9e865d57930df5b71fe9c1f254938fb91f773801897e844575cb6eb70ae8ebe5",
+    "manifestSHA256": "5ab03b0b2ba3d28cd01735701b65dde4ec4233530151820d091c85180d7bf5b2",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\acropolis-summit-wall-fe29f4220f24-1795788704035.json",
+    "state": "committed"
+  },
+  "delivery": {
+    "html": "http://127.0.0.1:5189/__babylon/apps/athens/releases/fe29f4220f24/athens-game-starter/index.html?place=agora",
+    "script": "http://127.0.0.1:5189/__babylon/apps/athens/releases/fe29f4220f24/athens-game-starter/assets/babylon-athens-acropolis-summit-ground-aa835ce28f08.js",
+    "entrySHA256": "aa835ce28f08f2acfccaefabc5b4b97d7c4d7aefb9dc9cbbe952ae9123df8c73"
+  },
+  "look": {
+    "app": "athens",
+    "required": true,
+    "passed": true,
+    "contractSHA256": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "entry": "assets/babylon-athens-acropolis-summit-ground-aa835ce28f08.js",
+    "entrySHA256": "aa835ce28f08f2acfccaefabc5b4b97d7c4d7aefb9dc9cbbe952ae9123df8c73",
+    "lutSHA256": "aae654527340254be31af4d8b9824afc87da023f1b894fb20baec9ad6a7eaaf1",
+    "checks": {
+      "freshOpen": true,
+      "cachedOpen": true,
+      "comparisons": true,
+      "curvesExclusive": true,
+      "photometryPreserved": true,
+      "disposal": true
+    }
+  },
+  "review": "REVIEW.json",
+  "geometryCollisionPreserved": true,
+  "sources": [
+    {
+      "path": "src/sanctuary/AcropolisLimestone.ts",
+      "beforeSHA256": "7ea78528792d88827440c14113749cade94e94097d23fe8c478d205e9f5eb9f3",
+      "afterSHA256": "7d1ccb75c5240adf6e751e7285460a62de2cb8127e066b239a6521bea11dfef1"
+    },
+    {
+      "path": "src/core/BabylonAgoraGround.ts",
+      "beforeSHA256": "6e31ba68e92c98e338a6797db7e549df9982fb774dfb0dca2719592fde7d093a",
+      "afterSHA256": "dcf1be271c2f927ec9d93d43f1073920006f6719a76e721c3a56bed191b13245"
+    },
+    {
+      "path": "src/sanctuary/AcropolisSummitGround.mjs",
+      "beforeSHA256": null,
+      "afterSHA256": "b14388b33a4645395c90cf6731b0b062ffdcc8d6b52a3ba24c15edaa296dc4a1"
+    }
+  ],
+  "atUTC": "2026-11-27T14:12:08.144Z",
+  "normalQA": "NORMAL-QA.json",
+  "normalPassed": true,
+  "matchedViews": 5,
+  "terraceWalks": 4
+}

@@ -1,0 +1,6 @@
+{
+  "filename": "athens-source-recovery-20261128.tar",
+  "bytes": 7546880,
+  "sha256": "83c08df331a4b9845840c73b8a407e6767dbc7a29a4231820baf844a6658161c",
+  "purpose": "Historical editable owner snapshots. Not a verified standalone whole-world source build; not part of the selected 24-stage chain."
+}

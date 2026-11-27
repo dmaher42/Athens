@@ -1,0 +1,27 @@
+{
+  "atUTC": "2026-11-27T13:12:05.057Z",
+  "selected": "7cecaf18929c",
+  "manifestSHA256": "bab54775b5f745065cdd0ea2774613799c02677f5ff762b7873e9b62e8f0067d",
+  "entry": "assets/babylon-athens-agora-shade-market-lane-b33b66179079.js",
+  "entrySHA256": "b33b66179079f568cd6917a76db844f1d60ad5d95f67e08f0cc3880b6655ad64",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/7cecaf18929c/athens-game-starter/index.html",
+  "managedSelection": {
+    "app": "athens",
+    "id": "7cecaf18929c",
+    "pointerSHA256": "fc60f3ed8d542a0679a1776393a1d3150aa78ef84f1c17937746bac5977ec2c3",
+    "manifestSHA256": "bab54775b5f745065cdd0ea2774613799c02677f5ff762b7873e9b62e8f0067d",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-shade-market-lane-1795785093592.json",
+    "state": "committed"
+  },
+  "localInstallation": true,
+  "servedEntryVerified": true,
+  "browserPlaycheck": false,
+  "published": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "f6754a528db2",
+    "manifestSHA256": "a82bf2f72eb2242fc004092edcb09c02c91d53dcabfd524041aaa119f2c8b2b2"
+  }
+}

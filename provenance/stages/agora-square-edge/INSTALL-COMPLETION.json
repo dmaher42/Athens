@@ -1,0 +1,27 @@
+{
+  "atUTC": "2026-11-27T13:00:56.490Z",
+  "selected": "f6754a528db2",
+  "manifestSHA256": "a82bf2f72eb2242fc004092edcb09c02c91d53dcabfd524041aaa119f2c8b2b2",
+  "entry": "assets/babylon-athens-agora-square-edge-49266ef7cadc.js",
+  "entrySHA256": "49266ef7cadcf437b9f0a26a2d06954334af2a1b59b23fcee72ddb2443e80d4a",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/f6754a528db2/athens-game-starter/index.html",
+  "managedSelection": {
+    "app": "athens",
+    "id": "f6754a528db2",
+    "pointerSHA256": "4eb492f53cd99517eea983bc737b89f9701305a75845b3e63bc22e0a1f285e62",
+    "manifestSHA256": "a82bf2f72eb2242fc004092edcb09c02c91d53dcabfd524041aaa119f2c8b2b2",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-square-edge-1795784412407.json",
+    "state": "committed"
+  },
+  "localInstallation": true,
+  "servedEntryVerified": true,
+  "browserPlaycheck": false,
+  "published": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "25f00902f6fd",
+    "manifestSHA256": "f552a16cd992b1bdda0f008d462b0a197122ae901247f078dfd20ceaef0a7e04"
+  }
+}

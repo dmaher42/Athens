@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "parent": "a1b1a4d5be64",
+  "entrySHA256": "df663aaf132a88f57193fa49856bcd1706c9f705589e5ae7a1c7c6332d88195f",
+  "frozenSources": true,
+  "SDKImports": 0,
+  "wholeWorldBuild": false
+}

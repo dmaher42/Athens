@@ -1,0 +1,17 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "7cecaf18929c",
+    "manifestSHA256": "bab54775b5f745065cdd0ea2774613799c02677f5ff762b7873e9b62e8f0067d"
+  },
+  "entry": "assets/babylon-athens-agora-cleared-hall-startup-d7ff73546c2e.js",
+  "entrySHA256": "d7ff73546c2ea7bbb3018834784b1e99962cc39912f65e9d89f4d2f74610d90f",
+  "inverseExact": true,
+  "nativeSpans": 1,
+  "source": "prepare.mjs",
+  "build": "node output/playwright/agora-dipylon-view/startup-repair/prepare.mjs",
+  "scope": "Retire only the obsolete ceiling probes of the previously deleted Old Council",
+  "release": "1a83210221d5",
+  "manifestSHA256": "0b8fd7b960786a026e9f8be01bf6132ced8a45f93abaebf3fd112a23093b0c75"
+}

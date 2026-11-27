@@ -1,0 +1,107 @@
+{
+  "atUTC": "2026-11-27T03:42:20.064Z",
+  "selected": "72235a8c896a",
+  "entry": "assets/babylon-athens-agora-compaction-674787a2be18.js",
+  "entrySHA256": "674787a2be18a8a0611cf88cf43b0e501b619c1115239edb474d50cadbee6ebd",
+  "manifestSHA256": "b6bab22b6edd151a98b0f5d4a999a05058c550b4be28de2fdd1c0b55072b58ea",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/72235a8c896a/athens-game-starter/index.html",
+  "localInstallation": true,
+  "rollback": false,
+  "normalNativeSmokePending": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "dca9f7aa3717",
+    "manifestSHA256": "da182fd35893936288264750b2d11263e835cb43a2beaaab28d58e3c795977dd"
+  },
+  "managedSelection": {
+    "app": "athens",
+    "id": "72235a8c896a",
+    "pointerSHA256": "25c2d7c5ca6cfd48b47f56b58e0110f364e6f4c9ea41ffcc0be138238b01034e",
+    "manifestSHA256": "b6bab22b6edd151a98b0f5d4a999a05058c550b4be28de2fdd1c0b55072b58ea",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-compaction-1795750900645.json",
+    "state": "committed"
+  },
+  "sourceCommitted": false,
+  "published": false,
+  "protected": {
+    "apps/athens/full-look-contract.json": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "isolation-runtime/athens-look-contract.mjs": "088f917e3c955d25601b511f5931738f6e8fa7576da6ec0d2fe39dcc7ec383a9",
+    "isolation-runtime/city-transaction.mjs": "c055261aedbfc02e0eb9f372c355c82d563a403bb1bbeb31fae80d6f7490fe6e",
+    "apps/sparta/current.json": "ec4ed714b53cf50397500d60d61d7916ea4b7b906d39e9c4191f2318a3b1e9de"
+  },
+  "completedUTC": "2026-11-27T03:49:10.195Z",
+  "normalNativePassed": true,
+  "normalChecks": [
+    {
+      "name": "Usual Athens visuals and controls at the exact entry",
+      "passed": true
+    },
+    {
+      "name": "The new stone entrance has real supported treads and solid low sides",
+      "passed": true
+    },
+    {
+      "name": "Native loose scenery is clear of the new stone entrance",
+      "passed": true
+    },
+    {
+      "name": "The complete Painted Stoa is nine metres closer to the gathering space",
+      "passed": true
+    },
+    {
+      "name": "The four north market stalls remain together at their existing positions",
+      "passed": true
+    },
+    {
+      "name": "All 650 main square clearance samples pass",
+      "passed": true
+    },
+    {
+      "name": "All 601 Dipylon–harbour support samples match",
+      "passed": true
+    },
+    {
+      "name": "The separate pottery workshop and its ground match",
+      "passed": true
+    },
+    {
+      "name": "The other buildings, east meeting area and original actors are retained",
+      "passed": true
+    },
+    {
+      "name": "Existing resource owners cover the scene",
+      "passed": true
+    },
+    {
+      "name": "From the council court through the new entrance to the Painted Stoa",
+      "passed": true
+    },
+    {
+      "name": "Painted Stoa steps and painted interior",
+      "passed": true
+    },
+    {
+      "name": "Gathering space to the north market",
+      "passed": true
+    },
+    {
+      "name": "Trade at figs",
+      "passed": true
+    },
+    {
+      "name": "Follow the separate pottery workshop branch and enter its showroom",
+      "passed": true
+    },
+    {
+      "name": "Trade at workshop",
+      "passed": true
+    },
+    {
+      "name": "Usual game keeps the nearby main road open",
+      "passed": true
+    }
+  ],
+  "sourceRecipe": "SOURCE-RECIPE.json"
+}

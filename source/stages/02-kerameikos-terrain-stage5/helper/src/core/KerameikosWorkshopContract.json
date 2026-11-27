@@ -1,0 +1,521 @@
+{
+  "version": 5,
+  "anchor": {
+    "x": -195,
+    "y": 6.2,
+    "z": 76
+  },
+  "standingY": 6.25,
+  "bounds": {
+    "west": -214,
+    "east": -179,
+    "south": 60,
+    "north": 98
+  },
+  "home": {
+    "west": -214,
+    "east": -202,
+    "south": 61,
+    "north": 87,
+    "floor": 7.5,
+    "privateDoor": {
+      "x": -208,
+      "z": 61
+    }
+  },
+  "showroom": {
+    "west": -191,
+    "east": -179,
+    "south": 60,
+    "north": 84,
+    "floor": 5.1,
+    "publicEntry": {
+      "x": -179,
+      "z": 66.5
+    },
+    "trade": {
+      "x": -181.4,
+      "z": 66.5
+    }
+  },
+  "workCourt": {
+    "west": -201,
+    "east": -191,
+    "south": 60,
+    "north": 86,
+    "floor": 6.2,
+    "clearSpine": {
+      "x": -194.6,
+      "south": 73,
+      "north": 87
+    }
+  },
+  "firingYard": {
+    "west": -201,
+    "east": -179,
+    "south": 86,
+    "north": 98,
+    "floor": 6.2,
+    "visitor": {
+      "x": -194.6,
+      "z": 87.2
+    },
+    "serviceGate": {
+      "x": -179,
+      "z": 94
+    }
+  },
+  "kilns": [
+    {
+      "id": "west",
+      "x": -195,
+      "z": 92.5,
+      "height": 2.35
+    },
+    {
+      "id": "east",
+      "x": -186.5,
+      "z": 92.5,
+      "height": 2.45
+    }
+  ],
+  "publicStairs": {
+    "kind": "aligned-interior-stairs",
+    "bottom": {
+      "x": -187.15,
+      "y": 5.15,
+      "z": 75
+    },
+    "top": {
+      "x": -190.75,
+      "y": 6.275,
+      "z": 75
+    },
+    "width": 3.4,
+    "clearWidth": 3.4,
+    "count": 8,
+    "tread": 0.45,
+    "bottomLandingLength": 1.2,
+    "upperLandingLength": 1.4,
+    "existingThresholdRun": 0.7
+  },
+  "publicRamp": {
+    "kind": "aligned-interior-stairs",
+    "bottom": {
+      "x": -187.15,
+      "y": 5.15,
+      "z": 75
+    },
+    "top": {
+      "x": -190.75,
+      "y": 6.275,
+      "z": 75
+    },
+    "width": 3.4,
+    "clearWidth": 3.4,
+    "count": 8,
+    "tread": 0.45,
+    "bottomLandingLength": 1.2,
+    "upperLandingLength": 1.4,
+    "existingThresholdRun": 0.7
+  },
+  "publicEntryBridge": {
+    "kind": "level-street-threshold",
+    "from": {
+      "x": -177.5,
+      "y": 5.15,
+      "z": 74.7
+    },
+    "to": {
+      "x": -179,
+      "y": 5.15,
+      "z": 74.7
+    },
+    "width": 3.4
+  },
+  "publicBoundary": {
+    "x": -173.8,
+    "south": 60,
+    "north": 96.25,
+    "visitorGate": {
+      "z": 66.5,
+      "width": 4.5
+    },
+    "mainGate": {
+      "z": 74.7,
+      "width": 5
+    },
+    "serviceGate": {
+      "z": 94,
+      "width": 4.5
+    }
+  },
+  "publicApproach": {
+    "width": 3.4,
+    "clearWidth": 3.2,
+    "points": [
+      {
+        "x": -121,
+        "y": 1.5,
+        "z": 82
+      },
+      {
+        "x": -136.1,
+        "y": 2.4,
+        "z": 82
+      },
+      {
+        "x": -141.3,
+        "y": 2.4,
+        "z": 82
+      },
+      {
+        "x": -141.3,
+        "y": 2.4,
+        "z": 74.7
+      },
+      {
+        "x": -169.8,
+        "y": 4.808236994219653,
+        "z": 74.7
+      },
+      {
+        "x": -173.2,
+        "y": 4.808236994219653,
+        "z": 74.7
+      },
+      {
+        "x": -177.5,
+        "y": 5.15,
+        "z": 74.7
+      }
+    ]
+  },
+  "serviceApproach": {
+    "width": 3.4,
+    "clearWidth": 3.2,
+    "points": [
+      {
+        "x": -171.5,
+        "y": 4.808236994219653,
+        "z": 74.7
+      },
+      {
+        "x": -171.5,
+        "y": 4.808236994219653,
+        "z": 76.4
+      },
+      {
+        "x": -171.5,
+        "y": 6.25,
+        "z": 92.3
+      },
+      {
+        "x": -171.5,
+        "y": 6.25,
+        "z": 94
+      },
+      {
+        "x": -182,
+        "y": 6.25,
+        "z": 94
+      }
+    ]
+  },
+  "visitorApproach": {
+    "width": 3.4,
+    "clearWidth": 3.2,
+    "points": [
+      {
+        "x": -165,
+        "y": 3.9908,
+        "z": 66
+      },
+      {
+        "x": -179.2,
+        "y": 5.15,
+        "z": 66.5
+      }
+    ]
+  },
+  "publicSteps": {
+    "kind": "aligned-interior-stairs",
+    "bottom": {
+      "x": -187.15,
+      "y": 5.15,
+      "z": 75
+    },
+    "top": {
+      "x": -190.75,
+      "y": 6.275,
+      "z": 75
+    },
+    "width": 3.4,
+    "clearWidth": 3.4,
+    "count": 8,
+    "tread": 0.45,
+    "bottomLandingLength": 1.2,
+    "upperLandingLength": 1.4,
+    "existingThresholdRun": 0.7
+  },
+  "privateSteps": {
+    "bottom": {
+      "x": -208,
+      "y": 6.25,
+      "z": 56.9
+    },
+    "top": {
+      "x": -208,
+      "y": 7.57,
+      "z": 60.9
+    },
+    "width": 2.4
+  },
+  "publicAgoraRoute": [
+    [
+      -121,
+      82
+    ],
+    [
+      -141.3,
+      82
+    ],
+    [
+      -141.3,
+      74.7
+    ],
+    [
+      -169.8,
+      74.7
+    ],
+    [
+      -171.5,
+      74.7
+    ],
+    [
+      -173.8,
+      74.7
+    ],
+    [
+      -177.5,
+      74.7
+    ],
+    [
+      -179.2,
+      74.7
+    ],
+    [
+      -185.95,
+      75
+    ],
+    [
+      -187.15,
+      75
+    ],
+    [
+      -190.75,
+      75
+    ],
+    [
+      -192.15,
+      75
+    ],
+    [
+      -194.6,
+      75
+    ],
+    [
+      -194.6,
+      87.2
+    ]
+  ],
+  "serviceRoute": [
+    [
+      -121,
+      82
+    ],
+    [
+      -141.3,
+      82
+    ],
+    [
+      -141.3,
+      74.7
+    ],
+    [
+      -169.8,
+      74.7
+    ],
+    [
+      -171.5,
+      74.7
+    ],
+    [
+      -171.5,
+      92.3
+    ],
+    [
+      -171.5,
+      94
+    ],
+    [
+      -179,
+      94
+    ],
+    [
+      -182,
+      94
+    ]
+  ],
+  "publicRoute": [
+    [
+      -121,
+      82
+    ],
+    [
+      -141.3,
+      82
+    ],
+    [
+      -141.3,
+      74.7
+    ],
+    [
+      -169.8,
+      74.7
+    ],
+    [
+      -171.5,
+      74.7
+    ],
+    [
+      -173.8,
+      74.7
+    ],
+    [
+      -177.5,
+      74.7
+    ],
+    [
+      -179.2,
+      74.7
+    ],
+    [
+      -185.95,
+      75
+    ],
+    [
+      -187.15,
+      75
+    ],
+    [
+      -190.75,
+      75
+    ],
+    [
+      -192.15,
+      75
+    ],
+    [
+      -194.6,
+      75
+    ],
+    [
+      -194.6,
+      87.2
+    ]
+  ],
+  "tradeRoute": [
+    [
+      -173.8,
+      74.7
+    ],
+    [
+      -176.3,
+      74.7
+    ],
+    [
+      -176.3,
+      66.5
+    ],
+    [
+      -179.2,
+      66.5
+    ],
+    [
+      -181.4,
+      66.5
+    ]
+  ],
+  "legacyArrivalRoute": [
+    [
+      -165,
+      66
+    ],
+    [
+      -179.2,
+      66.5
+    ],
+    [
+      -181.4,
+      66.5
+    ]
+  ],
+  "homeRoute": [
+    [
+      -179,
+      66.5
+    ],
+    [
+      -175.5,
+      63
+    ],
+    [
+      -179,
+      57
+    ],
+    [
+      -208,
+      56.9
+    ],
+    [
+      -208,
+      60.9
+    ],
+    [
+      -208,
+      64.5
+    ],
+    [
+      -208,
+      68.5
+    ],
+    [
+      -205.3,
+      68.5
+    ],
+    [
+      -205.3,
+      74.1
+    ]
+  ],
+  "retained": [
+    "Hephaestus footing",
+    "Old Bouleuterion footing",
+    "full New City Agora approach alignment and width",
+    "finite v1 market/production envelope",
+    "west/east physical kiln IDs and all five crew IDs"
+  ],
+  "visualCycle": "One finite batch authority; physical kiln alternates every460simulation seconds. Empty load never shows fire.",
+  "grading": {
+    "roadDatum": 4.2465960407257075,
+    "showroomEarth": 5.07,
+    "workEarth": 6.17,
+    "homeEarth": 7.47,
+    "publicRun": 14.0089,
+    "publicRise": 0.8234039593,
+    "serviceRun": 27.5,
+    "serviceRise": 1.5411,
+    "interpretation": "Game-authored terraces and visitor arrangement, not excavated exact workshop"
+  }
+}

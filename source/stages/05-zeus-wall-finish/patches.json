@@ -1,0 +1,10 @@
+{
+  "prefix": "",
+  "patches": [
+    {
+      "before": "material(\"poros\",[1.03,.97,.83],prefix+\"pale-stone-colour-1k.jpg\"",
+      "after": "material(\"poros\",[1.03,.97,.83],prefix+\"hand-plaster-colour-2k.jpg\"",
+      "offset": 323859
+    }
+  ]
+}

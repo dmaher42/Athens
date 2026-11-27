@@ -1,0 +1,27 @@
+{
+  "atUTC": "2026-11-27T13:38:22.225Z",
+  "selected": "1a83210221d5",
+  "manifestSHA256": "0b8fd7b960786a026e9f8be01bf6132ced8a45f93abaebf3fd112a23093b0c75",
+  "entry": "assets/babylon-athens-agora-cleared-hall-startup-d7ff73546c2e.js",
+  "entrySHA256": "d7ff73546c2ea7bbb3018834784b1e99962cc39912f65e9d89f4d2f74610d90f",
+  "normalURL": "http://127.0.0.1:5189/athens-game-starter/",
+  "servedURL": "http://127.0.0.1:5189/__babylon/apps/athens/releases/1a83210221d5/athens-game-starter/index.html",
+  "managedSelection": {
+    "app": "athens",
+    "id": "1a83210221d5",
+    "pointerSHA256": "86c6c969a757b54db41769a0a34f9fef195c53b9547b2fdc4dad14475d72c61e",
+    "manifestSHA256": "0b8fd7b960786a026e9f8be01bf6132ced8a45f93abaebf3fd112a23093b0c75",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\agora-cleared-hall-startup-1795786677925.json",
+    "state": "committed"
+  },
+  "localInstallation": true,
+  "servedEntryVerified": true,
+  "browserPlaycheck": false,
+  "published": false,
+  "fallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "7cecaf18929c",
+    "manifestSHA256": "bab54775b5f745065cdd0ea2774613799c02677f5ff762b7873e9b62e8f0067d"
+  }
+}

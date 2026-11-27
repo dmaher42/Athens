@@ -1,0 +1,64 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "25f00902f6fd",
+    "manifestSHA256": "f552a16cd992b1bdda0f008d462b0a197122ae901247f078dfd20ceaef0a7e04"
+  },
+  "parentEntrySHA256": "ec9717ffb7555f447bb019b436fa085c7eda6906fd437f31cfd44319b85ecf9b",
+  "entry": "assets/babylon-athens-agora-square-edge-49266ef7cadc.js",
+  "entrySHA256": "49266ef7cadcf437b9f0a26a2d06954334af2a1b59b23fcee72ddb2443e80d4a",
+  "inverseExact": true,
+  "nativeSpans": 3,
+  "source": "AgoraSquareEdge.mjs and PATCHES.json",
+  "build": "node output/playwright/agora-square-edge/prepare.mjs",
+  "reproduce": "node output/playwright/agora-square-edge/prepare.mjs --reproduce",
+  "square": {
+    "west": -113,
+    "east": -87,
+    "south": 80,
+    "north": 105
+  },
+  "approach": [
+    [
+      -129,
+      62
+    ],
+    [
+      -125.5,
+      64
+    ],
+    [
+      -121.5,
+      67.5
+    ],
+    [
+      -117,
+      71
+    ],
+    [
+      -111.5,
+      74.75
+    ],
+    [
+      -104,
+      79.5
+    ],
+    [
+      -102.5,
+      82.4
+    ]
+  ],
+  "stoneRuns": [
+    [
+      -113.9,
+      -109.65
+    ],
+    [
+      -98.3,
+      -91.1
+    ]
+  ],
+  "release": "f6754a528db2",
+  "manifestSHA256": "a82bf2f72eb2242fc004092edcb09c02c91d53dcabfd524041aaa119f2c8b2b2"
+}

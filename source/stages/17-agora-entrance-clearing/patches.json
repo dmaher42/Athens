@@ -1,0 +1,23 @@
+{
+  "prefix": "",
+  "patches": [
+    {
+      "owner": "Old Council, the small hall directly ahead",
+      "before": "else wGe(i,r,M,C,s,e)}let g=new xv(i,t,!0);",
+      "after": "else{let building=wGe(i,r,M,C,s,e);if(M.id===\"old-council\")building.dispose(!1,!1)}}let g=new xv(i,t,!0);",
+      "offset": 7718524
+    },
+    {
+      "owner": "Former eight-step square entrance and both masonry sides",
+      "before": "AthensNorthMarket.buildCompactEntrance(new rv(this.scene,\"agora-compact-entrance\",HU(this.scene,this.baseUrl)),r.getHeightAt),",
+      "after": "",
+      "offset": 8173834
+    },
+    {
+      "owner": "Single low-poly cypress beside the steps",
+      "before": "AthensNorthMarket.plantContact(this.scene,r.getHeightAt),this.walkSupport=oGe(this.scene,r.getHeightAt)",
+      "after": "AthensNorthMarket.plantContact(this.scene,r.getHeightAt),this.scene.getMeshByName(\"cypress_redesign_cypress_40\")?.dispose(!1,!1),this.walkSupport=oGe(this.scene,r.getHeightAt)",
+      "offset": 8173976
+    }
+  ]
+}

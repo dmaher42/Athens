@@ -1,0 +1,104 @@
+{
+  "parent": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "1a83210221d5",
+    "manifestSHA256": "0b8fd7b960786a026e9f8be01bf6132ced8a45f93abaebf3fd112a23093b0c75"
+  },
+  "parentEntrySHA256": "d7ff73546c2ea7bbb3018834784b1e99962cc39912f65e9d89f4d2f74610d90f",
+  "entry": "assets/babylon-athens-agora-dipylon-view-548d07610e15.js",
+  "entrySHA256": "548d07610e1541534c7e5343bd7840727d8062b0673406b7479b4d3908cfc8f4",
+  "inverseExact": true,
+  "nativeSpans": 18,
+  "source": "DipylonView.mjs and PATCHES.json",
+  "build": "node output/playwright/agora-dipylon-view/prepare.mjs",
+  "reproduce": "node output/playwright/agora-dipylon-view/prepare.mjs --reproduce",
+  "sites": [
+    {
+      "id": "new-council",
+      "from": [
+        -148,
+        3.15,
+        52
+      ],
+      "to": [
+        -157.5,
+        4.15,
+        69
+      ],
+      "feather": 3.2,
+      "former": {
+        "west": -156.942,
+        "east": -139.058,
+        "south": 40.75,
+        "north": 63.25
+      },
+      "dx": -9.5,
+      "dz": 17,
+      "bounds": {
+        "west": -166.442,
+        "east": -148.558,
+        "south": 57.75,
+        "north": 80.25
+      }
+    },
+    {
+      "id": "zeus-stoa",
+      "from": [
+        -145,
+        4.65,
+        101
+      ],
+      "to": [
+        -141,
+        4.65,
+        104.6
+      ],
+      "feather": 2.1,
+      "former": {
+        "west": -154.339,
+        "east": -135.321,
+        "south": 77.762,
+        "north": 124.238
+      },
+      "dx": 4,
+      "dz": 3.5999999999999943,
+      "bounds": {
+        "west": -150.339,
+        "east": -131.321,
+        "south": 81.362,
+        "north": 127.838
+      }
+    },
+    {
+      "id": "painted-stoa",
+      "from": [
+        -97,
+        6.02,
+        123
+      ],
+      "to": [
+        -93.4,
+        6.02,
+        115.6
+      ],
+      "feather": 2.5,
+      "former": {
+        "west": -111.415,
+        "east": -82.557,
+        "south": 119.155,
+        "north": 126.845
+      },
+      "dx": 3.5999999999999943,
+      "dz": -7.400000000000006,
+      "bounds": {
+        "west": -107.81500000000001,
+        "east": -78.95700000000001,
+        "south": 111.755,
+        "north": 119.445
+      }
+    }
+  ],
+  "release": "bc94c0f5a861",
+  "manifestSHA256": "5bb6bda089f2c796211041b1f611f990cba13cd69d996f67535ec7e6eb5c4e75"
+}

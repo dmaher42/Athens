@@ -1,0 +1,306 @@
+{
+  "atUTC": "2026-11-25T21:50:45.639Z",
+  "installed": true,
+  "normalLaunchVerified": true,
+  "transaction": {
+    "app": "athens",
+    "id": "1b2a330d7293",
+    "pointerSHA256": "48c73dc277a1f47c9c4d5ca1bcfd0068f38895207762769338f7ae335163cc98",
+    "manifestSHA256": "d466ac41427f9c7ac5ee04ffd589bc99490021cb892bce735a2648252ef57363",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\kerameikos-complete-20261125215021396.json",
+    "state": "committed"
+  },
+  "selected": "1b2a330d7293",
+  "manifestSHA256": "d466ac41427f9c7ac5ee04ffd589bc99490021cb892bce735a2648252ef57363",
+  "entry": "assets/babylon-athens-kerameikos-step6-f4102ac51244.js",
+  "entrySHA256": "f4102ac512443314ce52f8e32cb99cb2e473c32eb31be5eed8a8bbeb4cb7fe87",
+  "parentFallback": {
+    "schemaVersion": 1,
+    "app": "athens",
+    "id": "4997ad4f0c7f",
+    "manifestSHA256": "4dae8631b936e5af413ecebdca4f8d3434e58c78bef7d6f16ecaebe0be449ba7"
+  },
+  "sourceRecipe": "SOURCE-RECIPE.json",
+  "managedLookGateUnchanged": true,
+  "spartaAndPersonalSavesRetained": true,
+  "ownerPerformanceAndArtisticReviewPending": true,
+  "onlinePublication": false,
+  "normalAssessment": "NORMAL-LAUNCH-ASSESSMENT.json",
+  "rawNormalHarnessPassed": false,
+  "rawNormalHarnessExitCode": 1,
+  "inheritedUnloadDiagnostics": [
+    {
+      "type": "console.error",
+      "text": "Journey region release failed athens TypeError: Cannot read properties of undefined (reading 'dispose')\n    at i.dispose (http://127.0.0.1:5189/__babylon/apps/athens/releases/1b2a330d7293/athens-game-starter/assets/babylon-athens-kerameikos-step6-f4102ac51244.js:27577:68980)\n    at CG.dispose (http://127.0.0.1:5189/__babylon/apps/athens/releases/1b2a330d7293/athens-game-starter/assets/babylon-athens-kerameikos-step6-f4102ac51244.js:29283:36287)\n    at nV.dispose (http://127.0.0.1:5189/__babylon/apps/athens/releases/1b2a330d7293/athens-game-starter/assets/babylon-athens-kerameikos-step6-f4102ac51244.js:29399:21293)\n    at http://127.0.0.1:5189/__babylon/apps/athens/releases/1b2a330d7293/athens-game-starter/assets/babylon-athens-kerameikos-step6-f4102ac51244.js:29399:23693\n    at o (http://127.0.0.1:5189/__babylon/apps/athens/releases/1b2a330d7293/athens-game-starter/assets/babylon-athens-kerameikos-step6-f4102ac51244.js:29399:21690)"
+    }
+  ],
+  "normalLaunchEvidence": "NORMAL-LAUNCH-QA.json",
+  "normalSelectionEvidence": "NORMAL-SELECTION-CHECK.json",
+  "normalWrapperEvidence": "NORMAL-WRAPPER-COMPLETED.json",
+  "actualReloadVerified": true,
+  "actualBrowserPageCacheRestoreObserved": false,
+  "installedPerformanceSample": {
+    "label": "installed-normal-potter-service-full-quality",
+    "atUTC": "2026-11-25T22:25:34.705Z",
+    "mode": "improved",
+    "profile": "kerameikos",
+    "pose": [
+      [
+        -171.5,
+        6.25,
+        94
+      ],
+      -1.5707963267948966,
+      0.12,
+      5,
+      1920,
+      1200,
+      1
+    ],
+    "poseChangedFrames": 0,
+    "viewport": [
+      1920,
+      1200
+    ],
+    "renderSize": [
+      1920,
+      1200
+    ],
+    "hardwareScale": 1,
+    "dpr": 1,
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+    "gpu": {
+      "vendor": "Google Inc. (Intel)",
+      "renderer": "ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+    },
+    "fps": 19.5688824662579,
+    "frameMs": {
+      "n": 195,
+      "mean": 51.101538461599596,
+      "p50": 50.19999998807907,
+      "p95": 60.30000001192093,
+      "p99": 73.69999998807907,
+      "over50ms": 103,
+      "over100ms": 0,
+      "max": 76.59999999403954
+    },
+    "drawCalls": {
+      "n": 196,
+      "mean": 1201.7295918367347,
+      "p50": 1202,
+      "p95": 1203,
+      "p99": 1203,
+      "over50ms": 196,
+      "over100ms": 196,
+      "max": 1203
+    },
+    "activeMeshes": {
+      "n": 196,
+      "mean": 1242.280612244898,
+      "p50": 1242,
+      "p95": 1243,
+      "p99": 1243,
+      "over50ms": 196,
+      "over100ms": 196,
+      "max": 1243
+    },
+    "triangles": {
+      "n": 196,
+      "mean": 4620644.724489796,
+      "p50": 4621728,
+      "p95": 4621730,
+      "p99": 4621730,
+      "over50ms": 196,
+      "over100ms": 196,
+      "max": 4621730
+    },
+    "renderCPUms": {
+      "n": 196,
+      "mean": 33.40408163137582,
+      "p50": 32.20000001788139,
+      "p95": 42.70000001788139,
+      "p99": 48.29999998211861,
+      "over50ms": 0,
+      "over100ms": 0,
+      "max": 48.80000001192093
+    },
+    "gpuMs": {
+      "n": 24,
+      "mean": 34.066822375,
+      "p50": 34.443541,
+      "p95": 37.857343,
+      "p99": 37.882968,
+      "over50ms": 0,
+      "over100ms": 0,
+      "max": 37.882968
+    },
+    "gpuDisjoint": false,
+    "shadowMapSize": {
+      "width": 4096,
+      "height": 4096
+    },
+    "shadowRefreshRate": 1,
+    "sceneMeshes": 6124,
+    "heap": 1338937982,
+    "terrain": {
+      "version": 1,
+      "prototype": "terrain-study-bdab992b116f",
+      "step": 6,
+      "bounds": {
+        "west": -368,
+        "east": -165,
+        "south": -47,
+        "north": 178
+      },
+      "atlasBounds": {
+        "west": -368,
+        "east": -128,
+        "south": -58,
+        "north": 180
+      },
+      "enabled": true,
+      "prepared": true,
+      "nativeForVerification": false,
+      "vertexChanges": 8,
+      "heightDisplacement": 0.06183052062988281,
+      "control": {
+        "step": 6,
+        "coveredPixels": 246366,
+        "bounds": {
+          "west": -368,
+          "east": -128,
+          "south": -58,
+          "north": 180
+        },
+        "metresPerPixel": [
+          0.234375,
+          0.232421875
+        ],
+        "prototype": "terrain-study-bdab992b116f",
+        "profile": "kerameikos",
+        "channels": [
+          "authored road wear",
+          "aggregate with paired wheel wear",
+          "limestone pockets",
+          "bounded coverage with native foundation clearance"
+        ],
+        "positionsChanged": 8
+      },
+      "workshopSurfaces": [
+        {
+          "name": "master-potter-workshop / babylonCityGroundMat",
+          "topTriangles": 2,
+          "originalVertices": 24,
+          "originalTriangles": 12,
+          "positionsChanged": 0,
+          "collisionChanged": false,
+          "verticalFacesNative": true,
+          "pavingChanged": false,
+          "enabled": true
+        },
+        {
+          "name": "master-potter-firing-yard / babylonCityGroundMat",
+          "topTriangles": 2,
+          "originalVertices": 24,
+          "originalTriangles": 12,
+          "positionsChanged": 0,
+          "collisionChanged": false,
+          "verticalFacesNative": true,
+          "pavingChanged": false,
+          "enabled": true
+        }
+      ],
+      "selectedTriangles": {
+        "1": 1193,
+        "2": 68
+      },
+      "selection": {
+        "boundedCandidates": 3445,
+        "nativeZeroCoverage": 2184,
+        "bilinearGuardTexels": 2,
+        "method": "Conservative full-resolution atlas bounding-box contribution query"
+      },
+      "rockContacts": {
+        "material": "babylonAcropolisRockMat",
+        "materialIndex": 3,
+        "nearbyTriangles": 2301,
+        "boundaryEdges": 30,
+        "rockGeometryChanged": false,
+        "rockMaterialChanged": false
+      },
+      "nativeRockWarmed": true,
+      "surfaceRanges": 4,
+      "variants": [
+        {
+          "name": "Kerameikos terrain / working earth",
+          "source": "babylonCityGroundMat",
+          "samplerAliases": {
+            "journeyTrail": "agoraTrail",
+            "tlRock": "journeySoil",
+            "journeyNormal": "tlRockNR",
+            "tlEarthNR": "bumpSampler",
+            "albedoSampler": "agoraSoil"
+          },
+          "nativeJourneyRetained": true,
+          "zeroRockSamplingOptimised": true
+        },
+        {
+          "name": "Kerameikos terrain / western margins",
+          "source": "babylonInlandGroundMat",
+          "samplerAliases": {
+            "journeyTrail": "agoraTrail",
+            "tlRock": "journeySoil",
+            "journeyNormal": "tlRockNR",
+            "bumpSampler": "journeyGrassNormal",
+            "albedoSampler": "journeyGrass"
+          },
+          "nativeJourneyRetained": true,
+          "zeroRockSamplingOptimised": true
+        }
+      ],
+      "details": {
+        "resident": true,
+        "loads": 1,
+        "unloads": 0,
+        "plan": {
+          "counts": {
+            "pebble": 365,
+            "grass": 61,
+            "shrub": 3
+          },
+          "rejected": {
+            "road": 1800,
+            "foundation": 1381,
+            "steep": 151,
+            "outsideStep": 2248,
+            "existingStructure": 4,
+            "vegetationDeferred": 996,
+            "publicCirculation": 21
+          }
+        },
+        "batches": 12,
+        "instances": 429
+      },
+      "ownership": {
+        "id": "kerameikos-stage5-surface",
+        "closed": false
+      }
+    },
+    "time": "14:30",
+    "construction": {
+      "active": null,
+      "queued": 0,
+      "maxConcurrency": 1,
+      "maximumObservedWallMs": 420.40000000596046,
+      "note": "Construction wall duration includes asynchronous preparation; not a frame-time or FPS guarantee"
+    },
+    "hostMemory": {
+      "freePhysicalBytesBefore": 837091328,
+      "freePhysicalBytesAfter": 805216256,
+      "totalPhysicalBytes": 16640106496,
+      "method": "Node OS available-physical-memory snapshots outside the render loop; no browser or quality changes"
+    }
+  },
+  "completedUTC": "2026-11-25T22:36:40.757717+00:00"
+}

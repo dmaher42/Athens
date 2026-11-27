@@ -1,0 +1,61 @@
+{
+  "installed": true,
+  "release": "f0f663a64708",
+  "parent": "fe29f4220f24",
+  "entry": "assets/babylon-athens-acropolis-recessed-entrance-4a2d46ccf265.js",
+  "entrySHA256": "4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1",
+  "manifestSHA256": "57a666969e1a9e94181efd9111818df7e42c26a062d4cbfab5e23814e47e0fbc",
+  "transaction": {
+    "app": "athens",
+    "id": "f0f663a64708",
+    "pointerSHA256": "ebd3e120d1d79cc831ef76379dfc5d96d76a5b348882603fac7b69023ff89881",
+    "manifestSHA256": "57a666969e1a9e94181efd9111818df7e42c26a062d4cbfab5e23814e47e0fbc",
+    "journal": "C:\\Users\\dmahe\\AppData\\Local\\Athens-Babylon\\apps\\athens\\transactions\\acropolis-recessed-entrance-f0f663a64708-1795813365154.json",
+    "state": "committed"
+  },
+  "delivery": {
+    "html": "http://127.0.0.1:5189/__babylon/apps/athens/releases/f0f663a64708/athens-game-starter/index.html?place=agora",
+    "script": "http://127.0.0.1:5189/__babylon/apps/athens/releases/f0f663a64708/athens-game-starter/assets/babylon-athens-acropolis-recessed-entrance-4a2d46ccf265.js",
+    "entrySHA256": "4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1"
+  },
+  "look": {
+    "app": "athens",
+    "required": true,
+    "passed": true,
+    "contractSHA256": "01b95857f815fa76ab9297008486e76da26cb9e3262d23b9faab2aaef2eb1417",
+    "entry": "assets/babylon-athens-acropolis-recessed-entrance-4a2d46ccf265.js",
+    "entrySHA256": "4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1",
+    "lutSHA256": "aae654527340254be31af4d8b9824afc87da023f1b894fb20baec9ad6a7eaaf1",
+    "checks": {
+      "freshOpen": true,
+      "cachedOpen": true,
+      "comparisons": true,
+      "curvesExclusive": true,
+      "photometryPreserved": true,
+      "disposal": true
+    }
+  },
+  "review": "REVIEW.json",
+  "upperStairsAndRampPreserved": true,
+  "chariotPassed": true,
+  "sources": [
+    {
+      "path": "src/sanctuary/AcropolisTerrainUpgrade.mjs",
+      "beforeSHA256": "c3c3ec7c14aacd0adf08cea2645a5f4d9e328021ac2969c0ca2779862a725bc3",
+      "afterSHA256": "4bfbf14efdc5b438d973aef03451c0a0893af912dde965a55d9d435092378ee8"
+    },
+    {
+      "path": "src/sanctuary/AcropolisRecessedEntrance.mjs",
+      "beforeSHA256": null,
+      "afterSHA256": "a8fee3b3e1f1e84eb40256e39e8635f1faaad47a9d5ee5dcfd39493445e4d7c0"
+    }
+  ],
+  "atUTC": "2026-11-27T21:03:10.406Z",
+  "normalLaunch": {
+    "passed": true,
+    "report": "NORMAL-QA.json",
+    "image": "normal-street.png",
+    "chariotImage": "normal-chariot-past-stairs.png",
+    "straightDriveMetres": 25.2
+  }
+}
