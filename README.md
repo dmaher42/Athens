@@ -39,6 +39,8 @@ The payload contains only hash-deduplicated manifest-listed inputs for current A
 
 `athens-uninstalled-working-source-20261128.zip`, also in the authenticated draft, preserves the mixed current working source and the discovered private source groups separately. It is **not** part of any build. `provenance/preserved-uninstalled-work.json` records its exact contents. Original Windows source, private candidates, immutable releases, rollback receipts and personal saves are retained. No owner acceptance is inferred from technical QA.
 
+The additional `athens-source-preservation-supplement-20261128.tar` retains 440 source/configuration files: the hash-verified historical private SDK overlay and foundation contracts, approved Acropolis helper recovery, and explicitly separate unfinished streaming, calm-chariot and living-harbour source. `provenance/source-preservation-supplement.json` pins every file. This supplement is also excluded from the build.
+
 ## Future changes
 
 Extend this captured chain or deliberately reconcile its source authority. Preserve the approved appearance, editor defaults, Agora, Acropolis, stoas, farms, NPC persistence, chariot, resource ownership and cross-city routing. Add new steps on the currently selected programme; do not rerun initial installation scripts against later parents. The original Windows-specific recipes under `provenance/` are evidence, not portable commands. Local release selection and publishing remain separate actions from a cloud source build.

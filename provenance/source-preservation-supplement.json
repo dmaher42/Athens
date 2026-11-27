@@ -1,0 +1,2209 @@
+{
+  "filename": "athens-source-preservation-supplement-20261128.tar",
+  "bytes": 5703680,
+  "sha256": "d13a7d12535a53a25d78024730b6364d6e3de6c596679552959594ef50da58b6",
+  "files": [
+    {
+      "path": "historical-foundation/private-sdk/abstractMesh.pure.js",
+      "sha256": "1206575b3d846e05cf73942db63e099314db9b8817f6ed6eadd2eda74080e216",
+      "bytes": 136533
+    },
+    {
+      "path": "historical-foundation/contracts/APPROVED-ART-V2-BUILD-CONTRACT.json",
+      "sha256": "fabf6f75a28f8ca405282d729ed0790cd9b7b54f2c3c484686b2cc6acbd88046",
+      "bytes": 3108
+    },
+    {
+      "path": "historical-foundation/referenced-inputs/INSTALL-SOURCE-RECIPE.json",
+      "sha256": "e260869db79726f86382e3a20ce13349e2e063c3972b59cf242c0a6a90f08d25",
+      "bytes": 13281
+    },
+    {
+      "path": "historical-foundation/contracts/APPROVED-DEFAULT-SETTINGS-CONTRACT.json",
+      "sha256": "5fabdf0666bf3b55093fd9032a4c8bbd1f2a672916127f38e1fe953f76c5f845",
+      "bytes": 1311
+    },
+    {
+      "path": "historical-foundation/referenced-inputs/SOURCE-RECIPE.json",
+      "sha256": "dba7e1da55f336cd6040a8c6c6b31ab748589f5c7d57f41e3bb529251a46168d",
+      "bytes": 1845
+    },
+    {
+      "path": "historical-foundation/referenced-inputs/BabylonAthensArtDirection.js",
+      "sha256": "98ff8d00000144e6780bb314ad13a4c1074d0494b62934e348d765d895e0f0a7",
+      "bytes": 3736
+    },
+    {
+      "path": "historical-foundation/referenced-inputs/compiled-owner.js",
+      "sha256": "5def2d6e3e086d779761b45879363fbc35383fdb8567119b8195e7d48577845f",
+      "bytes": 3128
+    },
+    {
+      "path": "historical-foundation/contracts/ACTOR-METRICS.json",
+      "sha256": "52663803875ae3155c73098731a980177bb16b82f7af92ea58b5cd849c62da40",
+      "bytes": 24182
+    },
+    {
+      "path": "historical-foundation/contracts/CONTENT-MANIFEST.json",
+      "sha256": "ca571e046c7a2234f24fb8bbd6862cbaf3b8ab05dd510afd6d8e393e4e07a22f",
+      "bytes": 76796
+    },
+    {
+      "path": "historical-foundation/contracts/LEGACY-ALLOWLIST.json",
+      "sha256": "98d3d940c5664d027a896219e0931cdd73bca7c0837847f9205d3d874487bbfe",
+      "bytes": 116741
+    },
+    {
+      "path": "historical-foundation/contracts/validate-content.mjs",
+      "sha256": "2df9da6e7836caeeccde9468ae6118ee1c44b7f06e2dc764e15b6604be401579",
+      "bytes": 4950
+    },
+    {
+      "path": "historical-foundation/packs/manifest.json",
+      "sha256": "1c890bdaf6855a4b55619f62b75da23f6fd9b236b0d3ffa2d9cce9a7f8d7f2ed",
+      "bytes": 542812
+    },
+    {
+      "path": "historical-foundation/archives/manifest.json",
+      "sha256": "4ee2c426ea162d967d510f34f99876334cd2ec0b430a3143be476e25d39b102d",
+      "bytes": 11562
+    },
+    {
+      "path": "historical-acropolis-approved-helper/src/core/terrain/TerrainGeometry.mjs",
+      "sha256": "9a1f0966e5f980b50372f49f65cae3963876a1d71b06826005136b1281f0b048",
+      "bytes": 5013
+    },
+    {
+      "path": "historical-acropolis-approved-helper/src/core/terrain/TerrainPlan.mjs",
+      "sha256": "87af068d2d0c4accaa7fa39e3b377bd7f79a14293008fa5fd7329c9d05e1ada5",
+      "bytes": 6520
+    },
+    {
+      "path": "historical-acropolis-approved-helper/src/sanctuary/AcropolisDecorations.mjs",
+      "sha256": "f37854c03b304ef2c69e70d7a43980666a8da182cf8c1b7cf8b8a758c6c5bb63",
+      "bytes": 12916
+    },
+    {
+      "path": "historical-acropolis-approved-helper/src/sanctuary/AcropolisGeology.mjs",
+      "sha256": "dabca1337a658f7af3803ce268dace5ceb9254c9b9bbb7199079330cc6a3b172",
+      "bytes": 8960
+    },
+    {
+      "path": "historical-acropolis-approved-helper/src/sanctuary/AcropolisTerrainUpgrade.mjs",
+      "sha256": "6b4e26712a4d07480113d832b7a13d1c40c72028492592216539966dd3c6e685",
+      "bytes": 23941
+    },
+    {
+      "path": "uninstalled/private-calm-chariot/src/core/BabylonApplication.ts",
+      "sha256": "9f558e1679e351e1aeecffec706a031b1222d7e3fa385628fcfe56c628b2b946",
+      "bytes": 43380
+    },
+    {
+      "path": "uninstalled/private-calm-chariot/src/core/BabylonJourneyBridge.ts",
+      "sha256": "c5df7ec0d2fbf2f37455b039031b25b5caff9ff6534329666ebb98dcc6e0fbbc",
+      "bytes": 31537
+    },
+    {
+      "path": "uninstalled/private-calm-chariot/src/core/BabylonJourneyHandling.ts",
+      "sha256": "baf8bbba4950a680c752ace22af738e92b1f7f3938c639fe665a6fab539a5087",
+      "bytes": 2977
+    },
+    {
+      "path": "uninstalled/private-calm-chariot/src/core/BabylonJourneyModel.ts",
+      "sha256": "0e13fafcb9a9e5f7d0bc0da15c698301f7e93c23aaca5fabb0f314aefa14645f",
+      "bytes": 15193
+    },
+    {
+      "path": "uninstalled/private-calm-chariot/src/core/BabylonRoadAudio.ts",
+      "sha256": "98980765e23b775b57b69bba30e6b1d208ea9de06c84ac931ac4e9f255f726a4",
+      "bytes": 5955
+    },
+    {
+      "path": "uninstalled/private-calm-chariot/src/core/BabylonRoadFeel.ts",
+      "sha256": "01d8cc734ea857a6b318c77f25d434f78e231258084846b29d38e2232cdefc0d",
+      "bytes": 3098
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonApplication.ts",
+      "sha256": "9f558e1679e351e1aeecffec706a031b1222d7e3fa385628fcfe56c628b2b946",
+      "bytes": 43380
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonJourneyBridge.ts",
+      "sha256": "cecd14fa70307c10d7676bc9c92cb92cf08896f7d0a4e2bdc7fc701d0c138f8f",
+      "bytes": 31983
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonJourneyGround.ts",
+      "sha256": "6e59a488bbe26288cadba2314d6f41d6cb830cf8f349885a14d67b9e19b571db",
+      "bytes": 13111
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonJourneyHandling.ts",
+      "sha256": "bd4c90c0f96cd15da3ff1834c0d112f941db3f11d7f4f805f8bcaf6219307b96",
+      "bytes": 2977
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonJourneyModel.ts",
+      "sha256": "0e13fafcb9a9e5f7d0bc0da15c698301f7e93c23aaca5fabb0f314aefa14645f",
+      "bytes": 15193
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonJourneyRoute.ts",
+      "sha256": "883bdc3ac819300e485c04b2b9db94098930eead4772fde9ee73e5c8df9f8363",
+      "bytes": 8721
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonRoadAudio.ts",
+      "sha256": "98980765e23b775b57b69bba30e6b1d208ea9de06c84ac931ac4e9f255f726a4",
+      "bytes": 5955
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonRoadFeel.ts",
+      "sha256": "d0331e01d12133471731df4f06ddfe52ee10f079ad79564e9a2e19208255dd88",
+      "bytes": 4246
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonSpartaCourse.ts",
+      "sha256": "0e3d4675828f4a15aa2f45a477b4c29fae14acd4eb155ef5b6d9dad360c02a26",
+      "bytes": 17947
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonSpartaLandscape.ts",
+      "sha256": "068586a9aaa4b3198836d5c33d59cfb543f104a0dc55bee18e65db68f693cfa1",
+      "bytes": 37011
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-challenge/src/core/BabylonSpartaScenery.ts",
+      "sha256": "f63149d786fdfe38198d6c0eb4aa419f94a989877c6d157dc188e0d9df8bc828",
+      "bytes": 33096
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/characters/romanWarriorAvatar.ts",
+      "sha256": "fbd5f361c47c50de06a66d2c7a9a35baf6866b8eaa26d4cebc2631b62bc2d27a",
+      "bytes": 3652
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/config/terrainMaterials.js",
+      "sha256": "9bc53b227b5db81a4a0f86e9a07f1fb577736f11f947278bc6f64443375c12b4",
+      "bytes": 250
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/config/terrainShape.ts",
+      "sha256": "4008ee2c526ce7f828821bfe0636be72a7d1b495d0cfb2b034f16e179145ff9d",
+      "bytes": 946
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/AthensGeometryResidency.ts",
+      "sha256": "3234e7a19c065d5ba8ecdda575d4d145013cfd6e1164bc61eb64ea00c1aee231",
+      "bytes": 7706
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/AthensGroundCharacter.ts",
+      "sha256": "0176c1ef6aea6c23e400a9579eddd7e4c449c4e1c171fbe28c2cd546184b882a",
+      "bytes": 2170
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/AthensResidency.ts",
+      "sha256": "723166e80e1d549ac65f824f54a06933f2062b519693b1c3c71486dd568b12b7",
+      "bytes": 14482
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/AthensResidencyCoverage.ts",
+      "sha256": "1853b6dc33985fd2e0994fff07b8e4e5e63c72df3220a6c9eed2a82da7de1192",
+      "bytes": 3202
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/AthensResidentArchives.ts",
+      "sha256": "6c1b4c3dcb6cd742253d1e0309655a45deb760d3f0673204121b4101766df8d8",
+      "bytes": 27383
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAcropolisAscentGrade.ts",
+      "sha256": "9546afb2fc5a56b3325585b33ca917ae67117e6fd9a39181028be9dcd520bdd9",
+      "bytes": 1301
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAgoraActivity.ts",
+      "sha256": "b60e53fb4c05d0c7bdc46815bec0f096a00bf2db57ef3e05763e57a51b4961e3",
+      "bytes": 34269
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAgoraBridge.ts",
+      "sha256": "2fef26bc8874ef1d0529232f5d0a9e5d6dad56c5b7dcd062a4e168cb14baa891",
+      "bytes": 15710
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAgoraCompletion.ts",
+      "sha256": "fa6e195e10254734bd57aa8d6463c2937332ac0db4ed0553db5cdacc04702f87",
+      "bytes": 7934
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAgoraEconomy.ts",
+      "sha256": "a9b73f3e2eb9cb070cd4dbcbdee5cf9d014fcca2fdb27de762ab4f21967c1b6c",
+      "bytes": 3489
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAgoraGround.ts",
+      "sha256": "68d0b87570b01c467a34f9cd1ab1ed7975ed29df7688c7fd8a02f1d2d052d1b4",
+      "bytes": 51657
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAgoraMarket.ts",
+      "sha256": "03415d559ab5e06fb20dec7a2e9e37909b63f0db1162ad21568e0ed3a9c2349f",
+      "bytes": 10394
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAgoraVerge.ts",
+      "sha256": "34aec8be04c01df922d865107ce3541de6c8401a48dece6efb4a4d08ed66823b",
+      "bytes": 4291
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAppearanceEditor.ts",
+      "sha256": "9c3c2ff500f6788a8ac9049ee77eb3773f937ac7653aa63a74e2b1e37a3f8a24",
+      "bytes": 24865
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAppearanceRegistry.ts",
+      "sha256": "a6416157821b5ae68a2db6529881b330459ca9e48ecddc2675bcecf2995c2f38",
+      "bytes": 27840
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAppearanceShader.ts",
+      "sha256": "0668c79e3b11b2824153e2d51a76a822e76628b38f0cc2112220514be3d96575",
+      "bytes": 4646
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonApplication.ts",
+      "sha256": "c4bee0b7a218223f246ec32df63a75b7bf186f13fbe8fe7d404d6b8726527cab",
+      "bytes": 45030
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonArchitecture.ts",
+      "sha256": "ba5b24733d18b360012a407de33b2b6aeee03ae871648e763a6fe22cb7e6e408",
+      "bytes": 34287
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAthensArtDirection.js",
+      "sha256": "c7bc2e44e9e738d9c3276336e5d7f3b35a89726c82fe4907de8cba9186e2d5d5",
+      "bytes": 3737
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAthensLut.js",
+      "sha256": "9bc14846d19c61839b9b6724173802075d4835bbfffb9658a5f187b0e6165a42",
+      "bytes": 5040
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAthensRedesign.ts",
+      "sha256": "dfb090bdd3f5b4748d91bcb75c297fb6a49bbdade6c94a5b3a101615274467b5",
+      "bytes": 54736
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAthensScatter.ts",
+      "sha256": "8f1b69478a5f974eb94cafa0009d6664267d93dde65157ffc09b83db850d7700",
+      "bytes": 6611
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAtmosphereBridge.ts",
+      "sha256": "4117fc34582e5f491c5468aba2d9e63424a9003e6f801e5aab76711f56f615c5",
+      "bytes": 18647
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonAudioBridge.ts",
+      "sha256": "96db76ca6e7808d309904c34bd8391535e6691c163e163ede8b901c07049942d",
+      "bytes": 5611
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonBackdropBridge.ts",
+      "sha256": "776392e430988e831c2f30addb8270172f013d865ef4666a97914b9a9466da46",
+      "bytes": 7217
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonCharacterBridge.ts",
+      "sha256": "4e2e25b9eabb499b8e51f676bdcc1084d56e38c8b898bc616605781e935c924a",
+      "bytes": 8576
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonCityBridge.ts",
+      "sha256": "0942d5f61212f35928c8067470adee4b05ccc81688b693039959324b1509e2df",
+      "bytes": 19769
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonCityGroundMask.ts",
+      "sha256": "9e10f2f88deb7c593f744226fdbfa7bb3f0e9d69d0a7d21c6c471669cb80e27a",
+      "bytes": 7728
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonCrowdRenderDetail.ts",
+      "sha256": "d9bfc6a86e8afe7bea48d88f91c7884164d87318e06e4f680bbe0bd5635c535c",
+      "bytes": 7420
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonDaylightSky.ts",
+      "sha256": "0783806ea90ea45783947bcfc3720d6668637418f581a32e91c2f85626d42a50",
+      "bytes": 5517
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonDialogueBridge.ts",
+      "sha256": "06e4f0d0d8124d8bbb238df672d8d57104de4df3e78baa048a383cbe1f2e38e4",
+      "bytes": 32330
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonDiolkos.ts",
+      "sha256": "9e9cc2540971ae5226fa40b05c2f1eb7163839de9ae688c731ed332756dd315f",
+      "bytes": 12117
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonDiolkosWorkshop.ts",
+      "sha256": "beb58c26b262f15f714d6aecc51abb02a7af380b97299c7c26bfd525f1f13f37",
+      "bytes": 12674
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonDiphrosChariot.ts",
+      "sha256": "de725fe08038e968bfa44323f0b9a095862f89b008996ffc6a8efcdf1c339c73",
+      "bytes": 5378
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonDistrictCollision.ts",
+      "sha256": "edac0dc7cb29d764c0624c02e77e3351a0ab5f9b8d83a7684a5fa08bf19a05bf",
+      "bytes": 5532
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonDistrictStreaming.ts",
+      "sha256": "de838cdec3de32ae20a3cc8bf5051be35eb999d386eca188900fa5268de3067f",
+      "bytes": 15763
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonEleusisSanctuary.ts",
+      "sha256": "da29a65b9292e098b05ab0d0510b5fcaa1cc73f8e42d01d786b15596261271da",
+      "bytes": 19888
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonFoliageBridge.ts",
+      "sha256": "53c9aa85a4d0a5c1ae9f2dafb493b69d7957050da10687a737316a4d3c3e8a0e",
+      "bytes": 5841
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonGateArrival.ts",
+      "sha256": "9c23694d73047d25ec11eb1b482f977dc4afe79e46a4a9b4d920de2cc7194574",
+      "bytes": 12268
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonGateArrivalPlanting.ts",
+      "sha256": "43444681ffa2f90e5e51a404a02fdfc93f03b02d3b459b8f1309cdea4a26fdc1",
+      "bytes": 13177
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonGateDistrict.ts",
+      "sha256": "e2f4b3ed4dc8fa626cc6a629883c69156a30f0d3ca148570b17161e7acf75d4d",
+      "bytes": 13116
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonGateFinish.ts",
+      "sha256": "aa9f8426ec463de8b99d8dc0666ad468a3050e1a4f05b7117e7b699d1889a41a",
+      "bytes": 12511
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonGateHarbourMainway.ts",
+      "sha256": "19f80f9cb1d6169a3522581a2d26c296f6f7862181e93e39ca21b9a8c96d70b0",
+      "bytes": 14882
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonGateRoadGrade.ts",
+      "sha256": "80bce139938ee30a210d72de5dc4e95044119cfbe9758d9166796c7144e1cafb",
+      "bytes": 2689
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonGateTowerFinish.ts",
+      "sha256": "dee65f5d74aca33959836ecf53f2fea235950360dbeb12d69d83a2602a446c1d",
+      "bytes": 16945
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonHarbourDistrict.ts",
+      "sha256": "741a9f80115a2dd55517acaa9c7183880403fc081c8936910e48348ba2161975",
+      "bytes": 55802
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonHarbourWork.ts",
+      "sha256": "1c6ada63aa2a4ffa42f093f43bdd613406ca0bfcad974daf272ab16972e6d5de",
+      "bytes": 46351
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonHopliteDriver.ts",
+      "sha256": "7793bcf3fc478bd5cb66ae75d0258167671c43039b7c8ae20224f04666d3f079",
+      "bytes": 9365
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonHouseholdPlan.ts",
+      "sha256": "6b834ab5fd15b3da76b1e56f41c3369a5b77099b998cfa11bcd122c65f9c481b",
+      "bytes": 11142
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJourneyBridge.ts",
+      "sha256": "73337fb0d680486871ef0261052f0c61b2bac7cc3f3f5f27dbe9a63f0e5e22d8",
+      "bytes": 28044
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJourneyGround.ts",
+      "sha256": "d4d96685c328030db253b791b827a8173135049d04598c859cedbbfc6742c980",
+      "bytes": 13124
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJourneyHandling.ts",
+      "sha256": "fbc40c1fc6b546cdde589567df718826a811309881510677b9a60429594273f2",
+      "bytes": 2695
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJourneyModel.ts",
+      "sha256": "d10b15c1601ec5ea795d6f0bd668f29fbc94099ace8c79bc4ccc3f67ab926254",
+      "bytes": 23634
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJourneyRoute.ts",
+      "sha256": "a07bf21a3f17ab5329505ab0db136fa8776ce00f0c1e64b7a6d1aad95589f482",
+      "bytes": 8632
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJourneyScenery.ts",
+      "sha256": "2dcf80d721c6ebfed19cd35607ae8ee31f63fc43c400c3cd62560a9da4027da2",
+      "bytes": 25162
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJourneyState.ts",
+      "sha256": "4090842a2e2a11a46f23d355cff9be47cfd5e2b59dc01a1250808d6b2a2b33ff",
+      "bytes": 979
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJumpMotion.ts",
+      "sha256": "7b3707239d9252240981b9ddafac1ec8cb6a9d58f826a259177d43d6602c1be7",
+      "bytes": 5594
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonJumpSupport.ts",
+      "sha256": "09df0c516840b6439c793b2c2da2c2bbeccffe1bd691b3717743385261e9786e",
+      "bytes": 4078
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonLivingStreetMargins.ts",
+      "sha256": "744192f722f08fa5e997e0b4b87f4acece78c4f4a86b72fc206e6715e1362bfe",
+      "bytes": 23416
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonLivingWorldBridge.ts",
+      "sha256": "40b03e4d81c256e43c1c06baee10dfb9a5d4be3d7bca1f25f155636dc4ad2db0",
+      "bytes": 23379
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonMarketDistrict.ts",
+      "sha256": "a76165e89157c410c51fc06f8830806e1f1847ef78eb2e776e1aea6b0805f1d2",
+      "bytes": 7696
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonMarketFoliage.ts",
+      "sha256": "0b93b525f95595672f9fd6b7a3cf08023699539b80835857d3bb6d86c213ab5f",
+      "bytes": 2428
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonMediterraneanGround.js",
+      "sha256": "de001080f0ff3663d8922f30908e9c7eb057d48c3e1966edeb34306e6bc6ae6e",
+      "bytes": 4110
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNativeHousehold.ts",
+      "sha256": "34273ac935f23c26d1437926e9746ec323aa894fd55b2f33e610725cff90f46c",
+      "bytes": 34808
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNaturalOlive.ts",
+      "sha256": "eb8c08417611013323e2ea7b5570988d185e0f64752de47b67fe9767aa80f9b7",
+      "bytes": 5058
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNiseanTeam.ts",
+      "sha256": "53baf7755cb29c95510b828fd3a26a1431c8438bdfbbc9c9483c33d1c0390d73",
+      "bytes": 8627
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNorthernBlockPlan.ts",
+      "sha256": "c13d377f15472ba43ee15f08ae869029d8a2bbfeb08366d65f4c5062999fc929",
+      "bytes": 10205
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNorthernGardenFinish.ts",
+      "sha256": "0cc8dd398a8cd76ff2fb5ad03d17a56a8f1f940146bb22d9ffc4b5c810768332",
+      "bytes": 20713
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNorthernHouseholdDistrict.ts",
+      "sha256": "fa36e03bbc0afc9c65cb9542cf402d4975ce27ca732f23eeaff4c4814aac8358",
+      "bytes": 10292
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNorthernHouseholdPlan.ts",
+      "sha256": "a0ef9c9dc4e448a4aed207c3242711f1b11064cdf756fe923f10451cf86baf6b",
+      "bytes": 5511
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonNorthernPublicCourt.ts",
+      "sha256": "8d6ce64fe2e92c1ae2ebc76c0ebeef01d8b9b57210d22157748efbdf06ff4888",
+      "bytes": 14143
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonOuterAthensLandscape.ts",
+      "sha256": "8d83701b7bc6b200e8dda4fa210df32ac05870d7630ccb05d97eddccaf7c1d41",
+      "bytes": 21069
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonOuterAthensPlan.ts",
+      "sha256": "7a1cf0e35eaa19f09d7c352ae76b5bbf5b67f38df3088dc7e6a7c881c0cc9449",
+      "bytes": 8533
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPlayerController.ts",
+      "sha256": "504a6f497c3b87a8570066f77738f68693329094e75dfdb7360ba1e885e41e6b",
+      "bytes": 31600
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterAccess.ts",
+      "sha256": "1049e820c3a24359edf44ebae03936695690381a827f4c1f8902cf41c8fe7740",
+      "bytes": 18427
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterApron.ts",
+      "sha256": "61dcbe29968d1996d243ba80453fd077de6d264c6ed9d3207e7c37a8195ebead",
+      "bytes": 21150
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterCraftLife.ts",
+      "sha256": "36b7601af9d0c7e85432e4e8c5b5a3e9ff0a0c7ba525a6837f0591d6b2d9fe87",
+      "bytes": 10046
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterDestination.ts",
+      "sha256": "98af83540b0ada0c961bdb18a778681cb3df225b004be7a836e8faee09f4d766",
+      "bytes": 49540
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterFoundationPolish.ts",
+      "sha256": "4e3e27907cd0d17a98cb9583e686d8bdb606e5d4b6f2e3c15eddea9f548214fe",
+      "bytes": 16592
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterGallery.ts",
+      "sha256": "a6428b8eff2514ba83daa6c2e92c028d990d981c225c6d9d4acc307ed3fc5014",
+      "bytes": 4915
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterGrade.ts",
+      "sha256": "6b55da6317a07b6103b891d33df24138422e2140ad46030e5a599389a75e520e",
+      "bytes": 15120
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterKilnStation.ts",
+      "sha256": "d1dddcc649a2b05da28819067a90e1bee647a8155b2ab5cca77545246585d3fc",
+      "bytes": 19590
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterPrecinct.ts",
+      "sha256": "199e612919886ab42fe79a37044c85576322b75928dbc7407b46c71bdefd4d1a",
+      "bytes": 10022
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonPotterTender.ts",
+      "sha256": "a3bfc6389dffc0071e4d73241a27951671279329d205fd4c0e1594cbc9d44589",
+      "bytes": 1919
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonReferenceWalls.ts",
+      "sha256": "5a24af97b6b6b494df811f4b5dcedbbcf2b50c7f996b4690d8baaa9e96711082",
+      "bytes": 2317
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonRoadJournal.ts",
+      "sha256": "b98313cc5902dc4fabf190ed58fb24a92fe39e69f234eb7ce34e7454f13718aa",
+      "bytes": 14022
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSanctuaryIntegration.ts",
+      "sha256": "3f2de9e07ccb08edfca49fba601b4fafac06417833cb72688aded22abed1dc5a",
+      "bytes": 1210
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSchoolDistrict.ts",
+      "sha256": "049af18f314092af02de7fa94aedb07c896ee50803034cdf16d035684a89e03b",
+      "bytes": 31155
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSeabed.ts",
+      "sha256": "fc3048a851fb029804f0a3f207928745822af93b0e8860a668b7b20d1af3d970",
+      "bytes": 4296
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonServiceBridge.ts",
+      "sha256": "0b22bd457d9cd84fdfe7702cc514696f33e870dad0a89021b05efa79905d746b",
+      "bytes": 2822
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonServiceState.ts",
+      "sha256": "b58f0eaae7acb589bacd0048d1c214feb4c18a8a8be6c321b322b20ac63a2b0a",
+      "bytes": 4425
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonShadowCasterIndex.ts",
+      "sha256": "fe88607bb26aab64ee3d7b7eff86f25a30061d4612fad88de5e023b8d79a5633",
+      "bytes": 4298
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSpartaCourse.ts",
+      "sha256": "c412cf2d157f6e6f08d0c744c4253629c1231fd329697f1bfc61297922148c33",
+      "bytes": 17507
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSpartaGeography.ts",
+      "sha256": "f8a91802c6a8a90c8e6802cd088001e4c09334a44a0663e2c9eb667bafa79486",
+      "bytes": 2326
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSpartaLandscape.ts",
+      "sha256": "4faa8fc2f37d920ab89a04c321095b1ab2f71294cbc62a51314ef79c89030e60",
+      "bytes": 41343
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSpartaRegions.ts",
+      "sha256": "49805da8634bf6db2163f48f2a3060ce75438c85547cf28a744734fd1a3f8ee5",
+      "bytes": 4813
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSpartaRoadScene.ts",
+      "sha256": "fd73e586c2d2f2ef13c3262abd335bcd292c08f112d053d546217272a45d20e2",
+      "bytes": 5887
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSpartaScenery.ts",
+      "sha256": "0ced64ddd79c7e984e082c8737148c28b5152a5a5cf6ef0e4fc4adb5358fc116",
+      "bytes": 32780
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonSpatialSelection.ts",
+      "sha256": "dc4d7aed5db11def184918100f1bd53ce4d9912b388f7d9361725e0e85670df7",
+      "bytes": 7499
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonStaticDistrict.ts",
+      "sha256": "40f1eba655923f944690ce8954eb82d85fe6970228727d02d1faae593ae31245",
+      "bytes": 10551
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonStreetLife.ts",
+      "sha256": "10980ac3c176e1f94a404d9fa3ee480d3082bc6311281c7a8887bc476694829e",
+      "bytes": 43873
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonTerrainBridge.ts",
+      "sha256": "677ee2e81de2e96f730ad2a428e882fc9250918fe76e073b11931953f54c6a8d",
+      "bytes": 16986
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonTriangleHeight.ts",
+      "sha256": "74b63253c6e2defeea0d2e023cabc40885b9cb1d0ed3d0d5e9b9f8be01eb3997",
+      "bytes": 1372
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonVisualUpgradeBridge.ts",
+      "sha256": "5325e102e461f5418f8d68cf00422844e76005c27ea97813b69b3045926e37b0",
+      "bytes": 8075
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonWalkSupport.ts",
+      "sha256": "4745cba54e3c60a37b93cc25ba98078d123d0296dd1e1476bd72fc9dccea7d68",
+      "bytes": 2606
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/BabylonWoolServiceYard.ts",
+      "sha256": "d8a3827ed2911a3d8a4e88365f2769996f8add3c47d2c34297c3bbf72852ea90",
+      "bytes": 35273
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/benchmarkPlanRoutes.json",
+      "sha256": "93fdb47feb36fc0ddc56040f04aa1d176a76e030dfd97e32119d298cbf86b36e",
+      "bytes": 5251
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/CountryLandscapeLayout.ts",
+      "sha256": "88295e81c7a2fbe4814bd2592f0d59e2425300df9d4992a278a6e8393f476c67",
+      "bytes": 2358
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/CountryPlantingReservations.ts",
+      "sha256": "86eca8dc062a8ab653920cd47bb041900f2d74cca49a2c49da1c9aa0357253ad",
+      "bytes": 2142
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/JourneyAssetLeases.ts",
+      "sha256": "bbf794daf218e568e56bfe8d29314be47ef9792412f074b597272ca4f863ac1d",
+      "bytes": 5761
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/JourneyGeometryPackages.ts",
+      "sha256": "0d88c2adc92ec3b9a40d2a7d747428467f23d6b47b200c00096133fbd02a8e3c",
+      "bytes": 4573
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/JourneyMaterialPreparation.ts",
+      "sha256": "0f98b3bdd0ebdf05469b6405bcfb69fb927a115103a16a96473366062c930077",
+      "bytes": 2290
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/JourneyRegionLifetime.ts",
+      "sha256": "64fe8463d054fbc145e9942755662ea0fa5af76da16cc2c90f2ffd17c175dbf5",
+      "bytes": 1480
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/JourneyResidencyBudget.ts",
+      "sha256": "d9338bb7192000cbf19565717e47ba3ac3e7f9b26ec979aa89bdb54cb302e587",
+      "bytes": 6362
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/JourneyResidentPayload.ts",
+      "sha256": "ad0f8dbfcd1684c3f7cd0c8d014013d6f532a41043b35d0d7d97f58b3c0d10f9",
+      "bytes": 7695
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/kiln-cycle.mjs",
+      "sha256": "cd8bfa304f262a168d772be99f248e545bcc583d178145152a200b099d22fe8b",
+      "bytes": 1441
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/NativeCountryBackdrop.ts",
+      "sha256": "f0b2ce027d161cc5cfdc3587948d065b8a3c58d7b59075eb8066d132565e18a3",
+      "bytes": 12691
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/NativeCountryCollision.ts",
+      "sha256": "49530fe73bdf27ecda4f19c7e3a65d38b714d7b2ac0a955257276b85ebef1332",
+      "bytes": 990
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/NativeCountryDetails.ts",
+      "sha256": "485b49dd85c8ba3600fd443b7b1e511bce076219bb56802250ab2a081bd2b7e4",
+      "bytes": 19735
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/NativeCountryLandform.ts",
+      "sha256": "be5981801a83fd7c870a4ccdd50cc5207eb136f3196e7844b25eb1cff74efd50",
+      "bytes": 4439
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/NativeRideVegetation.ts",
+      "sha256": "05d8efc0845350b510376b7bf26374cc3dbed224d6f3cd9a8425069cacf85eef",
+      "bytes": 23979
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/pottery-state.mjs",
+      "sha256": "e036c2370210ee5644e4fd04de89278cbaf201dfad74fdf00eb83283e92c6e90",
+      "bytes": 1535
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/pottery-transactions.mjs",
+      "sha256": "76fdb2ec4e1093727f515b8011b933230b53c32c7b344746612232c0bbc3ee9b",
+      "bytes": 8011
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/core/SpartaSectorAssets.ts",
+      "sha256": "15a144de3d678a55a7acc00c66212f7029090e57ea6068c1f9effa847689dc3b",
+      "bytes": 13778
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/architecturalFinishMaps.js",
+      "sha256": "a802e77543277d7efb69511dbfc9adfb0c0e8705b9ed6274928934c7d6b76d97",
+      "bytes": 2356
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/atticGroundMaps.js",
+      "sha256": "67e3400ff81a6379b962c163f981fbb26876e258f2f62d93dbce4444bfec1a54",
+      "bytes": 1913
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/cityRouteMaterials.js",
+      "sha256": "239753bf5236345b041fcd05d86208fbc757b659ea9240f859522ed61922828a",
+      "bytes": 3638
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/doorstepStone.js",
+      "sha256": "2f7028cb4e4afee8c3d9d2d4dbeaa403b671245f486cfe3c025584dce96ca578",
+      "bytes": 1620
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/gateAvenuePaving.js",
+      "sha256": "fb031598bbf11a1052bd8b5f4206092bbe012aee5eebb47c0ea35956c696a7f5",
+      "bytes": 5909
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/mineralSurfaceTexture.js",
+      "sha256": "02bd635dd82d1914fdb6f7e8be4467e2f7b2a6a494ee5b63bba82172cbcc5e11",
+      "bytes": 1989
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/naturalGroundDetail.js",
+      "sha256": "b46ed69977ac6089304e86645c0e4e8d4ddbd5858669afccc86d623ef2af537d",
+      "bytes": 869
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/packedEarthFinish.js",
+      "sha256": "751a02d5cf3bb3c6f96879915429e07a9fc1368c5ec798d00828aa27fa13764c",
+      "bytes": 1630
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/materials/potterSurfaceMaterials.js",
+      "sha256": "cfd0f71c40416ec4901935baee7974a3b45a9eabda0e20cb251a852da71e45d6",
+      "bytes": 2923
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/utils/baseUrl.js",
+      "sha256": "9e0b094c2556203c9389d55d76eca88db4bcbe94e843556f97df5d5e9c5dc5b6",
+      "bytes": 2115
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/utils/buildingCulling.js",
+      "sha256": "e2940d0765af1af1499f3466a94a57106a1e3659c3bc2cdd1f4c711bdedcbfb7",
+      "bytes": 2129
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/utils/propCulling.js",
+      "sha256": "6536b02e09f36e1f56837431bc170828caf1d59e64c10b51df26496edbba4fd3",
+      "bytes": 8367
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/utils/staticRenderBatches.js",
+      "sha256": "f535dd0a53aaceb6ce96199f322d7660592786be1cc35b25af4affd7533c2ea1",
+      "bytes": 4819
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/utils/textureSourceCache.js",
+      "sha256": "de9639bbc4af00b7aefde625ca621f32ca860d683752c5ef1b91e64a4b2ba6cd",
+      "bytes": 905
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/utils/TextureUtils.js",
+      "sha256": "d781a3e83c8a0fab28da419481d45e637f68c0ce454f4422fa65c8915f114ab8",
+      "bytes": 2124
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/agoraLife.js",
+      "sha256": "c013d1c4555655a5871bf03cafa6e8e0e85cf248cdd6ac78c64cf50113de0363",
+      "bytes": 5421
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/bakehouse.js",
+      "sha256": "401b536e1662d57d05d12c0c8cc35f7dd89c8809080776c5e840ba3b765391f4",
+      "bytes": 8147
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/bakehouseLayout.js",
+      "sha256": "27ba42f7c619716ce94b9b15236e0d5500efcec574e202b20a50d2c52203e807",
+      "bytes": 1646
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/buildingSpawner.js",
+      "sha256": "ca51d4f5045c075a823e84ae482ea96bfc19c07c8d8914126990a95180711719",
+      "bytes": 25858
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/cityCivicLayout.js",
+      "sha256": "530c60efa2193aadb7c1cfff28489c63ec7629d71868240d1a7f610c167ddad7",
+      "bytes": 597
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/cityGateAvenue.js",
+      "sha256": "63aa905b72d326f20cb1a25fc3d5c508af542cbe2d6d4712f0fadfb481fc3de8",
+      "bytes": 4228
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/cityGates.js",
+      "sha256": "01bc0a0210ddd1f34fd0760abc635d37b70d91ecef15a53ae4e551dd28efdf32",
+      "bytes": 6094
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/cityGatesLayout.js",
+      "sha256": "b76bf2528d775e258a82209df9cd50285294fa1677895464b79331599a904b22",
+      "bytes": 5141
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/cityWallMaterials.js",
+      "sha256": "e6a9e96ed25b48d8170da780794c65aca82e79dcd356c3c99d755bc708f48590",
+      "bytes": 6551
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/civicCentreLayout.js",
+      "sha256": "d63c97e87378234d79aa044acd1f76d315d5381d6582ebb1ffb9ca33ab9d8e5d",
+      "bytes": 1987
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/clothWorkingCourt.js",
+      "sha256": "715335e4c8a0c749473bf970a4bad2e84512f0c40b3ab1a36f4b06e8ce8cf591",
+      "bytes": 4418
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/collectorPilotPolicy.js",
+      "sha256": "f12ffa3a0fdc35361f49a8a6b8fcf6ddb08d803953baa523998e7f23bb23cec6",
+      "bytes": 421
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/courtLinkNeighbourhood.js",
+      "sha256": "8e1f380ea16505a56da4c919c86e5bdb2d207b9c206a609399c3e3c506eb5bf9",
+      "bytes": 4043
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/courtyardEstateLayout.js",
+      "sha256": "1e21719a1f40fc90f067e37d121717945d0acf8f74d5e7497b100777936d72b4",
+      "bytes": 975
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/dipylonDistrict.js",
+      "sha256": "5df6bebb9e55ff03e2234954a769b309e56532bb361417398e81186c7f064142",
+      "bytes": 9360
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/dipylonDistrictLayout.js",
+      "sha256": "5a4bb158fad7353c7d14c2bfec30999e875836781d7dffdfdf4812d602fbffe9",
+      "bytes": 3864
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/foliage.js",
+      "sha256": "bc4c3ee78cd7935121fa137b6afc449b3313a5ed108641c2b95b8b006e8f97bd",
+      "bytes": 15547
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/groundSurfaceGeometry.js",
+      "sha256": "cde4d4a891e50f84a6368cb4ecf21f90f0a15bc0c0d08703ebd2e351bd613df7",
+      "bytes": 10786
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/groundSurfacePlan.js",
+      "sha256": "4c0380d39f646d4568571dec6b3872eded2fe52e62cea00de12a9efda4c68b1a",
+      "bytes": 6267
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/harborCoast.js",
+      "sha256": "3fdd435a7b27401fb1ea2c93b331df7339ce28a9e2fc60dad7afdcdf4f280e12",
+      "bytes": 2551
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/harborLayout.js",
+      "sha256": "0fda59ecccf81657118becb66b54edd7a2e4cc1b43530b390163c8d9533a9c85",
+      "bytes": 3174
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/kerameikosArchitecture.js",
+      "sha256": "cc88a662d9a598f6ad0653cf8c7517ca1d50dd869aa66da10571b5fdd99b660b",
+      "bytes": 11999
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/kerameikosPlaza.js",
+      "sha256": "5500c06257d400024e102e1b13d478152e23541ea7e791506bf457829c6eb823",
+      "bytes": 7892
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/kerameikosPlazaLayout.js",
+      "sha256": "6d3fca8cc09b89cbfc39d6c4b0714a2d28202a8ed4e3bfdbcc244724d9bdce9c",
+      "bytes": 1434
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/kerameikosRoadside.js",
+      "sha256": "f61b106d0aa2b1e681b3ccd3f19f06b3f2970bead99bd642cf36a3410e5d7dda",
+      "bytes": 4655
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/largeCourtyardHouseLayout.js",
+      "sha256": "dc00898a441dea881974313adf426bd54afb968d58c2e8cad2b3b9ae6985b281",
+      "bytes": 1601
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/lyceumLandscapeLayout.js",
+      "sha256": "fe212a79d92578e349689f646838f1c6565624a3afec43c041f26b1c15330c97",
+      "bytes": 3416
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/masonryGeometry.js",
+      "sha256": "520aaa45c86a6b2dfebd60a162328afe017c1e1e43bde9d4f7777fac5faf8de5",
+      "bytes": 850
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/materials.js",
+      "sha256": "302f7044b4d964a60bf982b9cfcd8e0ee7e6bac1abce337ab8f53a44a6644b44",
+      "bytes": 5909
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/newAcropolisLayout.js",
+      "sha256": "a33846d36f8cea5fefff4b2482cc1344211a9044784674892fa2bb76dcefc8d6",
+      "bytes": 3789
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/newAgoraLayout.js",
+      "sha256": "5e54a340b03ca821931c8c6e3491ae9ea95f7f11a66cc060045cf4cdbb3a909b",
+      "bytes": 3746
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/newAthensPlan.js",
+      "sha256": "ce52e21e4e7e0f58e78e98c59993652cbb655212598fe25812b692a8a3484105",
+      "bytes": 7947
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/oliveOpenWorkshop.js",
+      "sha256": "b3e8da35148ca1fc1b2611a424bf4f8569af679e25587f34c7d9f47a3767a706",
+      "bytes": 9027
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/philosophyDistrictLayout.js",
+      "sha256": "d518bc006cad52506a488fe66716cbddf6d655c9b4a8332408e2c8f669f1c364",
+      "bytes": 4565
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/pompeionExpandedArchitecture.js",
+      "sha256": "2e675690649da167f3ec78fba222f1c1653d764f75a3a20bc3cdafaa510862ba",
+      "bytes": 22077
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/pompeionProcessionCart.js",
+      "sha256": "bcb9fd3165aeef617eacead5089dae445973101a19e3809861e53433311d820b",
+      "bytes": 6237
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/pompeionRoofAssembly.js",
+      "sha256": "829948f0e5559b1f8ab50acfe85f373c804892546d5703f13aae3ca7eb810d4e",
+      "bytes": 8568
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/pompeionScalePlan.js",
+      "sha256": "c8e3422b3335dd67129abc54985e75f7dd345dc44f7e9d964d6a0ee87eb0aac8",
+      "bytes": 3268
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/potterQuarterLayout.js",
+      "sha256": "5d31265b3efd4277f594d41094baee861dc63f9bb96d093e32dedbd340b229f1",
+      "bytes": 7572
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/provisionCourt.js",
+      "sha256": "abc772a7c2ea37d67d700c8e3b06e00f334272569061900a68d1de2f96972594",
+      "bytes": 5964
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/residentialFacades.js",
+      "sha256": "373a2fbe53387f3a7b0b34285feceb3fdfc7d5beb447ee62fbc22da513b716f1",
+      "bytes": 7024
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/residentialGrounding.js",
+      "sha256": "7e6d515c2ebfa3979b0b8910e9ed1f941be8aea49801047fde292bf3c70ada89",
+      "bytes": 6708
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/royalStoaLayout.js",
+      "sha256": "edd45f6489e01dedf02bd7bc51d525afb0ce3103ff57c27da69a99fe9489ee7e",
+      "bytes": 3100
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/southStoaLayout.js",
+      "sha256": "e2436e5cec96a0fe97326b27836595e19024a172fddedf41cd27762798f91a46",
+      "bytes": 664
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/terracottaCourses.js",
+      "sha256": "201dfd9118a8dff11bc306ebf3dd6b64cf5fbf38a2a3744f4985fc9b40b7f5bd",
+      "bytes": 2857
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/tradingCourt.js",
+      "sha256": "c87d5f067b2fc95d34a123a27eabcc59804b9df5621a5e0934940baa8c84d55d",
+      "bytes": 8201
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/tradingCourtLayout.js",
+      "sha256": "86c554f07ea442e1f86bcf20aaa3e2f48d6bb9b612e456121996fffb357d7786",
+      "bytes": 1521
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/westernHouseholdLayout.js",
+      "sha256": "77fe90baad57bb3007d5c82a6c64bd5046e596e646186af52d84e557d426cf7d",
+      "bytes": 2392
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/district-reference/world/zeusStoaLayout.js",
+      "sha256": "47bc92280ed601a194c0431b144881715143bf1036b8dcd56f527b1a9df00dbc",
+      "bytes": 4079
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/journey-reference/chariotModel.js",
+      "sha256": "9f9408f7c9600cd50638fb5cd8e90a5713d03b1be5d8c0674f662e7fae97bf3f",
+      "bytes": 21286
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/journey-reference/rideVegetation.js",
+      "sha256": "a7b70df3e8019bb45ceff721bfad6b0b88695d4460a4f393a615cbc486b7cff9",
+      "bytes": 15207
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/living/AthensNeighbourhood.ts",
+      "sha256": "766b844cebd112d5a9f3e5e01b95822def92e25629d399b0b6f0859d774384b4",
+      "bytes": 8359
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/living/PotterWorldAdapter.ts",
+      "sha256": "6266670cb279faa97f0db0bc27da5c54af31640b75fb49f279f6050c9ea560d7",
+      "bytes": 10373
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/living/WorldCommands.ts",
+      "sha256": "29248ab84222f0aaa543f1a3e1ff909e674c21287e763eab897f0508a6dd544e",
+      "bytes": 12758
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/living/WorldState.ts",
+      "sha256": "2ea3438a0b2954a37157e062e8a87a7b856fed963d4118795a99e9983984f00f",
+      "bytes": 22912
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/main.ts",
+      "sha256": "08c268b0a2131ec360fa93aaca35bf63f928be8e07a7ce3760fd83eb25753353",
+      "bytes": 2999
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/acropolisRockMaterial.js",
+      "sha256": "14c8c1557f503b51908792a3a6425d25430b956a83aaeba23f7349931a4399a3",
+      "bytes": 9835
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/agoraArchitectureMaterials.js",
+      "sha256": "ebb15d4479d1992f5d0380320f5f984c12d8253806c4215d090a2709eb265638",
+      "bytes": 1890
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/atticGroundMaps.js",
+      "sha256": "67e3400ff81a6379b962c163f981fbb26876e258f2f62d93dbce4444bfec1a54",
+      "bytes": 1913
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/cityGroundAtlas.js",
+      "sha256": "fd215d85a1e1578ae7e548e937ba9dedf4b69435234e058156f498ac8e53d4c4",
+      "bytes": 2982
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/cityGroundAtlasAsset.js",
+      "sha256": "5be2e6fe949032c670edfe283b07036e7a5d413aba679b26f9aeaa190d8a4f59",
+      "bytes": 2968
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/cityGroundAtlasLayout.js",
+      "sha256": "5148a38612c0554066681415ef1f3f74f2586717a788e0c42fed48b34f95939f",
+      "bytes": 202
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/cityGroundAtlasSource.js",
+      "sha256": "4740ab13d026972ad62c1d2a09de9d1fdfbca127d744938b2bbdd98db5126d7e",
+      "bytes": 7425
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/cityGroundSurface.js",
+      "sha256": "047874b6f48a533b8e1460a05ac1112e5f0f27d9a7a87f26814bc4e9822c99cf",
+      "bytes": 16631
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/cityRouteMaterials.js",
+      "sha256": "ab5b20bf3233a6a7f2e43b1578bd355d5b1838c15c3bef02d975e259d0ce41ad",
+      "bytes": 3673
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/civicPathMask.js",
+      "sha256": "a6412d301a2c77408c1f9a383ffb4904c32ddb392d03cf4cd51f948750bdefee",
+      "bytes": 5447
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/doorstepStone.js",
+      "sha256": "2f7028cb4e4afee8c3d9d2d4dbeaa403b671245f486cfe3c025584dce96ca578",
+      "bytes": 1620
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/exteriorGrassColour.js",
+      "sha256": "4efc4fff66dc60c4aa92888dda00e06434795f6cfdba581d6b3c38fbe3a2c5d7",
+      "bytes": 353
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/exteriorGrassExclusions.js",
+      "sha256": "5d631dd9cfec182a908627e228b4f3d7418fce3892a1296108f12d55d7f88b88",
+      "bytes": 3872
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/gateAvenuePaving.js",
+      "sha256": "05737eba262bac087a8f1f1966ed06dff09c19e8c4784769206b2b76635fc5cb",
+      "bytes": 7395
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/groundMaterials.js",
+      "sha256": "017ee7472943bcf210fb96f303720adde911db841a21a9bfa1ee762d0fcfa145",
+      "bytes": 3884
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/harborGroundFinish.js",
+      "sha256": "424d3af334fa86bdc57381060aa565ede64c7c8c08ba11ec056409b5216cb1cf",
+      "bytes": 6066
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/mineralSurfaceTexture.js",
+      "sha256": "89068109ff57e1e1c7c0e61a303bcf3f8d1cf7a5e33f77d93da40c1c36e8a202",
+      "bytes": 3839
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/naturalGroundDetail.js",
+      "sha256": "b46ed69977ac6089304e86645c0e4e8d4ddbd5858669afccc86d623ef2af537d",
+      "bytes": 869
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/newCityGroundAtlasAsset.js",
+      "sha256": "51dcd14150dff874422e9c8c4d8ea0d2194df8ba7f58d06d8db5a626c810e20d",
+      "bytes": 2976
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/materials/potterSurfaceMaterials.js",
+      "sha256": "527beb4a6aa7be5a8d60fdbc92a7d94b5261c54929ef7b09dfbceef5f01b2da3",
+      "bytes": 2242
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/runtime/abstractMesh.pure.js",
+      "sha256": "1206575b3d846e05cf73942db63e099314db9b8817f6ed6eadd2eda74080e216",
+      "bytes": 136533
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/AcropolisBuiltMaterials.ts",
+      "sha256": "769593f55a3d1029ee1fdd63a961a761e71e72f56b0a48d142c543e154bceaa5",
+      "bytes": 12648
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/AcropolisCellaLighting.ts",
+      "sha256": "de909a41d857401710fe7e5633848f230bf28c05ad6ff366a37ef3a8894aec04",
+      "bytes": 2412
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/AcropolisLimestone.ts",
+      "sha256": "aa48f29df5a5dbbfc9b2131f0ead6513b52a398c02a239350ab4acaa8474e01e",
+      "bytes": 5738
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/AcropolisSacredOlive.ts",
+      "sha256": "9bfc5bafea6099c3c7689f9580eb31bd835fcbb624d598d1bb766c5de060d1a6",
+      "bytes": 2231
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/BabylonAcropolisShowcase.ts",
+      "sha256": "1fa96e495da85d870af54baa45b1b7ac3a8929a5aac2516f2afb9d65a0d01f1c",
+      "bytes": 24438
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/CaryatidGeometry.ts",
+      "sha256": "6e33ebe4988c10bc16b3044259a1a4dc272926ff6561629bde4b5db9f95944ca",
+      "bytes": 2647
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/ParthenonPigment.ts",
+      "sha256": "b49e54aa6334c453cc3a1bb9699648155ffd44a24e559d06701c3af3b0281ae7",
+      "bytes": 2304
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/core/renderCheck.js",
+      "sha256": "35e56687dd7e81215a31156523f4423214e2406c36b87ecfedaa8b5b125bfffa",
+      "bytes": 363
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/features/athenaStatue.js",
+      "sha256": "349d1aaa64249ec5a013812f5a7a7a31b7f39fbd37f267b414cec5a1086f005a",
+      "bytes": 8405
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/features/parthenonArchitecture.js",
+      "sha256": "b54081b507bf1915e976405efabbc2236da169b6a191bb351cc38a52cd88b1fe",
+      "bytes": 10169
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/acropolisRockMaterial.js",
+      "sha256": "14c8c1557f503b51908792a3a6425d25430b956a83aaeba23f7349931a4399a3",
+      "bytes": 9835
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/agoraArchitectureMaterials.js",
+      "sha256": "e1a4297be2b00a6db7a44e566d322556a2a0996e309201fefe2e9d8686067fb9",
+      "bytes": 2003
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/architecturalFinishMaps.js",
+      "sha256": "a802e77543277d7efb69511dbfc9adfb0c0e8705b9ed6274928934c7d6b76d97",
+      "bytes": 2356
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/atticGroundMaps.js",
+      "sha256": "67e3400ff81a6379b962c163f981fbb26876e258f2f62d93dbce4444bfec1a54",
+      "bytes": 1913
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/cityGroundAtlas.js",
+      "sha256": "fd215d85a1e1578ae7e548e937ba9dedf4b69435234e058156f498ac8e53d4c4",
+      "bytes": 2982
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/cityGroundAtlasAsset.js",
+      "sha256": "2c3143b701e4f16d687c42b610871bc758a380a3100a947223f97577e92eae0d",
+      "bytes": 3209
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/cityGroundAtlasLayout.js",
+      "sha256": "5148a38612c0554066681415ef1f3f74f2586717a788e0c42fed48b34f95939f",
+      "bytes": 202
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/cityGroundAtlasSource.js",
+      "sha256": "007df16d272f10d1f74f8f68ad23d548b0d7af7d8dbc98400813ec59842e0c33",
+      "bytes": 6992
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/cityGroundLife.js",
+      "sha256": "ee5c25e2fb4ab5093f42497d2bf27ea764ca5f7e48346cad56ae6656e93e0167",
+      "bytes": 1107
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/cityGroundSurface.js",
+      "sha256": "76a3c02c9d3f713c190e9b28cc37bfb5f3ed21469270c34fee3efedb26fda589",
+      "bytes": 17708
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/cityRouteMaterials.js",
+      "sha256": "239753bf5236345b041fcd05d86208fbc757b659ea9240f859522ed61922828a",
+      "bytes": 3638
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/civicPathMask.js",
+      "sha256": "e2ddae477fddb1426aecfd40f737e31179a6f0ac3a258aa57e0e0a9edd9bcd81",
+      "bytes": 6389
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/exteriorGrassColour.js",
+      "sha256": "4efc4fff66dc60c4aa92888dda00e06434795f6cfdba581d6b3c38fbe3a2c5d7",
+      "bytes": 353
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/exteriorGrassExclusions.js",
+      "sha256": "19028f5bdcce3165d97040929da5ce3f2d1e460d535b88bfedc8efe8bcb9e2cc",
+      "bytes": 4082
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/gateAvenuePaving.js",
+      "sha256": "fb031598bbf11a1052bd8b5f4206092bbe012aee5eebb47c0ea35956c696a7f5",
+      "bytes": 5909
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/mineralSurfaceTexture.js",
+      "sha256": "02bd635dd82d1914fdb6f7e8be4467e2f7b2a6a494ee5b63bba82172cbcc5e11",
+      "bytes": 1989
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/naturalGroundDetail.js",
+      "sha256": "b46ed69977ac6089304e86645c0e4e8d4ddbd5858669afccc86d623ef2af537d",
+      "bytes": 869
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/newCityGroundAtlasAsset.js",
+      "sha256": "b673c83b2f4b189e53532e254f15606584e40919fbb6bf2445abb100ded7fb30",
+      "bytes": 3217
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/packedEarthFinish.js",
+      "sha256": "751a02d5cf3bb3c6f96879915429e07a9fc1368c5ec798d00828aa27fa13764c",
+      "bytes": 1630
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/potterSurfaceMaterials.js",
+      "sha256": "cfd0f71c40416ec4901935baee7974a3b45a9eabda0e20cb251a852da71e45d6",
+      "bytes": 2923
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/materials/theatreApproachMaterial.js",
+      "sha256": "da3c8ed474d7baac3f47db1730b6ab9f9185144c8a52aa08800ba985a49dd44b",
+      "bytes": 1195
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/baseUrl.js",
+      "sha256": "9e0b094c2556203c9389d55d76eca88db4bcbe94e843556f97df5d5e9c5dc5b6",
+      "bytes": 2115
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/buildingCulling.js",
+      "sha256": "e2940d0765af1af1499f3466a94a57106a1e3659c3bc2cdd1f4c711bdedcbfb7",
+      "bytes": 2129
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/draco.js",
+      "sha256": "7363bb2e6521a22643e6cd999f6a2d26519d8937705e03f22b4624e80e3b5363",
+      "bytes": 3016
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/glbSafeLoader.js",
+      "sha256": "30a0dc07713345c8843938bb8b6517afc4c952c7081030bc95086aadf64860d8",
+      "bytes": 14279
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/ktx2.js",
+      "sha256": "b148b79fa20a17ad4b1e9c320e7c4ba8d8e4dc43779b2cdba75bfea00300caa4",
+      "bytes": 2926
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/propCulling.js",
+      "sha256": "6536b02e09f36e1f56837431bc170828caf1d59e64c10b51df26496edbba4fd3",
+      "bytes": 8367
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/staticRenderBatches.js",
+      "sha256": "f535dd0a53aaceb6ce96199f322d7660592786be1cc35b25af4affd7533c2ea1",
+      "bytes": 4819
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/textureBudget.js",
+      "sha256": "18ee7b8842cba9bd08e5c7dcecead07c56832d647192078f30cbea1570d23511",
+      "bytes": 14685
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/utils/TextureUtils.js",
+      "sha256": "d781a3e83c8a0fab28da419481d45e637f68c0ce454f4422fa65c8915f114ab8",
+      "bytes": 2124
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/academyGardenLayout.js",
+      "sha256": "0c99439bc885c71eb3757cb6b7615568c76cd323114dc121223a0b5c4bf0b53c",
+      "bytes": 2053
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/academyGroveLayout.js",
+      "sha256": "e0a860dbc1fb6aeb8de8796b7824ac38c58f97e4139fedadf5a250a89e960898",
+      "bytes": 777
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/acropolisCliffAnnex.js",
+      "sha256": "65fb0b184c4d7a73232c42432b3ae7d15a80d05a7fcd816cef5b34d83cccc123",
+      "bytes": 2009
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/acropolisLayout.js",
+      "sha256": "5f6d6dec96ff2167e90ff23d5514b486f77a7b5c3fbd0a84554be11a3da2dc73",
+      "bytes": 15194
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/cityCivicLayout.js",
+      "sha256": "530c60efa2193aadb7c1cfff28489c63ec7629d71868240d1a7f610c167ddad7",
+      "bytes": 597
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/cityDensityLayout.js",
+      "sha256": "f1e557b21d4c2dd9698f4689de8e6f68e5ab242cf313da7c20412aafbbe4e9aa",
+      "bytes": 8038
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/cityEdgeLayout.js",
+      "sha256": "14cb39647abb2efe4c3f2b61211ca39c8f9e6112b1705c7fcabdf1e7a0ec679a",
+      "bytes": 2202
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/cityGateAvenue.js",
+      "sha256": "63aa905b72d326f20cb1a25fc3d5c508af542cbe2d6d4712f0fadfb481fc3de8",
+      "bytes": 4228
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/cityGatesLayout.js",
+      "sha256": "b76bf2528d775e258a82209df9cd50285294fa1677895464b79331599a904b22",
+      "bytes": 5141
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/cityResidentialLayout.js",
+      "sha256": "bbaf52f44d7806aa5a04e3d5767f8fc974be91fc969df984c78f28f850192ea7",
+      "bytes": 12464
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/civicCentreLayout.js",
+      "sha256": "d63c97e87378234d79aa044acd1f76d315d5381d6582ebb1ffb9ca33ab9d8e5d",
+      "bytes": 1987
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/civicHarborAvenueLayout.js",
+      "sha256": "7d700e70fb46e6cedecbab90e295f815b23c4d0379a60751405e0b234588b64c",
+      "bytes": 1061
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/civicRoadEdges.js",
+      "sha256": "a9dea39efee6e256f55cf56e43bc1b1ef1942dd5fb47659aab37df9b60b5d583",
+      "bytes": 2295
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/collectorPilotPolicy.js",
+      "sha256": "f12ffa3a0fdc35361f49a8a6b8fcf6ddb08d803953baa523998e7f23bb23cec6",
+      "bytes": 421
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/countrysideLayout.js",
+      "sha256": "7e49f7c88822e0a4055e70f12ac23f5f782cc1304486c1b58a2f1018b63dacbf",
+      "bytes": 1030
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/courtGroundGeometry.js",
+      "sha256": "9ee472b04d4f659e4f20227033d0dc48ab100e38de3732a5bcac6e5c87293b52",
+      "bytes": 1901
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/courtyardEstateLayout.js",
+      "sha256": "1e21719a1f40fc90f067e37d121717945d0acf8f74d5e7497b100777936d72b4",
+      "bytes": 975
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/dipylonDistrictLayout.js",
+      "sha256": "5a4bb158fad7353c7d14c2bfec30999e875836781d7dffdfdf4812d602fbffe9",
+      "bytes": 3864
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/foliage.js",
+      "sha256": "bc4c3ee78cd7935121fa137b6afc449b3313a5ed108641c2b95b8b006e8f97bd",
+      "bytes": 15547
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/greatTheatre.js",
+      "sha256": "c0a02bf63934fd25776e99fe0589bb607818f3a270574c8aa285d2425d621056",
+      "bytes": 17624
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/greatTheatreLayout.js",
+      "sha256": "63eace6f3bf146e94f54f3ca7ae1c8222a47c13718060745fd86d2b57c4de788",
+      "bytes": 2632
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/groundSurfaceGeometry.js",
+      "sha256": "cde4d4a891e50f84a6368cb4ecf21f90f0a15bc0c0d08703ebd2e351bd613df7",
+      "bytes": 10786
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/groundSurfacePlan.js",
+      "sha256": "4c0380d39f646d4568571dec6b3872eded2fe52e62cea00de12a9efda4c68b1a",
+      "bytes": 6267
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/harborCoast.js",
+      "sha256": "3fdd435a7b27401fb1ea2c93b331df7339ce28a9e2fc60dad7afdcdf4f280e12",
+      "bytes": 2551
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/harborLayout.js",
+      "sha256": "0fda59ecccf81657118becb66b54edd7a2e4cc1b43530b390163c8d9533a9c85",
+      "bytes": 3174
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/harborPlacement.js",
+      "sha256": "db6c30b2123db39edd410606bea4a31605e22ace7346f420f108b3d1ad9e7b0a",
+      "bytes": 13071
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/hellenisticSanctuary.js",
+      "sha256": "0fad7777b68727f92f5aff74955f1fcb83d45d6e5dae6dba66471f51107122ce",
+      "bytes": 17413
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/largeCourtyardHouseLayout.js",
+      "sha256": "dc00898a441dea881974313adf426bd54afb968d58c2e8cad2b3b9ae6985b281",
+      "bytes": 1601
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/locations.js",
+      "sha256": "a67cfee710d1e1a1c242d9b9e2700b7349ed4387d7ca8016f2ea9910702d96be",
+      "bytes": 6441
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/lyceumLandscapeLayout.js",
+      "sha256": "fe212a79d92578e349689f646838f1c6565624a3afec43c041f26b1c15330c97",
+      "bytes": 3416
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/masonryGeometry.js",
+      "sha256": "520aaa45c86a6b2dfebd60a162328afe017c1e1e43bde9d4f7777fac5faf8de5",
+      "bytes": 850
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/neighbourhoodLayout.js",
+      "sha256": "950d8bb9d8b435286a80e9b2e6aa2d4bd9b4d42705d857b23d5c5862b0c79e7d",
+      "bytes": 22454
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAcropolisAscent.js",
+      "sha256": "a3eab102f4a5657490824e2297c3fddc28452e328931358bdc8327dd36e1d304",
+      "bytes": 10970
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAcropolisCourts.js",
+      "sha256": "e27e0eb450bd02b241899673e2ea56981c1610fea14d7438c8a056eaf4b5e991",
+      "bytes": 5772
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAcropolisElevation.js",
+      "sha256": "0a938683e4088b9dd295f0b26406f51bf86cdded0239bf689ada8aa5a1401bf4",
+      "bytes": 5468
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAcropolisLayout.js",
+      "sha256": "a33846d36f8cea5fefff4b2482cc1344211a9044784674892fa2bb76dcefc8d6",
+      "bytes": 3789
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAcropolisNorthernApproaches.js",
+      "sha256": "9792665f3d03bd7031ffdca7608e5264ad5b6f7840ee352c71fd068458639dc4",
+      "bytes": 8702
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAgoraLayout.js",
+      "sha256": "5e54a340b03ca821931c8c6e3491ae9ea95f7f11a66cc060045cf4cdbb3a909b",
+      "bytes": 3746
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAthensAcropolis.js",
+      "sha256": "ae680d8ff5bb109dcf719ccacb982f45f651b8289f3f6a21b3ad56da054d9d74",
+      "bytes": 34495
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newAthensPlan.js",
+      "sha256": "ce52e21e4e7e0f58e78e98c59993652cbb655212598fe25812b692a8a3484105",
+      "bytes": 7947
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/newParthenonCollision.js",
+      "sha256": "ac71fd6ba03ef57125e0a6d91ab25cf31ec8cedd85e67f635f7122a2fb3050a7",
+      "bytes": 10243
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/parthenonCellaFixtures.js",
+      "sha256": "7096f11ab56ab08b85a96da15ad975b911d331cbd81fc435f0bf0d3821e986f9",
+      "bytes": 7558
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/parthenonDoorwayGeometry.js",
+      "sha256": "76273ab4f37f8ecf5babc6a0d60f38fee11869f80e881a128097801d6729092e",
+      "bytes": 2729
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/parthenonInterior.js",
+      "sha256": "7e8c3372ba4beef19c679a3837e874ae7740f053211f555c26b8e24d29596481",
+      "bytes": 4050
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/parthenonInteriorLayout.js",
+      "sha256": "4ab7f82278fafc8037b16b4fb42ee0c1e800b04c265ca7d6ec718f6b611518ae",
+      "bytes": 1568
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/philosophyDistrictLayout.js",
+      "sha256": "d518bc006cad52506a488fe66716cbddf6d655c9b4a8332408e2c8f669f1c364",
+      "bytes": 4565
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potterAnimator.js",
+      "sha256": "aa7ff445b5d8a3860956dbfa621f898be0a17c3e48f2658c5ade31da103f100f",
+      "bytes": 4820
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potterController.js",
+      "sha256": "bb48807c7eb402e634c1781728493832adee0aa3b0e2ee59429f6dcbf43d39de",
+      "bytes": 1456
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potterQuarterLayout.js",
+      "sha256": "5d31265b3efd4277f594d41094baee861dc63f9bb96d093e32dedbd340b229f1",
+      "bytes": 7572
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potterSite.js",
+      "sha256": "386ef6b442b0f5aea486809f8f01ece36c4ce2effcb210e391364a6bb4217f4a",
+      "bytes": 737
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potterWorkCycle.js",
+      "sha256": "c22c5b69171092ccd01bfbaf7ea81b44db70b8ad9f353cdd92293e88b71bce0a",
+      "bytes": 734
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potterYardLayout.js",
+      "sha256": "344723518b04a63baea87d921e9fde5a243c7bedeb0d2ecb9afaec246e6a4008",
+      "bytes": 2304
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potteryCollection.js",
+      "sha256": "92f5d8ee0efd6c8bc4aabf96b76cb5f576b539a03c4c08679f96798e4c3141c0",
+      "bytes": 2252
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/potteryWorkshop.js",
+      "sha256": "9d192862faba0967161b8150b235798ccc9170e23abf89cb59f5356d78aba2f8",
+      "bytes": 8938
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/precinctLifeLayout.js",
+      "sha256": "1f170c1c863b6562c9ea49570cbd86fe929305372a9fdcb9a03831922a5fa37f",
+      "bytes": 383
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/residentialFacades.js",
+      "sha256": "373a2fbe53387f3a7b0b34285feceb3fdfc7d5beb447ee62fbc22da513b716f1",
+      "bytes": 7024
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/royalStoaLayout.js",
+      "sha256": "edd45f6489e01dedf02bd7bc51d525afb0ce3103ff57c27da69a99fe9489ee7e",
+      "bytes": 3100
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/sacredPreparation.js",
+      "sha256": "58dc50e0a65f11bd3fc0511bf7f82a41ca6fbecffd420f5d0506f189c9f26a14",
+      "bytes": 3935
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/sacredWayAscentDressing.js",
+      "sha256": "564ae9b3eba43e11e71984b5714dd2a0f46da3d4b17f0015a277a00e959a664c",
+      "bytes": 13072
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/seaLevelState.js",
+      "sha256": "095c29a5d6bc5567a3945e82861967a73bdaa25b833ccc10c4935f2292cea494",
+      "bytes": 1366
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/southernAcropolisCourt.js",
+      "sha256": "1bcc36ddd8d61921de817df84681ae1bcbf05cf796f4483a23fc56c597ef8783",
+      "bytes": 13754
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/southStoaLayout.js",
+      "sha256": "e2436e5cec96a0fe97326b27836595e19024a172fddedf41cd27762798f91a46",
+      "bytes": 664
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/streetWearContours.js",
+      "sha256": "24cde808eb46bb32ece35575c057716f56e2598f353bd00140bc958b005ebd32",
+      "bytes": 1764
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/summitTreasury.js",
+      "sha256": "8d2730b282f53578873b3afaada4e49a42998cec11411aac8e5177f3f72089a2",
+      "bytes": 5093
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/westernHouseholdLayout.js",
+      "sha256": "77fe90baad57bb3007d5c82a6c64bd5046e596e646186af52d84e557d426cf7d",
+      "bytes": 2392
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/reference/world/zeusStoaLayout.js",
+      "sha256": "47bc92280ed601a194c0431b144881715143bf1036b8dcd56f527b1a9df00dbc",
+      "bytes": 4079
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/SanctuaryAssets.ts",
+      "sha256": "a85c187a3430dea4a85c6885565a160cca2c34bea83530dac5c0d38308b54ab3",
+      "bytes": 3214
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/sanctuary/TerminalGatewayRamp.ts",
+      "sha256": "663dbda5e8342f33ed09c5a4ecb244cd37ab38ce06123f29e2855358086781e7",
+      "bytes": 2425
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/ui/loadingScreen.js",
+      "sha256": "df893c1dff1f3ec7d21a01640fe7d972520207901dceec6defca520b0bb771b8",
+      "bytes": 9822
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/utils/baseUrl.js",
+      "sha256": "9e0b094c2556203c9389d55d76eca88db4bcbe94e843556f97df5d5e9c5dc5b6",
+      "bytes": 2115
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/utils/buildingCulling.js",
+      "sha256": "e2940d0765af1af1499f3466a94a57106a1e3659c3bc2cdd1f4c711bdedcbfb7",
+      "bytes": 2129
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/utils/env.js",
+      "sha256": "5a25bff6f1c4aad4bd0cb519ba4ba3aa5bcef18a74686a823d8a9abc027d0109",
+      "bytes": 932
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/utils/propCulling.js",
+      "sha256": "e292c00f93bd4298b1290991d134d3f651feadab31aac7ea5c0547d2cc00581d",
+      "bytes": 8365
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/utils/staticRenderBatches.js",
+      "sha256": "3a04d645e63e6487058b2b0c70b23e26ac2a491e8960453c498b7e2a2a5d3f96",
+      "bytes": 4368
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/utils/TextureUtils.js",
+      "sha256": "d781a3e83c8a0fab28da419481d45e637f68c0ce454f4422fa65c8915f114ab8",
+      "bytes": 2124
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/academyGardenLayout.js",
+      "sha256": "0c99439bc885c71eb3757cb6b7615568c76cd323114dc121223a0b5c4bf0b53c",
+      "bytes": 2053
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/academyGroveLayout.js",
+      "sha256": "e0a860dbc1fb6aeb8de8796b7824ac38c58f97e4139fedadf5a250a89e960898",
+      "bytes": 777
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/acropolisFlankRock.js",
+      "sha256": "16f0eb72aad383a4f1366440519bb4a5f8ad726ff7895264b9cd75412717b8c6",
+      "bytes": 1080
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/acropolisLayout.js",
+      "sha256": "5f6d6dec96ff2167e90ff23d5514b486f77a7b5c3fbd0a84554be11a3da2dc73",
+      "bytes": 15194
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/acropolisSouthernEnvelope.js",
+      "sha256": "f380045ebeabccbced3cbfaef269b1741a79ec491422dd3f3badc9f652f34c16",
+      "bytes": 2173
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/buildingSpawner.js",
+      "sha256": "ebbe2e09984519a509fe28523f74ef8bb31a05ed2e60ba336e64d45bc7364661",
+      "bytes": 29372
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/cityCivicLayout.js",
+      "sha256": "530c60efa2193aadb7c1cfff28489c63ec7629d71868240d1a7f610c167ddad7",
+      "bytes": 597
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/cityDensityLayout.js",
+      "sha256": "f1e557b21d4c2dd9698f4689de8e6f68e5ab242cf313da7c20412aafbbe4e9aa",
+      "bytes": 8038
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/cityEdgeLayout.js",
+      "sha256": "14cb39647abb2efe4c3f2b61211ca39c8f9e6112b1705c7fcabdf1e7a0ec679a",
+      "bytes": 2202
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/cityGateAvenue.js",
+      "sha256": "389727869357d6b3a05109a48b2ec7bbb274bc276564b971abb912681ffb7488",
+      "bytes": 12430
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/cityGatesLayout.js",
+      "sha256": "7e16c38fbec40bac6d44dd65e0a23cd93afc0b71a1adb18c51c5aca918e92f3f",
+      "bytes": 4937
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/cityResidentialLayout.js",
+      "sha256": "bbaf52f44d7806aa5a04e3d5767f8fc974be91fc969df984c78f28f850192ea7",
+      "bytes": 12464
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/civicCentreLayout.js",
+      "sha256": "d63c97e87378234d79aa044acd1f76d315d5381d6582ebb1ffb9ca33ab9d8e5d",
+      "bytes": 1987
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/civicHarborAvenue.js",
+      "sha256": "b3a14452671f264001b7f145cf5baba3e0a240a1f8f75f0ee846d5e1b7414e1f",
+      "bytes": 3665
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/civicHarborAvenueLayout.js",
+      "sha256": "a10e02dd4036de62a7192bdce4e023cc68052fc6e5006e8127b70ab04a42b857",
+      "bytes": 2447
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/civicRoadEdges.js",
+      "sha256": "819e62168296108220938bd005f72df24439ddf3277808376e01e0008955418a",
+      "bytes": 1948
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/coastalZones.js",
+      "sha256": "ada5ac6a7293814c21bb13fafbd0a6023a3b097d446f9e27dfa85e8509e363ba",
+      "bytes": 8942
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/collectorPilotPolicy.js",
+      "sha256": "f12ffa3a0fdc35361f49a8a6b8fcf6ddb08d803953baa523998e7f23bb23cec6",
+      "bytes": 421
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/countrysideLayout.js",
+      "sha256": "7e49f7c88822e0a4055e70f12ac23f5f782cc1304486c1b58a2f1018b63dacbf",
+      "bytes": 1030
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/courtGroundGeometry.js",
+      "sha256": "9ee472b04d4f659e4f20227033d0dc48ab100e38de3732a5bcac6e5c87293b52",
+      "bytes": 1901
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/foliage.js",
+      "sha256": "faf825613b815da61a668f46d79c60087eb5dfd2ef430abcd92669ca4afd49c0",
+      "bytes": 20317
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/greatTheatreLayout.js",
+      "sha256": "8e9d994fd6c05b7069d73b6a9b66dbeae155c42ca1c2cf3b2782927f4d709cce",
+      "bytes": 2328
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/groundContacts.js",
+      "sha256": "acad9b00637262897d53b75ce893e0f6f88768b75592f89d73d4949d8c4e35c4",
+      "bytes": 4845
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/groundSurfaceGeometry.js",
+      "sha256": "cde4d4a891e50f84a6368cb4ecf21f90f0a15bc0c0d08703ebd2e351bd613df7",
+      "bytes": 10786
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/groundSurfacePlan.js",
+      "sha256": "4c0380d39f646d4568571dec6b3872eded2fe52e62cea00de12a9efda4c68b1a",
+      "bytes": 6267
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harbor.js",
+      "sha256": "9abaee5638aaa882a580f8a87779ca7516fb9ba635375bc01ee9f8f2b3287e3b",
+      "bytes": 68560
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harborCoast.js",
+      "sha256": "3fdd435a7b27401fb1ea2c93b331df7339ce28a9e2fc60dad7afdcdf4f280e12",
+      "bytes": 2551
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harborLayout.js",
+      "sha256": "0fda59ecccf81657118becb66b54edd7a2e4cc1b43530b390163c8d9533a9c85",
+      "bytes": 3174
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harborNavalSheds.js",
+      "sha256": "6dcfe2a35ed4fdf51937d36363a7d18a9b6952d5cb640b7dfb3cf8fb93e5153f",
+      "bytes": 3579
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harborPlacement.js",
+      "sha256": "db6c30b2123db39edd410606bea4a31605e22ace7346f420f108b3d1ad9e7b0a",
+      "bytes": 13071
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harborShips.js",
+      "sha256": "eed2b42a5d4d4f6e652807cd221fd71165118ce5bc155d8b3e61961e3a775654",
+      "bytes": 29465
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harborStorefront.js",
+      "sha256": "1c1a9d058295f5aac8613a109628a8a94ca8fd5e714fd3b2534edc8490c9fa60",
+      "bytes": 2517
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harborTerrainRefinement.js",
+      "sha256": "5b787b2d3ed79845f1403632dd3f5d050f73d69d6ee9f34448df91f994ecb6d4",
+      "bytes": 3073
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/harbourTradeGrade.js",
+      "sha256": "a7b6da7260e3d052933ca67efb5f0bc08cec5bf9301f0e28585603977a3d4701",
+      "bytes": 637
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/largeCourtyardHouseLayout.js",
+      "sha256": "715c309cca2c6840d1360a0702730822a57b4a433613760c67a6714b47198c20",
+      "bytes": 1398
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/livingAgoraLayout.js",
+      "sha256": "a940afeec69c9d8cfa9b7d5604d749bb8dc63fa77eee3c0a557051efc6772f4a",
+      "bytes": 7294
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/locations.js",
+      "sha256": "a67cfee710d1e1a1c242d9b9e2700b7349ed4387d7ca8016f2ea9910702d96be",
+      "bytes": 6441
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/lyceumLandscapeLayout.js",
+      "sha256": "fe212a79d92578e349689f646838f1c6565624a3afec43c041f26b1c15330c97",
+      "bytes": 3416
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/materials.js",
+      "sha256": "c8a04415d8b20721a896d0d8d40d945dacb5407021b10439206bac9f6bca54d7",
+      "bytes": 5818
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/merchantHarborStore.js",
+      "sha256": "8e0d8ae308d8ee2a6da8b80c2d4f9e518ad409d8c1e0dd96fbd7720f2901c7c9",
+      "bytes": 11627
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/neighbourhoodLayout.js",
+      "sha256": "950d8bb9d8b435286a80e9b2e6aa2d4bd9b4d42705d857b23d5c5862b0c79e7d",
+      "bytes": 22454
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/newAcropolisLayout.js",
+      "sha256": "cc33a29a98fad9736c9d95abcf0a6534cb606682ee66aa5693957e8247f4300a",
+      "bytes": 3688
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/newAgoraLayout.js",
+      "sha256": "0841b166cec95d82e9365448e3acb6600d8a750f206f1db50cf5e8e204f48a5f",
+      "bytes": 3828
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/newAthensPlan.js",
+      "sha256": "d71df019ad732e0527ceee8822614e87c316e88ba545786da4779f4507da21ea",
+      "bytes": 7947
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/philosophyDistrictLayout.js",
+      "sha256": "9d6c01b4c56fc286f645c1162967b6d7f2cc61a1450de9cd3acbcd0b4931faf8",
+      "bytes": 4327
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/potterDistrictLayout.js",
+      "sha256": "2f0435574d88b42e5b13ef6024750127b05f7753a09064ebbe9c71587548b911",
+      "bytes": 2762
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/potterQuarterLayout.js",
+      "sha256": "5d31265b3efd4277f594d41094baee861dc63f9bb96d093e32dedbd340b229f1",
+      "bytes": 7572
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/potterSite.js",
+      "sha256": "386ef6b442b0f5aea486809f8f01ece36c4ce2effcb210e391364a6bb4217f4a",
+      "bytes": 737
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/potterYardLayout.js",
+      "sha256": "344723518b04a63baea87d921e9fde5a243c7bedeb0d2ecb9afaec246e6a4008",
+      "bytes": 2304
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/precinctLifeLayout.js",
+      "sha256": "1f170c1c863b6562c9ea49570cbd86fe929305372a9fdcb9a03831922a5fa37f",
+      "bytes": 383
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/renderLayers.js",
+      "sha256": "99fc72284d4d02a03a7c590bdef6abf0136f27ea4d026d87b6b60b954e4803a7",
+      "bytes": 103
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/residentialFacades.js",
+      "sha256": "d0b8d5917f5b903604ebfd4ce7d3d5a44f49a1f6c55fbf99647390d5a4faf1ee",
+      "bytes": 6736
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/residentialGrounding.js",
+      "sha256": "dd6c64798c6ea9cfcebaf4d47e6ef585a382d4fc283fcda2b5c3a9928b8c4573",
+      "bytes": 4814
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/royalStoaLayout.js",
+      "sha256": "edd45f6489e01dedf02bd7bc51d525afb0ce3103ff57c27da69a99fe9489ee7e",
+      "bytes": 3100
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/seaLevelState.js",
+      "sha256": "095c29a5d6bc5567a3945e82861967a73bdaa25b833ccc10c4935f2292cea494",
+      "bytes": 1366
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/southStoaLayout.js",
+      "sha256": "e2436e5cec96a0fe97326b27836595e19024a172fddedf41cd27762798f91a46",
+      "bytes": 664
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/streetWearContours.js",
+      "sha256": "24cde808eb46bb32ece35575c057716f56e2598f353bd00140bc958b005ebd32",
+      "bytes": 1764
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/terrain.js",
+      "sha256": "e397163e616967fd5e99785731634d63f81e356dc76635e3ae95ae1438cf46b1",
+      "bytes": 36456
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/terrainHeight.js",
+      "sha256": "19d349efd7723f63702ba92c7f17c40020cd52964a158f8604520205eb343e9c",
+      "bytes": 4182
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/terrainValidation.ts",
+      "sha256": "d116e611e9a05347a3c1893a5909bfb6a4e32e83a5490a706a288ff5096a5dca",
+      "bytes": 10656
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/ui/crosshair.js",
+      "sha256": "9291556c1ace487a33388a3d321e9e7a847af0b4f0519068d9e8c5af6c4434c3",
+      "bytes": 1232
+    },
+    {
+      "path": "uninstalled/private-streaming-working-source/world/zeusStoaLayout.js",
+      "sha256": "47bc92280ed601a194c0431b144881715143bf1036b8dcd56f527b1a9df00dbc",
+      "bytes": 4079
+    },
+    {
+      "path": "uninstalled/private-living-harbour-overlay/src/core/BabylonAgoraActivity.ts",
+      "sha256": "c9ca4a8de874289f5e2f77d288d6a45517572c2674e1e82da38af263de975238",
+      "bytes": 23901
+    },
+    {
+      "path": "uninstalled/private-living-harbour-overlay/src/core/BabylonAthensRedesign.ts",
+      "sha256": "2f0ec27281be347344e2125aca06336d2287231e4749a605c85e9bc2cfc5cee2",
+      "bytes": 55531
+    },
+    {
+      "path": "uninstalled/private-living-harbour-overlay/src/core/BabylonMarketDistrict.ts",
+      "sha256": "b7624875c3ec0eab417e9cc0305226106674f7f281b8bcc299c42f8804588b69",
+      "bytes": 8924
+    },
+    {
+      "path": "uninstalled/private-living-harbour-overlay/src/world/harborLayout.js",
+      "sha256": "7df918682235cf31c186dc2a0dc8447d69a19452f289bd496906d08fd43adbd7",
+      "bytes": 3177
+    },
+    {
+      "path": "uninstalled/private-living-harbour-overlay/src/world/livingAgoraLayout.js",
+      "sha256": "bd3f4640fae7c4ac296bf845e940db63eb14a5770bc5de28fb3a18154d7a3923",
+      "bytes": 7979
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-recipe/PREP.json",
+      "sha256": "9bca06bd7d9c7bed61b848aca230c7af6e3c4582d0dced516dc776e4a5ebcc11",
+      "bytes": 5861
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-recipe/PRIVATE-HANDOFF.json",
+      "sha256": "d204c02cb2b60c3710b3f1fb8d02011cd2cc311d7414649cfb01b2728fbe32b1",
+      "bytes": 7428
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-recipe/owner-delta.patch",
+      "sha256": "14f353e99bd3fb073e4157e3bdad722312ecfff80d80a8f027ad5e8cec27a0b4",
+      "bytes": 35292
+    },
+    {
+      "path": "uninstalled/private-calm-chariot-recipe/build.mjs",
+      "sha256": "9415a1cfeaf76ec262d0c422b653bd281e077f3803d1b03be67a56bacb223fc6",
+      "bytes": 4837
+    }
+  ],
+  "buildUsesTheseFiles": false,
+  "originalsRetained": true
+}

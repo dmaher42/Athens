@@ -1,0 +1,13 @@
+# Recovered source and release audit findings
+
+This transfer reused the 26 November 2026 source audit from the existing **Audit Athens Source Builds** chat and its retained `cloud-build-prep-4997ad4f0c7f` kit. It did not rerun the earlier extensive browser, route or performance suites.
+
+That audit established that the general Windows working folder was not a self-contained current game source tree. The then-selected Athens 4997ad4f0c7f depended on a retained d7295243de8c native parent plus five frozen source owners and exact patches. The retained 397-file city-memory snapshot was historical foundation, requiring later overlays and a private SDK source overlay. Sparta 599f3f655732 had independently versioned native/follow/HUD/donkey/ground modules. Some models/audio had incomplete redistribution evidence. Those findings explain the native source chain, separate historical recovery, unchanged Sparta destination and authenticated draft asset delivery used here.
+
+Current file inspection advanced the source identity to **f0f663a64708**. `selected-windows-release.json`, `athens-release.json` and the final installation record agree on manifest SHA 57a666969e1a9e94181efd9111818df7e42c26a062d4cbfab5e23814e47e0fbc and entry SHA 4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1. The captured chain recovers every subsequent selected programme through 24 stages, including the two-tree contact correction, obsolete Old Council seating-probe removal and final Acropolis material/entrance changes. Original recipes, source graphs, inverse checks and installation receipts are under the neighbouring provenance directories.
+
+The current release's prior normal-launch and walking/chariot evidence is retained in `stages/acropolis-recessed-entrance/`. This is earlier local release QA, not a new cloud launch claim. Owner artistic acceptance remains distinct from technical QA.
+
+The older continuation kit targeted fe29f4220f24 and contained only a portable release bridge. It was used for the unchanged registry/managed selection and explicit HTTPS-origin adapter design, not treated as a current source tree or installed over the game.
+
+The source-only clean cloud run at commit 234870a18f88968e8d3c606d6e0f4597cfed3997 installed pinned dependencies, verified all 118 frozen inputs, recompiled the recovered helper graphs, executed all 24 stages, and reproduced the exact installed entry. Its machine-readable result is summarised in `CLOUD-VALIDATION.json`. Required input transfer and full scene launch are separately reported; an exact entry hash alone does not establish that a cloud game launched.

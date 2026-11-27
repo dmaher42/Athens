@@ -1,0 +1,26 @@
+{
+  "repository": "https://github.com/dmaher42/Athens",
+  "branch": "cloud/authoritative-f0f663a64708",
+  "sourceCommit": "234870a18f88968e8d3c606d6e0f4597cfed3997",
+  "previousMainCommit": "6cf306b60617d6cca8abd5f9c49a0fd33092f11d",
+  "rollbackTag": "rollback/cloud-before-installed-sync-20261128-6cf306b",
+  "mainChanged": false,
+  "draftRelease": {
+    "id": 461077818,
+    "tag": "migration/athens-f0f663a64708",
+    "draft": true,
+    "htmlURL": "https://github.com/dmaher42/Athens/releases/tag/untagged-18a3f729ee694fb65359",
+    "anonymousAPIAccessHTTPStatus": 404,
+    "assets": [
+      { "id": 802111543, "name": "athens-f0f663a64708-required-inputs.tar", "bytes": 788418560, "state": "uploaded", "githubSHA256": "f172600ac48dda16ed23d212ee219170e9d2648354a475283fa69395c0e07af1" },
+      { "id": 802111545, "name": "athens-source-recovery-20261128.tar", "bytes": 7546880, "state": "uploaded", "githubSHA256": "83c08df331a4b9845840c73b8a407e6767dbc7a29a4231820baf844a6658161c" },
+      { "id": 802111544, "name": "athens-uninstalled-working-source-20261128.zip", "bytes": 6676646, "state": "uploaded", "githubSHA256": "5f43f53d935054cb86c0b9afce221883459e2b146533d76932909e29b0e9d166" },
+      { "id": 802133262, "name": "athens-source-preservation-supplement-20261128.tar", "bytes": 5703680, "state": "uploaded", "githubSHA256": "d13a7d12535a53a25d78024730b6364d6e3de6c596679552959594ef50da58b6" }
+    ]
+  },
+  "assetDigestCheck": "Every GitHub-returned SHA256 agrees with its separately recorded local archive SHA256",
+  "newRepositoryCreated": false,
+  "websitePublished": false,
+  "windowsAthensSelectorChanged": false,
+  "localGameCompilationPerformed": false
+}

@@ -1,0 +1,26 @@
+{
+  "verifiedCommit": "234870a18f88968e8d3c606d6e0f4597cfed3997",
+  "environment": "Existing Athens Codex Cloud environment",
+  "cloudChat": "Set up Athens",
+  "checkout": "/workspace/Athens-authoritative",
+  "nodeVersion": "24.22.3",
+  "npmCiPassed": true,
+  "frozenInputVerification": { "passed": true, "files": 118 },
+  "entryReproduction": {
+    "passed": true,
+    "stages": 24,
+    "release": "f0f663a64708",
+    "sha256": "4a2d46ccf26524fa66c075cd675b6fba75343406ef810dfbe5b3d41db355aac1",
+    "wholeWorldTypeScriptBuild": false
+  },
+  "cloudResultFile": "/workspace/athens-migration/validation-234870a/RESULT.json",
+  "cloudEntryEvidence": "/workspace/athens-migration/validation-234870a/ENTRY-VERIFICATION.json",
+  "fullAssetBuild": "Blocked before download: cloud proxy CONNECT HTTP 403 for api.github.com",
+  "draftReleaseAuthentication": "Not yet verified from Cloud",
+  "servedVersionCheck": "Not run pending private asset access",
+  "browserSceneLaunch": "Not run pending private asset access",
+  "networkChange": "Prepared for owner review/save in existing Cloud setup settings",
+  "windows5189Modified": false,
+  "gameWebsitePublished": false,
+  "uninstalledWorkIncludedInBuild": false
+}
